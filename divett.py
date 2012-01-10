@@ -1,5 +1,4 @@
-from dolfin import Mesh, Expression
-from dolfin.cpp import Rectangle
+from dolfin import * 
 from math import exp, sqrt, pi
 
 import sw
@@ -38,3 +37,21 @@ mesh = Rectangle(0, 0, basin_x, basin_y, nx, ny)
 mesh.order()
 mesh.init()
 
+class Left(SubDomain):
+      def inside(self, x, on_boundary):
+           return near(x[0], 0.0)
+
+class Right(SubDomain):
+      def inside(self, x, on_boundary):
+           return near(x[0], basin_x)
+
+# Initialize sub-domain instances
+left = Left()
+right = Right()
+
+# Initialize mesh function for boundary domains
+boundaries = FacetFunction("uint", mesh)
+boundaries.set_all(0)
+left.mark(boundaries, 1)
+right.mark(boundaries, 2)
+ds = Measure("ds")[boundaries]

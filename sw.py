@@ -81,7 +81,7 @@ def bdmp1dg(mesh):
 
     return W
 
-def construct_shallow_water(W,params):
+def construct_shallow_water(W,ds,params):
     """Construct the linear shallow water equations for the space W(=U*H) and a
     dictionary of parameters params."""
     # Sanity check for parameters.
@@ -98,6 +98,10 @@ def construct_shallow_water(W,params):
 
     # Divergence term.
     Ct=-inner(u,grad(q))*dx+inner(avg(u),jump(q,n))*dS
+    # Add a weak dirichlet boundary condition 
+    Ct+=inner(u,q*n)*ds(1)
+    rhs_contr=inner(Constant("-1.0")*n,q*n)*ds(1)
+
     #Ct=div(u)*q*dx
     # Pressure gradient operator
     C=(params["g"]*params["depth"])*\
@@ -113,9 +117,9 @@ def construct_shallow_water(W,params):
         print "big spring active: ", params["big_spring"]
         C+=inner(v,n)*inner(u,n)*params["big_spring"]*ds
 
-    return (M, C+Ct+F)
+    return (M, C+Ct+F, rhs_contr)
 
-def timeloop_theta(M, G, state, params, annotate=True):
+def timeloop_theta(M, G, rhs_contr, state, params):
     '''Solve M*dstate/dt = G*state using a theta scheme.'''
     
     A=M+params["theta"]*params["dt"]*G
@@ -149,7 +153,7 @@ def timeloop_theta(M, G, state, params, annotate=True):
     while (t < params["finish_time"]):
         t+=dt
         step+=1
-        rhs=action(A_r,state)
+        rhs=action(A_r,state)+rhs_contr
         
         # Solve the shallow water equations.
         solve(A==rhs, tmpstate)
