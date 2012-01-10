@@ -1,20 +1,20 @@
-import kelvin_new as kelvin
+import divett
 import sw
 from dolfin import *
 
 
-W=sw.p1dgp2(kelvin.mesh)
+W=sw.p1dgp2(divett.mesh)
 
 state=Function(W)
 
-state.interpolate(kelvin.InitialConditions())
+state.interpolate(divett.InitialConditions())
 
-kelvin.params["basename"]="p1dgp2"
-kelvin.params["finish_time"]=kelvin.params["dt"]*10
-kelvin.params["finish_time"]=kelvin.params["dt"]*2
-kelvin.params["dump_period"]=1
+divett.params["basename"]="p1dgp2"
+divett.params["finish_time"]=divett.params["dt"]*10
+divett.params["finish_time"]=divett.params["dt"]*2
+divett.params["dump_period"]=1
 
-M,G=sw.construct_shallow_water(W,kelvin.params)
+M,G=sw.construct_shallow_water(W,divett.params)
 
-state = sw.timeloop_theta(M,G,state,kelvin.params)
+state = sw.timeloop_theta(M,G,state,divett.params)
 
