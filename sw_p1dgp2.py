@@ -10,8 +10,8 @@ state=Function(W)
 state.interpolate(divett.InitialConditions())
 
 divett.params["basename"]="p1dgp2"
-divett.params["finish_time"]=60*60*1.24 # One tidal cycle
-divett.params["dt"]=2*60
+divett.params["finish_time"]=5#60*60*1.24 # One tidal cycle
+divett.params["dt"]=0.02#2*60
 divett.params["dump_period"]=1
 
 M,G,rhs_contr=sw.construct_shallow_water(W,divett.ds,divett.params)

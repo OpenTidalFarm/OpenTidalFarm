@@ -26,7 +26,7 @@ class InitialConditions(Expression):
     def __init__(self):
         pass
     def eval(self, values, X):
-        values[0]=0
+        values[0]=0.
         values[1]=0.
         values[2]=0.
     def value_shape(self):
