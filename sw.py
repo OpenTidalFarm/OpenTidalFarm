@@ -98,20 +98,24 @@ def construct_shallow_water(W,ds,params):
 
     # Divergence term.
     Ct=-inner(u,grad(q))*dx+inner(avg(u),jump(q,n))*dS
-    # Add a weak dirichlet boundary condition 
-    #Ct+=inner(u/2,q*n)*ds(1)
-    Ct+=inner(u,q*n)*ds(2)
-    uf = Expression("sqrt(g/depth)*cos(t)", t=0., g=params["g"], depth=params["depth"])
-    rhs_contr=inner(uf*n,q*n)*ds(1)
+
+    # The contributions of the Flather boundary condition on the left hand side
+    ufr = Expression("sqrt(g/depth)*cos(t)", t=params["current_time"], g=params["g"], depth=params["depth"])
+    rhs_contr=inner(ufr*n,q*n)*ds(1)
+    Ct+=inner(h,q)*ds(1)
+    # The contributions of the Flather boundary condition on the right hand side
+    ufl = Expression("sqrt(g/depth)*cos(-t)", t=params["current_time"], g=params["g"], depth=params["depth"])
+    rhs_contr+=inner(ufl*n,q*n)*ds(2)
+    Ct+=inner(h,q)*ds(2)
+
     #rhs_contr=inner(Constant("-1.")*n,q*n)*ds(2)
 
     #Ct=div(u)*q*dx
     # Pressure gradient operator
     C=(params["g"]*params["depth"])*\
         inner(v,grad(h))*dx+inner(avg(v),jump(h,n))*dS
-    #C+=inner(v,h*n)*ds(1)
-    #C+=inner(v,h*n)*ds(2)
-    #rhs_contr=inner(v,Constant("-0.5")*n)*ds(1)
+    C+=inner(v,h*n)*ds(1)
+    C+=inner(v,h*n)*ds(2)
 
     try:
         # Coriolis term
@@ -123,9 +127,9 @@ def construct_shallow_water(W,ds,params):
         print "big spring active: ", params["big_spring"]
         C+=inner(v,n)*inner(u,n)*params["big_spring"]*ds
 
-    return (M, C+Ct+F, rhs_contr, uf)
+    return (M, C+Ct+F, rhs_contr, ufl, ufr)
 
-def timeloop_theta(M, G, rhs_contr, uf, state, params):
+def timeloop_theta(M, G, rhs_contr, ufl, ufr, state, params):
     '''Solve M*dstate/dt = G*state using a theta scheme.'''
     
     A=M+params["theta"]*params["dt"]*G
@@ -158,7 +162,8 @@ def timeloop_theta(M, G, rhs_contr, uf, state, params):
 
     while (t < params["finish_time"]):
         t+=dt
-        uf.t=t # Update time for the Boundary condition expression
+        ufl.t=t # Update time for the Boundary condition expression
+        ufr.t=t # Update time for the Boundary condition expression
         step+=1
         rhs=action(A_r,state)+params["dt"]*rhs_contr
         
