@@ -101,7 +101,8 @@ def construct_shallow_water(W,ds,params):
     # Add a weak dirichlet boundary condition 
     #Ct+=inner(u/2,q*n)*ds(1)
     Ct+=inner(u,q*n)*ds(2)
-    rhs_contr=inner(Constant("1.")*n,q*n)*ds(1)
+    uf = Expression("sqrt(g/depth)*cos(t)", t=0., g=params["g"], depth=params["depth"])
+    rhs_contr=inner(uf*n,q*n)*ds(1)
     #rhs_contr=inner(Constant("-1.")*n,q*n)*ds(2)
 
     #Ct=div(u)*q*dx
@@ -122,9 +123,9 @@ def construct_shallow_water(W,ds,params):
         print "big spring active: ", params["big_spring"]
         C+=inner(v,n)*inner(u,n)*params["big_spring"]*ds
 
-    return (M, C+Ct+F, rhs_contr)
+    return (M, C+Ct+F, rhs_contr, uf)
 
-def timeloop_theta(M, G, rhs_contr, state, params):
+def timeloop_theta(M, G, rhs_contr, uf, state, params):
     '''Solve M*dstate/dt = G*state using a theta scheme.'''
     
     A=M+params["theta"]*params["dt"]*G
@@ -157,6 +158,7 @@ def timeloop_theta(M, G, rhs_contr, state, params):
 
     while (t < params["finish_time"]):
         t+=dt
+        uf.t=t # Update time for the Boundary condition expression
         step+=1
         rhs=action(A_r,state)+params["dt"]*rhs_contr
         

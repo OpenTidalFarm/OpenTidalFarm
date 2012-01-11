@@ -14,7 +14,7 @@ divett.params["finish_time"]=5#60*60*1.24 # One tidal cycle
 divett.params["dt"]=0.02#2*60
 divett.params["dump_period"]=1
 
-M,G,rhs_contr=sw.construct_shallow_water(W,divett.ds,divett.params)
+M,G,rhs_contr,uf=sw.construct_shallow_water(W,divett.ds,divett.params)
 
-state = sw.timeloop_theta(M,G,rhs_contr,state,divett.params)
+state = sw.timeloop_theta(M,G,rhs_contr,uf,state,divett.params)
 
