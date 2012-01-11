@@ -99,13 +99,15 @@ def construct_shallow_water(W,ds,params):
     # Divergence term.
     Ct=-inner(u,grad(q))*dx+inner(avg(u),jump(q,n))*dS
     # Add a weak dirichlet boundary condition 
-    Ct+=inner(u,q*n)*ds(1)
-    rhs_contr=inner(Constant("-1.0")*n,q*n)*ds(1)
+    #Ct+=inner(u/2,q*n)*ds(1)
+    rhs_contr=inner(Constant("0.001")*n,q*n)*ds(1)
 
     #Ct=div(u)*q*dx
     # Pressure gradient operator
     C=(params["g"]*params["depth"])*\
         inner(v,grad(h))*dx+inner(avg(v),jump(h,n))*dS
+    C+=inner(v,h*n)*ds(1)
+    #rhs_contr=inner(v,Constant("-0.5")*n)*ds(1)
 
     try:
         # Coriolis term
@@ -153,7 +155,7 @@ def timeloop_theta(M, G, rhs_contr, state, params):
     while (t < params["finish_time"]):
         t+=dt
         step+=1
-        rhs=action(A_r,state)+rhs_contr
+        rhs=action(A_r,state)+params["dt"]*rhs_contr
         
         # Solve the shallow water equations.
         solve(A==rhs, tmpstate)
