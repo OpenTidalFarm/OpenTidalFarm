@@ -100,17 +100,17 @@ def construct_shallow_water(W,ds,params):
     Ct=-inner(u,grad(q))*dx+inner(avg(u),jump(q,n))*dS
 
     # The contributions of the Flather boundary condition on the left hand side
-    ufr = Expression("sqrt(g/depth)*cos(2*pi*t/wavelen)", t=params["current_time"], g=params["g"], depth=params["depth"], wavelen=params["wavelen"])
-    rhs_contr=inner(ufr*n,q*n)*ds(1)
-    Ct+=inner(h,q)*ds(1)
+    uc = 2.0*sqrt(params["g"]/params["depth"])
+    etac = 2.0 
+
+    ufl = Expression("uc+sqrt(g/depth)*etac", uc=uc, etac=etac, t=params["current_time"], g=params["g"], depth=params["depth"], wavelen=params["wavelen"])
+    rhs_contr=inner(ufl*n,q*n)*ds(1)
+    Ct+=inner(sqrt(params["g"]/params["depth"])*h,q)*ds(1)
     # The contributions of the Flather boundary condition on the right hand side
-    ufl = Expression("sqrt(g/depth)*cos(-2*pi*t/wavelen)", t=params["current_time"], g=params["g"], depth=params["depth"], wavelen=params["wavelen"])
-    rhs_contr+=inner(ufl*n,q*n)*ds(2)
-    Ct+=inner(h,q)*ds(2)
+    ufr = Expression("-uc-sqrt(g/depth)*etac*cos(2*pi*t/wavelen)", uc=uc, etac=etac, t=params["current_time"], g=params["g"], depth=params["depth"], wavelen=params["wavelen"])
+    #rhs_contr+=inner(ufr*n,q*n)*ds(2)
+    #Ct+=inner(-sqrt(params["g"]/params["depth"])*h,q)*ds(2)
 
-    #rhs_contr=inner(Constant("-1.")*n,q*n)*ds(2)
-
-    #Ct=div(u)*q*dx
     # Pressure gradient operator
     C=(params["g"]*params["depth"])*\
         inner(v,grad(h))*dx+inner(avg(v),jump(h,n))*dS

@@ -28,7 +28,8 @@ class InitialConditions(Expression):
     def eval(self, values, X):
         values[0]=0.
         values[1]=0.
-        values[2]=0.
+        values[2]=0.#2*sqrt(params["depth"]/params["g"])*cos(pi*X[0]/3000)
+        values[2]=0. #*2*cos(pi*X[0]/3000)
     def value_shape(self):
         return (3,)
 
