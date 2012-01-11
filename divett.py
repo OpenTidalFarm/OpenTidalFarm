@@ -39,19 +39,25 @@ mesh.init()
 
 class Left(SubDomain):
       def inside(self, x, on_boundary):
-           return near(x[0], 0.0)
+           return on_boundary and near(x[0], 0.0)
 
 class Right(SubDomain):
       def inside(self, x, on_boundary):
-           return near(x[0], basin_x)
+           return on_boundary and near(x[0], basin_x)
+
+class Sides(SubDomain):
+      def inside(self, x, on_boundary):
+           return on_boundary and (near(x[1], 0.0) or near(x[1], basin_y))
 
 # Initialize sub-domain instances
 left = Left()
 right = Right()
+sides = Sides()
 
 # Initialize mesh function for boundary domains
 boundaries = FacetFunction("uint", mesh)
 boundaries.set_all(0)
 left.mark(boundaries, 1)
 right.mark(boundaries, 2)
+sides.mark(boundaries, 3)
 ds = Measure("ds")[boundaries]

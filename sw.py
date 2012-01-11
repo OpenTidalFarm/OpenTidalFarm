@@ -100,13 +100,15 @@ def construct_shallow_water(W,ds,params):
     Ct=-inner(u,grad(q))*dx+inner(avg(u),jump(q,n))*dS
     # Add a weak dirichlet boundary condition 
     #Ct+=inner(u/2,q*n)*ds(1)
+    #Ct+=inner(u,q*n)*ds(2)
     rhs_contr=inner(Constant("0.001")*n,q*n)*ds(1)
+    #rhs_contr=inner(Constant("-0.001")*n,q*n)*ds(2)
 
     #Ct=div(u)*q*dx
     # Pressure gradient operator
     C=(params["g"]*params["depth"])*\
         inner(v,grad(h))*dx+inner(avg(v),jump(h,n))*dS
-    C+=inner(v,h*n)*ds(1)
+    #C+=inner(v,h*n)*ds(2)
     #rhs_contr=inner(v,Constant("-0.5")*n)*ds(1)
 
     try:
