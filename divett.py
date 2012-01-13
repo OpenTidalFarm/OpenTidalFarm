@@ -14,7 +14,7 @@ params=sw.parameters({
 basin_x=3000 # The length of the basin
 basin_y=1000 # The width of the basin
 nx=30 # Number of cells in x direction
-ny=10 # Number of cells in y direction
+ny=5 # Number of cells in y direction
 # Long wave celerity.
 c=sqrt(params["g"]*params["depth"])
 
@@ -28,7 +28,7 @@ class InitialConditions(Expression):
     def eval(self, values, X):
         values[0]=0.
         values[1]=0.
-        values[2]=0.#2*sqrt(params["depth"]/params["g"])*cos(pi*X[0]/3000)
+        #values[2]=0.#2*sqrt(params["depth"]/params["g"])*cos(pi*X[0]/3000)
         values[2]=0. #*2*cos(pi*X[0]/3000)
     def value_shape(self):
         return (3,)

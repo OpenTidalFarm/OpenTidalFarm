@@ -99,23 +99,45 @@ def construct_shallow_water(W,ds,params):
     # Divergence term.
     Ct=-inner(u,grad(q))*dx+inner(avg(u),jump(q,n))*dS
 
-    # The contributions of the Flather boundary condition on the left hand side
-    uc = 2.0*sqrt(params["g"]/params["depth"])
-    etac = 2.0 
+    uc = 2.0
+    etac = sqrt(params["depth"]/params["g"])*uc
 
-    ufl = Expression("uc+sqrt(g/depth)*etac", uc=uc, etac=etac, t=params["current_time"], g=params["g"], depth=params["depth"], wavelen=params["wavelen"])
+    # The dirichlet boundary condition on the left hand side 
+    ufl = Expression("2*sin(2*pi*t/period)", t=params["current_time"], period=params["period"])
     rhs_contr=inner(ufl*n,q*n)*ds(1)
-    Ct+=inner(sqrt(params["g"]/params["depth"])*h,q)*ds(1)
+
     # The contributions of the Flather boundary condition on the right hand side
-    ufr = Expression("-uc-sqrt(g/depth)*etac*cos(2*pi*t/wavelen)", uc=uc, etac=etac, t=params["current_time"], g=params["g"], depth=params["depth"], wavelen=params["wavelen"])
-    #rhs_contr+=inner(ufr*n,q*n)*ds(2)
-    #Ct+=inner(-sqrt(params["g"]/params["depth"])*h,q)*ds(2)
+    ufr = Expression("uc-sqrt(g/depth)*etac", uc=uc, etac=etac, t=params["current_time"], g=params["g"], depth=params["depth"])
+    rhs_contr+=inner(ufr*n,q*n)*ds(2)
+    Ct+=inner(-sqrt(params["g"]/params["depth"])*h,q)*ds(2)
 
     # Pressure gradient operator
     C=(params["g"]*params["depth"])*\
         inner(v,grad(h))*dx+inner(avg(v),jump(h,n))*dS
     C+=inner(v,h*n)*ds(1)
     C+=inner(v,h*n)*ds(2)
+
+    # Add the bottom friction
+    class FrictionExpr(Expression):
+        def eval(self, value, x):
+            friction = params["friction"] 
+
+            # Check if x lies in a position where a turbine is deployed and if, then increase the friction
+            x_pos = numpy.array(params["turbine_pos"])[:,0] 
+            x_pos_low = x_pos-params["turbine_length"]/2
+            x_pos_high = x_pos+params["turbine_length"]/2
+
+            y_pos = numpy.array(params["turbine_pos"])[:,1] 
+            y_pos_low = y_pos-params["turbine_length"]/2
+            y_pos_high = y_pos+params["turbine_length"]/2
+            if ((x_pos_low < x[0]) & (x_pos_high > x[0]) & (y_pos_low < x[1]) & (y_pos_high > x[1])).any():
+              friction += params["turbine_friction"] 
+
+            value[0] = friction 
+
+    friction = FrictionExpr()
+
+    R=friction*inner(2*u,v)*dx # TODO: Replace 2 by |u|
 
     try:
         # Coriolis term
@@ -127,7 +149,7 @@ def construct_shallow_water(W,ds,params):
         print "big spring active: ", params["big_spring"]
         C+=inner(v,n)*inner(u,n)*params["big_spring"]*ds
 
-    return (M, C+Ct+F, rhs_contr, ufl, ufr)
+    return (M, C+Ct+F+R, rhs_contr, ufl, ufr)
 
 def timeloop_theta(M, G, rhs_contr, ufl, ufr, state, params):
     '''Solve M*dstate/dt = G*state using a theta scheme.'''
