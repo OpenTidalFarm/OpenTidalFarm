@@ -152,7 +152,7 @@ def construct_shallow_water(W,ds,params):
 
     return (M, C+Ct+F+R, rhs_contr, ufl, ufr)
 
-def timeloop_theta(M, G, rhs_contr, ufl, ufr, state, params):
+def timeloop_theta(M, G, rhs_contr, ufl, ufr, state, params, annotate=True):
     '''Solve M*dstate/dt = G*state using a theta scheme.'''
     
     A=M+params["theta"]*params["dt"]*G
