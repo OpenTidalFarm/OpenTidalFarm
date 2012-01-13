@@ -1,4 +1,5 @@
 from dolfin import *
+from dolfin_adjoint import *
 import numpy
 import sys
 
@@ -166,11 +167,11 @@ def timeloop_theta(M, G, rhs_contr, ufl, ufr, state, params):
 
     # Project the solution to P1 for visualisation.
     rhs=assemble(inner(v_out,state.split()[0])*dx)
-    solve(M_u_out, u_out_state.vector(),rhs,"cg","sor") 
+    solve(M_u_out, u_out_state.vector(),rhs,"cg","sor", annotate=False) 
     
     # Project the solution to P1 for visualisation.
     rhs=assemble(inner(q_out,state.split()[1])*dx)
-    solve(M_p_out, p_out_state.vector(),rhs,"cg","sor") 
+    solve(M_p_out, p_out_state.vector(),rhs,"cg","sor", annotate=False) 
     
     u_out << u_out_state
     p_out << p_out_state
@@ -190,25 +191,52 @@ def timeloop_theta(M, G, rhs_contr, ufl, ufr, state, params):
         rhs=action(A_r,state)+params["dt"]*rhs_contr
         
         # Solve the shallow water equations.
-        solve(A==rhs, tmpstate)
+        solve(A==rhs, tmpstate, annotate=annotate)
         #solve(A, state.vector(), rhs, "preonly", "lu")
 
-        state.assign(tmpstate)
+        state.assign(tmpstate, annotate=annotate)
 
         if step%params["dump_period"] == 0:
         
             # Project the solution to P1 for visualisation.
             rhs=assemble(inner(v_out,state.split()[0])*dx)
-            solve(M_u_out, u_out_state.vector(),rhs,"cg","sor") 
+            solve(M_u_out, u_out_state.vector(),rhs,"cg","sor", annotate=False) 
 
             # Project the solution to P1 for visualisation.
             rhs=assemble(inner(q_out,state.split()[1])*dx)
-            solve(M_p_out, p_out_state.vector(),rhs,"cg","sor") 
+            solve(M_p_out, p_out_state.vector(),rhs,"cg","sor", annotate=False) 
             
             u_out << u_out_state
             p_out << p_out_state
 
     return state # return the state at the final time
+
+def replay(state,params):
+
+    print "Replaying forward run"
+
+    for i in range(adjointer.equation_count):
+        (fwd_var, output) = adjointer.get_forward_solution(i)
+
+        s=libadjoint.MemoryStorage(output)
+        s.set_compare(0.0)
+        s.set_overwrite(True)
+
+        adjointer.record_variable(fwd_var, s)
+
+def adjoint(state, params, functional):
+
+    print "Running adjoint"
+
+    for i in range(adjointer.equation_count)[::-1]:
+        print "  solving adjoint equation ", i
+        (adj_var, output) = adjointer.get_adjoint_solution(i, functional)
+
+        s=libadjoint.MemoryStorage(output)
+        adjointer.record_variable(adj_var, s)
+
+    return output.data # return the adjoint solution associated with the initial condition
+
 
 def u_output_projector(W):
     # Projection operator for output.

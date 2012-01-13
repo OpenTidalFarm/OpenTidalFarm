@@ -29,4 +29,4 @@ state = sw_lib.timeloop_theta(M,G,rhs_contr,ufl,ufr,state,divett.params)
 adj_html("sw_forward.html", "forward")
 adj_html("sw_adjoint.html", "adjoint")
 
-#sw_lib.replay(state, divett.params)
+sw_lib.replay(state, divett.params)
