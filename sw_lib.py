@@ -185,8 +185,10 @@ def timeloop_theta(M, G, rhs_contr, ufl, ufr, state, params, annotate=True):
 
     while (t < params["finish_time"]):
         t+=dt
-        ufl.t=t # Update time for the Boundary condition expression
-        ufr.t=t # Update time for the Boundary condition expression
+
+        # TODO: Use the sinusoidal velocity here (currently not possible because the adjoint implementation is broken)
+        ufl.t=params["period"]/4 # Update time for the Boundary condition expression
+        #ufr.t=t # Update time for the Boundary condition expression
         step+=1
         rhs=action(A_r,state)+params["dt"]*rhs_contr
         
