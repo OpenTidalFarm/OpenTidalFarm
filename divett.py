@@ -1,9 +1,9 @@
 from dolfin import * 
 from math import exp, sqrt, pi
 
-import sw
+import sw_lib
 
-params=sw.parameters({
+params=sw_lib.parameters({
     'depth' : 50.,
     'g' : 9.81,
     'f' : 0.0,
