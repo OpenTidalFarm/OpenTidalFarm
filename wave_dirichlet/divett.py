@@ -8,7 +8,7 @@ params=sw_lib.parameters({
     'g' : 9.81,
     'f' : 0.0,
     'dump_period' : 1,
-    'eta0' : 1 # Wave height
+    'eta0' : 2 # Wave height
     })
 
 # Basin radius.
