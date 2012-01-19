@@ -100,9 +100,6 @@ def construct_shallow_water(W,ds,params):
     # Divergence term.
     Ct=-inner(u,grad(q))*dx+inner(avg(u),jump(q,n))*dS
 
-    uc = params["inflow_velocity"]
-    etac = sqrt(params["depth"]/params["g"])*uc
-
     # The dirichlet boundary condition on the left hand side 
     ufl = Expression("sqrt(g/depth)*cos(-sqrt(g*depth)*pi/3000*t)", g=params["g"], depth=params["depth"], t=params["current_time"], period=params["period"])
     rhs_contr = inner(ufl*n,q*n)*ds(1)
