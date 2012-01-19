@@ -26,7 +26,7 @@ class InitialConditions(Expression):
     def __init__(self):
         pass
     def eval(self, values, X):
-        values[0]=sqrt(params['g']/params['depth'])*cos(pi*X[0]/3000)
+        values[0]=cos(pi*X[0]/3000)
         values[1]=0.
         values[2]=cos(pi*X[0]/3000)
     def value_shape(self):
