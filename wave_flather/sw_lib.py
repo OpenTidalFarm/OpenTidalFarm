@@ -100,7 +100,7 @@ def construct_shallow_water(W,ds,params):
     # Divergence term.
     Ct=-inner(u,grad(q))*dx+inner(avg(u),jump(q,n))*dS
 
-    # The dirichlet boundary condition on the left hand side 
+    # The Flather boundary condition on the left hand side 
     ufl = Expression("2*cos(-pi/3000*t)", t=params["current_time"])
     rhs_contr = inner(ufl*n,q*n)*ds(1)
     Ct+=inner(h,q)*ds(1)
@@ -108,8 +108,6 @@ def construct_shallow_water(W,ds,params):
     # The contributions of the Flather boundary condition on the right hand side
     ufr = Expression("cos(pi-pi/3000*t)", t=params["current_time"])
     Ct+=inner(h,q)*ds(2)
-
-    #rhs_contr=-inner(ufr*n,q*n)*ds(2)
 
     # Pressure gradient operator
     C=(params["g"]*params["depth"])*\
