@@ -4,7 +4,7 @@ from math import exp, sqrt, pi
 import sw_lib
 
 params=sw_lib.parameters({
-    'depth' : 1.,
+    'depth' : 2.,
     'g' : 9.81,
     'f' : 0.0,
     'dump_period' : 1,
