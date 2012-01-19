@@ -8,8 +8,10 @@ params=sw_lib.parameters({
     'g' : 9.81,
     'f' : 0.0,
     'dump_period' : 1,
-    'eta0' : 2 # Wave height
+    'inflow_velocity' : 2
     })
+
+params['eta0'] = params['inflow_velocity']*sqrt(1./(params["depth"]*params["g"])) # Wave height
 
 # Basin radius.
 basin_x=3000 # The length of the basin
