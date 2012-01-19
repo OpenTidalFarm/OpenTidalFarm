@@ -100,17 +100,16 @@ def construct_shallow_water(W,ds,params):
     # Divergence term.
     Ct=-inner(u,grad(q))*dx+inner(avg(u),jump(q,n))*dS
 
-    uc = params["inflow_velocity"]
-    etac = sqrt(params["depth"]/params["g"])*uc
-
     # The dirichlet boundary condition on the left hand side 
-    ufl = Expression("sqrt(g/depth)*cos(-sqrt(g*depth)*pi/3000*t)", g=params["g"], depth=params["depth"], t=params["current_time"], period=params["period"])
+    ufl = Expression("cos(-pi/3000*t)", t=params["current_time"])
     rhs_contr = inner(ufl*n,q*n)*ds(1)
+    #Ct-=inner(h,q)*ds(1)
 
     # The contributions of the Flather boundary condition on the right hand side
-    ufr = Expression("sqrt(g/depth)*cos(pi-sqrt(g*depth)*pi/3000*t)", g=params["g"], depth=params["depth"], t=params["current_time"], period=params["period"])
+    ufr = Expression("cos(pi-pi/3000*t)", t=params["current_time"])
+    Ct+=inner(h,q)*ds(2)
 
-    rhs_contr-=inner(ufr*n,q*n)*ds(2)
+    #rhs_contr=-inner(ufr*n,q*n)*ds(2)
 
     # Pressure gradient operator
     C=(params["g"]*params["depth"])*\
@@ -126,10 +125,13 @@ def timeloop_theta(M, G, rhs_contr, ufl, ufr, state, params, annotate=True):
     A_r=M-(1-params["theta"])*params["dt"]*G
 
     u_out,p_out=output_files(params["basename"])
+    u_out_err,p_out_err=output_files(params["basename"]+"_error")
 
     M_u_out, v_out, u_out_state=u_output_projector(state.function_space())
+    M_u_error_out, v_error_out, u_error_out_state=u_output_projector(state.function_space())
 
     M_p_out, q_out, p_out_state=p_output_projector(state.function_space())
+    M_p_error_out, q_error_out, p_error_out_state=p_output_projector(state.function_space())
 
     # Project the solution to P1 for visualisation.
     rhs=assemble(inner(v_out,state.split()[0])*dx)
