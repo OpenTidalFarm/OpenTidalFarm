@@ -100,7 +100,7 @@ def construct_shallow_water(W,ds,params):
     # Divergence term.
     Ct=-inner(u,grad(q))*dx+inner(avg(u),jump(q,n))*dS
 
-    uc = 2.0
+    uc = params["inflow_velocity"]
     etac = sqrt(params["depth"]/params["g"])*uc
 
     # The dirichlet boundary condition on the left hand side 
@@ -138,7 +138,7 @@ def construct_shallow_water(W,ds,params):
 
     friction = FrictionExpr()
 
-    R=friction*inner(2*u,v)*dx # TODO: Replace 2 by |u|
+    R=friction*inner(params["inflow_velocity"]*u,v)*dx # TODO: Replace params["inflow_velocity"] by |u|
 
     try:
         # Coriolis term
@@ -188,6 +188,7 @@ def timeloop_theta(M, G, rhs_contr, ufl, ufr, state, params, annotate=True):
 
         # TODO: Use the sinusoidal velocity here (currently not possible because the adjoint implementation is broken)
         ufl.t=params["period"]/4 # Update time for the Boundary condition expression
+        #ufl.t=t # Update time for the Boundary condition expression
         #ufr.t=t # Update time for the Boundary condition expression
         step+=1
         rhs=action(A_r,state)+params["dt"]*rhs_contr
