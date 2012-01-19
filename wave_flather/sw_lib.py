@@ -101,9 +101,9 @@ def construct_shallow_water(W,ds,params):
     Ct=-inner(u,grad(q))*dx+inner(avg(u),jump(q,n))*dS
 
     # The dirichlet boundary condition on the left hand side 
-    ufl = Expression("cos(-pi/3000*t)", t=params["current_time"])
+    ufl = Expression("2*cos(-pi/3000*t)", t=params["current_time"])
     rhs_contr = inner(ufl*n,q*n)*ds(1)
-    #Ct-=inner(h,q)*ds(1)
+    Ct+=inner(h,q)*ds(1)
 
     # The contributions of the Flather boundary condition on the right hand side
     ufr = Expression("cos(pi-pi/3000*t)", t=params["current_time"])
