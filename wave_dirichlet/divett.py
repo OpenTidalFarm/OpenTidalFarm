@@ -5,9 +5,10 @@ import sw_lib
 
 params=sw_lib.parameters({
     'depth' : 1.,
-    'g' : 1.,
+    'g' : 5.,
     'f' : 0.0,
-    'dump_period' : 1
+    'dump_period' : 1,
+    'eta0' : 1 # Wave height
     })
 
 # Basin radius.
@@ -26,9 +27,9 @@ class InitialConditions(Expression):
     def __init__(self):
         pass
     def eval(self, values, X):
-        values[0]=cos(pi*X[0]/3000)
+        values[0]=params['eta0']*sqrt(params['g']/params['depth'])*cos(pi*X[0]/3000)
         values[1]=0.
-        values[2]=cos(pi*X[0]/3000)
+        values[2]=params['eta0']*cos(pi*X[0]/3000)
     def value_shape(self):
         return (3,)
 
