@@ -101,13 +101,13 @@ def construct_shallow_water(W,ds,params):
     Ct=-inner(u,grad(q))*dx+inner(avg(u),jump(q,n))*dS
 
     # The Flather boundary condition on the left hand side 
-    ufl = Expression("2*cos(-pi/3000*t)", t=params["current_time"])
+    ufl = Expression("eta0*sqrt(g*depth)*cos(-sqrt(g*depth)*pi/3000*t)+eta0*sqrt(g*depth)*cos(-sqrt(g*depth)*pi/3000*t)", eta0=params["eta0"], g=params["g"], depth=params["depth"], t=params["current_time"])
     rhs_contr = inner(ufl*n,q*n)*ds(1)
-    Ct+=inner(h,q)*ds(1)
+    Ct+=sqrt(params["g"])*inner(h,q)*ds(1)
 
     # The contributions of the Flather boundary condition on the right hand side
-    ufr = Expression("cos(pi-pi/3000*t)", t=params["current_time"])
-    Ct+=inner(h,q)*ds(2)
+    ufr = None 
+    Ct+=sqrt(params["g"])*inner(h,q)*ds(2)
 
     # Pressure gradient operator
     C=(params["g"]*params["depth"])*\
@@ -153,7 +153,6 @@ def timeloop_theta(M, G, rhs_contr, ufl, ufr, state, params, annotate=True):
         t+=dt
 
         ufl.t=t # Update time for the Boundary condition expression
-        ufr.t=t # Update time for the Boundary condition expression
         step+=1
         rhs=action(A_r,state)+params["dt"]*rhs_contr
         
