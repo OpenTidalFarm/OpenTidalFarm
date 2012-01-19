@@ -1,7 +1,7 @@
-run:
+run: clean
 	python sw.py
 clean:
-	rm *vtu
-	rm *pvd
+	rm -f *vtu
+	rm -f *pvd
 
 
