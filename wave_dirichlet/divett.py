@@ -14,8 +14,6 @@ params=sw_lib.parameters({
 # Basin radius.
 basin_x=3000 # The length of the basin
 basin_y=1000 # The width of the basin
-nx=20 # Number of cells in x direction
-ny=3 # Number of cells in y direction
 # Long wave celerity.
 c=sqrt(params["g"]*params["depth"])
 
@@ -34,9 +32,14 @@ class InitialConditions(Expression):
         return (3,)
 
 
-mesh = Rectangle(0, 0, basin_x, basin_y, nx, ny)
-mesh.order()
-mesh.init()
+def generate_mesh(nx=20, ny=3):
+  ''' Generates a rectangular mesh for the divett test
+      nx = Number of cells in x direction
+      ny = Number of cells in y direction  '''
+  mesh = Rectangle(0, 0, basin_x, basin_y, nx, ny)
+  mesh.order()
+  mesh.init()
+  return mesh
 
 class Left(SubDomain):
       def inside(self, x, on_boundary):

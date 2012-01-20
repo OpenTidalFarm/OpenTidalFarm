@@ -13,6 +13,7 @@ state.interpolate(divett.InitialConditions())
 divett.params["basename"]="p1dgp2"
 divett.params["finish_time"]=2*pi/(sqrt(divett.params["g"]*divett.params["depth"])*pi/3000)
 divett.params["dt"]=divett.params["finish_time"]/100
+print "Wave period (in h): ", 2*pi/(sqrt(divett.params["g"]*divett.params["depth"])*pi/3000)/60/60
 divett.params["period"]=60*60*1.24
 divett.params["dump_period"]=1
 
