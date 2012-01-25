@@ -13,8 +13,6 @@ def error(config):
   M,G,rhs_contr,ufl,ufr=sw_lib.construct_shallow_water(W, config.ds, config.params)
   finalstate = sw_lib.timeloop_theta(M, G, rhs_contr, ufl, ufr, initstate, config.params, annotate=False)
 
-  print "Finish time", config.params["finish_time"]
-  print "Current times", config.params["current_time"]
   analytic_sol = Expression(("eta0*sqrt(g*depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", \
                              "0", \
                              "eta0*cos(k*x[0]-sqrt(g*depth)*k*t)"), \
@@ -25,8 +23,8 @@ def error(config):
   e = finalstate-exactstate
   return sqrt(assemble(dot(e,e)*dx))
 
-def compute_error(refinment):
-  config = sw_config.SWConfiguration(nx=2*2**refinment, ny=2) 
+def test(refinment_level):
+  config = sw_config.SWConfiguration(nx=2*2**refinment_level, ny=2) 
   config.params["basename"]="p1dgp2"
   config.params["finish_time"]=pi/(sqrt(config.params["g"]*config.params["depth"])*config.params["k"])/10
   config.params["dt"]=config.params["finish_time"]/100
@@ -47,8 +45,8 @@ def compute_error(refinment):
 
 errors = []
 tests = 6
-for i in range(1, tests):
-  errors.append(compute_error(i))
+for refinment_level in range(1, tests):
+  errors.append(test(refinment_level))
 # Compute the order of convergence 
 conv = [] 
 for i in range(len(errors)-1):
