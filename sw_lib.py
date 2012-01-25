@@ -100,14 +100,28 @@ def construct_shallow_water(W,ds,params):
     # Divergence term.
     Ct=-inner(u,grad(q))*dx+inner(avg(u),jump(q,n))*dS
 
-    # The Flather boundary condition on the left hand side 
-    ufl = Expression("2*eta0*sqrt(g*depth)*cos(-sqrt(g*depth)*k*t)", eta0=params["eta0"], g=params["g"], depth=params["depth"], t=params["current_time"], k=params["k"])
-    rhs_contr = inner(ufl*n,q*n)*ds(1)
-    Ct+=sqrt(params["g"]*params["depth"])*inner(h,q)*ds(1)
+    bctype='flather'
+    if bctype=='dirichlet':
+      # The dirichlet boundary condition on the left hand side 
+      ufl = Expression("eta0*sqrt(g*depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", eta0=params["eta0"], g=params["g"], depth=params["depth"], t=params["current_time"], k=params["k"])
+      rhs_contr = inner(ufl*n,q*n)*ds(1)
 
-    # The contributions of the Flather boundary condition on the right hand side
-    ufr = None 
-    Ct+=sqrt(params["g"]*params["depth"])*inner(h,q)*ds(2)
+      # The contributions of the Flather boundary condition on the right hand side
+      ufr = Expression("eta0*sqrt(g*depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", eta0=params["eta0"], g=params["g"], depth=params["depth"], t=params["current_time"], k=params["k"])
+
+      rhs_contr-=inner(ufr*n,q*n)*ds(2)
+    elif bctype=='flather':
+      # The Flather boundary condition on the left hand side 
+      ufl = Expression("2*eta0*sqrt(g*depth)*cos(-sqrt(g*depth)*k*t)", eta0=params["eta0"], g=params["g"], depth=params["depth"], t=params["current_time"], k=params["k"])
+      rhs_contr = inner(ufl*n,q*n)*ds(1)
+      Ct+=sqrt(params["g"]*params["depth"])*inner(h,q)*ds(1)
+
+      # The contributions of the Flather boundary condition on the right hand side
+      ufr = Constant("0.0")
+      Ct+=sqrt(params["g"]*params["depth"])*inner(h,q)*ds(2)
+    else:
+      print "Unknown boundary condition type"
+      sys.exit(1)
 
     # Pressure gradient operator
     C=(params["g"]*params["depth"])*\
@@ -123,13 +137,10 @@ def timeloop_theta(M, G, rhs_contr, ufl, ufr, state, params, annotate=True):
     A_r=M-(1-params["theta"])*params["dt"]*G
 
     u_out,p_out=output_files(params["basename"])
-    u_out_err,p_out_err=output_files(params["basename"]+"_error")
 
     M_u_out, v_out, u_out_state=u_output_projector(state.function_space())
-    M_u_error_out, v_error_out, u_error_out_state=u_output_projector(state.function_space())
 
     M_p_out, q_out, p_out_state=p_output_projector(state.function_space())
-    M_p_error_out, q_error_out, p_error_out_state=p_output_projector(state.function_space())
 
     # Project the solution to P1 for visualisation.
     rhs=assemble(inner(v_out,state.split()[0])*dx)
@@ -151,8 +162,10 @@ def timeloop_theta(M, G, rhs_contr, ufl, ufr, state, params, annotate=True):
 
     while (t < params["finish_time"]):
         t+=dt
+        params["current_time"] = t
 
         ufl.t=t # Update time for the Boundary condition expression
+        ufr.t=t # Update time for the Boundary condition expression
         step+=1
         rhs=action(A_r,state)+params["dt"]*rhs_contr
         
