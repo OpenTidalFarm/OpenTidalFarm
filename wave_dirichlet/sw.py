@@ -3,25 +3,7 @@ import sw_config
 import sw_lib
 from dolfin import *
 from dolfin_adjoint import *
-
-config = sw_config.SWConfiguration(nx=40, ny=3) 
-config.params["basename"]="p1dgp2"
-config.params["finish_time"]=2*pi/(sqrt(config.params["g"]*config.params["depth"])*config.params["k"])-0.000000000001
-config.params["dt"]=config.params["finish_time"]/100
-config.params["period"]=60*60*1.24
-config.params["dump_period"]=1
-
-class InitialConditions(Expression):
-    def __init__(self):
-        pass
-    def eval(self, values, X):
-        values[0]=config.params['eta0']*sqrt(config.params['g']*config.params['depth'])*cos(config.params["k"]*X[0])
-        values[1]=0.
-        values[2]=config.params['eta0']*cos(config.params["k"]*X[0])
-    def value_shape(self):
-        return (3,)
-
-config.InitialConditions = InitialConditions
+from math import log
 
 def error(config):
   W=sw_lib.p1dgp2(config.mesh)
@@ -31,17 +13,54 @@ def error(config):
   M,G,rhs_contr,ufl,ufr=sw_lib.construct_shallow_water(W, config.ds, config.params)
   finalstate = sw_lib.timeloop_theta(M, G, rhs_contr, ufl, ufr, initstate, config.params, annotate=False)
 
+  print "Finish time", config.params["finish_time"]
+  print "Current times", config.params["current_time"]
   analytic_sol = Expression(("eta0*sqrt(g*depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", \
                              "0", \
                              "eta0*cos(k*x[0]-sqrt(g*depth)*k*t)"), \
                              eta0=config.params["eta0"], g=config.params["g"], \
-                             depth=config.params["depth"], t=config.params["finish_time"], k=config.params["k"])
+                             depth=config.params["depth"], t=config.params["current_time"], k=config.params["k"])
   exactstate=Function(W)
   exactstate.interpolate(analytic_sol)
   e = finalstate-exactstate
   return sqrt(assemble(dot(e,e)*dx))
 
-print "Error ", error(config)
+def compute_error(refinment):
+  config = sw_config.SWConfiguration(nx=2*2**refinment, ny=2) 
+  config.params["basename"]="p1dgp2"
+  config.params["finish_time"]=pi/(sqrt(config.params["g"]*config.params["depth"])*config.params["k"])/10
+  config.params["dt"]=config.params["finish_time"]/100
+  config.params["dump_period"]=100000
+
+  class InitialConditions(Expression):
+      def __init__(self):
+          pass
+      def eval(self, values, X):
+          values[0]=config.params['eta0']*sqrt(config.params['g']*config.params['depth'])*cos(config.params["k"]*X[0])
+          values[1]=0.
+          values[2]=config.params['eta0']*cos(config.params["k"]*X[0])
+      def value_shape(self):
+          return (3,)
+
+  config.InitialConditions = InitialConditions
+  return error(config)
+
+errors = []
+tests = 6
+for i in range(1, tests):
+  errors.append(compute_error(i))
+# Compute the order of convergence 
+conv = [] 
+for i in range(len(errors)-1):
+  conv.append(abs(log(errors[i+1]/errors[i], 2)))
+
+print "Order of convergence (expecting 2.0):", conv
+if min(conv)<1.9:
+  print "Convergence test failed for wave_dirichlet"
+  sys.exit(1)
+else:
+  print "Test passed"
+
 sys.exit()
 
 adj_html("sw_forward.html", "forward")

@@ -101,11 +101,11 @@ def construct_shallow_water(W,ds,params):
     Ct=-inner(u,grad(q))*dx+inner(avg(u),jump(q,n))*dS
 
     # The dirichlet boundary condition on the left hand side 
-    ufl = Expression("eta0*sqrt(g*depth)*cos(-sqrt(g*depth)*k*t)", eta0=params["eta0"], g=params["g"], depth=params["depth"], t=params["current_time"], k=params["k"])
+    ufl = Expression("eta0*sqrt(g*depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", eta0=params["eta0"], g=params["g"], depth=params["depth"], t=params["current_time"], k=params["k"])
     rhs_contr = inner(ufl*n,q*n)*ds(1)
 
     # The contributions of the Flather boundary condition on the right hand side
-    ufr = Expression("eta0*sqrt(g*depth)*cos(pi-sqrt(g*depth)*k*t)", eta0=params["eta0"], g=params["g"], depth=params["depth"], t=params["current_time"], k=params["k"])
+    ufr = Expression("eta0*sqrt(g*depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", eta0=params["eta0"], g=params["g"], depth=params["depth"], t=params["current_time"], k=params["k"])
 
     rhs_contr-=inner(ufr*n,q*n)*ds(2)
 
@@ -148,6 +148,7 @@ def timeloop_theta(M, G, rhs_contr, ufl, ufr, state, params, annotate=True):
 
     while (t < params["finish_time"]):
         t+=dt
+        params["current_time"] = t
 
         ufl.t=t # Update time for the Boundary condition expression
         ufr.t=t # Update time for the Boundary condition expression
