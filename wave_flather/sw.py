@@ -29,6 +29,7 @@ def test(refinment_level):
   config.params["finish_time"]=pi/(sqrt(config.params["g"]*config.params["depth"])*config.params["k"])/10
   config.params["dt"]=config.params["finish_time"]/150
   config.params["dump_period"]=100000
+  config.params["bctype"]="flather"
 
   class InitialConditions(Expression):
       def __init__(self):
