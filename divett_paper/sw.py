@@ -43,7 +43,7 @@ f_direct = assemble(dot(state, state)*dx)
 adj_state = sw_lib.adjoint(state, divett.params, J)
 
 ic = Function(W)
-ic.interpolate(divett.InitialConditions())
+ic.interpolate(InitialConditions())
 def J(ic):
   state = sw_lib.timeloop_theta(M, G, rhs_contr,ufl,ufr,ic, divett.params, annotate=False)
   return assemble(dot(state, state)*dx)
