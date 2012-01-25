@@ -21,18 +21,6 @@ c=sqrt(params["g"]*params["depth"])
 
 params["finish_time"]=100
 params["dt"]=params["finish_time"]/4000.
-params["k"]=pi/basin_x 
-
-class InitialConditions(Expression):
-    def __init__(self):
-        pass
-    def eval(self, values, X):
-        values[0]=params['eta0']*sqrt(params['g']*params['depth'])*cos(params["k"]*X[0])
-        values[1]=0.
-        values[2]=params['eta0']*cos(params["k"]*X[0])
-    def value_shape(self):
-        return (3,)
-
 
 def generate_mesh(nx=20, ny=3):
   ''' Generates a rectangular mesh for the divett test

@@ -8,14 +8,26 @@ W=sw_lib.p1dgp2(divett.mesh)
 
 state=Function(W)
 
-state.interpolate(divett.InitialConditions())
 
+period = 1.24*60*60 # Wave period
+divett.params["k"]=2*pi/(period*sqrt(divett.params["g"]*divett.params["depth"]))
 divett.params["basename"]="p1dgp2"
-divett.params["finish_time"]=2*pi/(sqrt(divett.params["g"]*divett.params["depth"])*pi/3000)
+divett.params["finish_time"]=period
 divett.params["dt"]=divett.params["finish_time"]/100
-print "Wave period (in h): ", 2*pi/(sqrt(divett.params["g"]*divett.params["depth"])*pi/3000)/60/60
-divett.params["period"]=60*60*1.24
+print "Wave period (in h): ", period/60/60 
 divett.params["dump_period"]=1
+
+class InitialConditions(Expression):
+    def __init__(self):
+        pass
+    def eval(self, values, X):
+        values[0]=divett.params['eta0']*sqrt(divett.params['g']*divett.params['depth'])*cos(divett.params["k"]*X[0])
+        values[1]=0.
+        values[2]=divett.params['eta0']*cos(divett.params["k"]*X[0])
+    def value_shape(self):
+        return (3,)
+
+state.interpolate(InitialConditions())
 
 M,G,rhs_contr,ufl,ufr=sw_lib.construct_shallow_water(W,divett.ds,divett.params)
 
