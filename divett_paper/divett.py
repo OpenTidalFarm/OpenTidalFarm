@@ -16,29 +16,32 @@ params['eta0'] = params['inflow_velocity']*sqrt(1./(params["depth"]*params["g"])
 # Basin radius.
 basin_x=3000 # The length of the basin
 basin_y=1000 # The width of the basin
-nx=20 # Number of cells in x direction
-ny=3 # Number of cells in y direction
 # Long wave celerity.
 c=sqrt(params["g"]*params["depth"])
 
-
 params["finish_time"]=100
 params["dt"]=params["finish_time"]/4000.
+params["k"]=pi/basin_x 
 
 class InitialConditions(Expression):
     def __init__(self):
         pass
     def eval(self, values, X):
-        values[0]=params['eta0']*sqrt(params['g']*params['depth'])*cos(pi*X[0]/3000)
+        values[0]=params['eta0']*sqrt(params['g']*params['depth'])*cos(params["k"]*X[0])
         values[1]=0.
-        values[2]=params['eta0']*cos(pi*X[0]/3000)
+        values[2]=params['eta0']*cos(params["k"]*X[0])
     def value_shape(self):
         return (3,)
 
 
-mesh = Rectangle(0, 0, basin_x, basin_y, nx, ny)
-mesh.order()
-mesh.init()
+def generate_mesh(nx=20, ny=3):
+  ''' Generates a rectangular mesh for the divett test
+      nx = Number of cells in x direction
+      ny = Number of cells in y direction  '''
+  mesh = Rectangle(0, 0, basin_x, basin_y, nx, ny)
+  mesh.order()
+  mesh.init()
+  return mesh
 
 class Left(SubDomain):
       def inside(self, x, on_boundary):
@@ -56,6 +59,7 @@ class Sides(SubDomain):
 left = Left()
 right = Right()
 sides = Sides()
+mesh = generate_mesh()
 
 # Initialize mesh function for boundary domains
 boundaries = FacetFunction("uint", mesh)

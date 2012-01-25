@@ -101,7 +101,7 @@ def construct_shallow_water(W,ds,params):
     Ct=-inner(u,grad(q))*dx+inner(avg(u),jump(q,n))*dS
 
     # The Flather boundary condition on the left hand side 
-    ufl = Expression("2*eta0*sqrt(g*depth)*cos(-sqrt(g*depth)*pi/3000*t)", eta0=params["eta0"], g=params["g"], depth=params["depth"], t=params["current_time"])
+    ufl = Expression("2*eta0*sqrt(g*depth)*cos(-sqrt(g*depth)*k*t)", eta0=params["eta0"], g=params["g"], depth=params["depth"], t=params["current_time"], k=params["k"])
     rhs_contr = inner(ufl*n,q*n)*ds(1)
     Ct+=sqrt(params["g"]*params["depth"])*inner(h,q)*ds(1)
 
