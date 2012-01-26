@@ -5,6 +5,8 @@ from dolfin import *
 from dolfin_adjoint import *
 from math import log
 
+set_log_level(30)
+
 def error(config):
   W=sw_lib.p1dgp2(config.mesh)
   initstate=Function(W)

@@ -5,6 +5,8 @@ from dolfin import *
 from dolfin_adjoint import *
 from math import log
 
+set_log_level(30)
+
 def error(config):
   W=sw_lib.p1dgp2(config.mesh)
   initstate=Function(W)
@@ -13,9 +15,9 @@ def error(config):
   M,G,rhs_contr,ufl,ufr=sw_lib.construct_shallow_water(W, config.ds, config.params)
   finalstate = sw_lib.timeloop_theta(M, G, rhs_contr, ufl, ufr, initstate, config.params, annotate=False)
 
-  analytic_sol = Expression(("eta0*sqrt(g*depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", \
+  analytic_sol = Expression(("-eta0*sqrt(g*depth)*sin(k*x[0]-sqrt(g*depth)*k*t)", \
                              "0", \
-                             "eta0*cos(k*x[0]-sqrt(g*depth)*k*t)"), \
+                             "-eta0*sin(k*x[0]-sqrt(g*depth)*k*t)"), \
                              eta0=config.params["eta0"], g=config.params["g"], \
                              depth=config.params["depth"], t=config.params["current_time"], k=config.params["k"])
   exactstate=Function(W)
@@ -28,7 +30,7 @@ def test(refinment_level):
   config.params["basename"]="p1dgp2"
   config.params["finish_time"]=pi/(sqrt(config.params["g"]*config.params["depth"])*config.params["k"])/10
   config.params["dt"]=config.params["finish_time"]/100
-  config.params["dump_period"]=100000
+  config.params["dump_period"]=1
   config.params["bctype"]="dirichlet"
 
   class InitialConditions(Expression):
