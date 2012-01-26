@@ -3,6 +3,7 @@ import sw_config
 import sw_lib
 from dolfin import *
 from dolfin_adjoint import *
+from utils import test_initial_condition_adjoint
 
 config = sw_config.SWConfiguration(nx=30, ny=2) 
 period = 1.24*60*60 # Wave period
@@ -13,6 +14,10 @@ config.params["dt"]=config.params["finish_time"]/100
 print "Wave period (in h): ", period/60/60 
 config.params["dump_period"]=1
 config.params["bctype"]="flather"
+
+# Turbine settings
+config.params["friction"]=0.0025
+config.params["turbine_pos"]=[[200., 500.], [1000., 700.]]
 
 class InitialConditions(Expression):
     def __init__(self):
@@ -32,7 +37,6 @@ state.interpolate(InitialConditions())
 M,G,rhs_contr,ufl,ufr=sw_lib.construct_shallow_water(W, config.ds, config.params)
 
 state = sw_lib.timeloop_theta(M, G, rhs_contr, ufl, ufr, state, config.params)
-sys.exit()
 
 adj_html("sw_forward.html", "forward")
 adj_html("sw_adjoint.html", "adjoint")
@@ -43,12 +47,12 @@ f_direct = assemble(dot(state, state)*dx)
 adj_state = sw_lib.adjoint(state, config.params, J)
 
 ic = Function(W)
-ic.interpolate(config.InitialConditions())
+ic.interpolate(InitialConditions())
 def J(ic):
   state = sw_lib.timeloop_theta(M, G, rhs_contr,ufl,ufr,ic, config.params, annotate=False)
   return assemble(dot(state, state)*dx)
 
-minconv = test_initial_condition(J, ic, adj_state, seed=0.001)
+minconv = test_initial_condition_adjoint(J, ic, adj_state, seed=0.001)
 if minconv < 1.9:
   exit_code = 1
 else:
