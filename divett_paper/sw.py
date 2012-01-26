@@ -5,7 +5,7 @@ from dolfin import *
 from dolfin_adjoint import *
 from utils import test_initial_condition_adjoint
 
-config = sw_config.SWConfiguration(nx=30, ny=2) 
+config = sw_config.SWConfiguration(nx=30, ny=10)
 period = 1.24*60*60 # Wave period
 config.params["k"]=2*pi/(period*sqrt(config.params["g"]*config.params["depth"]))
 config.params["basename"]="p1dgp2"
@@ -15,17 +15,23 @@ print "Wave period (in h): ", period/60/60
 config.params["dump_period"]=1
 config.params["bctype"]="flather"
 
+# Start at rest state
+config.params["start_time"] = period/4 
+
 # Turbine settings
 config.params["friction"]=0.0025
-config.params["turbine_pos"]=[[200., 500.], [1000., 700.]]
+config.params["turbine_pos"] = [[1500., 500.],]
+config.params["turbine_friction"] = 12.
+config.params["turbine_length"] = 200
+config.params["turbine_width"] = 200
 
 class InitialConditions(Expression):
     def __init__(self):
         pass
     def eval(self, values, X):
-        values[0]=config.params['eta0']*sqrt(config.params['g']*config.params['depth'])*cos(config.params["k"]*X[0])
+        values[0]=config.params['eta0']*sqrt(config.params['g']*config.params['depth'])*cos(config.params["k"]*X[0]-sqrt(config.params["g"]*config.params["depth"])*config.params["k"]*config.params["start_time"])
         values[1]=0.
-        values[2]=config.params['eta0']*cos(config.params["k"]*X[0])
+        values[2]=config.params['eta0']*cos(config.params["k"]*X[0]-sqrt(config.params["g"]*config.params["depth"])*config.params["k"]*config.params["start_time"])
     def value_shape(self):
         return (3,)
 
@@ -49,7 +55,8 @@ adj_state = sw_lib.adjoint(state, config.params, J)
 ic = Function(W)
 ic.interpolate(InitialConditions())
 def J(ic):
-  state = sw_lib.timeloop_theta(M, G, rhs_contr,ufl,ufr,ic, config.params, annotate=False)
+  state = sw_lib.timeloop_theta(M, G, rhs_contr, ufl, ufr, ic, config.params, annotate=False)
+
   return assemble(dot(state, state)*dx)
 
 minconv = test_initial_condition_adjoint(J, ic, adj_state, seed=0.001)
