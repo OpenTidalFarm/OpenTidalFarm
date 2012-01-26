@@ -24,10 +24,10 @@ def error(config):
   return sqrt(assemble(dot(e,e)*dx))
 
 def test(refinment_level):
-  config = sw_config.SWConfiguration(nx=2*2**refinment_level, ny=2) 
+  config = sw_config.SWConfiguration(nx=2**8, ny=2) 
   config.params["basename"]="p1dgp2"
-  config.params["finish_time"]=pi/(sqrt(config.params["g"]*config.params["depth"])*config.params["k"])/10
-  config.params["dt"]=config.params["finish_time"]/150
+  config.params["finish_time"]=pi/(sqrt(config.params["g"]*config.params["depth"])*config.params["k"])
+  config.params["dt"]=config.params["finish_time"]/(2*2**refinment_level)
   config.params["dump_period"]=100000
   config.params["bctype"]="flather"
 
@@ -53,9 +53,9 @@ conv = []
 for i in range(len(errors)-1):
   conv.append(abs(log(errors[i+1]/errors[i], 2)))
 
-print "Spatial order of convergence (expecting 2.0):", conv
+print "Temporal order of convergence (expecting 2.0):", conv
 if min(conv)<1.8:
-  print "Spatial convergence test failed for wave_flather"
+  print "Temporal convergence test failed for wave_flather"
   sys.exit(1)
 else:
   print "Test passed"

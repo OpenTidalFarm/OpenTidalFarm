@@ -53,9 +53,9 @@ conv = []
 for i in range(len(errors)-1):
   conv.append(abs(log(errors[i+1]/errors[i], 2)))
 
-print "Order of convergence (expecting 2.0):", conv
-if min(conv)<1.9:
-  print "Convergence test failed for wave_dirichlet"
+print "Spatial order of convergence (expecting 2.0):", conv
+if min(conv)<1.8:
+  print "Spatial convergence test failed for wave_dirichlet"
   sys.exit(1)
 else:
   print "Test passed"

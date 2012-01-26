@@ -163,8 +163,8 @@ def timeloop_theta(M, G, rhs_contr, ufl, ufr, state, params, annotate=True):
         t+=dt
         params["current_time"] = t
 
-        ufl.t=t # Update time for the Boundary condition expression
-        ufr.t=t # Update time for the Boundary condition expression
+        ufl.t=t-(1.0-params["theta"])*dt # Update time for the Boundary condition expression
+        ufr.t=t-(1.0-params["theta"])*dt # Update time for the Boundary condition expression
         step+=1
         rhs=action(A_r,state)+params["dt"]*rhs_contr
         
