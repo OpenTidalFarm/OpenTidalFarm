@@ -6,6 +6,7 @@ import sys
 class parameters(dict):
     '''Parameter dictionary. This subclasses dict so defaults can be set.'''
     def __init__(self, dict={}):
+        self["start_time"]=0.0
         self["current_time"]=0.0
         self["theta"]=0.5
 
@@ -147,7 +148,7 @@ def construct_shallow_water(W,ds,params):
 
     friction = FrictionExpr()
 
-    R=friction*inner(2*u,v)*dx # TODO: Replace 2 by |u|
+    R=friction*inner(2*u/(sqrt(params["depth"]*params["g"])),v)*dx # TODO: Replace 2 by |u|
 
     return (M, C+Ct+R, rhs_contr, ufl, ufr)
 
@@ -175,6 +176,7 @@ def timeloop_theta(M, G, rhs_contr, ufl, ufr, state, params, annotate=True):
     u_out << u_out_state
     p_out << p_out_state
     
+    params["current_time"] = params["start_time"]
     t = params["current_time"]
     dt= params["dt"]
     

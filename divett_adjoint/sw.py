@@ -7,12 +7,13 @@ from utils import test_initial_condition_adjoint
 
 set_log_level(30)
 
-config = sw_config.SWConfiguration(nx=30, ny=2) 
+config = sw_config.SWConfiguration(nx=10, ny=2) 
 period = 1.24*60*60 # Wave period
 config.params["k"]=2*pi/(period*sqrt(config.params["g"]*config.params["depth"]))
 config.params["basename"]="p1dgp2"
-config.params["finish_time"]=period
-config.params["dt"]=config.params["finish_time"]/100
+config.params["start_time"]=0
+config.params["finish_time"]=period/10
+config.params["dt"]=config.params["finish_time"]/10
 print "Wave period (in h): ", period/60/60 
 config.params["dump_period"]=100000
 config.params["bctype"]="flather"
