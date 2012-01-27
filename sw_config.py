@@ -67,3 +67,30 @@ class SWConfiguration:
     self.params = params
     self.mesh = mesh
     self.ds = ds
+
+  def initialise_turbines_measure(self):
+    params = self.params
+
+    class Turbines(SubDomain):
+          def inside(self, x, on_boundary):
+            import numpy
+            if len(params["turbine_pos"]) > 0:
+              # Check if x lies in a position where a turbine is deployed and if, then increase the friction
+              x_pos = numpy.array(params["turbine_pos"])[:,0] 
+              x_pos_low = x_pos-params["turbine_length"]/2
+              x_pos_high = x_pos+params["turbine_length"]/2
+
+              y_pos = numpy.array(params["turbine_pos"])[:,1] 
+              y_pos_low = y_pos-params["turbine_width"]/2
+              y_pos_high = y_pos+params["turbine_width"]/2
+              if ((x_pos_low <= x[0]) & (x_pos_high >= x[0]) & (y_pos_low <= x[1]) & (y_pos_high >= x[1])).any():
+                return True
+            return False  
+
+    turbines = Turbines()
+    # Initialize mesh function for interior domains
+    domains = CellFunction("uint", self.mesh)
+    domains.set_all(0)
+    turbines.mark(domains, 1)
+    self.dx = Measure("dx")[domains]
+
