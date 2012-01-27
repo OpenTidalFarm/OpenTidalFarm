@@ -44,17 +44,34 @@ W=sw_lib.p1dgp2(config.mesh)
 
 state=Function(W)
 state.interpolate(InitialConditions())
+
 M,G,rhs_contr,ufl,ufr=sw_lib.construct_shallow_water(W, config.ds, config.params)
 
+state = sw_lib.timeloop_theta(M, G, rhs_contr, ufl, ufr, state, config.params)
 
-J = Functional(dot(state, state)*dx)
+#adj_html("sw_forward.html", "forward")
+#adj_html("sw_adjoint.html", "adjoint")
+#sw_lib.replay(state, config.params)
+
+# TODO: Add rho??
+functional_form = 0.5*config.params["turbine_friction"]*(dot(state.split()[0], state.split()[0]))**1.5*config.dx(1)
+
+J = Functional(functional_form)
+f_direct = assemble(dot(state, state)*dx)
+adj_state = sw_lib.adjoint(state, config.params, J)
 
 ic = Function(W)
 ic.interpolate(InitialConditions())
+
 def J(ic):
   state = sw_lib.timeloop_theta(M, G, rhs_contr, ufl, ufr, ic, config.params, annotate=False)
-
-  return assemble(0.5*config.params["turbine_friction"]*(dot(state.split()[0], state.split()[0]))**1.5*config.dx(1)) # TODO: Add rho??
+  return assemble(functional_form) 
 
 print "J(ic) = ", J(ic)/1000000, " (MW)"
 
+minconv = test_initial_condition_adjoint(J, ic, adj_state, seed=0.001)
+if minconv < 1.9:
+  exit_code = 1
+else:
+  exit_code = 0
+sys.exit(exit_code)

@@ -6,6 +6,7 @@ from dolfin_adjoint import *
 from utils import test_initial_condition_adjoint
 
 set_log_level(30)
+debugging["record_all"] = True
 
 config = sw_config.SWConfiguration(nx=10, ny=2) 
 period = 1.24*60*60 # Wave period
