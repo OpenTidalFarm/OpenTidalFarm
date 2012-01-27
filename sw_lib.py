@@ -83,7 +83,7 @@ def bdmp1dg(mesh):
 
     return W
 
-def construct_shallow_water(W,ds,params):
+def construct_shallow_water(W,ds,params, turbine_field):
     """Construct the linear shallow water equations for the space W(=U*H) and a
     dictionary of parameters params."""
     # Sanity check for parameters.
@@ -130,25 +130,11 @@ def construct_shallow_water(W,ds,params):
     # Add the bottom friction
     class FrictionExpr(Expression):
         def eval(self, value, x):
-            friction = params["friction"] 
-
-            if len(params["turbine_pos"]) >0:
-              # Check if x lies in a position where a turbine is deployed and if, then increase the friction
-              x_pos = numpy.array(params["turbine_pos"])[:,0] 
-              x_pos_low = x_pos-params["turbine_length"]/2
-              x_pos_high = x_pos+params["turbine_length"]/2
-
-              y_pos = numpy.array(params["turbine_pos"])[:,1] 
-              y_pos_low = y_pos-params["turbine_width"]/2
-              y_pos_high = y_pos+params["turbine_width"]/2
-              if ((x_pos_low < x[0]) & (x_pos_high > x[0]) & (y_pos_low < x[1]) & (y_pos_high > x[1])).any():
-                friction += params["turbine_friction"] 
-
-            value[0] = friction 
+           value[0] = params["friction"] 
 
     friction = FrictionExpr()
 
-    R=friction*inner(2*u/(sqrt(params["depth"]*params["g"])),v)*dx # TODO: Replace 2 by |u|
+    R=(turbine_field+friction)*inner(2*u/(sqrt(params["depth"]*params["g"])),v)*dx # TODO: Replace 2 by |u|
 
     return (M, C+Ct+R, rhs_contr, ufl, ufr)
 
