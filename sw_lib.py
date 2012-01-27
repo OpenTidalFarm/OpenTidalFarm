@@ -141,6 +141,23 @@ def construct_shallow_water(W,ds,params, turbine_field=None):
 
     return (M, C+Ct+R, rhs_contr, ufl, ufr)
 
+
+def save_to_file(function, basename):
+    u_out,p_out=output_files(basename)
+    M_u_out, v_out, u_out_func=u_output_projector(function.function_space())
+    M_p_out, q_out, p_out_func=p_output_projector(function.function_space())
+
+    # Project the solution to P1 for visualisation.
+    rhs=assemble(inner(v_out,function.split()[0])*dx)
+    solve(M_u_out, u_out_func.vector(),rhs,"cg","sor", annotate=False) 
+    
+    # Project the solution to P1 for visualisation.
+    rhs=assemble(inner(q_out,function.split()[1])*dx)
+    solve(M_p_out, p_out_func.vector(),rhs,"cg","sor", annotate=False) 
+    
+    u_out << u_out_func
+    p_out << p_out_func
+
 def timeloop_theta(M, G, rhs_contr, ufl, ufr, state, params, annotate=True):
     '''Solve M*dstate/dt = G*state using a theta scheme.'''
     

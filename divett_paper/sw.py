@@ -8,7 +8,7 @@ from sw_utils import test_initial_condition_adjoint
 set_log_level(30)
 debugging["record_all"] = True
 
-config = sw_config.SWConfiguration(nx=3, ny=3)
+config = sw_config.SWConfiguration(nx=30, ny=10)
 period = 1.24*60*60 # Wave period
 config.params["k"]=2*pi/(period*sqrt(config.params["g"]*config.params["depth"]))
 config.params["basename"]="p1dgp2"
@@ -25,8 +25,8 @@ config.params["start_time"] = period/4
 config.params["friction"]=0.0025
 config.params["turbine_pos"] = [[1000., 500.], [2000., 500.]]
 config.params["turbine_friction"] = 12.
-config.params["turbine_length"] = 1000
-config.params["turbine_width"] = 600
+config.params["turbine_length"] = 200
+config.params["turbine_width"] = 200
 
 # Now create the turbine measure
 config.initialise_turbines_measure()
@@ -72,6 +72,7 @@ class Turbines(Expression):
 
 tf = Function(W)
 tf.interpolate(Turbines())
+sw_lib.save_to_file(tf, "turbines")
 
 M,G,rhs_contr,ufl,ufr=sw_lib.construct_shallow_water(W, config.ds, config.params, turbine_field = tf[0])
 
