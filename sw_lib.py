@@ -213,13 +213,16 @@ def replay(state,params):
 
         adjointer.record_variable(fwd_var, s)
 
-def adjoint(state, params, functional):
+def adjoint(state, params, functional, until=0):
+    ''' Runs the adjoint model with the provided functional and returns the adjoint solution 
+        of the last adjoint solve. The optional until parameter must be an integer that specified,
+        up to which equation the adjoint model is to be solved.''' 
 
     print "Running adjoint"
 
-    for i in range(adjointer.equation_count-1)[::-1]:
-        print "  solving adjoint equation ", i+1
-        (adj_var, output) = adjointer.get_adjoint_solution(i+1, functional)
+    for i in range(until, adjointer.equation_count)[::-1]:
+        print "  solving adjoint equation ", i
+        (adj_var, output) = adjointer.get_adjoint_solution(i, functional)
 
         s=libadjoint.MemoryStorage(output)
         adjointer.record_variable(adj_var, s)

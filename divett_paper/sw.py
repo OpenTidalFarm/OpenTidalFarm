@@ -82,7 +82,7 @@ adj_html("sw_adjoint.html", "adjoint")
 sw_lib.replay(state, config.params)
 
 J = Functional((0.5*config.params["turbine_friction"]*(dot(state[0], state[0])+dot(state[1], state[1]))**1.5)*config.dx(1))
-adj_state = sw_lib.adjoint(state, config.params, J)
+adj_state = sw_lib.adjoint(state, config.params, J, until=1)
 
 def J(tf):
   ic = Function(W)
