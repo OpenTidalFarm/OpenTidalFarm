@@ -83,9 +83,10 @@ def bdmp1dg(mesh):
 
     return W
 
-def construct_shallow_water(W,ds,params, turbine_field):
+def construct_shallow_water(W,ds,params, turbine_field=None):
     """Construct the linear shallow water equations for the space W(=U*H) and a
-    dictionary of parameters params."""
+    dictionary of parameters params. If a turbine_field is given, it will be 
+    added to the fraction term."""
     # Sanity check for parameters.
     params.check()
 
@@ -133,8 +134,10 @@ def construct_shallow_water(W,ds,params, turbine_field):
            value[0] = params["friction"] 
 
     friction = FrictionExpr()
+    if turbine_field:
+      friction += turbine_field
 
-    R=(turbine_field+friction)*inner(2*u/(sqrt(params["depth"]*params["g"])),v)*dx # TODO: Replace 2 by |u|
+    R=friction*inner(2*u/(sqrt(params["depth"]*params["g"])),v)*dx # TODO: Replace 2 by |u|
 
     return (M, C+Ct+R, rhs_contr, ufl, ufr)
 
