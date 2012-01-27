@@ -3,7 +3,7 @@ import sw_config
 import sw_lib
 from dolfin import *
 from dolfin_adjoint import *
-from utils import test_initial_condition_adjoint
+from sw_utils import test_initial_condition_adjoint
 
 set_log_level(30)
 debugging["record_all"] = True
@@ -84,13 +84,14 @@ sw_lib.replay(state, config.params)
 J = Functional((0.5*config.params["turbine_friction"]*(dot(state[0], state[0])+dot(state[1], state[1]))**1.5)*config.dx(1))
 adj_state = sw_lib.adjoint(state, config.params, J)
 
-ic = Function(W)
-ic.interpolate(InitialConditions())
-def J(ic):
+def J(tf):
+  ic = Function(W)
+  ic.interpolate(InitialConditions())
+  M,G,rhs_contr,ufl,ufr=sw_lib.construct_shallow_water(W, config.ds, config.params, turbine_field = tf[0])
   state = sw_lib.timeloop_theta(M, G, rhs_contr, ufl, ufr, ic, config.params, annotate=False)
   return assemble((0.5*config.params["turbine_friction"]*(dot(state[0], state[0])+dot(state[1], state[1]))**1.5)*config.dx(1)) 
 
-minconv = test_initial_condition_adjoint(J, ic, adj_state, seed=0.001)
+minconv = test_initial_condition_adjoint(J, tf, adj_state, seed=0.001)
 if minconv < 1.9:
   exit_code = 1
 else:

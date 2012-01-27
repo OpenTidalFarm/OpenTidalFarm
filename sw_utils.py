@@ -26,7 +26,6 @@ def convergence_order(errors):
   return orders
 
 def adjoint_dolfin(functional, forget=True):
-
   for i in range(adjointer.equation_count)[::-1]:
       (adj_var, output) = adjointer.get_adjoint_solution(i, functional)
       

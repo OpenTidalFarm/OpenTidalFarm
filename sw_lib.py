@@ -217,9 +217,9 @@ def adjoint(state, params, functional):
 
     print "Running adjoint"
 
-    for i in range(adjointer.equation_count)[::-1]:
-        print "  solving adjoint equation ", i
-        (adj_var, output) = adjointer.get_adjoint_solution(i, functional)
+    for i in range(adjointer.equation_count-1)[::-1]:
+        print "  solving adjoint equation ", i+1
+        (adj_var, output) = adjointer.get_adjoint_solution(i+1, functional)
 
         s=libadjoint.MemoryStorage(output)
         adjointer.record_variable(adj_var, s)
