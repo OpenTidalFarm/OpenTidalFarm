@@ -3,7 +3,7 @@ import sw_config
 import sw_lib
 from dolfin import *
 from dolfin_adjoint import *
-from utils import test_initial_condition_adjoint
+from sw_utils import test_initial_condition_adjoint
 
 set_log_level(30)
 debugging["record_all"] = True
@@ -31,6 +31,7 @@ config.params["turbine_width"] = 600
 # Now create the turbine measure
 config.initialise_turbines_measure()
 
+############# Initial Conditions ##################
 class InitialConditions(Expression):
     def __init__(self):
         pass
@@ -46,7 +47,33 @@ W=sw_lib.p1dgp2(config.mesh)
 state=Function(W)
 state.interpolate(InitialConditions())
 
-M,G,rhs_contr,ufl,ufr=sw_lib.construct_shallow_water(W, config.ds, config.params)
+############# Turbine Field ##################
+class Turbines(Expression):
+    def eval(self, values, x):
+        if len(config.params["turbine_pos"]) >0:
+          import numpy
+          friction = 0.0
+          # Check if x lies in a position where a turbine is deployed and if, then increase the friction
+          x_pos = numpy.array(config.params["turbine_pos"])[:,0] 
+          x_pos_low = x_pos-config.params["turbine_length"]/2
+          x_pos_high = x_pos+config.params["turbine_length"]/2
+
+          y_pos = numpy.array(config.params["turbine_pos"])[:,1] 
+          y_pos_low = y_pos-config.params["turbine_width"]/2
+          y_pos_high = y_pos+config.params["turbine_width"]/2
+          if ((x_pos_low < x[0]) & (x_pos_high > x[0]) & (y_pos_low < x[1]) & (y_pos_high > x[1])).any():
+            friction += config.params["turbine_friction"] 
+
+        values[0] = friction 
+        values[1]=0.
+        values[2]=0.
+    def value_shape(self):
+        return (3,)
+
+tf = Function(W)
+tf.interpolate(Turbines())
+
+M,G,rhs_contr,ufl,ufr=sw_lib.construct_shallow_water(W, config.ds, config.params, turbine_field = tf[0])
 
 state = sw_lib.timeloop_theta(M, G, rhs_contr, ufl, ufr, state, config.params)
 
@@ -55,18 +82,16 @@ adj_html("sw_adjoint.html", "adjoint")
 sw_lib.replay(state, config.params)
 
 J = Functional((0.5*config.params["turbine_friction"]*(dot(state[0], state[0])+dot(state[1], state[1]))**1.5)*config.dx(1))
-adj_state = sw_lib.adjoint(state, config.params, J)
+adj_state = sw_lib.adjoint(state, config.params, J, until=1)
 
-ic = Function(W)
-ic.interpolate(InitialConditions())
-def J(ic):
+def J(tf):
+  ic = Function(W)
+  ic.interpolate(InitialConditions())
+  M,G,rhs_contr,ufl,ufr=sw_lib.construct_shallow_water(W, config.ds, config.params, turbine_field = tf[0])
   state = sw_lib.timeloop_theta(M, G, rhs_contr, ufl, ufr, ic, config.params, annotate=False)
   return assemble((0.5*config.params["turbine_friction"]*(dot(state[0], state[0])+dot(state[1], state[1]))**1.5)*config.dx(1)) 
 
-#print "J(ic) = ", J(ic)/1000000, " (MW)"
-#sys.exit()
-
-minconv = test_initial_condition_adjoint(J, ic, adj_state, seed=0.001)
+minconv = test_initial_condition_adjoint(J, tf, adj_state, seed=0.001)
 if minconv < 1.9:
   exit_code = 1
 else:

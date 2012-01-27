@@ -83,9 +83,10 @@ def bdmp1dg(mesh):
 
     return W
 
-def construct_shallow_water(W,ds,params):
+def construct_shallow_water(W,ds,params, turbine_field=None):
     """Construct the linear shallow water equations for the space W(=U*H) and a
-    dictionary of parameters params."""
+    dictionary of parameters params. If a turbine_field is given, it will be 
+    added to the fraction term."""
     # Sanity check for parameters.
     params.check()
 
@@ -130,23 +131,11 @@ def construct_shallow_water(W,ds,params):
     # Add the bottom friction
     class FrictionExpr(Expression):
         def eval(self, value, x):
-            friction = params["friction"] 
-
-            if len(params["turbine_pos"]) >0:
-              # Check if x lies in a position where a turbine is deployed and if, then increase the friction
-              x_pos = numpy.array(params["turbine_pos"])[:,0] 
-              x_pos_low = x_pos-params["turbine_length"]/2
-              x_pos_high = x_pos+params["turbine_length"]/2
-
-              y_pos = numpy.array(params["turbine_pos"])[:,1] 
-              y_pos_low = y_pos-params["turbine_width"]/2
-              y_pos_high = y_pos+params["turbine_width"]/2
-              if ((x_pos_low < x[0]) & (x_pos_high > x[0]) & (y_pos_low < x[1]) & (y_pos_high > x[1])).any():
-                friction += params["turbine_friction"] 
-
-            value[0] = friction 
+           value[0] = params["friction"] 
 
     friction = FrictionExpr()
+    if turbine_field:
+      friction += turbine_field
 
     R=friction*inner(2*u/(sqrt(params["depth"]*params["g"])),v)*dx # TODO: Replace 2 by |u|
 
@@ -227,11 +216,14 @@ def replay(state,params):
 
         adjointer.record_variable(fwd_var, s)
 
-def adjoint(state, params, functional):
+def adjoint(state, params, functional, until=0):
+    ''' Runs the adjoint model with the provided functional and returns the adjoint solution 
+        of the last adjoint solve. The optional until parameter must be an integer that specified,
+        up to which equation the adjoint model is to be solved.''' 
 
     print "Running adjoint"
 
-    for i in range(adjointer.equation_count)[::-1]:
+    for i in range(until, adjointer.equation_count)[::-1]:
         print "  solving adjoint equation ", i
         (adj_var, output) = adjointer.get_adjoint_solution(i, functional)
 
