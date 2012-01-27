@@ -22,6 +22,9 @@ config.params["bctype"]="flather"
 # Turbine settings
 config.params["friction"]=0.0025
 config.params["turbine_pos"]=[[200., 500.], [1000., 700.]]
+config.params["turbine_friction"] = 12.
+config.params["turbine_length"] = 400
+config.params["turbine_width"] = 400
 
 class InitialConditions(Expression):
     def __init__(self):
