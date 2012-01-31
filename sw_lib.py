@@ -158,7 +158,7 @@ def save_to_file(function, basename):
     u_out << u_out_func
     p_out << p_out_func
 
-def timeloop_theta(M, G, rhs_contr, ufl, ufr, state, params, annotate=True):
+def timeloop_theta(M, G, rhs_contr, ufl, ufr, state, params, time_functional=None, annotate=True):
     '''Solve M*dstate/dt = G*state using a theta scheme.'''
     
     A=M+params["theta"]*params["dt"]*G
@@ -187,6 +187,7 @@ def timeloop_theta(M, G, rhs_contr, ufl, ufr, state, params, annotate=True):
     dt= params["dt"]
     
     step=0    
+    j = 0
 
     tmpstate=Function(state.function_space())
 
@@ -218,7 +219,14 @@ def timeloop_theta(M, G, rhs_contr, ufl, ufr, state, params, annotate=True):
             u_out << u_out_state
             p_out << p_out_state
 
-    return state # return the state at the final time
+        if time_functional is not None:
+          j += assemble(time_functional(state)) 
+        adj_inc_timestep()
+
+    if time_functional is not None:
+      return j, state # return the state at the final time
+    else: 
+      return state
 
 def replay(state,params):
 

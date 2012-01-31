@@ -8,7 +8,7 @@ from sw_utils import test_initial_condition_adjoint
 set_log_level(30)
 debugging["record_all"] = True
 
-config = sw_config.SWConfiguration(nx=60, ny=20)
+config = sw_config.SWConfiguration(nx=20, ny=10)
 period = 1.24*60*60 # Wave period
 config.params["k"]=2*pi/(period*sqrt(config.params["g"]*config.params["depth"]))
 config.params["basename"]="p1dgp2"
@@ -82,7 +82,7 @@ adj_html("sw_forward.html", "forward")
 adj_html("sw_adjoint.html", "adjoint")
 sw_lib.replay(state, config.params)
 
-J = Functional((0.5*config.params["turbine_friction"]*(dot(state[0], state[0])+dot(state[1], state[1]))**1.5)*config.dx(1))
+J = FinalFunctional((0.5*config.params["turbine_friction"]*(dot(state[0], state[0])+dot(state[1], state[1]))**1.5)*config.dx(1))
 adj_state = sw_lib.adjoint(state, config.params, J, until=1)
 
 sw_lib.save_to_file(adj_state, "adjoint")

@@ -69,22 +69,23 @@ tf.interpolate(Turbines())
 
 M,G,rhs_contr,ufl,ufr=sw_lib.construct_shallow_water(W, config.ds, config.params, turbine_field = tf[0])
 
-state = sw_lib.timeloop_theta(M, G, rhs_contr, ufl, ufr, state, config.params)
+functional = lambda state: dot(state, state)*dx
+myj, state = sw_lib.timeloop_theta(M, G, rhs_contr, ufl, ufr, state, config.params, time_functional=functional)
 
 adj_html("sw_forward.html", "forward")
 adj_html("sw_adjoint.html", "adjoint")
 sw_lib.replay(state, config.params)
 
-J = Functional((0.5*config.params["turbine_friction"]*(dot(state[0], state[0])+dot(state[1], state[1]))**1.5)*dx)
+J = TimeFunctional(functional(state))
 adj_state = sw_lib.adjoint(state, config.params, J)
 
 ic = Function(W)
 ic.interpolate(InitialConditions())
 def J(ic):
-  state = sw_lib.timeloop_theta(M, G, rhs_contr, ufl, ufr, ic, config.params, annotate=False)
-  return assemble((0.5*config.params["turbine_friction"]*(dot(state[0], state[0])+dot(state[1], state[1]))**1.5)*dx) 
+  j, state = sw_lib.timeloop_theta(M, G, rhs_contr, ufl, ufr, ic, config.params, time_functional=functional, annotate=False)
+  return j
 
-minconv = test_initial_condition_adjoint(J, ic, adj_state, seed=0.001)
+minconv = test_initial_condition_adjoint(J, ic, adj_state, seed=0.0001)
 if minconv < 1.9:
   exit_code = 1
 else:
