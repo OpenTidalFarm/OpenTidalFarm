@@ -124,8 +124,8 @@ def construct_shallow_water(W,ds,params, turbine_field=None):
 
     elif params["bctype"]=='flather':
       # The Flather boundary condition on the left hand side 
-      ufl = Expression("2*eta0*sqrt(g*depth)*cos(-sqrt(g*depth)*k*t)", eta0=params["eta0"], g=params["g"], depth=params["depth"], t=params["current_time"], k=params["k"])
-      rhs_contr = inner(ufl*n,q*n)*ds(1)
+      ufl = Expression(("2*eta0*sqrt(g*depth)*cos(-sqrt(g*depth)*k*t)", "0", "0"), eta0=params["eta0"], g=params["g"], depth=params["depth"], t=params["current_time"], k=params["k"])
+      rhs_contr = -dot(ufl,n)*q*ds(1)
       Ct+=sqrt(params["g"]*params["depth"])*inner(h,q)*ds(1)
 
       # The contributions of the Flather boundary condition on the right hand side
