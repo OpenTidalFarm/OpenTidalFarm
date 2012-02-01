@@ -74,12 +74,12 @@ tf = Function(W)
 tf.interpolate(Turbines())
 sw_lib.save_to_file(tf, "turbines")
 
-M,G,rhs_contr,ufl,ufr=sw_lib.construct_shallow_water(W, config.ds, config.params, turbine_field = tf[0])
+M,G,rhs_contr,ufl=sw_lib.construct_shallow_water(W, config.ds, config.params, turbine_field = tf[0])
 def functional(state):
   turbines = Turbines()[0]
   return config.params["dt"]*(0.5*turbines*(dot(state, state))**1.5)*dx
 
-state = sw_lib.timeloop_theta(M, G, rhs_contr, ufl, ufr, state, config.params)
+state = sw_lib.timeloop_theta(M, G, rhs_contr, ufl, state, config.params)
 
 adj_html("sw_forward.html", "forward")
 adj_html("sw_adjoint.html", "adjoint")
@@ -93,8 +93,8 @@ sw_lib.save_to_file(adj_state, "adjoint")
 def J(tf):
   ic = Function(W)
   ic.interpolate(InitialConditions())
-  M,G,rhs_contr,ufl,ufr=sw_lib.construct_shallow_water(W, config.ds, config.params, turbine_field = tf[0])
-  j, state = sw_lib.timeloop_theta(M, G, rhs_contr, ufl, ufr, ic, config.params, time_functional=functional, annotate=False)
+  M,G,rhs_contr,ufl=sw_lib.construct_shallow_water(W, config.ds, config.params, turbine_field = tf[0])
+  j, state = sw_lib.timeloop_theta(M, G, rhs_contr, ufl, ic, config.params, time_functional=functional, annotate=False)
   return j
 
 minconv = test_initial_condition_adjoint(J, tf, adj_state, seed=0.00001)

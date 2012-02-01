@@ -116,13 +116,12 @@ def construct_shallow_water(W,ds,params, turbine_field=None):
 
     if params["bctype"]=='dirichlet':
       # The dirichlet boundary condition on the left hand side 
-      ufl = Expression("eta0*sqrt(g*depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", eta0=params["eta0"], g=params["g"], depth=params["depth"], t=params["current_time"], k=params["k"])
-      rhs_contr = inner(ufl*n,q*n)*ds(1)
+      ufl = Expression(("eta0*sqrt(g*depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0", "0"), eta0=params["eta0"], g=params["g"], depth=params["depth"], t=params["current_time"], k=params["k"])
+      rhs_contr = -dot(ufl, n)*q*ds(1)
 
-      # The contributions of the Flather boundary condition on the right hand side
-      ufr = Expression("eta0*sqrt(g*depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", eta0=params["eta0"], g=params["g"], depth=params["depth"], t=params["current_time"], k=params["k"])
+      # The dirichlet boundary condition on the right hand side
+      rhs_contr -= dot(ufl, n)*q*ds(2)
 
-      rhs_contr-=inner(ufr*n,q*n)*ds(2)
     elif params["bctype"]=='flather':
       # The Flather boundary condition on the left hand side 
       ufl = Expression("2*eta0*sqrt(g*depth)*cos(-sqrt(g*depth)*k*t)", eta0=params["eta0"], g=params["g"], depth=params["depth"], t=params["current_time"], k=params["k"])
@@ -130,7 +129,6 @@ def construct_shallow_water(W,ds,params, turbine_field=None):
       Ct+=sqrt(params["g"]*params["depth"])*inner(h,q)*ds(1)
 
       # The contributions of the Flather boundary condition on the right hand side
-      ufr = Constant("0.0")
       Ct+=sqrt(params["g"]*params["depth"])*inner(h,q)*ds(2)
     else:
       print "Unknown boundary condition type"
@@ -151,7 +149,7 @@ def construct_shallow_water(W,ds,params, turbine_field=None):
 
     R=friction*inner(2*u/(sqrt(params["depth"]*params["g"])),v)*dx # TODO: Replace 2 by |u|
 
-    return (M, C+Ct+R, rhs_contr, ufl, ufr)
+    return (M, C+Ct+R, rhs_contr, ufl)
 
 
 def save_to_file(function, basename):
@@ -170,7 +168,7 @@ def save_to_file(function, basename):
     u_out << u_out_func
     p_out << p_out_func
 
-def timeloop_theta(M, G, rhs_contr, ufl, ufr, state, params, time_functional=None, annotate=True):
+def timeloop_theta(M, G, rhs_contr, ufl, state, params, time_functional=None, annotate=True):
     '''Solve M*dstate/dt = G*state using a theta scheme.'''
     
     A=M+params["theta"]*params["dt"]*G
@@ -208,7 +206,6 @@ def timeloop_theta(M, G, rhs_contr, ufl, ufr, state, params, time_functional=Non
         params["current_time"] = t
 
         ufl.t=t-(1.0-params["theta"])*dt # Update time for the Boundary condition expression
-        ufr.t=t-(1.0-params["theta"])*dt # Update time for the Boundary condition expression
         step+=1
         rhs=action(A_r,state)+params["dt"]*rhs_contr
         
