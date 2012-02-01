@@ -112,7 +112,8 @@ def construct_shallow_water(W,ds,params, turbine_field=None):
     M+=inner(q,h)*dx
 
     # Divergence term.
-    Ct=-inner(u,grad(q))*dx+inner(avg(u),jump(q,n))*dS
+    Ct=-inner(u,grad(q))*dx
+    #+inner(avg(u),jump(q,n))*dS # This term is only needed for dg element pairs
 
     if params["bctype"]=='dirichlet':
       # The dirichlet boundary condition on the left hand side 
@@ -136,7 +137,9 @@ def construct_shallow_water(W,ds,params, turbine_field=None):
 
     # Pressure gradient operator
     C=(params["g"]*params["depth"])*\
-        inner(v,grad(h))*dx+inner(avg(v),jump(h,n))*dS
+        inner(v,grad(h))*dx
+    #+inner(avg(v),jump(h,n))*dS # This term is only needed for dg element pairs
+
 
     # Add the bottom friction
     class FrictionExpr(Expression):
