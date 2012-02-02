@@ -6,6 +6,7 @@ from dolfin_adjoint import *
 from math import log
 
 set_log_level(30)
+myid = MPI.process_number()
 
 def error(config):
   W=sw_lib.p1dgp2(config.mesh)
@@ -55,12 +56,15 @@ conv = []
 for i in range(len(errors)-1):
   conv.append(abs(log(errors[i+1]/errors[i], 2)))
 
-print "Spatial order of convergence (expecting 2.0):", conv
+if myid == 0:
+  print "Spatial order of convergence (expecting 2.0):", conv
 if min(conv)<1.8:
-  print "Spatial convergence test failed for wave_dirichlet"
+  if myid == 0:
+    print "Spatial convergence test failed for wave_dirichlet"
   sys.exit(1)
 else:
-  print "Test passed"
+  if myid == 0:
+    print "Test passed"
 
 sys.exit()
 

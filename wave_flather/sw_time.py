@@ -6,6 +6,7 @@ from dolfin_adjoint import *
 from math import log
 
 set_log_level(30)
+myid = MPI.process_number()
 
 def error(config):
   W=sw_lib.p1dgp2(config.mesh)
@@ -55,12 +56,15 @@ conv = []
 for i in range(len(errors)-1):
   conv.append(abs(log(errors[i+1]/errors[i], 2)))
 
-print "Temporal order of convergence (expecting 2.0):", conv
+if myid == 0:
+  print "Temporal order of convergence (expecting 2.0):", conv
 if min(conv)<1.8:
-  print "Temporal convergence test failed for wave_flather"
+  if myid == 0:
+    print "Temporal convergence test failed for wave_flather"
   sys.exit(1)
 else:
-  print "Test passed"
+  if myid == 0:
+    print "Test passed"
 
 sys.exit()
 

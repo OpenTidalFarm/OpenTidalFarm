@@ -246,7 +246,9 @@ def timeloop_theta(M, G, rhs_contr, ufl, state, params, time_functional=None, an
 
 def replay(state,params):
 
-    print "Replaying forward run"
+    myid = MPI.process_number()
+    if myid == 0:
+      print "Replaying forward run"
 
     for i in range(adjointer.equation_count):
         (fwd_var, output) = adjointer.get_forward_solution(i)
@@ -262,10 +264,13 @@ def adjoint(state, params, functional, until=0):
         of the last adjoint solve. The optional until parameter must be an integer that specified,
         up to which equation the adjoint model is to be solved.''' 
 
-    print "Running adjoint"
+    myid = MPI.process_number()
+    if myid == 0:
+      print "Running adjoint"
 
     for i in range(until, adjointer.equation_count)[::-1]:
-        print "  solving adjoint equation ", i
+        if myid == 0:
+          print "  solving adjoint equation ", i
         (adj_var, output) = adjointer.get_adjoint_solution(i, functional)
 
         s=libadjoint.MemoryStorage(output)

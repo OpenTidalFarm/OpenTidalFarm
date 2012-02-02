@@ -7,6 +7,7 @@ from dolfin_adjoint import *
 from sw_utils import test_initial_condition_adjoint
 
 set_log_level(30)
+myid = MPI.process_number()
 debugging["record_all"] = True
 
 config = sw_config.SWConfiguration(nx=10, ny=2) 
@@ -16,7 +17,8 @@ config.params["basename"]="p1dgp2"
 config.params["start_time"]=0
 config.params["finish_time"]=period/10
 config.params["dt"]=config.params["finish_time"]/10
-print "Wave period (in h): ", period/60/60 
+if myid == 0:
+  print "Wave period (in h): ", period/60/60 
 config.params["dump_period"]=100000
 config.params["bctype"]="flather"
 
@@ -50,8 +52,6 @@ M,G,rhs_contr,ufl = sw_lib.construct_shallow_water(W, config.ds, config.params, 
 functional = lambda state: dot(state, state)*dx
 myj, state = sw_lib.timeloop_theta(M, G, rhs_contr, ufl, state, config.params, time_functional=functional)
 
-adj_html("sw_forward.html", "forward")
-adj_html("sw_adjoint.html", "adjoint")
 sw_lib.replay(state, config.params)
 
 J = TimeFunctional(functional(state))

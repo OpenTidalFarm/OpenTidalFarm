@@ -4,7 +4,7 @@ import sw_lib
 from dolfin import *
 from dolfin_adjoint import *
 from sw_utils import test_initial_condition_adjoint
-import turbines
+from turbines import *
 
 set_log_level(30)
 debugging["record_all"] = True
@@ -49,13 +49,12 @@ state=Function(W)
 state.interpolate(InitialConditions())
 
 tf = Function(W)
-tb = turbines.GaussianTurbines(config)
-tf.interpolate(tb)
+tf.interpolate(GaussianTurbines(config))
 sw_lib.save_to_file(tf, "turbines")
 
 M,G,rhs_contr,ufl=sw_lib.construct_shallow_water(W, config.ds, config.params, turbine_field = tf[0])
 def functional(state):
-  turbines = Turbines()[0]
+  turbines = GaussianTurbines(config)[0]
   #plot(turbines/12*50*(dot(state[0], state[0]) + dot(state[1], state[1])))
   return config.params["dt"]*0.5*config.params["turbine_friction"]*(dot(state[0], state[0]) + dot(state[1], state[1])/(config.params["g"]*config.params["depth"]))**1.5*config.dx(1)
   #return config.params["dt"]*0.5*turbines*(dot(state[0], state[0]) + dot(state[1], state[1]))**1.5*dx
