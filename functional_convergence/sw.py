@@ -63,8 +63,11 @@ def run_model(nx, ny, turbine_model, turbine_pos):
   return j
 
 def refine(nx, ny, level=0.66):
+  ''' A helper function that increases the number of nodes along each axis by the provided percentage ''' 
   return int(float(nx)/level), int(float(ny)/level)
 
+
+# Run test functional convergence tests
 myid = MPI.process_number()
 turbine_pos = [[1000., 500.], [2000., 500.]]
 nx_orig = 30
