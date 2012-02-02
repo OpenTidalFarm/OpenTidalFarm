@@ -1,6 +1,7 @@
 import sys
 import sw_config 
 import sw_lib
+import turbines
 from dolfin import *
 from dolfin_adjoint import *
 from sw_utils import test_initial_condition_adjoint
@@ -41,31 +42,8 @@ W=sw_lib.p1dgp2(config.mesh)
 state=Function(W)
 state.interpolate(InitialConditions())
 
-############# Turbine Field ##################
-class Turbines(Expression):
-    def eval(self, values, x):
-        if len(config.params["turbine_pos"]) >0:
-          import numpy
-          friction = 0.0
-          # Check if x lies in a position where a turbine is deployed and if, then increase the friction
-          x_pos = numpy.array(config.params["turbine_pos"])[:,0] 
-          x_pos_low = x_pos-config.params["turbine_length"]/2
-          x_pos_high = x_pos+config.params["turbine_length"]/2
-
-          y_pos = numpy.array(config.params["turbine_pos"])[:,1] 
-          y_pos_low = y_pos-config.params["turbine_width"]/2
-          y_pos_high = y_pos+config.params["turbine_width"]/2
-          if ((x_pos_low < x[0]) & (x_pos_high > x[0]) & (y_pos_low < x[1]) & (y_pos_high > x[1])).any():
-            friction += config.params["turbine_friction"] 
-
-        values[0] = friction 
-        values[1]=0.
-        values[2]=0.
-    def value_shape(self):
-        return (3,)
-
 tf = Function(W)
-tf.interpolate(Turbines())
+tf.interpolate(turbines.RectangleTurbines(config))
 
 M,G,rhs_contr,ufl = sw_lib.construct_shallow_water(W, config.ds, config.params, turbine_field = tf[0])
 
