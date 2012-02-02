@@ -1,5 +1,5 @@
 run: clean
-	python sw.py
+	mpirun -n 8 python sw.py
 clean:
 	rm -f *vtu
 	rm -f *pvd

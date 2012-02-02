@@ -62,30 +62,34 @@ def run_model(nx, ny, turbine_model, turbine_pos):
   j, state = sw_lib.timeloop_theta(M, G, rhs_contr, ufl, state, config.params, time_functional=functional)
   return j
 
-def refine(nx, ny, level=0.3):
+def refine(nx, ny, level=0.66):
   return int(float(nx)/level), int(float(ny)/level)
 
 myid = MPI.process_number()
 turbine_pos = [[1000., 500.], [2000., 500.]]
-nx_orig = 60
-ny_orig = 20
+nx_orig = 30
+ny_orig = 10
 
-print "Turbine size: 200x200"
+if myid == 0:
+  print "Turbine size: 200x200"
 
-for name, model in {"RectangleTurbine": RectangleTurbines, "GaussianTurbine": GaussianTurbines}.iteritems():
-  nx, ny = (nx_orig, ny_orig)
-  j = run_model(nx_orig, ny_orig, model, turbine_pos)
-  if myid == 0:
-    print name 
-    print "%i x %i \t\t| %.4g " % (nx, ny, j)
+for shift in [False, True]:
+  if shift and myid ==0:
+    print "\nShifting turbines half an element to the top right..."
 
-  nx, ny = refine(nx_orig, ny_orig)
-  j = run_model(nx, ny, model, turbine_pos)
-  if myid == 0:
-    print "%i x %ii \t\t| %.4g " % (nx, ny, j)
+  for name, model in {"RectangleTurbine": RectangleTurbines, "GaussianTurbine": GaussianTurbines}.iteritems():
+    if myid == 0:
+      print '\n', name 
+    nx, ny = (nx_orig, ny_orig)
 
-  nx, ny = refine(nx, ny)
-  j = run_model(nx, ny, model, turbine_pos)
-  if myid == 0:
-    print "%i x %i \t\t| %.4g " % (nx, ny, j)
+    for level in range(3):
+      if shift:
+        turbine_pos_shift = [[t[0] + 3000.0/nx/2, t[1] + 1000.0/ny/2] for t in turbine_pos] # Shift by half an element size
+      else:
+        turbine_pos_shift = turbine_pos
 
+      j = run_model(nx, ny, model, turbine_pos_shift)
+      if myid == 0:
+        print "%i x %i \t\t| %.4g " % (nx, ny, j)
+
+      nx, ny = refine(nx, ny)
