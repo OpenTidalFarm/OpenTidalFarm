@@ -213,8 +213,12 @@ def timeloop_theta(M, G, rhs_contr, ufl, state, params, time_functional=None, an
         rhs=action(A_r,state)+params["dt"]*rhs_contr
         
         # Solve the shallow water equations.
-        solve(A==rhs, tmpstate, annotate=annotate)
-        #solve(A, state.vector(), rhs, "preonly", "lu")
+        # Choose from: linear_solver: lu, cholesky, cg, gmres, bicgstab, minres, tfqmr, richardson
+        # preconditioner: none, ilu, icc, jacobi, bjacobi, sor, amg, additive_schwarz, hypre_amg, hypre_euclid, hypre_parasails, ml_amg
+        #solver_parameters = {"linear_solver": "gmres", "preconditioner": "amg",
+        #                            "krylov_solver": {"relative_tolerance": 1.0e-10}}
+        solver_parameters = {"linear_solver": "default"}
+        solve(A==rhs, tmpstate, solver_parameters=solver_parameters, annotate=annotate)
 
         state.assign(tmpstate, annotate=annotate)
 
