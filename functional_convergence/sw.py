@@ -19,7 +19,7 @@ def run_model(nx, ny, turbine_model, turbine_pos):
   config.params["basename"]="p1dgp2"
   config.params["finish_time"]=2./4*period
   config.params["dt"]=config.params["finish_time"]/40
-  config.params["dump_period"]=1
+  config.params["dump_period"]=100000
   config.params["bctype"]="flather"
 
   # Start at rest state

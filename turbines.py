@@ -70,5 +70,3 @@ class GaussianTurbines(Expression):
         values[2] = 0.
     def value_shape(self):
         return (3,)
-
-
