@@ -51,11 +51,13 @@ def run_model(nx, ny, turbine_model, turbine_pos):
   state=Function(W)
   state.interpolate(InitialConditions())
 
-  tf = Function(W)
+  # Extract the first dimension of the velocity function space 
+  U = W.split()[0].sub(0)
+  U = U.collapse() # Recompute the DOF map
+  tf = Function(U)
   tf.interpolate(turbine_model(config))
-  sw_lib.save_to_file(tf, "turbines")
 
-  M,G,rhs_contr,ufl=sw_lib.construct_shallow_water(W, config.ds, config.params, turbine_field = tf[0])
+  M,G,rhs_contr,ufl=sw_lib.construct_shallow_water(W, config.ds, config.params, turbine_field = tf)
   def functional(state):
     return config.params["dt"]*0.5*config.params["turbine_friction"]*(dot(state[0], state[0]) + dot(state[1], state[1])/(config.params["g"]*config.params["depth"]))**1.5*config.dx(1)
 
