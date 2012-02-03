@@ -9,7 +9,7 @@ from turbines import *
 set_log_level(30)
 debugging["record_all"] = True
 
-config = sw_config.SWConfiguration(nx=200, ny=50)
+config = sw_config.SWConfiguration(nx=25, ny=15)
 period = 1.24*60*60 # Wave period
 config.params["k"]=2*pi/(period*sqrt(config.params["g"]*config.params["depth"]))
 config.params["basename"]="p1dgp2"
@@ -56,15 +56,14 @@ sw_lib.save_to_file_scalar(tf, "turbines")
 
 M,G,rhs_contr,ufl=sw_lib.construct_shallow_water(W, config.ds, config.params, turbine_field = tf)
 def functional(state):
-  #turbines = GaussianTurbines(config)[0]
+  turbines = GaussianTurbines(config)
   #plot(turbines/12*50*(dot(state[0], state[0]) + dot(state[1], state[1])))
-  return config.params["dt"]*0.5*config.params["turbine_friction"]*(dot(state[0], state[0]) + dot(state[1], state[1])/(config.params["g"]*config.params["depth"]))**1.5*config.dx(1)
-  #return config.params["dt"]*0.5*turbines*(dot(state[0], state[0]) + dot(state[1], state[1]))**1.5*dx
+  #return config.params["dt"]*0.5*config.params["turbine_friction"]*(dot(state[0], state[0]) + dot(state[1], state[1])/(config.params["g"]*config.params["depth"]))**1.5*config.dx(1)
+  return config.params["dt"]*0.5*turbines*(dot(state[0], state[0]) + dot(state[1], state[1]))**1.5*dx
 
 initj, state = sw_lib.timeloop_theta(M, G, rhs_contr, ufl, state, config.params, time_functional=functional)
 print "Initial layout power extraction: ", initj/1000000, " MW."
 print "Which is equivalent to a average power generation of: ",  initj/1000000/(config.params["current_time"]-config.params["start_time"]), " MW"
-sys.exit()
 
 adj_html("sw_forward.html", "forward")
 adj_html("sw_adjoint.html", "adjoint")
@@ -73,12 +72,12 @@ sw_lib.replay(state, config.params)
 J = TimeFunctional(functional(state))
 adj_state = sw_lib.adjoint(state, config.params, J, until=1)
 
-sw_lib.save_to_file(adj_state, "adjoint")
+#sw_lib.save_to_file(adj_state, "adjoint")
 
 def J(tf):
   ic = Function(W)
   ic.interpolate(InitialConditions())
-  M,G,rhs_contr,ufl=sw_lib.construct_shallow_water(W, config.ds, config.params, turbine_field = tf[0])
+  M,G,rhs_contr,ufl=sw_lib.construct_shallow_water(W, config.ds, config.params, turbine_field = tf)
   j, state = sw_lib.timeloop_theta(M, G, rhs_contr, ufl, ic, config.params, time_functional=functional, annotate=False)
   return j
 
