@@ -169,7 +169,7 @@ def save_to_file_scalar(function, basename):
 def save_to_file(function, basename):
     u_out,p_out=output_files(basename)
 
-    M_u_out, v_out, u_out_func=u_output_projector(function.function_space(), dim=1)
+    M_u_out, v_out, u_out_func=u_output_projector(function.function_space())
     M_p_out, q_out, p_out_func=p_output_projector(function.function_space())
 
     # Project the solution to P1 for visualisation.

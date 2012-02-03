@@ -48,7 +48,7 @@ W=sw_lib.p1dgp2(config.mesh)
 state=Function(W)
 state.interpolate(InitialConditions())
 
-U = W.split()[0].sub(0)
+U = W.split()[0].sub(0) # Extract the first component of the velocity function space 
 U = U.collapse() # Recompute the DOF map
 tf = Function(U)
 tf.interpolate(GaussianTurbines(config))
