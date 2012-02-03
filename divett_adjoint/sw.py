@@ -44,10 +44,13 @@ W=sw_lib.p1dgp2(config.mesh)
 state=Function(W)
 state.interpolate(InitialConditions())
 
-tf = Function(W)
+# Extract the first dimension of the velocity function space 
+U = W.split()[0].sub(0)
+U = U.collapse() # Recompute the DOF map
+tf = Function(U)
 tf.interpolate(turbines.RectangleTurbines(config))
 
-M,G,rhs_contr,ufl = sw_lib.construct_shallow_water(W, config.ds, config.params, turbine_field = tf[0])
+M,G,rhs_contr,ufl = sw_lib.construct_shallow_water(W, config.ds, config.params, turbine_field = tf)
 
 functional = lambda state: dot(state, state)*dx
 myj, state = sw_lib.timeloop_theta(M, G, rhs_contr, ufl, state, config.params, time_functional=functional)

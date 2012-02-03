@@ -6,9 +6,10 @@ import sys
 class parameters(dict):
     '''Parameter dictionary. This subclasses dict so defaults can be set.'''
     def __init__(self, dict={}):
-        self["start_time"]=0.0
-        self["current_time"]=0.0
-        self["theta"]=0.5
+        self["start_time"] = 0.0
+        self["current_time"] = 0.0
+        self["theta"] = 0.5
+        self["verbose"] = 10
 
         # Apply dict after defaults so as to overwrite the defaults
         for key,val in dict.iteritems():
@@ -154,10 +155,21 @@ def construct_shallow_water(W,ds,params, turbine_field=None):
 
     return (M, C+Ct+R, rhs_contr, ufl)
 
+def save_to_file_scalar(function, basename):
+    u_out,p_out=output_files(basename)
+
+    M_p_out, q_out, p_out_func=p_output_projector(function.function_space())
+
+    # Project the solution to P1 for visualisation.
+    rhs=assemble(inner(q_out,function)*dx)
+    solve(M_p_out, p_out_func.vector(),rhs,"cg","sor", annotate=False) 
+    
+    p_out << p_out_func
 
 def save_to_file(function, basename):
     u_out,p_out=output_files(basename)
-    M_u_out, v_out, u_out_func=u_output_projector(function.function_space())
+
+    M_u_out, v_out, u_out_func=u_output_projector(function.function_space(), dim=1)
     M_p_out, q_out, p_out_func=p_output_projector(function.function_space())
 
     # Project the solution to P1 for visualisation.
@@ -247,7 +259,7 @@ def timeloop_theta(M, G, rhs_contr, ufl, state, params, time_functional=None, an
 def replay(state,params):
 
     myid = MPI.process_number()
-    if myid == 0:
+    if myid == 0 and params["verbose"] > 0:
       print "Replaying forward run"
 
     for i in range(adjointer.equation_count):
@@ -265,11 +277,11 @@ def adjoint(state, params, functional, until=0):
         up to which equation the adjoint model is to be solved.''' 
 
     myid = MPI.process_number()
-    if myid == 0:
+    if myid == 0 and params["verbose"] > 0:
       print "Running adjoint"
 
     for i in range(until, adjointer.equation_count)[::-1]:
-        if myid == 0:
+        if myid == 0 and params["verbose"] > 2:
           print "  solving adjoint equation ", i
         (adj_var, output) = adjointer.get_adjoint_solution(i, functional)
 

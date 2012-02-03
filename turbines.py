@@ -27,10 +27,6 @@ class RectangleTurbines(Expression):
             friction += params["turbine_friction"] 
 
         values[0] = friction 
-        values[1]=0.
-        values[2]=0.
-    def value_shape(self):
-        return (3,)
 
 
 class GaussianTurbines(Expression):
@@ -66,7 +62,3 @@ class GaussianTurbines(Expression):
             friction += gaussian*params["turbine_friction"] 
 
         values[0] = friction 
-        values[1] = 0.
-        values[2] = 0.
-    def value_shape(self):
-        return (3,)

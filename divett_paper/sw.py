@@ -48,13 +48,15 @@ W=sw_lib.p1dgp2(config.mesh)
 state=Function(W)
 state.interpolate(InitialConditions())
 
-tf = Function(W)
+U = W.split()[0].sub(0)
+U = U.collapse() # Recompute the DOF map
+tf = Function(U)
 tf.interpolate(GaussianTurbines(config))
-sw_lib.save_to_file(tf, "turbines")
+sw_lib.save_to_file_scalar(tf, "turbines")
 
-M,G,rhs_contr,ufl=sw_lib.construct_shallow_water(W, config.ds, config.params, turbine_field = tf[0])
+M,G,rhs_contr,ufl=sw_lib.construct_shallow_water(W, config.ds, config.params, turbine_field = tf)
 def functional(state):
-  turbines = GaussianTurbines(config)[0]
+  #turbines = GaussianTurbines(config)[0]
   #plot(turbines/12*50*(dot(state[0], state[0]) + dot(state[1], state[1])))
   return config.params["dt"]*0.5*config.params["turbine_friction"]*(dot(state[0], state[0]) + dot(state[1], state[1])/(config.params["g"]*config.params["depth"]))**1.5*config.dx(1)
   #return config.params["dt"]*0.5*turbines*(dot(state[0], state[0]) + dot(state[1], state[1]))**1.5*dx
