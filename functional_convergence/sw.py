@@ -27,7 +27,7 @@ def run_model(nx, ny, turbine_model, turbine_pos):
 
   # Turbine settings
   config.params["friction"]=0.0025
-  config.params["turbine_pos"] = [[1000., 500.], [2000., 500.]]
+  config.params["turbine_pos"] = turbine_pos 
   config.params["turbine_friction"] = 12./config.params["depth"]
   config.params["turbine_length"] = 200
   config.params["turbine_width"] = 200
@@ -56,15 +56,18 @@ def run_model(nx, ny, turbine_model, turbine_pos):
   U = U.collapse() # Recompute the DOF map
   tf = Function(U)
   tf.interpolate(turbine_model(config))
+  sw_lib.save_to_file_scalar(tf, "turbines")
 
   M,G,rhs_contr,ufl=sw_lib.construct_shallow_water(W, config.ds, config.params, turbine_field = tf)
   def functional(state):
-    return config.params["dt"]*0.5*config.params["turbine_friction"]*(dot(state[0], state[0]) + dot(state[1], state[1])/(config.params["g"]*config.params["depth"]))**1.5*config.dx(1)
+    turbines = turbine_model(config)
+    #return config.params["dt"]*0.5*config.params["turbine_friction"]*(dot(state[0], state[0]) + dot(state[1], state[1])/(config.params["g"]*config.params["depth"]))**1.5*config.dx(1)
+    return config.params["dt"]*0.5*turbines*(dot(state[0], state[0]) + dot(state[1], state[1]))**1.5*dx
 
   j, state = sw_lib.timeloop_theta(M, G, rhs_contr, ufl, state, config.params, time_functional=functional)
   return j
 
-def refine(nx, ny, level=0.66):
+def refine(nx, ny, level=0.50):
   ''' A helper function that increases the number of nodes along each axis by the provided percentage ''' 
   return int(float(nx)/level), int(float(ny)/level)
 
@@ -77,6 +80,9 @@ ny_orig = 10
 
 if myid == 0:
   print "Turbine size: 200x200"
+
+# The functional values for the two different turbine types for both the shited and unsifted positioning
+results = {'RectangleTurbine': {True: [], False: []}, 'GaussianTurbine': {True: [], False: []}}
 
 for shift in [False, True]:
   if shift and myid ==0:
@@ -94,7 +100,21 @@ for shift in [False, True]:
         turbine_pos_shift = turbine_pos
 
       j = run_model(nx, ny, model, turbine_pos_shift)
+      results[name][shift].append(j)
       if myid == 0:
         print "%i x %i \t\t| %.4g " % (nx, ny, j)
 
       nx, ny = refine(nx, ny)
+
+# Work out the relative change
+if myid == 0:
+  for t in ['RectangleTurbine', 'GaussianTurbine']:
+    for shift in [True, False]:
+      r = results[t][shift]
+      print "Relative change for ", t, " and shifted ", shift, " is: ", [(r[i+1]-r[i]) / min(r[i+1], r[i]) for i in range(len(r)-1)]
+
+if myid == 0:
+  for t in ['RectangleTurbine', 'GaussianTurbine']:
+    r = results[t][False]
+    rs = results[t][True]
+    print "Relative change for ", t, " due to shifting is: ", [(r[i]-rs[i]) / min(r[i], rs[i]) for i in range(len(r))]
