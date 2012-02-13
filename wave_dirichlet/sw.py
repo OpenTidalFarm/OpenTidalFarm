@@ -11,7 +11,7 @@ myid = MPI.process_number()
 def error(config):
   W=sw_lib.p1dgp2(config.mesh)
   initstate=Function(W)
-  initstate.interpolate(config.InitialConditions())
+  initstate.interpolate(config.get_sin_initial_condition()())
 
   M,G,rhs_contr,ufl=sw_lib.construct_shallow_water(W, config.ds, config.params)
   finalstate = sw_lib.timeloop_theta(M, G, rhs_contr, ufl, initstate, config.params, annotate=False)
@@ -34,17 +34,6 @@ def test(refinment_level):
   config.params["dump_period"]=100000
   config.params["bctype"]="dirichlet"
 
-  class InitialConditions(Expression):
-      def __init__(self):
-          pass
-      def eval(self, values, X):
-          values[0]=config.params['eta0']*sqrt(config.params['g']*config.params['depth'])*cos(config.params["k"]*X[0])
-          values[1]=0.
-          values[2]=config.params['eta0']*cos(config.params["k"]*X[0])
-      def value_shape(self):
-          return (3,)
-
-  config.InitialConditions = InitialConditions
   return error(config)
 
 errors = []

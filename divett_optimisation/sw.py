@@ -56,21 +56,10 @@ def j_and_dj(x):
   set_log_level(30)
   debugging["record_all"] = True
 
-  ############# Initial Conditions ##################
-  class InitialConditions(Expression):
-      def __init__(self):
-          pass
-      def eval(self, values, X):
-          values[0]=config.params['eta0']*sqrt(config.params['g']*config.params['depth'])*cos(config.params["k"]*X[0]-sqrt(config.params["g"]*config.params["depth"])*config.params["k"]*config.params["start_time"])
-          values[1]=0.
-          values[2]=config.params['eta0']*cos(config.params["k"]*X[0]-sqrt(config.params["g"]*config.params["depth"])*config.params["k"]*config.params["start_time"])
-      def value_shape(self):
-          return (3,)
-
   W=sw_lib.p1dgp2(config.mesh)
 
   state=Function(W)
-  state.interpolate(InitialConditions())
+  state.interpolate(config.get_sin_initial_condition()())
 
   # Set the control values
   U = W.split()[0].sub(0) # Extract the first component of the velocity function space 

@@ -29,20 +29,10 @@ config.params["turbine_friction"] = 12.
 config.params["turbine_length"] = 400
 config.params["turbine_width"] = 400
 
-class InitialConditions(Expression):
-    def __init__(self):
-        pass
-    def eval(self, values, X):
-        values[0]=config.params['eta0']*sqrt(config.params['g']*config.params['depth'])*cos(config.params["k"]*X[0])
-        values[1]=0.
-        values[2]=config.params['eta0']*cos(config.params["k"]*X[0])
-    def value_shape(self):
-        return (3,)
-
 W=sw_lib.p1dgp2(config.mesh)
 
 state=Function(W)
-state.interpolate(InitialConditions())
+state.interpolate(config.get_sin_initial_condition()())
 
 # Extract the first dimension of the velocity function space 
 U = W.split()[0].sub(0)
@@ -61,7 +51,7 @@ J = TimeFunctional(functional(state))
 adj_state = sw_lib.adjoint(state, config.params, J)
 
 ic = Function(W)
-ic.interpolate(InitialConditions())
+ic.interpolate(config.get_sin_initial_condition()())
 def J(ic):
   j, state = sw_lib.timeloop_theta(M, G, rhs_contr, ufl, ic, config.params, time_functional=functional, annotate=False)
   return j
