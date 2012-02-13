@@ -6,6 +6,8 @@ import sw_lib
 class DefaultConfiguration:
   def __init__(self, nx=20, ny=3):
     params=sw_lib.parameters({
+        'basename'  : 'p1dgp2',
+        'bctype'  : 'flather',
         'depth' : 50.,
         'g' : 9.81,
         'f' : 0.0,

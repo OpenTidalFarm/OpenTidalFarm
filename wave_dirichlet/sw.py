@@ -28,7 +28,6 @@ def error(config):
 
 def test(refinment_level):
   config = sw_config.DefaultConfiguration(nx=2*2**refinment_level, ny=2) 
-  config.params["basename"]="p1dgp2"
   config.params["finish_time"]=pi/(sqrt(config.params["g"]*config.params["depth"])*config.params["k"])/10
   config.params["dt"]=config.params["finish_time"]/100
   config.params["dump_period"]=100000

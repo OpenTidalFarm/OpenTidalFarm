@@ -16,11 +16,9 @@ def run_model(nx, ny, turbine_model, turbine_pos):
   config = sw_config.DefaultConfiguration(nx, ny)
   period = 1.24*60*60 # Wave period
   config.params["k"]=2*pi/(period*sqrt(config.params["g"]*config.params["depth"]))
-  config.params["basename"]="p1dgp2"
   config.params["finish_time"]=2./4*period
   config.params["dt"]=config.params["finish_time"]/40
   config.params["dump_period"]=100000
-  config.params["bctype"]="flather"
 
   # Start at rest state
   config.params["start_time"] = period/4 
