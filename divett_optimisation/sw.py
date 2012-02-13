@@ -33,7 +33,6 @@ def default_config():
   return config
 
 def initial_control(config):
-  # TODO: FIXME 
   W=sw_lib.p1dgp2(config.mesh)
 
   U = W.split()[0].sub(0) # Extract the first component of the velocity function space 
