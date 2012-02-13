@@ -10,7 +10,7 @@ set_log_level(30)
 myid = MPI.process_number()
 debugging["record_all"] = True
 
-config = sw_config.SWConfiguration(nx=10, ny=2) 
+config = sw_config.DefaultConfiguration(nx=10, ny=2) 
 period = 1.24*60*60 # Wave period
 config.params["k"]=2*pi/(period*sqrt(config.params["g"]*config.params["depth"]))
 config.params["basename"]="p1dgp2"

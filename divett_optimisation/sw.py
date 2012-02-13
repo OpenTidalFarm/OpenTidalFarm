@@ -7,7 +7,7 @@ from sw_utils import test_initial_condition_adjoint, test_gradient_array
 from turbines import *
 
 def default_config():
-  config = sw_config.SWConfiguration(nx=20, ny=5)
+  config = sw_config.DefaultConfiguration(nx=20, ny=5)
   period = 1.24*60*60 # Wave period
   config.params["k"]=2*pi/(period*sqrt(config.params["g"]*config.params["depth"]))
   config.params["basename"]="p1dgp2"

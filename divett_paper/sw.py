@@ -9,7 +9,7 @@ from turbines import *
 set_log_level(30)
 debugging["record_all"] = True
 
-config = sw_config.SWConfiguration(nx=25, ny=15)
+config = sw_config.DefaultConfiguration(nx=25, ny=15)
 period = 1.24*60*60 # Wave period
 config.params["k"]=2*pi/(period*sqrt(config.params["g"]*config.params["depth"]))
 config.params["basename"]="p1dgp2"

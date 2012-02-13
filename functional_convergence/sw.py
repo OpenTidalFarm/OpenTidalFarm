@@ -13,7 +13,7 @@ set_log_level(30)
 myid = MPI.process_number()
 
 def run_model(nx, ny, turbine_model, turbine_pos):
-  config = sw_config.SWConfiguration(nx, ny)
+  config = sw_config.DefaultConfiguration(nx, ny)
   period = 1.24*60*60 # Wave period
   config.params["k"]=2*pi/(period*sqrt(config.params["g"]*config.params["depth"]))
   config.params["basename"]="p1dgp2"
@@ -35,21 +35,10 @@ def run_model(nx, ny, turbine_model, turbine_pos):
   # Now create the turbine measure
   config.initialise_turbines_measure()
 
-  ############# Initial Conditions ##################
-  class InitialConditions(Expression):
-      def __init__(self):
-          pass
-      def eval(self, values, X):
-          values[0]=config.params['eta0']*sqrt(config.params['g']*config.params['depth'])*cos(config.params["k"]*X[0]-sqrt(config.params["g"]*config.params["depth"])*config.params["k"]*config.params["start_time"])
-          values[1]=0.
-          values[2]=config.params['eta0']*cos(config.params["k"]*X[0]-sqrt(config.params["g"]*config.params["depth"])*config.params["k"]*config.params["start_time"])
-      def value_shape(self):
-          return (3,)
-
   W=sw_lib.p1dgp2(config.mesh)
 
   state=Function(W)
-  state.interpolate(InitialConditions())
+  state.interpolate(config.get_sin_initial_condition()())
 
   # Extract the first dimension of the velocity function space 
   U = W.split()[0].sub(0)
