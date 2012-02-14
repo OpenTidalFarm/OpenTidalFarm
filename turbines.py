@@ -5,7 +5,7 @@ from math import log
 class RectangleTurbines(Expression):
     '''The turbines are modeled by rectangles of size turbine_length*scalefac and turbine_width*scalefac.
        Scalefac is default to 1.'''
-    def __init__(self, config, scalefac=1, *args, **kwargs):
+    def __init__(self, config, scalefac=1.0, *args, **kwargs):
       self.config = config
       self.scalefac = scalefac
       super(RectangleTurbines, self).__init__(args, kwargs)
@@ -32,7 +32,7 @@ class RectangleTurbines(Expression):
 class GaussianTurbines(Expression):
     '''The turbines are modeled by a gaussian curve size turbine_length*scalefac and turbine_width*scalefac.
        Scalefac is default to 1.'''
-    def __init__(self, config, scalefac=1, *args, **kwargs):
+    def __init__(self, config, scalefac=1.0, *args, **kwargs):
       self.config = config
       self.scalefac = scalefac
       super(GaussianTurbines, self).__init__(args, kwargs)
@@ -59,6 +59,6 @@ class GaussianTurbines(Expression):
 
           for i in active_turbines_indices:
             gaussian = exp(-0.5 * (x[0]-x_pos[i])**2 * (-2*log(0.05)) / ((0.5*params["turbine_length"])**2) - 0.5 * (x[1]-y_pos[i])**2 * (-2*log(0.05)) / ((0.5*params["turbine_width"])**2))
-            friction += gaussian*params["turbine_friction"] 
+            friction += gaussian*params["turbine_friction"]
 
-        values[0] = friction 
+        values[0] = friction
