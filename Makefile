@@ -9,4 +9,6 @@ tests:
 	cd test_taylor_remainder_friction; make
 	@echo "=================== Running functional convergence test ==================="
 	cd test_functional_convergence; make
+	@echo "=================== Running optimal friction for one turbine test ==================="
+	cd test_optimal_friction_for_one_turbine; make
 	@echo "=================== All tests passed ===================" 
