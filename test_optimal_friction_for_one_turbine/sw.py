@@ -102,7 +102,10 @@ def dj(x):
 config = default_config()
 x0 = initial_control(config)
 
-test_gradient_array(j, dj, x0, seed=0.0001)
+minconv = test_gradient_array(j, dj, x0, seed=0.0001)
+if minconv < 1.99:
+  print "The gradient taylor remainder test failed."
+  sys.exit(1)
 
 opt_package = 'ipopt'
 
