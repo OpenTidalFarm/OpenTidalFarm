@@ -86,6 +86,11 @@ def j_and_dj(x):
 
   #sw_lib.save_to_file(adj_state, "adjoint")
 
+  # we have dJ/dx = (\partial J)/(\partial turbine_friction) * (d turbine_friction) / d x +
+  #                 + \partial J / \partial x
+  #               = adj_state * turbine_friction
+  #                 + \partial J / \partial x
+  # In this particular case, j = \sum_t(functional) and \partial functional / \partial x = funtional/x. Hence we haev \partial J / \partial x = j/x
   tf.interpolate(GaussianTurbines(config))
   v = adj_state.vector()
   dj = v.inner(tf.vector())
