@@ -10,18 +10,18 @@ from turbines import *
 def default_config():
   config = sw_config.DefaultConfiguration(nx=20, ny=5)
   period = 1.24*60*60 # Wave period
-  config.params["k"]=2*pi/(period*sqrt(config.params["g"]*config.params["depth"]))
-  config.params["finish_time"]=2./4*period
-  config.params["dt"]=config.params["finish_time"]/20
+  config.params["k"] = 2*pi/(period*sqrt(config.params["g"]*config.params["depth"]))
+  config.params["finish_time"] = 2./4*period
+  config.params["dt"] = config.params["finish_time"]/20
   print "Wave period (in h): ", period/60/60 
-  config.params["dump_period"]=1
+  config.params["dump_period"] = 1000
   config.params["verbose"] = 0
 
   # Start at rest state
   config.params["start_time"] = period/4 
 
   # Turbine settings
-  config.params["friction"]=0.0025
+  config.params["friction"] = 0.0025
   config.params["turbine_pos"] = [[1000., 500.], [2000., 500.]]
   # The turbine friction is the control variable 
   config.params["turbine_friction"] = 12.0
@@ -76,7 +76,8 @@ def j_and_dj(x):
   #               = adj_state * turbine_friction
   #                 + \partial J / \partial x
   tf.interpolate(GaussianTurbines(config))
-  dj = numpy.dot(adj_state.vector().array(), tf.vector().array())
+  v = adj_state.vector()
+  dj = v.inner(tf.vector())
   
   return j, numpy.array([dj])
 
@@ -90,7 +91,9 @@ def dj(x):
 config = default_config()
 x0 = initial_control(config)
 
-minconv = test_gradient_array(j, dj, x0, seed=0.0001)
+# We set the perturbation_direction, so that it is consistent in a parallel environment.
+p = numpy.array([1.])
+minconv = test_gradient_array(j, dj, x0, seed=0.0001, perturbation_direction=p)
 if minconv < 1.99:
   exit_code = 1
 else:
