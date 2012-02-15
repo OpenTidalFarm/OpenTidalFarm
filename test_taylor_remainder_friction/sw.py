@@ -75,11 +75,12 @@ def j_and_dj(x):
   #                 + \partial J / \partial x
   #               = adj_state * turbine_friction
   #                 + \partial J / \partial x
+  # In this particular case, j = \sum_t(functional) and \partial functional / \partial x = funtional/x. Hence we haev \partial J / \partial x = j/x
   tf.interpolate(GaussianTurbines(config))
   v = adj_state.vector()
   turbines = GaussianTurbines(config)
-  # In this case, j = \sum_t(functional) and \partial functional / \partial x = funtional/x. Hence we haev \partial J / \partial x = j/x
-  dj = v.inner(tf.vector()) + j/x[0] 
+  dj = v.inner(tf.vector()) 
+  dj += j/x[0] 
   
   return j, numpy.array([dj])
 
