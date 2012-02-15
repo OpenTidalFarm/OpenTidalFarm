@@ -63,7 +63,7 @@ def j_and_dj(x):
   M,G,rhs_contr,ufl=sw_lib.construct_shallow_water(W, config.ds, config.params, turbine_field = tf)
   def functional(state):
     turbines = GaussianTurbines(config)
-    return config.params["dt"]*turbines*0.5*(dot(state[0], state[0]) + dot(state[1], state[1]))**1.5*dx
+    return config.params["dt"]*turbines*x[0]*0.5*(dot(state[0], state[0]) + dot(state[1], state[1]))**1.5*dx
 
   # Solve the shallow water system
   j, state = sw_lib.timeloop_theta(M, G, rhs_contr, ufl, state, config.params, time_functional=functional)
@@ -77,7 +77,9 @@ def j_and_dj(x):
   #                 + \partial J / \partial x
   tf.interpolate(GaussianTurbines(config))
   v = adj_state.vector()
-  dj = v.inner(tf.vector())
+  turbines = GaussianTurbines(config)
+  # In this case, j = \sum_t(functional) and \partial functional / \partial x = funtional/x. Hence we haev \partial J / \partial x = j/x
+  dj = v.inner(tf.vector()) + j/x[0] 
   
   return j, numpy.array([dj])
 
