@@ -13,18 +13,18 @@ count = 0
 def default_config():
   config = sw_config.DefaultConfiguration(nx=10, ny=5)
   period = 1.24*60*60 # Wave period
-  config.params["k"]=2*pi/(period*sqrt(config.params["g"]*config.params["depth"]))
-  config.params["finish_time"]=2./4*period
-  config.params["dt"]=config.params["finish_time"]/10
+  config.params["k"] = 2*pi/(period*sqrt(config.params["g"]*config.params["depth"]))
+  config.params["finish_time"] = 2./4*period
+  config.params["dt"] = config.params["finish_time"]/10
   print "Wave period (in h): ", period/60/60 
-  config.params["dump_period"]=1
+  config.params["dump_period"] = 1000
   config.params["verbose"] = 0
 
   # Start at rest state
   config.params["start_time"] = period/4 
 
   # Turbine settings
-  config.params["friction"]=0.0025
+  config.params["friction"] = 0.0025
   config.params["turbine_pos"] = [[1000., 500.], [2000., 500.]]
   # The turbine friction is the control variable 
   config.params["turbine_friction"] = 12.0
@@ -85,7 +85,8 @@ def j_and_dj(x):
   #sw_lib.save_to_file(adj_state, "adjoint")
 
   tf.interpolate(GaussianTurbines(config))
-  dj = numpy.dot(adj_state.vector().array(), tf.vector().array())
+  v = adj_state.vector()
+  dj = v.inner(tf.vector())
   return j, numpy.array([dj])
 
 # TODO: memoize this function
@@ -102,7 +103,8 @@ def dj(x):
 config = default_config()
 x0 = initial_control(config)
 
-minconv = test_gradient_array(j, dj, x0, seed=0.0001)
+p = numpy.array([1.])
+minconv = test_gradient_array(j, dj, x0, seed=0.0001, perturbation_direction=p)
 if minconv < 1.99:
   print "The gradient taylor remainder test failed."
   sys.exit(1)
