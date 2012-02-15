@@ -2,6 +2,8 @@ import sys
 import sw_config 
 import sw_lib
 import numpy
+import Memoize
+import IPOptUtils
 from dolfin import *
 from dolfin_adjoint import *
 from sw_utils import test_initial_condition_adjoint, test_gradient_array
@@ -89,14 +91,14 @@ def j_and_dj(x):
   dj = v.inner(tf.vector())
   return j, numpy.array([dj])
 
-# TODO: memoize this function
+j_and_dj_mem = Memoize.MemoizeMutable(j_and_dj)
 def j(x):
-  j = j_and_dj(x)[0]*10**-13
+  j = j_and_dj_mem(x)[0]*10**-13
   print 'Evaluating j(', x[0].__repr__(), ')=', j
   return j 
 
 def dj(x):
-  dj = j_and_dj(x)[1]*10**-13
+  dj = j_and_dj_mem(x)[1]*10**-13
   print 'Evaluating dj(', x[0].__repr__(), ')=', dj
   return dj
 
@@ -118,36 +120,12 @@ if opt_package == 'ipopt':
   g = lambda x: []
   dg = lambda x: []
 
-  # The wrapper class of the objective/constaint functions that as required by the ipopt package
-  class myfunc(object):
-    def __init__(self):
-      pass
+  f = IPOptUtils.IPOptFunction()
+  # Overwrite the functional and gradient function with our implementation
+  f.objective= j 
+  f.gradient= dj 
 
-    def objective(self, x):
-      ''' The objective function evaluated at x. '''
-      return j(x)
-
-    def gradient(self, x):
-      ''' The gradient of the objective function evaluated at x. '''
-      return dj(x)
-
-    def constraints(self, x):
-      ''' The constraint functions evaluated at x. '''
-      return numpy.array([])
-
-    def jacobian(self, x):
-      ''' The Jacobian of the constraint functions evaluated at x. '''
-      return (numpy.array([]), numpy.array([]))
-
-    def jacobianstructure(self):
-      ''' The sparisty structure of the constraint function Jacobian. '''
-      return (numpy.array([]), numpy.array([]))
-
-    def hessian(self, x, l, obj_fac):
-      ''' THe Hessian evaluated at x. ''' 
-      return None
-
-  nlp = ipopt.problem(1, 0, myfunc(), numpy.array([0])) 
+  nlp = ipopt.problem(1, 0, f, numpy.array([0])) 
   #nlp.addOption('derivative_test', 'first-order')
   nlp.addOption('mu_strategy', 'adaptive')
   nlp.addOption('tol', 1e-7)
