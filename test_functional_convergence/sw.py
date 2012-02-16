@@ -4,6 +4,7 @@
 import sys
 import sw_config 
 import sw_lib
+import numpy
 from turbines import *
 from dolfin import *
 from dolfin_adjoint import *
@@ -34,7 +35,8 @@ def run_model(nx, ny, turbine_model, turbine_pos):
   # Turbine settings
   config.params["friction"]=0.0025
   config.params["turbine_pos"] = turbine_pos 
-  config.params["turbine_friction"] = 12./config.params["depth"]
+  config.params["turbine_friction"] = 12./config.params["depth"]*numpy.ones(len(config.params["turbine_pos"]))
+
   config.params["turbine_length"] = 200
   config.params["turbine_width"] = 200
 

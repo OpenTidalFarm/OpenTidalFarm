@@ -2,6 +2,7 @@ import sys
 import sw_config 
 import sw_lib
 import turbines
+import numpy
 from dolfin import *
 from dolfin_adjoint import *
 from sw_utils import test_initial_condition_adjoint
@@ -23,7 +24,7 @@ config.params["dump_period"]=100000
 # Turbine settings
 config.params["friction"]=0.0025
 config.params["turbine_pos"]=[[200., 500.], [1000., 700.]]
-config.params["turbine_friction"] = 12.
+config.params["turbine_friction"] = 12.*numpy.ones(len(config.params["turbine_pos"]))
 config.params["turbine_length"] = 400
 config.params["turbine_width"] = 400
 

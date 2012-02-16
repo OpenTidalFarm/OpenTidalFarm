@@ -23,8 +23,13 @@ class RectangleTurbines(Expression):
           y_pos = numpy.array(params["turbine_pos"])[:,1] 
           y_pos_low = y_pos-params["turbine_width"]*scalefac/2
           y_pos_high = y_pos+params["turbine_width"]*scalefac/2
-          if ((x_pos_low < x[0]) & (x_pos_high > x[0]) & (y_pos_low < x[1]) & (y_pos_high > x[1])).any():
-            friction += params["turbine_friction"] 
+
+          # active_turbines is a boolean array that whose i'th element is true if the ith turbine is present at point x
+          active_turbines = (x_pos_low < x[0]) & (x_pos_high > x[0]) & (y_pos_low < x[1]) & (y_pos_high > x[1])
+          active_turbines_indices = numpy.where(active_turbines == True)[0]
+
+          for i in active_turbines_indices:
+            friction += params["turbine_friction"][i] 
 
         values[0] = friction 
 
@@ -59,6 +64,6 @@ class GaussianTurbines(Expression):
 
           for i in active_turbines_indices:
             gaussian = exp(-0.5 * (x[0]-x_pos[i])**2 * (-2*log(0.05)) / ((0.5*params["turbine_length"])**2) - 0.5 * (x[1]-y_pos[i])**2 * (-2*log(0.05)) / ((0.5*params["turbine_width"])**2))
-            friction += gaussian*params["turbine_friction"]
+            friction += gaussian*params["turbine_friction"][i]
 
         values[0] = friction

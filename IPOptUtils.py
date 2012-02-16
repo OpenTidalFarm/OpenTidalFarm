@@ -22,11 +22,3 @@ class  IPOptFunction(object):
   def jacobian(self, x):
     ''' The Jacobian of the constraint functions evaluated at x. '''
     return (numpy.array([]), numpy.array([]))
-
-  def jacobianstructure(self):
-    ''' The sparisty structure of the constraint function Jacobian. '''
-    return (numpy.array([]), numpy.array([]))
-
-  def hessian(self, x, l, obj_fac):
-    ''' THe Hessian evaluated at x. ''' 
-    return None

@@ -13,7 +13,7 @@ from turbines import *
 count = 0
 
 def default_config():
-  config = sw_config.DefaultConfiguration(nx=10, ny=5)
+  config = sw_config.DefaultConfiguration(nx=20, ny=10)
   period = 1.24*60*60 # Wave period
   config.params["k"] = 2*pi/(period*sqrt(config.params["g"]*config.params["depth"]))
   config.params["finish_time"] = 2./4*period
@@ -27,18 +27,20 @@ def default_config():
 
   # Turbine settings
   config.params["friction"] = 0.0025
-  config.params["turbine_pos"] = [[1000., 500.], [2000., 500.]]
+  config.params["turbine_pos"] = [[500., 500.], [1500., 500.], [2500., 500.]]
   # The turbine friction is the control variable 
-  config.params["turbine_friction"] = 12.0
-  config.params["turbine_length"] = 500
-  config.params["turbine_width"] = 2000
+  config.params["turbine_friction"] = 12.0*numpy.ones(len(config.params["turbine_pos"]))
+
+  config.params["turbine_length"] = 800
+  config.params["turbine_width"] = 800
 
   # Now create the turbine measure
   config.initialise_turbines_measure()
   return config
 
 def initial_control(config):
-  return numpy.array([0.2])
+  numpy.random.seed(41) 
+  return numpy.random.rand(len(config.params['turbine_friction']))
 
 def j_and_dj(x):
   adjointer.reset()
@@ -61,7 +63,7 @@ def j_and_dj(x):
 
   # Set up the turbine friction field using the provided control variable
   turbine_friction_orig = config.params["turbine_friction"]
-  config.params["turbine_friction"] = x[0] * turbine_friction_orig
+  config.params["turbine_friction"] = x * turbine_friction_orig
   tf.interpolate(GaussianTurbines(config))
   config.params["turbine_friction"] = turbine_friction_orig 
 
@@ -91,28 +93,37 @@ def j_and_dj(x):
   #               = adj_state * turbine_friction
   #                 + \partial J / \partial x
   # In this particular case, j = \sum_t(functional) and \partial functional / \partial x = funtional/x. Hence we haev \partial J / \partial x = j/x
-  tf.interpolate(GaussianTurbines(config))
+  dj = numpy.zeros(len(config.params["turbine_friction"]))
   v = adj_state.vector()
-  dj = v.inner(tf.vector())
-  return j, numpy.array([dj])
+  for n in range(len(dj)):
+    turbine_friction_orig = config.params["turbine_friction"]
+    x = numpy.zeros(len(dj))
+    x[n] = 1.0
+    config.params["turbine_friction"] = x*config.params["turbine_friction"]
+    tf.interpolate(GaussianTurbines(config))
+    dj[n] = v.inner(tf.vector()) 
+    config.params["turbine_friction"] = turbine_friction_orig 
+  return j, dj 
 
 j_and_dj_mem = Memoize.MemoizeMutable(j_and_dj)
 def j(x):
   j = j_and_dj_mem(x)[0]*10**-13
-  print 'Evaluating j(', x[0].__repr__(), ')=', j
+  print 'Evaluating j(', x.__repr__(), ')=', j
   return j 
 
 def dj(x):
   dj = j_and_dj_mem(x)[1]*10**-13
-  print 'Evaluating dj(', x[0].__repr__(), ')=', dj
+  print 'Evaluating dj(', x.__repr__(), ')=', dj
   return dj
 
 config = default_config()
 x0 = initial_control(config)
 
-p = numpy.array([1.])
+# We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
+numpy.random.seed(21) 
+p = numpy.random.rand(len(config.params['turbine_friction']))
 minconv = test_gradient_array(j, dj, x0, seed=0.0001, perturbation_direction=p)
-if minconv < 1.99:
+if minconv < 1.98:
   print "The gradient taylor remainder test failed."
   sys.exit(1)
 
@@ -121,7 +132,6 @@ opt_package = 'ipopt'
 if opt_package == 'ipopt':
   # If this option does not produce any ipopt outputs, delete the ipopt.opt file
   import ipopt 
-  import numpy
   g = lambda x: []
   dg = lambda x: []
 
@@ -130,13 +140,19 @@ if opt_package == 'ipopt':
   f.objective= j 
   f.gradient= dj 
 
-  nlp = ipopt.problem(1, 0, f, numpy.array([0])) 
-  #nlp.addOption('derivative_test', 'first-order')
+  nlp = ipopt.problem(len(x0), 
+                      0, 
+                      f, 
+                      numpy.zeros(len(x0)), 
+                      100*numpy.ones(len(x0)))
   nlp.addOption('mu_strategy', 'adaptive')
   nlp.addOption('tol', 1e-7)
   nlp.addOption('print_level', 5)
-  # A -1.0 scaling factor transforms the min problem to a max problem
+  nlp.addOption('check_derivatives_for_naninf', 'yes')
+  # A -1.0 scaling factor transforms the min problem to a max problem.
   nlp.addOption('obj_scaling_factor', -1.0)
+  # Use an approximate Hessian since we do not have second order information.
+  nlp.addOption('hessian_approximation', 'limited-memory')
 
   x, info = nlp.solve(x0)
   print info['status_msg']
@@ -144,7 +160,7 @@ if opt_package == 'ipopt':
   print "Solution of the dual variables: lambda=%s\n" % repr(info['mult_g'])
   print "Objective=%s\n" % repr(info['obj_val'])
 
-  if info['status'] != 0 or x[0] > 0: 
+  if info['status'] != 0 or max(x) > 0: 
     print "The optimisation algorithm did not find the correct solution."
     sys.exit(1) 
   else:
@@ -154,7 +170,13 @@ if opt_package == 'pyipopt':
   import pyipopt
   g = lambda x: []
   dg = lambda x: []
-  nlp = pyipopt.create(len(x0), numpy.array([0]), numpy.array([100000]), 0, numpy.array([]), numpy.array([]), 0, 0, j, dj, g, dg)
+  nlp = pyipopt.create(len(x0), 
+                       numpy.zeros(len(config.params["turbine_friction"])), 
+                       100*numpy.ones(len(config.params["turbine_friction"])), 
+                       0, 
+                       numpy.array([]), 
+                       numpy.array([]), 
+                       0, 0, j, dj, g, dg)
 
   x, zl, zu, obj, status = nlp.solve(x0)
   nlp.close()

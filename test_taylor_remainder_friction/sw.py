@@ -12,7 +12,7 @@ def default_config():
   period = 1.24*60*60 # Wave period
   config.params["k"] = 2*pi/(period*sqrt(config.params["g"]*config.params["depth"]))
   config.params["finish_time"] = 2./4*period
-  config.params["dt"] = config.params["finish_time"]/20
+  config.params["dt"] = config.params["finish_time"]/5
   print "Wave period (in h): ", period/60/60 
   config.params["dump_period"] = 1000
   config.params["verbose"] = 0
@@ -24,7 +24,7 @@ def default_config():
   config.params["friction"] = 0.0025
   config.params["turbine_pos"] = [[1000., 500.], [2000., 500.]]
   # The turbine friction is the control variable 
-  config.params["turbine_friction"] = 12.0
+  config.params["turbine_friction"] = 12.0*numpy.ones(len(config.params["turbine_pos"]))
   config.params["turbine_length"] = 200
   config.params["turbine_width"] = 400
 
@@ -33,7 +33,8 @@ def default_config():
   return config
 
 def initial_control(config):
-  return numpy.array([0.2145]) # Choose a random starting point
+  numpy.random.seed(41) 
+  return numpy.random.rand(len(config.params['turbine_friction']))
 
 def j_and_dj(x):
   adjointer.reset()
@@ -56,14 +57,14 @@ def j_and_dj(x):
 
   # Set up the turbine friction field using the provided control variable
   turbine_friction_orig = config.params["turbine_friction"]
-  config.params["turbine_friction"] = x[0] * turbine_friction_orig
+  config.params["turbine_friction"] = x * turbine_friction_orig
   tf.interpolate(GaussianTurbines(config))
   config.params["turbine_friction"] = turbine_friction_orig 
 
   M,G,rhs_contr,ufl=sw_lib.construct_shallow_water(W, config.ds, config.params, turbine_field = tf)
   def functional(state):
     turbines = GaussianTurbines(config)
-    return config.params["dt"]*turbines*x[0]*0.5*(dot(state[0], state[0]) + dot(state[1], state[1]))**1.5*dx
+    return config.params["dt"]*turbines*0.5*(dot(state[0], state[0]) + dot(state[1], state[1]))**1.5*dx
 
   # Solve the shallow water system
   j, state = sw_lib.timeloop_theta(M, G, rhs_contr, ufl, state, config.params, time_functional=functional)
@@ -75,14 +76,19 @@ def j_and_dj(x):
   #                 + \partial J / \partial x
   #               = adj_state * turbine_friction
   #                 + \partial J / \partial x
-  # In this particular case, j = \sum_t(functional) and \partial functional / \partial x = funtional/x. Hence we haev \partial J / \partial x = j/x
-  tf.interpolate(GaussianTurbines(config))
+  # In this particular case, j = \sum_t(functional) and \partial functional / \partial x = funtional/x. Hence we have \partial J / \partial x = j/x
+  dj = numpy.zeros(len(config.params["turbine_friction"]))
   v = adj_state.vector()
-  turbines = GaussianTurbines(config)
-  dj = v.inner(tf.vector()) 
-  dj += j/x[0] 
+  for n in range(len(dj)):
+    turbine_friction_orig = config.params["turbine_friction"]
+    x = numpy.zeros(len(dj))
+    x[n] = 1.0
+    config.params["turbine_friction"] = x*config.params["turbine_friction"]
+    tf.interpolate(GaussianTurbines(config))
+    dj[n] = v.inner(tf.vector()) 
+    config.params["turbine_friction"] = turbine_friction_orig 
   
-  return j, numpy.array([dj])
+  return j, dj 
 
 def j(x):
   return j_and_dj(x)[0]
@@ -94,8 +100,9 @@ def dj(x):
 config = default_config()
 x0 = initial_control(config)
 
-# We set the perturbation_direction, so that it is consistent in a parallel environment.
-p = numpy.array([1.])
+# We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
+numpy.random.seed(21) 
+p = numpy.random.rand(len(config.params['turbine_friction']))
 minconv = test_gradient_array(j, dj, x0, seed=0.0001, perturbation_direction=p)
 if minconv < 1.99:
   exit_code = 1
