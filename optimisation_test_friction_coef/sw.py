@@ -4,6 +4,8 @@ import sw_lib
 import numpy
 import Memoize
 import IPOptUtils
+import ipopt 
+import numpy
 from dolfin import *
 from dolfin_adjoint import *
 from sw_utils import test_initial_condition_adjoint, test_gradient_array
@@ -13,7 +15,7 @@ from turbines import *
 count = 0
 
 def default_config():
-  config = sw_config.DefaultConfiguration(nx=200, ny=50)
+  config = sw_config.DefaultConfiguration(nx=100, ny=25)
   period = 1.24*60*60 # Wave period
   config.params["k"] = 2*pi/(period*sqrt(config.params["g"]*config.params["depth"]))
   config.params["finish_time"] = 2./4*period
@@ -106,7 +108,6 @@ def j(x):
 
 def dj(x):
   dj = j_and_dj_mem(x)[1]*10**-13
-  minconv = test_gradient_array(lambda x: j_and_dj_mem(x)[0], lambda x: j_and_dj_mem(x)[1], x, seed=0.0001, perturbation_direction=p)
   print 'Evaluating dj(', x[0].__repr__(), ')=', dj
   return dj
 
@@ -114,41 +115,37 @@ config = default_config()
 x0 = initial_control(config)
 
 p = numpy.array([1.])
-minconv = test_gradient_array(j, dj, x0, seed=0.0001, perturbation_direction=p)
-if minconv < 1.99:
-  print "The gradient taylor remainder test failed."
-  sys.exit(1)
+#minconv = test_gradient_array(j, dj, x0, seed=0.0001, perturbation_direction=p)
+#if minconv < 1.99:
+#  print "The gradient taylor remainder test failed."
+#  sys.exit(1)
 
-opt_package = 'ipopt'
+# If this option does not produce any ipopt outputs, delete the ipopt.opt file
+g = lambda x: []
+dg = lambda x: []
 
-if opt_package == 'ipopt':
-  # If this option does not produce any ipopt outputs, delete the ipopt.opt file
-  import ipopt 
-  import numpy
-  g = lambda x: []
-  dg = lambda x: []
+f = IPOptUtils.IPOptFunction()
+# Overwrite the functional and gradient function with our implementation
+f.objective= j 
+f.gradient= dj 
 
-  f = IPOptUtils.IPOptFunction()
-  # Overwrite the functional and gradient function with our implementation
-  f.objective= j 
-  f.gradient= dj 
+nlp = ipopt.problem(1, 0, f, numpy.array([0]), numpy.array([100])) 
+#nlp.addOption('derivative_test', 'first-order')
+nlp.addOption('mu_strategy', 'adaptive')
+nlp.addOption('tol', 1e-7)
+nlp.addOption('print_level', 5)
+# A -1.0 scaling factor transforms the min problem to a max problem
+nlp.addOption('obj_scaling_factor', -1.0)
+nlp.addOption('check_derivatives_for_naninf', 'yes')
 
-  nlp = ipopt.problem(1, 0, f, numpy.array([0])) 
-  #nlp.addOption('derivative_test', 'first-order')
-  nlp.addOption('mu_strategy', 'adaptive')
-  nlp.addOption('tol', 1e-7)
-  nlp.addOption('print_level', 5)
-  # A -1.0 scaling factor transforms the min problem to a max problem
-  nlp.addOption('obj_scaling_factor', -1.0)
+x, info = nlp.solve(x0)
+print info['status_msg'], " (status: ", info['status'], ")"
+print "Solution of the primal variables: x=%s\n" % repr(x) 
+print "Solution of the dual variables: lambda=%s\n" % repr(info['mult_g'])
+print "Objective=%s\n" % repr(info['obj_val'])
 
-  x, info = nlp.solve(x0)
-  print info['status_msg']
-  print "Solution of the primal variables: x=%s\n" % repr(x) 
-  print "Solution of the dual variables: lambda=%s\n" % repr(info['mult_g'])
-  print "Objective=%s\n" % repr(info['obj_val'])
-
-  if info['status'] != 0 or x[0] > 0: 
-    print "The optimisation algorithm did not find the correct solution."
-    sys.exit(1) 
-  else:
-    exit_code = 0
+if info['status'] != 0 or x[0] > 0: 
+  print "The optimisation algorithm did not find the correct solution."
+  sys.exit(1) 
+else:
+  exit_code = 0
