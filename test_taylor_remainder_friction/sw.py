@@ -1,7 +1,7 @@
 import sys
 import sw_config 
 import sw_lib
-from functionals import DefaultFunctional 
+from functionals import * 
 import numpy
 from dolfin import *
 from dolfin_adjoint import *
@@ -37,7 +37,8 @@ def initial_control(config):
   numpy.random.seed(41) 
   return numpy.random.rand(len(config.params['turbine_friction']))
 
-def j_and_dj(m):
+def j_and_dj(m ):
+  global depend_m
   adjointer.reset()
   adj_variables.__init__()
   
@@ -57,12 +58,18 @@ def j_and_dj(m):
   # Apply the control
 
   # Set up the turbine friction field using the provided control variable
+  turbine_friction_orig = config.params["turbine_friction"]
   config.params["turbine_friction"] = m 
   tf.interpolate(Turbines(config.params))
+  config.params["turbine_friction"] = turbine_friction_orig 
 
   M,G,rhs_contr,ufl=sw_lib.construct_shallow_water(W, config.ds, config.params, turbine_field = tf)
 
-  functional = DefaultFunctional(config.params, m)
+  if depend_m:
+    functional = DefaultFunctional(config.params, m)
+  else:
+    functional = DefaultFunctionalWithoutControlDependency(config.params)
+
   # Solve the shallow water system
   j, djdm, state = sw_lib.timeloop_theta(M, G, rhs_contr, ufl, state, config.params, time_functional=functional)
 
@@ -81,7 +88,8 @@ def j_and_dj(m):
     dj[n] = v.inner(tf.vector()) 
   
   # Now add the \partial J / \partial m term
-  dj += djdm
+  if depend_m:
+    dj += djdm
   return j, dj 
 
 def j(m):
@@ -97,9 +105,11 @@ m0 = initial_control(config)
 # We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
 numpy.random.seed(21) 
 p = numpy.random.rand(len(config.params['turbine_friction']))
-minconv = test_gradient_array(j, dj, m0, seed=0.0001, perturbation_direction=p)
-if minconv < 1.99:
-  exit_code = 1
-else:
-  exit_code = 0
-sys.exit(exit_code)
+depend_m = None
+# Run with a functional that does not depend on m directly
+for depend in [False, True]:
+  print "Running test with function that depends on control = ", depend
+  depend_m = depend
+  minconv = test_gradient_array(j, dj, m0, seed=0.0001, perturbation_direction=p)
+  if minconv < 1.99:
+    sys.exit(1)
