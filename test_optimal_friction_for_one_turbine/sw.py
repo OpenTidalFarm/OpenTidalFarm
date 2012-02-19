@@ -61,12 +61,10 @@ def j_and_dj(x):
   U = U.collapse() # Recompute the DOF map
   tf = Function(U)
   # Apply the control
-
   # Set up the turbine friction field using the provided control variable
-  turbine_friction_orig = config.params["turbine_friction"]
-  config.params["turbine_friction"] = x 
-  tf.interpolate(config.params["turbine_model"](config.params))
-  config.params["turbine_friction"] = turbine_friction_orig 
+  params_m = sw_lib.parameters(config.params)
+  params_m["turbine_friction"] = x 
+  tf.interpolate(config.params["turbine_model"](params_m))
 
   global count
   count+=1
@@ -95,13 +93,12 @@ def j_and_dj(x):
   dj = numpy.zeros(len(config.params["turbine_friction"]))
   v = adj_state.vector()
   for n in range(len(dj)):
-    turbine_friction_orig = config.params["turbine_friction"]
     x = numpy.zeros(len(dj))
     x[n] = 1.0
-    config.params["turbine_friction"] = x
-    tf.interpolate(config.params["turbine_model"](config.params))
+    params_dm = sw_lib.parameters(config.params)
+    params_dm["turbine_friction"] = x 
+    tf.interpolate(params_dm["turbine_model"](params_dm))
     dj[n] = v.inner(tf.vector()) 
-    config.params["turbine_friction"] = turbine_friction_orig 
   return j, dj 
 
 j_and_dj_mem = Memoize.MemoizeMutable(j_and_dj)
