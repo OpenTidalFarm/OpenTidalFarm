@@ -1,7 +1,9 @@
+import sw_lib
+from turbines import *
+
 from dolfin import * 
 from math import exp, sqrt, pi
 
-import sw_lib
 
 class DefaultConfiguration:
   def __init__(self, nx=20, ny=3):
@@ -19,7 +21,8 @@ class DefaultConfiguration:
         'turbine_pos' : [],
         'turbine_length' : 20,
         'turbine_width' : 5,
-        'turbine_friction' : 12.0
+        'turbine_friction' : 12.0,
+        'turbine_model': GaussianTurbines
         })
 
     # Basin radius.
