@@ -4,11 +4,19 @@ from dolfin import *
 from math import log
 
 class Turbines(Expression):
-    def __init__(self, params, *args, **kwargs):
+    def __init__(self, params, derivative_index_selector=-1,  derivative_var_selector=None, *args, **kwargs):
+      ''' If the derivative selector is i >= 0, the Expression will compute the derivative of the turbine with index i with respect 
+          to either the x or y coorinate or its friction parameter. '''
       self.params = sw_lib.parameters(params)
+      self.derivative_index_selector = derivative_index_selector
+      self.derivative_var_selector = derivative_var_selector
       super(Turbines, self).__init__(args, kwargs)
 
     # The turbine functions will be evaluated between (-1..1) x (-1..1) and should return function values from [0..1].
+    def constant_turbine_function(self, x):
+      '''The turbines are modeled by rectangles with constant friction. '''
+      return 1.0
+
     def constant_turbine_function(self, x):
       '''The turbines are modeled by rectangles with constant friction. '''
       return 1.0
@@ -28,6 +36,13 @@ class Turbines(Expression):
       bump *= exp(-1.0/(1.0-x[1]**2)) 
       bump /= exp(-1)**2
       return bump
+
+    #def bump_turbine_derivative(self, x):
+    # ''' The derivative of the turbine function with respect to . '''
+    # bump = exp(-1.0/(1.0-x[0]**2)) * 2*x[0] / ((1.0-x[0]**2)**2)
+    # bump *= exp(-1.0/(1.0-x[1]**2)) 
+    # bump /= exp(-1)**2
+    # return bump
 
     def turbine_function(self, params):
       ''' Returns the turbine function using the parameters. '''
@@ -52,8 +67,22 @@ class Turbines(Expression):
           active_turbines_indices = numpy.where(active_turbines == True)[0]
 
           f = self.turbine_function(params)
-          for i in active_turbines_indices:
+          if self.derivative_index_selector < 0:
+            # Just compute the evaluation
+            for i in active_turbines_indices:
+              x_unit = (x[0]-x_pos[i]) / (0.5*params["turbine_length"])
+              y_unit = (x[1]-y_pos[i]) / (0.5*params["turbine_width"])
+              friction += f([x_unit, y_unit])*params["turbine_friction"][i] 
+
+          elif self.derivative_index_selector in active_turbines_indices:
+            # Compute the derivative with respect to the specified variable
+            i = self.derivative_index_selector
             x_unit = (x[0]-x_pos[i]) / (0.5*params["turbine_length"])
             y_unit = (x[1]-y_pos[i]) / (0.5*params["turbine_width"])
-            friction += f([x_unit, y_unit])*params["turbine_friction"][i] 
+            # Now check with which variable we want to take the derivative with respect to.
+            if self.derivative_var_selector == 'turbine_friction':
+              friction += f([x_unit, y_unit])
+            else: 
+              raise ValueError, "Invalid argument for the derivarive variable selector."
+
         values[0] = friction 
