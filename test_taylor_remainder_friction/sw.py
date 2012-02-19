@@ -58,40 +58,41 @@ def j_and_dj(m):
   # Set up the turbine friction field using the provided control variable
   turbine_friction_orig = config.params["turbine_friction"]
   config.params["turbine_friction"] = m * turbine_friction_orig
-  tf.interpolate(GaussianTurbines(config))
+  tf.interpolate(GaussianTurbines(config.params))
   config.params["turbine_friction"] = turbine_friction_orig 
 
   M,G,rhs_contr,ufl=sw_lib.construct_shallow_water(W, config.ds, config.params, turbine_field = tf)
   class Functional(object):
-    def __init__(self, config, m=None):
+    def __init__(self, params, m=None):
       ''' m are the control variables. If None, then the functional does not depend on the controls. '''
-      self.config = config
+      # Create a copy of the parameters so that future changes will not affect the definition of this object.
+      self.params = sw_lib.parameters(dict(params))
       self.m = m
 
     def Jt(self, state):
       ''' This function returns the form that computes the functional's contribution for one timelevel with solution 'state'. If m is none then the fucntional does not depend directly on the control parameter.'''
-      turbine_friction_orig = self.config.params["turbine_friction"]
-      self.config.params["turbine_friction"] = self.m * self.config.params["turbine_friction"]
-      turbines = GaussianTurbines(self.config)
-      self.config.params["turbine_friction"] = turbine_friction_orig 
+      turbine_friction_orig = self.params["turbine_friction"]
+      self.params["turbine_friction"] = self.m * self.params["turbine_friction"]
+      turbines = GaussianTurbines(self.params)
+      self.params["turbine_friction"] = turbine_friction_orig 
 
-      return self.config.params["dt"]*turbines*0.5*(dot(state[0], state[0]) + dot(state[1], state[1]))**1.5*dx
+      return self.params["dt"]*turbines*0.5*(dot(state[0], state[0]) + dot(state[1], state[1]))**1.5*dx
 
     def dJtdm(self, state):
       ''' This function computes the partial derivatives with respect to controls of the functional's contribution for one timelevel with solution 'state'. If m is None then the derivative does not depend on the control parmeter. '''
       djtdm = [] 
-      turbine_friction_orig = self.config.params["turbine_friction"]
+      turbine_friction_orig = self.params["turbine_friction"]
 
       for n in range(len(self.m)):
         dm = numpy.zeros(len(self.m))
         dm[n] = 1.0
-        self.config.params["turbine_friction"] = dm * self.config.params["turbine_friction"]
-        turbines = GaussianTurbines(self.config)
-        djtdm.append(self.config.params["dt"]*turbines*0.5*(dot(state[0], state[0]) + dot(state[1], state[1]))**1.5*dx)
-        self.config.params["turbine_friction"] = turbine_friction_orig 
+        self.params["turbine_friction"] = dm * self.params["turbine_friction"]
+        turbines = GaussianTurbines(self.params)
+        djtdm.append(self.params["dt"]*turbines*0.5*(dot(state[0], state[0]) + dot(state[1], state[1]))**1.5*dx)
+        self.params["turbine_friction"] = turbine_friction_orig 
       return djtdm 
 
-  func_forms = Functional(config, m)
+  func_forms = Functional(config.params, m)
   # Solve the shallow water system
   j, djdm, state = sw_lib.timeloop_theta(M, G, rhs_contr, ufl, state, config.params, time_functional=func_forms)
 
@@ -110,7 +111,7 @@ def j_and_dj(m):
     m = numpy.zeros(len(dj))
     m[n] = 1.0
     config.params["turbine_friction"] = m * config.params["turbine_friction"]
-    tf.interpolate(GaussianTurbines(config))
+    tf.interpolate(GaussianTurbines(config.params))
     dj[n] = v.inner(tf.vector()) 
     config.params["turbine_friction"] = turbine_friction_orig 
   
