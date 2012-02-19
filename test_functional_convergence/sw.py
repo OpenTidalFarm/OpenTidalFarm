@@ -100,7 +100,7 @@ if myid == 0:
 
 # The types of turbines to be tested and their tolerances
 #turbine_types = {"RectangleTurbine": RectangleTurbines, "GaussianTurbine": GaussianTurbines}
-turbine_types = ["GaussianTurbine", "BumpTurbine"]
+turbine_types = ["BumpTurbine", "GaussianTurbine"]
 turbine_types_tol_ref = {"GaussianTurbine": 0.4, "BumpTurbine": 0.4}
 turbine_types_tol_mov = {"GaussianTurbine": 0.4, "BumpTurbine": 1.2}
 results = {}

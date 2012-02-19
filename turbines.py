@@ -4,14 +4,13 @@ from dolfin import *
 from math import log
 
 class Turbines(Expression):
-    def __init__(self, params, scalefac=1.0, *args, **kwargs):
+    def __init__(self, params, *args, **kwargs):
       self.params = sw_lib.parameters(params)
-      self.scalefac = scalefac
       super(Turbines, self).__init__(args, kwargs)
 
     # The turbine functions will be evaluated between (-1..1) x (-1..1) and should return function values from [0..1].
     def constant_turbine_function(self, x):
-      '''The turbines are modeled by rectangles of size turbine_length*scalefac and turbine_width*scalefac. '''
+      '''The turbines are modeled by rectangles with constant friction. '''
       return 1.0
 
     def gaussian_turbine_function(self, x):
@@ -37,27 +36,26 @@ class Turbines(Expression):
 
     def eval(self, values, x):
         params = self.params
-        scalefac = self.scalefac
         friction = 0.0
         if len(params["turbine_pos"]) >0:
           # Check if x lies in a position where a turbine is deployed and if, then increase the friction
           x_pos = numpy.array(params["turbine_pos"])[:,0] 
-          x_pos_low = x_pos-params["turbine_length"]*scalefac/2
-          x_pos_high = x_pos+params["turbine_length"]*scalefac/2
+          x_pos_low = x_pos-params["turbine_length"]/2
+          x_pos_high = x_pos+params["turbine_length"]/2
 
           y_pos = numpy.array(params["turbine_pos"])[:,1] 
-          y_pos_low = y_pos-params["turbine_width"]*scalefac/2
-          y_pos_high = y_pos+params["turbine_width"]*scalefac/2
+          y_pos_low = y_pos-params["turbine_width"]/2
+          y_pos_high = y_pos+params["turbine_width"]/2
 
           # active_turbines is a boolean array that whose i'th element is true if the ith turbine is present at point x
           active_turbines = (x_pos_low < x[0]) & (x_pos_high > x[0]) & (y_pos_low < x[1]) & (y_pos_high > x[1])
           active_turbines_indices = numpy.where(active_turbines == True)[0]
 
+          f = self.turbine_function(params)
           for i in active_turbines_indices:
             x_unit = (x[0]-x_pos[i]) / (0.5*params["turbine_length"])
             y_unit = (x[1]-y_pos[i]) / (0.5*params["turbine_width"])
-
-            f = self.turbine_function(params)
             friction += f([x_unit, y_unit])*params["turbine_friction"][i] 
-
+            #gaussian = exp(-0.5 * (x[0]-x_pos[i])**2 * (-2*log(0.05)) / ((0.5*params["turbine_length"])**2) - 0.5 * (x[1]-y_pos[i])**2 * (-2*log(0.05)) / ((0.5*params["turbine_width"])**2))
+            #friction += gaussian*params["turbine_friction"][i]
         values[0] = friction 
