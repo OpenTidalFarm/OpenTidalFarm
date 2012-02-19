@@ -69,3 +69,44 @@ class GaussianTurbines(Expression):
             friction += gaussian*params["turbine_friction"][i]
 
         values[0] = friction
+
+class BumpTurbines(Expression):
+    '''The turbines are modeled by the bump function (a smooth function with limited support):
+               /  e**-1/(1-x**2) for |x| < 1
+      psi(x) = |  
+               \  0              otherwise
+      For more information see http://en.wikipedia.org/wiki/Bump_function
+    '''
+    def __init__(self, params, scalefac=1.0, *args, **kwargs):
+      # Create a copy of the parameters so that future changes will not affect the definition of this turbine.
+      self.params = sw_lib.parameters(params)
+      self.scalefac = scalefac
+      super(BumpTurbines, self).__init__(args, kwargs)
+
+    def eval(self, values, x):
+        params = self.params
+        scalefac = self.scalefac
+        friction = 0.0
+        cut_off = 0.05 # Specifies which value the gaussian curve is supposed to have at the edges of the turbine size (as percentage of the maximal value)
+                       # This parameter influences the steepnes of the gaussian function.
+        if len(params["turbine_pos"]) >0:
+          # Check if x lies in a position where a turbine is deployed and if, then increase the friction
+          x_pos = numpy.array(params["turbine_pos"])[:,0] 
+          x_pos_low = x_pos-params["turbine_length"]/scalefac/2
+          x_pos_high = x_pos+params["turbine_length"]/scalefac/2
+
+          y_pos = numpy.array(params["turbine_pos"])[:,1] 
+          y_pos_low = y_pos-params["turbine_width"]/scalefac/2
+          y_pos_high = y_pos+params["turbine_width"]/scalefac/2
+
+          # active_turbines is a boolean array that whose i'th element is true if the ith turbine is present at point x
+          active_turbines = (x_pos_low < x[0]) & (x_pos_high > x[0]) & (y_pos_low < x[1]) & (y_pos_high > x[1])
+          active_turbines_indices = numpy.where(active_turbines == True)[0]
+
+          for i in active_turbines_indices:
+            bump = exp(-1.0/(1.0-((x[0]-x_pos[i])/(0.5*params["turbine_length"]))**2)) 
+            bump *= exp(-1.0/(1.0-((x[1]-y_pos[i])/(0.5*params["turbine_width"]))**2)) 
+            bump /= exp(-1)**2
+            friction += bump*params["turbine_friction"][i]
+
+        values[0] = friction
