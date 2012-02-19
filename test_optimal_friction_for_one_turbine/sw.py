@@ -64,7 +64,7 @@ def j_and_dj(x):
 
   # Set up the turbine friction field using the provided control variable
   turbine_friction_orig = config.params["turbine_friction"]
-  config.params["turbine_friction"] = x * turbine_friction_orig
+  config.params["turbine_friction"] = x 
   tf.interpolate(config.params["turbine_model"](config.params))
   config.params["turbine_friction"] = turbine_friction_orig 
 
@@ -98,7 +98,7 @@ def j_and_dj(x):
     turbine_friction_orig = config.params["turbine_friction"]
     x = numpy.zeros(len(dj))
     x[n] = 1.0
-    config.params["turbine_friction"] = x*config.params["turbine_friction"]
+    config.params["turbine_friction"] = x
     tf.interpolate(config.params["turbine_model"](config.params))
     dj[n] = v.inner(tf.vector()) 
     config.params["turbine_friction"] = turbine_friction_orig 
@@ -184,7 +184,6 @@ if opt_package == 'pyipopt':
 
   print "Objective value"
   print "f(x*) =", obj
-
 
 if opt_package == 'openopt':
   from openopt import NLP

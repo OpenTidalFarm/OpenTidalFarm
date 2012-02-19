@@ -58,7 +58,7 @@ def j_and_dj(m):
 
   # Set up the turbine friction field using the provided control variable
   turbine_friction_orig = config.params["turbine_friction"]
-  config.params["turbine_friction"] = m * turbine_friction_orig
+  config.params["turbine_friction"] = m 
   tf.interpolate(config.params['turbine_model'](config.params))
   config.params["turbine_friction"] = turbine_friction_orig 
 
@@ -82,7 +82,7 @@ def j_and_dj(m):
     turbine_friction_orig = config.params["turbine_friction"]
     m = numpy.zeros(len(dj))
     m[n] = 1.0
-    config.params["turbine_friction"] = m * config.params["turbine_friction"]
+    config.params["turbine_friction"] = m 
     tf.interpolate(config.params['turbine_model'](config.params))
     dj[n] = v.inner(tf.vector()) 
     config.params["turbine_friction"] = turbine_friction_orig 
