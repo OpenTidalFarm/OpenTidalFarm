@@ -59,7 +59,7 @@ def j_and_dj(m):
   # Set up the turbine friction field using the provided control variable
   turbine_friction_orig = config.params["turbine_friction"]
   config.params["turbine_friction"] = m 
-  tf.interpolate(config.params['turbine_model'](config.params))
+  tf.interpolate(Turbines(config.params))
   config.params["turbine_friction"] = turbine_friction_orig 
 
   M,G,rhs_contr,ufl=sw_lib.construct_shallow_water(W, config.ds, config.params, turbine_field = tf)
@@ -83,7 +83,7 @@ def j_and_dj(m):
     m = numpy.zeros(len(dj))
     m[n] = 1.0
     config.params["turbine_friction"] = m 
-    tf.interpolate(config.params['turbine_model'](config.params))
+    tf.interpolate(Turbines(config.params))
     dj[n] = v.inner(tf.vector()) 
     config.params["turbine_friction"] = turbine_friction_orig 
   
