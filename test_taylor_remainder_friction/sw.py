@@ -81,11 +81,18 @@ def j_and_dj(m ):
   # dJ/dm = (\partial J)/(\partial u) * (d u) / d m + \partial J / \partial m
   #               = adj_state * \partial F / \partial u + \partial J / \partial m
   # In this particular case m = turbine_friction, J = \sum_t(ft) 
-  dj = numpy.zeros(len(config.params["turbine_friction"]))
+  dj = [] 
   v = adj_state.vector()
-  for n in range(len(dj)):
+  # Compute the derivatives with respect to the turbine friction
+  for n in range(len(config.params["turbine_friction"])):
     tf.interpolate(Turbines(config.params, derivative_index_selector=n, derivative_var_selector='turbine_friction'))
-    dj[n] = v.inner(tf.vector()) 
+    dj.append( v.inner(tf.vector()) )
+
+  # Compute the derivatives with respect to the turbine x position
+  #for n in range(len(config.params["turbine_pos"])):
+  #  tf.interpolate(Turbines(config.params, derivative_index_selector=n, derivative_var_selector='turbine_pos_x'))
+  #  dj.append( v.inner(tf.vector()) )
+  dj = numpy.array(dj)  
   
   # Now add the \partial J / \partial m term
   if depend_m:
