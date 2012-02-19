@@ -1,8 +1,8 @@
 import sys
 import sw_config 
 import sw_lib
-import turbines
 import numpy
+from turbines import *
 from functionals import DefaultFunctionalWithoutControlDependency
 from dolfin import *
 from dolfin_adjoint import *
@@ -28,7 +28,7 @@ config.params["turbine_pos"]=[[200., 500.], [1000., 700.]]
 config.params["turbine_friction"] = 12.*numpy.ones(len(config.params["turbine_pos"]))
 config.params["turbine_length"] = 400
 config.params["turbine_width"] = 400
-config.params["turbine_model"] = turbines.RectangleTurbines
+config.params["turbine_model"] = 'ConstantTurbine'
 
 W=sw_lib.p1dgp2(config.mesh)
 
@@ -39,7 +39,7 @@ state.interpolate(config.get_sin_initial_condition()())
 U = W.split()[0].sub(0)
 U = U.collapse() # Recompute the DOF map
 tf = Function(U)
-tf.interpolate(config.params["turbine_model"](config.params))
+tf.interpolate(Turbines(config.params))
 
 M,G,rhs_contr,ufl = sw_lib.construct_shallow_water(W, config.ds, config.params, turbine_field = tf)
 

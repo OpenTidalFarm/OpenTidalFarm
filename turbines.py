@@ -55,7 +55,7 @@ class Turbines(Expression):
 
           for i in active_turbines_indices:
             x_unit = (x[0]-x_pos[i]) / (0.5*params["turbine_length"])
-            y_unit = (x[0]-y_pos[i]) / (0.5*params["turbine_width"])
+            y_unit = (x[1]-y_pos[i]) / (0.5*params["turbine_width"])
 
             f = self.turbine_function(params)
             friction += f([x_unit, y_unit])*params["turbine_friction"][i] 

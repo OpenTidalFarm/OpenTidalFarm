@@ -64,7 +64,7 @@ def j_and_dj(x):
   # Set up the turbine friction field using the provided control variable
   params_m = sw_lib.parameters(config.params)
   params_m["turbine_friction"] = x 
-  tf.interpolate(config.params["turbine_model"](params_m))
+  tf.interpolate(Turbines(params_m))
 
   global count
   count+=1
@@ -97,7 +97,7 @@ def j_and_dj(x):
     x[n] = 1.0
     params_dm = sw_lib.parameters(config.params)
     params_dm["turbine_friction"] = x 
-    tf.interpolate(params_dm["turbine_model"](params_dm))
+    tf.interpolate(Turbines(params_dm))
     dj[n] = v.inner(tf.vector()) 
   return j, dj 
 

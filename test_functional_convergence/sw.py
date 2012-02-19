@@ -71,13 +71,14 @@ def run_model(nx, ny, turbine_model, turbine_pos):
   U = W.split()[0].sub(0)
   U = U.collapse() # Recompute the DOF map
   tf = Function(U)
-  tf.interpolate(turbine_model(config.params))
+  config.params["turbine_model"] = turbine_model
+  tf.interpolate(Turbines(config.params))
 
   # Output some diagnostics about the resulting turbine field
   tf_norm = norm(tf, "L2")
   if myid == 0:
     print "L2 Norm of turbine function: ", tf_norm 
-  sw_lib.save_to_file_scalar(tf, turbine_model.__name__+"_"+str(nx)+"x"+str(ny)+"_turbine_pos="+str(turbine_pos))
+  sw_lib.save_to_file_scalar(tf, turbine_model+"_"+str(nx)+"x"+str(ny)+"_turbine_pos="+str(turbine_pos))
 
   M,G,rhs_contr,ufl=sw_lib.construct_shallow_water(W, config.ds, config.params, turbine_field = tf)
   functional = DefaultFunctionalWithoutControlDependency(config.params)
@@ -99,11 +100,11 @@ if myid == 0:
 
 # The types of turbines to be tested and their tolerances
 #turbine_types = {"RectangleTurbine": RectangleTurbines, "GaussianTurbine": GaussianTurbines}
-turbine_types = {"GaussianTurbine": GaussianTurbines, "BumpTurbine": BumpTurbines}
+turbine_types = ["GaussianTurbine", "BumpTurbine"]
 turbine_types_tol_ref = {"GaussianTurbine": 0.4, "BumpTurbine": 0.4}
 turbine_types_tol_mov = {"GaussianTurbine": 0.4, "BumpTurbine": 1.2}
 results = {}
-for turbine_type in turbine_types.keys():
+for turbine_type in turbine_types:
   results[turbine_type] = {True: [], False: []}
 
 # Run the forward model for different resolutions and with (un)perturbed turbine positions
@@ -111,9 +112,9 @@ for shift in [False, True]:
   if shift and myid ==0:
     print "\nShifting turbines half an element to the top right..."
 
-  for name, model in turbine_types.iteritems():
+  for model in turbine_types:
     if myid == 0:
-      print '\n', name 
+      print '\n', model 
     nx, ny = (nx_orig, ny_orig)
 
     for level in range(3):
@@ -124,14 +125,14 @@ for shift in [False, True]:
         turbine_pos_shift = turbine_pos
 
       j = run_model(nx, ny, model, turbine_pos_shift)
-      results[name][shift].append(j)
+      results[model][shift].append(j)
       if myid == 0:
         print "%i x %i \t\t| J = %.4g " % (nx, ny, j)
 
       nx, ny = refine_res(nx, ny)
 
 # Calculate the relative changes due to mesh refinement
-for t in turbine_types.keys():
+for t in turbine_types:
   for shift in [True, False]:
     r = results[t][shift]
     relative_change = [(r[i+1]-r[i]) / min(r[i+1], r[i]) for i in range(len(r)-1)]
@@ -145,7 +146,7 @@ for t in turbine_types.keys():
       sys.exit(1)
 
 # Calculate the relative changes due to turbine movement 
-for t in turbine_types.keys():
+for t in turbine_types:
   r = results[t][False]
   rs = results[t][True]
   relative_change = [(r[i]-rs[i]) / min(r[i], rs[i]) for i in range(len(r))]
