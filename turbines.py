@@ -6,8 +6,8 @@ from math import log
 class RectangleTurbines(Expression):
     '''The turbines are modeled by rectangles of size turbine_length*scalefac and turbine_width*scalefac.
        Scalefac is default to 1.'''
-    def __init__(self, config, scalefac=1.0, *args, **kwargs):
-      self.params = sw_lib.parameters(config.params)
+    def __init__(self, params, scalefac=1.0, *args, **kwargs):
+      self.params = sw_lib.parameters(params)
       self.scalefac = scalefac
       super(RectangleTurbines, self).__init__(args, kwargs)
 
@@ -38,9 +38,9 @@ class RectangleTurbines(Expression):
 class GaussianTurbines(Expression):
     '''The turbines are modeled by a gaussian curve size turbine_length*scalefac and turbine_width*scalefac.
        Scalefac is default to 1.'''
-    def __init__(self, config, scalefac=1.0, *args, **kwargs):
+    def __init__(self, params, scalefac=1.0, *args, **kwargs):
       # Create a copy of the parameters so that future changes will not affect the definition of this turbine.
-      self.params = sw_lib.parameters(config.params)
+      self.params = sw_lib.parameters(params)
       self.scalefac = scalefac
       super(GaussianTurbines, self).__init__(args, kwargs)
 

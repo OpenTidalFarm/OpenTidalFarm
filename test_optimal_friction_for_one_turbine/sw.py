@@ -4,6 +4,7 @@ import sw_lib
 import numpy
 import Memoize
 import IPOptUtils
+from functionals import DefaultFunctionalWithoutControlDependency 
 from dolfin import *
 from dolfin_adjoint import *
 from sw_utils import test_initial_condition_adjoint, test_gradient_array
@@ -64,7 +65,7 @@ def j_and_dj(x):
   # Set up the turbine friction field using the provided control variable
   turbine_friction_orig = config.params["turbine_friction"]
   config.params["turbine_friction"] = x * turbine_friction_orig
-  tf.interpolate(GaussianTurbines(config))
+  tf.interpolate(config.params["turbine_model"](config.params))
   config.params["turbine_friction"] = turbine_friction_orig 
 
   global count
@@ -72,18 +73,16 @@ def j_and_dj(x):
   sw_lib.save_to_file_scalar(tf, "turbines_"+str(count))
 
   M,G,rhs_contr,ufl=sw_lib.construct_shallow_water(W, config.ds, config.params, turbine_field = tf)
-  def functional(state):
-    turbines = GaussianTurbines(config)
-    return config.params["dt"]*turbines*0.5*(dot(state[0], state[0]) + dot(state[1], state[1]))**1.5*dx
+  functional = DefaultFunctionalWithoutControlDependency(config.params)
 
   # Solve the shallow water system
-  j, state = sw_lib.timeloop_theta(M, G, rhs_contr, ufl, state, config.params, time_functional=functional)
+  j, djdm, state = sw_lib.timeloop_theta(M, G, rhs_contr, ufl, state, config.params, time_functional=functional)
   #print "Layout power extraction: ", j/1000000, " MW."
   #print "Which is equivalent to a average power generation of: ",  j/1000000/(config.params["current_time"]-config.params["start_time"]), " MW"
 
   #sw_lib.replay(state, config.params)
 
-  J = TimeFunctional(functional(state))
+  J = TimeFunctional(functional.Jt(state))
   adj_state = sw_lib.adjoint(state, config.params, J, until=1)
 
   #sw_lib.save_to_file(adj_state, "adjoint")
@@ -100,7 +99,7 @@ def j_and_dj(x):
     x = numpy.zeros(len(dj))
     x[n] = 1.0
     config.params["turbine_friction"] = x*config.params["turbine_friction"]
-    tf.interpolate(GaussianTurbines(config))
+    tf.interpolate(config.params["turbine_model"](config.params))
     dj[n] = v.inner(tf.vector()) 
     config.params["turbine_friction"] = turbine_friction_orig 
   return j, dj 

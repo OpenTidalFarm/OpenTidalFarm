@@ -213,6 +213,7 @@ def timeloop_theta(M, G, rhs_contr, ufl, state, params, time_functional=None, an
     
     step=0    
     j = 0
+    djdm = None 
 
     tmpstate=Function(state.function_space())
 
@@ -248,11 +249,16 @@ def timeloop_theta(M, G, rhs_contr, ufl, state, params, time_functional=None, an
             p_out << p_out_state
 
         if time_functional is not None:
-          j += assemble(time_functional(state)) 
+          j += assemble(time_functional.Jt(state)) 
+          djtdm = numpy.array([assemble(f) for f in time_functional.dJtdm(state)])
+          if djdm == None:
+            djdm = djtdm
+          else:
+            djdm += djtdm
         adj_inc_timestep()
 
     if time_functional is not None:
-      return j, state # return the state at the final time
+      return j, djdm, state # return the state at the final time
     else: 
       return state
 

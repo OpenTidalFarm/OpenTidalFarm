@@ -1,6 +1,7 @@
 import sys
 import sw_config 
 import sw_lib
+from functionals import DefaultFunctional 
 import numpy
 from dolfin import *
 from dolfin_adjoint import *
@@ -36,7 +37,7 @@ def initial_control(config):
   numpy.random.seed(41) 
   return numpy.random.rand(len(config.params['turbine_friction']))
 
-def j_and_dj(x):
+def j_and_dj(m):
   adjointer.reset()
   adj_variables.__init__()
   
@@ -57,53 +58,53 @@ def j_and_dj(x):
 
   # Set up the turbine friction field using the provided control variable
   turbine_friction_orig = config.params["turbine_friction"]
-  config.params["turbine_friction"] = x * turbine_friction_orig
-  tf.interpolate(GaussianTurbines(config))
+  config.params["turbine_friction"] = m * turbine_friction_orig
+  tf.interpolate(config.params['turbine_model'](config.params))
   config.params["turbine_friction"] = turbine_friction_orig 
 
   M,G,rhs_contr,ufl=sw_lib.construct_shallow_water(W, config.ds, config.params, turbine_field = tf)
-  def functional(state):
-    turbines = GaussianTurbines(config)
-    return config.params["dt"]*turbines*0.5*(dot(state[0], state[0]) + dot(state[1], state[1]))**1.5*dx
 
+  functional = DefaultFunctional(config.params, m)
   # Solve the shallow water system
-  j, state = sw_lib.timeloop_theta(M, G, rhs_contr, ufl, state, config.params, time_functional=functional)
+  j, djdm, state = sw_lib.timeloop_theta(M, G, rhs_contr, ufl, state, config.params, time_functional=functional)
 
-  J = TimeFunctional(functional(state))
+  J = TimeFunctional(functional.Jt(state))
   adj_state = sw_lib.adjoint(state, config.params, J, until=1)
 
-  # we have dJ/dx = (\partial J)/(\partial turbine_friction) * (d turbine_friction) / d x +
-  #                 + \partial J / \partial x
-  #               = adj_state * turbine_friction
-  #                 + \partial J / \partial x
-  # In this particular case, j = \sum_t(functional) and \partial functional / \partial x = funtional/x. Hence we have \partial J / \partial x = j/x
+  # Let J be the functional, m the parameter and u the solution of the PDE equation F(u) = 0.
+  # Then we have 
+  # dJ/dm = (\partial J)/(\partial u) * (d u) / d m + \partial J / \partial m
+  #               = adj_state * \partial F / \partial u + \partial J / \partial m
+  # In this particular case m = turbine_friction, J = \sum_t(ft) 
   dj = numpy.zeros(len(config.params["turbine_friction"]))
   v = adj_state.vector()
   for n in range(len(dj)):
     turbine_friction_orig = config.params["turbine_friction"]
-    x = numpy.zeros(len(dj))
-    x[n] = 1.0
-    config.params["turbine_friction"] = x*config.params["turbine_friction"]
-    tf.interpolate(GaussianTurbines(config))
+    m = numpy.zeros(len(dj))
+    m[n] = 1.0
+    config.params["turbine_friction"] = m * config.params["turbine_friction"]
+    tf.interpolate(config.params['turbine_model'](config.params))
     dj[n] = v.inner(tf.vector()) 
     config.params["turbine_friction"] = turbine_friction_orig 
   
+  # Now add the \partial J / \partial m term
+  dj += djdm
   return j, dj 
 
-def j(x):
-  return j_and_dj(x)[0]
+def j(m):
+  return j_and_dj(m)[0]
 
-def dj(x):
-  return j_and_dj(x)[1]
+def dj(m):
+  return j_and_dj(m)[1]
 
 # run the taylor remainder test 
 config = default_config()
-x0 = initial_control(config)
+m0 = initial_control(config)
 
 # We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
 numpy.random.seed(21) 
 p = numpy.random.rand(len(config.params['turbine_friction']))
-minconv = test_gradient_array(j, dj, x0, seed=0.0001, perturbation_direction=p)
+minconv = test_gradient_array(j, dj, m0, seed=0.0001, perturbation_direction=p)
 if minconv < 1.99:
   exit_code = 1
 else:
