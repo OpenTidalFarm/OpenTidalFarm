@@ -1,4 +1,5 @@
 import numpy
+import sw_lib
 from dolfin import *
 from math import log
 
@@ -6,12 +7,12 @@ class RectangleTurbines(Expression):
     '''The turbines are modeled by rectangles of size turbine_length*scalefac and turbine_width*scalefac.
        Scalefac is default to 1.'''
     def __init__(self, config, scalefac=1.0, *args, **kwargs):
-      self.config = config
+      self.params = sw_lib.parameters(config.params)
       self.scalefac = scalefac
       super(RectangleTurbines, self).__init__(args, kwargs)
 
     def eval(self, values, x):
-        params = self.config.params
+        params = self.params
         scalefac = self.scalefac
         friction = 0.0
         if len(params["turbine_pos"]) >0:
@@ -38,12 +39,13 @@ class GaussianTurbines(Expression):
     '''The turbines are modeled by a gaussian curve size turbine_length*scalefac and turbine_width*scalefac.
        Scalefac is default to 1.'''
     def __init__(self, config, scalefac=1.0, *args, **kwargs):
-      self.config = config
+      # Create a copy of the parameters so that future changes will not affect the definition of this turbine.
+      self.params = sw_lib.parameters(config.params)
       self.scalefac = scalefac
       super(GaussianTurbines, self).__init__(args, kwargs)
 
     def eval(self, values, x):
-        params = self.config.params
+        params = self.params
         scalefac = self.scalefac
         friction = 0.0
         cut_off = 0.05 # Specifies which value the gaussian curve is supposed to have at the edges of the turbine size (as percentage of the maximal value)
