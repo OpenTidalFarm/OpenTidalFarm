@@ -56,6 +56,4 @@ class Turbines(Expression):
             x_unit = (x[0]-x_pos[i]) / (0.5*params["turbine_length"])
             y_unit = (x[1]-y_pos[i]) / (0.5*params["turbine_width"])
             friction += f([x_unit, y_unit])*params["turbine_friction"][i] 
-            #gaussian = exp(-0.5 * (x[0]-x_pos[i])**2 * (-2*log(0.05)) / ((0.5*params["turbine_length"])**2) - 0.5 * (x[1]-y_pos[i])**2 * (-2*log(0.05)) / ((0.5*params["turbine_width"])**2))
-            #friction += gaussian*params["turbine_friction"][i]
         values[0] = friction 
