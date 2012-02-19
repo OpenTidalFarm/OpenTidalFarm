@@ -5,6 +5,7 @@ import sys
 import sw_config 
 import sw_lib
 import numpy
+from functionals import DefaultFunctionalWithoutControlDependency 
 from turbines import *
 from dolfin import *
 from dolfin_adjoint import *
@@ -70,7 +71,7 @@ def run_model(nx, ny, turbine_model, turbine_pos):
   U = W.split()[0].sub(0)
   U = U.collapse() # Recompute the DOF map
   tf = Function(U)
-  tf.interpolate(turbine_model(config))
+  tf.interpolate(turbine_model(config.params))
 
   # Output some diagnostics about the resulting turbine field
   tf_norm = norm(tf, "L2")
@@ -79,11 +80,8 @@ def run_model(nx, ny, turbine_model, turbine_pos):
   sw_lib.save_to_file_scalar(tf, turbine_model.__name__+"_"+str(nx)+"x"+str(ny)+"_turbine_pos="+str(turbine_pos))
 
   M,G,rhs_contr,ufl=sw_lib.construct_shallow_water(W, config.ds, config.params, turbine_field = tf)
-  def functional(state):
-    turbines = turbine_model(config)
-    return config.params["dt"]*0.5*turbines*(dot(state[0], state[0]) + dot(state[1], state[1]))**1.5*dx
-
-  j, state = sw_lib.timeloop_theta(M, G, rhs_contr, ufl, state, config.params, time_functional=functional)
+  functional = DefaultFunctionalWithoutControlDependency(config.params)
+  j, djdm, state = sw_lib.timeloop_theta(M, G, rhs_contr, ufl, state, config.params, time_functional=functional)
   return j
 
 def refine_res(nx, ny, level=0.66):
@@ -130,7 +128,7 @@ for shift in [False, True]:
 
       nx, ny = refine_res(nx, ny)
 
-# Calculate out the relative changes due to mesh refinement
+# Calculate the relative changes due to mesh refinement
 for t in turbine_types.keys():
   for shift in [True, False]:
     r = results[t][shift]
@@ -144,7 +142,7 @@ for t in turbine_types.keys():
         print "Relative change exceeds tolerance"
       sys.exit(1)
 
-# Calculate out the relative changes due to turbine movement 
+# Calculate the relative changes due to turbine movement 
 for t in turbine_types.keys():
   r = results[t][False]
   rs = results[t][True]
