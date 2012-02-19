@@ -97,9 +97,11 @@ ny_orig = 10
 if myid == 0:
   print "Turbine size: 200x200"
 
-# The types of turbines to be tested
+# The types of turbines to be tested and their tolerances
 #turbine_types = {"RectangleTurbine": RectangleTurbines, "GaussianTurbine": GaussianTurbines}
-turbine_types = {"GaussianTurbine": GaussianTurbines}
+turbine_types = {"GaussianTurbine": GaussianTurbines, "BumpTurbine": BumpTurbines}
+turbine_types_tol_ref = {"GaussianTurbine": 0.4, "BumpTurbine": 0.4}
+turbine_types_tol_mov = {"GaussianTurbine": 0.4, "BumpTurbine": 1.2}
 results = {}
 for turbine_type in turbine_types.keys():
   results[turbine_type] = {True: [], False: []}
@@ -137,7 +139,7 @@ for t in turbine_types.keys():
       print "Relative change for ", t, " and shifted ", shift, " is: ", relative_change 
 
     # Test that the relative change of the highest resolution run is smaller than the allowed tolerance
-    if abs(relative_change[-1]) > 0.3:
+    if abs(relative_change[-1]) > turbine_types_tol_ref[t]:
       if myid == 0:
         print "Relative change exceeds tolerance"
       sys.exit(1)
@@ -151,7 +153,7 @@ for t in turbine_types.keys():
     print "Relative change for ", t, " due to shifting is: ", relative_change 
 
   # Test that the relative change of the highest resolution run is smaller than the allowed tolerance
-  if abs(relative_change[-1]) > 0.07:
+  if abs(relative_change[-1]) > turbine_types_tol_mov[t]:
     if myid == 0:
       print "Relative change exceeds tolerance"
     sys.exit(1)
