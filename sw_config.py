@@ -22,7 +22,7 @@ class DefaultConfiguration:
         'turbine_length' : 20,
         'turbine_width' : 5,
         'turbine_friction' : 12.0,
-        'turbine_model': GaussianTurbines
+        'turbine_model': 'BumpTurbine'
         })
 
     # Basin radius.

@@ -28,7 +28,7 @@ class DefaultFunctionalWithoutControlDependency(FunctionalPrototype):
     self.params = sw_lib.parameters(dict(params))
 
   def Jt(self, state):
-    turbines = self.params['turbine_model'](self.params)
+    turbines = Turbines(self.params)
     return self.params["dt"]*turbines*0.5*(dot(state[0], state[0]) + dot(state[1], state[1]))**1.5*dx
 
   def dJtdm(self, state):
@@ -47,8 +47,8 @@ class DefaultFunctional(FunctionalPrototype):
 
   def Jt(self, state):
     turbine_friction_orig = self.params["turbine_friction"]
-    self.params["turbine_friction"] = self.m * self.params["turbine_friction"]
-    turbines = self.params['turbine_model'](self.params)
+    self.params["turbine_friction"] = self.m 
+    turbines = Turbines(self.params)
     self.params["turbine_friction"] = turbine_friction_orig 
 
     return self.params["dt"]*turbines*0.5*(dot(state[0], state[0]) + dot(state[1], state[1]))**1.5*dx
@@ -60,8 +60,8 @@ class DefaultFunctional(FunctionalPrototype):
     for n in range(len(self.m)):
       dm = numpy.zeros(len(self.m))
       dm[n] = 1.0
-      self.params["turbine_friction"] = dm * self.params["turbine_friction"]
-      turbines = self.params['turbine_model'](self.params)
+      self.params["turbine_friction"] = dm 
+      turbines = Turbines(self.params)
       djtdm.append(self.params["dt"]*turbines*0.5*(dot(state[0], state[0]) + dot(state[1], state[1]))**1.5*dx)
       self.params["turbine_friction"] = turbine_friction_orig 
     return djtdm 
