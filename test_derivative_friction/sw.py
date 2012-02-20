@@ -9,7 +9,8 @@ from sw_utils import test_initial_condition_adjoint, test_gradient_array
 from turbines import *
 
 def default_config():
-  config = sw_config.DefaultConfiguration(nx=20, ny=5)
+  numpy.random.seed(21) 
+  config = sw_config.DefaultConfiguration(nx=40, ny=20)
   period = 1.24*60*60 # Wave period
   config.params["k"] = 2*pi/(period*sqrt(config.params["g"]*config.params["depth"]))
   config.params["finish_time"] = 2./4*period
@@ -23,9 +24,9 @@ def default_config():
 
   # Turbine settings
   config.params["friction"] = 0.0025
-  config.params["turbine_pos"] = [[1000., 500.], [2000., 500.]]
+  config.params["turbine_pos"] = [[1000., 500.]]#, [1600, 300], [2500, 700]]
   # The turbine friction is the control variable 
-  config.params["turbine_friction"] = 12.0*numpy.ones(len(config.params["turbine_pos"]))
+  config.params["turbine_friction"] = 12.0*numpy.random.rand(len(config.params["turbine_pos"]))
   config.params["turbine_length"] = 200
   config.params["turbine_width"] = 400
 
@@ -34,14 +35,23 @@ def default_config():
   return config
 
 def initial_control(config):
-  numpy.random.seed(41) 
-  return numpy.random.rand(len(config.params['turbine_friction']))
+  # We use the current turbine settings as the intial control
+  res = config.params['turbine_friction'].tolist()
+  res += numpy.reshape(config.params['turbine_pos'], -1).tolist()
+  return numpy.array(res)
 
-def j_and_dj(m ):
+def j_and_dj(m):
   global depend_m
   adjointer.reset()
   adj_variables.__init__()
-  
+  # Backup control variables FIXME: The functional does not take the derivatives into account, this should not be necessary!
+  turbine_friction_orig = config.params["turbine_friction"]
+  turbine_pos_orig = config.params["turbine_pos"]
+  # Change the control variables to the config parameters
+  config.params["turbine_friction"] = m[:len(config.params["turbine_friction"])]
+  mp = m[len(config.params["turbine_friction"]):]
+  config.params["turbine_pos"] = numpy.reshape(mp, (-1, 2))
+
   set_log_level(30)
   debugging["record_all"] = True
 
@@ -54,21 +64,25 @@ def j_and_dj(m ):
   # Set the control values
   U = W.split()[0].sub(0) # Extract the first component of the velocity function space 
   U = U.collapse() # Recompute the DOF map
-  tf = Function(U)
-  # Apply the control
+  tf = Function(U) # The turbine function
+  tfd = Function(U) # The derivative turbine function
 
   # Set up the turbine friction field using the provided control variable
-  turbine_friction_orig = config.params["turbine_friction"]
-  config.params["turbine_friction"] = m 
   tf.interpolate(Turbines(config.params))
-  config.params["turbine_friction"] = turbine_friction_orig 
 
   M,G,rhs_contr,ufl=sw_lib.construct_shallow_water(W, config.ds, config.params, turbine_field = tf)
 
+  # Restore the original parameters. FIXME: This should not be necessary!
+  config.params["turbine_friction"] = turbine_friction_orig
+  config.params["turbine_pos"] = turbine_pos_orig
   if depend_m:
     functional = DefaultFunctional(config.params, m)
   else:
     functional = DefaultFunctionalWithoutControlDependency(config.params)
+  # Change the control variables to the config parameters
+  config.params["turbine_friction"] = m[:len(config.params["turbine_friction"])]
+  mp = m[len(config.params["turbine_friction"]):]
+  config.params["turbine_pos"] = numpy.reshape(mp, (-1, 2))
 
   # Solve the shallow water system
   j, djdm, state = sw_lib.timeloop_theta(M, G, rhs_contr, ufl, state, config.params, time_functional=functional)
@@ -85,38 +99,49 @@ def j_and_dj(m ):
   v = adj_state.vector()
   # Compute the derivatives with respect to the turbine friction
   for n in range(len(config.params["turbine_friction"])):
-    tf.interpolate(Turbines(config.params, derivative_index_selector=n, derivative_var_selector='turbine_friction'))
-    dj.append( v.inner(tf.vector()) )
+    tfd.interpolate(Turbines(config.params, derivative_index_selector=n, derivative_var_selector='turbine_friction'))
+    dj.append( v.inner(tfd.vector()) )
 
-  # Compute the derivatives with respect to the turbine x position
-  #for n in range(len(config.params["turbine_pos"])):
-  #  tf.interpolate(Turbines(config.params, derivative_index_selector=n, derivative_var_selector='turbine_pos_x'))
-  #  dj.append( v.inner(tf.vector()) )
+  # Compute the derivatives with respect to the turbine position
+  for n in range(len(config.params["turbine_pos"])):
+    for var in ('turbine_pos_x', 'turbine_pos_y'):
+      tfd.interpolate(Turbines(config.params, derivative_index_selector=n, derivative_var_selector=var))
+      dj.append( v.inner(tfd.vector()) )
   dj = numpy.array(dj)  
   
   # Now add the \partial J / \partial m term
   if depend_m:
     dj += djdm
+
+  # Restore the original parameters. FIXME: This should not be necessary!
+  config.params["turbine_friction"] = turbine_friction_orig
+  config.params["turbine_pos"] = turbine_pos_orig
+
   return j, dj 
 
 def j(m):
   return j_and_dj(m)[0]
 
 def dj(m):
-  return j_and_dj(m)[1]
+  res = j_and_dj(m)[1]
+  print "The estimated derivative using the adjoint is", res
+  return res
 
 # run the taylor remainder test 
 config = default_config()
 m0 = initial_control(config)
 
 # We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
-numpy.random.seed(21) 
-p = numpy.random.rand(len(config.params['turbine_friction']))
-depend_m = None
+p = numpy.random.rand(len(config.params['turbine_friction']) + 2*len(config.params['turbine_pos']))
+p[0] = 0.
+p[1] = 1.
+p[2] = 0.
+
+
 # Run with a functional that does not depend on m directly
 for depend in [False, True]:
   print "Running test with function that depends on control = ", depend
   depend_m = depend
-  minconv = test_gradient_array(j, dj, m0, seed=0.0001, perturbation_direction=p)
+  minconv = test_gradient_array(j, dj, m0, seed=0.01, perturbation_direction=p)
   if minconv < 1.99:
     sys.exit(1)
