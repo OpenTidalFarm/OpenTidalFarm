@@ -12,6 +12,16 @@ class Turbines(Expression):
       self.params = sw_lib.parameters(params)
       self.derivative_index_selector = derivative_index_selector
       self.derivative_var_selector = derivative_var_selector
+
+      # Precompute some turbine parameters for efficiency. 
+      self.x_pos = numpy.array(params["turbine_pos"])[:,0] 
+      self.x_pos_low = self.x_pos-params["turbine_length"]/2
+      self.x_pos_high = self.x_pos+params["turbine_length"]/2
+
+      self.y_pos = numpy.array(params["turbine_pos"])[:,1] 
+      self.y_pos_low = self.y_pos-params["turbine_width"]/2
+      self.y_pos_high = self.y_pos+params["turbine_width"]/2
+
       super(Turbines, self).__init__(args, kwargs)
 
     # The turbine functions will be evaluated between (-1..1) x (-1..1) and should return function values from [0..1].
@@ -65,15 +75,15 @@ class Turbines(Expression):
     def eval(self, values, x):
         params = self.params
         friction = 0.0
-        if len(params["turbine_pos"]) >0:
-          # Check if x lies in a position where a turbine is deployed and if, then increase the friction
-          x_pos = numpy.array(params["turbine_pos"])[:,0] 
-          x_pos_low = x_pos-params["turbine_length"]/2
-          x_pos_high = x_pos+params["turbine_length"]/2
+        # Get the cached values
+        x_pos = self.x_pos 
+        x_pos_low = self.x_pos_low 
+        x_pos_high = self.x_pos_high 
+        y_pos = self.y_pos
+        y_pos_low = self.y_pos_low 
+        y_pos_high = self.y_pos_high
 
-          y_pos = numpy.array(params["turbine_pos"])[:,1] 
-          y_pos_low = y_pos-params["turbine_width"]/2
-          y_pos_high = y_pos+params["turbine_width"]/2
+        if len(params["turbine_pos"]) > 0:
 
           # active_turbines is a boolean array that whose i'th element is true if the ith turbine is present at point x
           active_turbines = (x_pos_low < x[0]) & (x_pos_high > x[0]) & (y_pos_low < x[1]) & (y_pos_high > x[1])
