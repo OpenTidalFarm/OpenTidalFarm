@@ -24,7 +24,7 @@ def default_config():
 
   # Turbine settings
   config.params["friction"] = 0.0025
-  config.params["turbine_pos"] = [[1000., 500.]]#, [1600, 300], [2500, 700]]
+  config.params["turbine_pos"] = [[1000., 500.], [1600, 300], [2500, 700]]
   # The turbine friction is the control variable 
   config.params["turbine_friction"] = 12.0*numpy.random.rand(len(config.params["turbine_pos"]))
   config.params["turbine_length"] = 200
@@ -123,9 +123,7 @@ def j(m):
   return j_and_dj(m)[0]
 
 def dj(m):
-  res = j_and_dj(m)[1]
-  print "The estimated derivative using the adjoint is", res
-  return res
+  return j_and_dj(m)[1]
 
 # run the taylor remainder test 
 config = default_config()
