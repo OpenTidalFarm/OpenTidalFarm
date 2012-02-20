@@ -65,11 +65,9 @@ def j_and_dj(m):
 
   # Compute the derivatives with respect to the turbine position
   for n in range(len(config.params["turbine_pos"])):
-    tfd.interpolate(Turbines(config.params, derivative_index_selector=n, derivative_var_selector='turbine_pos_x'))
-    dj.append( 2 * v.inner(tfd.vector()) )
-
-    tfd.interpolate(Turbines(config.params, derivative_index_selector=n, derivative_var_selector='turbine_pos_y'))
-    dj.append( 2 * v.inner(tfd.vector()) )
+    for var in ('turbine_pos_x', 'turbine_pos_y'):
+      tfd.interpolate(Turbines(config.params, derivative_index_selector=n, derivative_var_selector=var))
+      dj.append( 2 * v.inner(tfd.vector()) )
   dj = numpy.array(dj)  
   
   return j, dj 
