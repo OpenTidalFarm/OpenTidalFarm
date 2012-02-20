@@ -15,8 +15,7 @@ def default_config():
   config.params["verbose"] = 0
 
   # Turbine settings
-  config.params["friction"] = 0.0025
-  config.params["turbine_pos"] = [[1000., 500.]]
+  config.params["turbine_pos"] = [[1000., 500.], [1600, 300], [2500, 700]]
   # The turbine friction is the control variable 
   config.params["turbine_friction"] = 12.0*numpy.random.rand(len(config.params["turbine_pos"]))
   config.params["turbine_length"] = 200
@@ -29,16 +28,14 @@ def default_config():
 def initial_control(config):
   # We use the current turbine settings as the intial control
   res = config.params['turbine_friction'].tolist()
-  res += [item for sublist in config.params['turbine_pos'] for item in sublist]
+  res += numpy.reshape(config.params['turbine_pos'], -1).tolist()
   return numpy.array(res)
 
 def j_and_dj(m):
   # Change the control variables to the config parameters
-  # FIXME: Write a generic algorithm for setting the parameters 
-  config.params["turbine_friction"] = m[0:len(config.params["turbine_friction"])]
-  i = len(config.params["turbine_friction"])
-  config.params["turbine_pos"][0][0] = m[i]
-  config.params["turbine_pos"][0][1] = m[i+1]
+  config.params["turbine_friction"] = m[:len(config.params["turbine_friction"])]
+  mp = m[len(config.params["turbine_friction"]):]
+  config.params["turbine_pos"] = numpy.reshape(mp, (-1, 2))
 
   set_log_level(30)
 
