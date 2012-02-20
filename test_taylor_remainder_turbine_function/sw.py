@@ -9,6 +9,7 @@ from sw_utils import test_initial_condition_adjoint, test_gradient_array
 from turbines import *
 
 def default_config():
+  numpy.random.seed(21) 
   config = sw_config.DefaultConfiguration(nx=40, ny=20)
   config.params["dump_period"] = 1000
   config.params["verbose"] = 0
@@ -17,7 +18,7 @@ def default_config():
   config.params["friction"] = 0.0025
   config.params["turbine_pos"] = [[1000., 500.]]
   # The turbine friction is the control variable 
-  config.params["turbine_friction"] = 12.0*numpy.ones(len(config.params["turbine_pos"]))
+  config.params["turbine_friction"] = 12.0*numpy.random.rand(len(config.params["turbine_pos"]))
   config.params["turbine_length"] = 200
   config.params["turbine_width"] = 400
 
@@ -87,7 +88,6 @@ config = default_config()
 m0 = initial_control(config)
 
 # We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
-numpy.random.seed(21) 
 p = numpy.random.rand(len(config.params['turbine_friction']) + 2*len(config.params['turbine_pos']))
 
 # Run with a functional that does not depend on m directly
