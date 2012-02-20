@@ -86,10 +86,10 @@ m0 = initial_control(config)
 p = numpy.random.rand(len(config.params['turbine_friction']) + 2*len(config.params['turbine_pos']))
 
 # Run with a functional that does not depend on m directly
-for model, seed in {'GaussianTurbine': 100.0, 'BumpTurbine': 0.001}.items():
+for model, s in {'GaussianTurbine': {'seed': 100.0, 'tol': 1.9}, 'BumpTurbine': {'seed': 0.001, 'tol': 1.99}}.items():
   print "************* ", model, " ********************"
   config.params["turbine_model"] = model 
-  minconv = test_gradient_array(j, dj, m0, seed, perturbation_direction=p)
+  minconv = test_gradient_array(j, dj, m0, s['seed'], perturbation_direction=p)
 
-  if minconv < 1.9:
+  if minconv < s['tol']:
     sys.exit(1)

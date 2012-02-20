@@ -133,10 +133,6 @@ m0 = initial_control(config)
 
 # We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
 p = numpy.random.rand(len(config.params['turbine_friction']) + 2*len(config.params['turbine_pos']))
-p[0] = 0.
-p[1] = 1.
-p[2] = 0.
-
 
 # Run with a functional that does not depend on m directly
 for depend in [False, True]:

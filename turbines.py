@@ -94,9 +94,12 @@ class Turbines(Expression):
                 f = self.turbine_function(params)
                 friction += f([x_unit, y_unit])
               elif var in ('turbine_pos_x', 'turbine_pos_y'):
+                # The coordinate dimension for which the derivative is to be computed
                 d = {'turbine_pos_x': 0, 'turbine_pos_y': 1}[var]
+                # The turbine extension in that coordinate dimension
+                ext = {'turbine_pos_x': "turbine_length", 'turbine_pos_y': "turbine_width"}[var]
                 f = self.turbine_derivative(params)
-                friction += f([x_unit, y_unit], d)*params["turbine_friction"][i]*(-1.0/(0.5*params["turbine_length"])) # The last multiplier is the derivative of x_unit due to the chain rule
+                friction += f([x_unit, y_unit], d)*params["turbine_friction"][i]*(-1.0/(0.5*params[ext])) # The last multiplier is the derivative of x_unit due to the chain rule
               else: 
                 raise ValueError, "Invalid argument for the derivarive variable selector."
 

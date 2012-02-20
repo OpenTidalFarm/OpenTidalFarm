@@ -136,7 +136,7 @@ def test_gradient_array(J, dJ, x, seed=0.01, perturbation_direction=None):
   # First-order Taylor remainders (not using adjoint)
   no_gradient = [abs(perturbed_j - j_direct) for perturbed_j in functional_values]
 
-  print "Taylor remainder without adjoint information: ", no_gradient
+  #print "The estimated derivative using a first order scheme is: ", [(functional_values[i] - j_direct)/(seed/(2**i)) for i in range(5)]
   print "Convergence orders for Taylor remainder without adjoint information (should all be 1): ", convergence_order(no_gradient)
 
   dj = dJ(x)
@@ -146,7 +146,6 @@ def test_gradient_array(J, dJ, x, seed=0.01, perturbation_direction=None):
     remainder = abs(functional_values[i] - j_direct - dot(perturbations[i], dj))
     with_gradient.append(remainder)
 
-  print "Taylor remainder with adjoint information: ", with_gradient
   print "Convergence orders for Taylor remainder with adjoint information (should all be 2): ", convergence_order(with_gradient)
 
   return min(convergence_order(with_gradient))
