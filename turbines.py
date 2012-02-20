@@ -19,6 +19,12 @@ class Turbines(Expression):
       '''The turbines are modeled by rectangles with constant friction. '''
       return 1.0
 
+    def constant_derivative(self, x, d):
+      if Turbines.print_warning:
+        print "Warning: The constant turbine is not differentiable at the turbine edges! The derivative will be 0.0"
+        Turbines.print_warning = False
+      return 0.0
+
     def gaussian_function(self, x):
       '''The turbines are modeled by a gaussian curve. ''' 
       return exp(-0.5 * (x[0]**2 + x[1]**2) * (-2*log(0.05)) )
@@ -53,7 +59,7 @@ class Turbines(Expression):
       return functions[params['turbine_model']]
 
     def turbine_derivative(self, params):
-      functions = {'BumpTurbine': self.bump_derivative, 'GaussianTurbine': self.gaussian_derivative}
+      functions = {'BumpTurbine': self.bump_derivative, 'GaussianTurbine': self.gaussian_derivative, 'ConstantTurbine': self.constant_derivative}
       return functions[params['turbine_model']]
 
     def eval(self, values, x):

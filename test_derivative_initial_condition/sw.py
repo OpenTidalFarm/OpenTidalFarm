@@ -3,7 +3,7 @@ import sw_config
 import sw_lib
 import numpy
 from turbines import *
-from functionals import DefaultFunctionalWithoutControlDependency
+from functionals import DefaultFunctional
 from dolfin import *
 from dolfin_adjoint import *
 from sw_utils import test_initial_condition_adjoint
@@ -43,7 +43,7 @@ tf.interpolate(Turbines(config.params))
 
 M,G,rhs_contr,ufl = sw_lib.construct_shallow_water(W, config.ds, config.params, turbine_field = tf)
 
-functional = DefaultFunctionalWithoutControlDependency(config.params) 
+functional = DefaultFunctional(config.params) 
 myj, djdm, state = sw_lib.timeloop_theta(M, G, rhs_contr, ufl, state, config.params, time_functional=functional)
 
 sw_lib.replay(state, config.params)
