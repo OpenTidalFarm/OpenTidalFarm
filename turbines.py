@@ -4,6 +4,8 @@ from dolfin import *
 from math import log
 
 class Turbines(Expression):
+    print_warning = True
+
     def __init__(self, params, derivative_index_selector=-1,  derivative_var_selector=None, *args, **kwargs):
       ''' If the derivative selector is i >= 0, the Expression will compute the derivative of the turbine with index i with respect 
           to either the x or y coorinate or its friction parameter. '''
@@ -21,6 +23,13 @@ class Turbines(Expression):
       '''The turbines are modeled by a gaussian curve. ''' 
       return exp(-0.5 * (x[0]**2 + x[1]**2) * (-2*log(0.05)) )
 
+    def gaussian_derivative(self, x, d):
+      ''' This function computes the derivative of the gaussian turbine function with respect to the d'th coordinate. '''
+      if Turbines.print_warning:
+        print "Warning: The gaussian turbine is not differentiable at the turbine edges!"
+        Turbines.print_warning = False
+      return self.gaussian_function(x) * (-0.5 * (2*x[d]) * (-2*log(0.05)) )
+
     def bump_function(self, x):
       '''The turbines are modeled by the bump function (a smooth function with limited support):
                  /  e**-1/(1-x**2)   for |x| < 1
@@ -34,7 +43,7 @@ class Turbines(Expression):
       return bump
 
     def bump_derivative(self, x, d):
-      ''' This function computes the derivative of the turbine function with respect to the d'th coordinate. '''
+      ''' This function computes the derivative of the bump turbine function with respect to the d'th coordinate. '''
       bump = self.bump_function(x)
       bump *= - 2*x[d] / ((1.0-x[d]**2)**2)
       return bump
@@ -44,7 +53,7 @@ class Turbines(Expression):
       return functions[params['turbine_model']]
 
     def turbine_derivative(self, params):
-      functions = {'BumpTurbine': self.bump_derivative}
+      functions = {'BumpTurbine': self.bump_derivative, 'GaussianTurbine': self.gaussian_derivative}
       return functions[params['turbine_model']]
 
     def eval(self, values, x):
