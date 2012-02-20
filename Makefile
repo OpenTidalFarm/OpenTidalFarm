@@ -3,6 +3,8 @@ tests:
 	cd test_mms_wave_dirichlet; make
 	@echo "=================== Running wave_flather test ==================="
 	cd test_mms_wave_flather; make
+	@echo "=================== Running taylor remainder turbine function test ==================="
+	cd test_taylor_remainder_turbine_function; make
 	@echo "=================== Running taylor remainder initial condition test ==================="
 	cd test_taylor_remainder_initial_condition; make
 	@echo "=================== Running taylor remainder friction test ==================="

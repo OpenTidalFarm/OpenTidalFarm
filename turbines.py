@@ -33,12 +33,14 @@ class Turbines(Expression):
       bump /= exp(-1)**2
       return bump
 
-    def bump_derivative_x(self, x):
+    def bump_derivative(self, x, i):
       ''' This function computes the derivative of the turbine function with respect to the x coordinate. '''
-      bump = exp(-1.0/(1.0-x[0]**2)) * 2*x[0] / ((1.0-x[0]**2)**2)
-      bump *= exp(-1.0/(1.0-x[1]**2)) 
-      bump /= exp(-1)**2
+      bump = self.bump_function(x)
+      bump *= - 2*x[0] / ((1.0-x[0]**2)**2)
       return bump
+
+    def bump_derivative_x(self, x):
+      return self.bump_derivative(x, 0)
 
     def turbine_function(self, params):
       functions = {'GaussianTurbine': self.gaussian_function, 'ConstantTurbine': self.constant_function, 'BumpTurbine': self.bump_function }
@@ -86,7 +88,7 @@ class Turbines(Expression):
               friction += f([x_unit, y_unit])
             elif self.derivative_var_selector == 'turbine_pos_x':
               f = self.turbine_derivative_x(params)
-              friction += f([x_unit, y_unit])*params["turbine_friction"][i]
+              friction += f([x_unit, y_unit])*params["turbine_friction"][i]*(-1.0/(0.5*params["turbine_length"]))
             else: 
               raise ValueError, "Invalid argument for the derivarive variable selector."
 
