@@ -64,15 +64,14 @@ def j_and_dj(m):
   # Set the control values
   U = W.split()[0].sub(0) # Extract the first component of the velocity function space 
   U = U.collapse() # Recompute the DOF map
-  tf = Function(U)
-  tfd = Function(U)
-  # Apply the control
+  tf = Function(U) # The turbine function
+  tfd = Function(U) # The derivative turbine function
 
   # Set up the turbine friction field using the provided control variable
   tf.interpolate(Turbines(config.params))
-  # The functional of interest is simply the l2 norm of the turbine field
   v = tf.vector()
-  j = v.inner(v) 
+  # The functional of interest is simply the l2 norm of the turbine field
+  j = v.inner(v)  
 
   dj = []
   # Compute the derivatives with respect to the turbine friction
@@ -92,9 +91,7 @@ def j(m):
   return j_and_dj(m)[0]
 
 def dj(m):
-  res = j_and_dj(m)
-  print "The adjoint estimates a derivative of ", res[1]
-  return res[1]
+  return j_and_dj(m)[1]
 
 # run the taylor remainder test 
 config = default_config()
