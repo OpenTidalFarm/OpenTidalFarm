@@ -27,9 +27,6 @@ config.params["turbine_friction"] = 12./config.params["depth"]
 config.params["turbine_length"] = 200
 config.params["turbine_width"] = 400
 
-# Now create the turbine measure
-config.initialise_turbines_measure()
-
 W=sw_lib.p1dgp2(config.mesh)
 
 state=Function(W)

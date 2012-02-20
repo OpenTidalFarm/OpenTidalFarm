@@ -35,8 +35,6 @@ def default_config():
   config.params["turbine_length"] = 75
   config.params["turbine_width"] = 150
 
-  # Now create the turbine measure
-  config.initialise_turbines_measure()
   return config
 
 def initial_control(config):
