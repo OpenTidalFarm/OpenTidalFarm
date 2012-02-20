@@ -1,8 +1,9 @@
 import sys
 import sw_config 
 import sw_lib
-from functionals import * 
 import numpy
+import Memoize
+from functionals import DefaultFunctional
 from dolfin import *
 from dolfin_adjoint import *
 from sw_utils import test_initial_condition_adjoint, test_gradient_array
@@ -31,8 +32,6 @@ def default_config():
   config.params["turbine_length"] = 200
   config.params["turbine_width"] = 400
 
-  # Now create the turbine measure
-  config.initialise_turbines_measure()
   return config
 
 def initial_control(config):
@@ -102,11 +101,12 @@ def j_and_dj(m):
 
   return j, dj 
 
+j_and_dj_mem = Memoize.MemoizeMutable(j_and_dj)
 def j(m):
-  return j_and_dj(m)[0]
+  return j_and_dj_mem(m)[0]
 
 def dj(m):
-  return j_and_dj(m)[1]
+  return j_and_dj_mem(m)[1]
 
 # run the taylor remainder test 
 config = default_config()
