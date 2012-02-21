@@ -122,8 +122,7 @@ def dj(m):
 config = default_config()
 m0 = initial_control(config)
 
-# We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
-p = numpy.random.rand(len(config.params['turbine_friction']))
+p = numpy.random.rand(len(m0))
 minconv = test_gradient_array(j, dj, m0, seed=0.001, perturbation_direction=p)
 if minconv < 1.99:
   print "The gradient taylor remainder test failed."
