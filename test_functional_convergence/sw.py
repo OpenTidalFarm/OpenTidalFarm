@@ -5,6 +5,7 @@ import sys
 import sw_config 
 import sw_lib
 import numpy
+from mini_model import *
 from functionals import DefaultFunctional
 from turbines import *
 from dolfin import *
@@ -26,15 +27,10 @@ def run_model(nx, ny, turbine_model, turbine_pos):
   # Model specific settings
   config = sw_config.DefaultConfiguration(nx, ny)
   period = 1.24*60*60 # Wave period
-  config.params["k"]=2*pi/(period*sqrt(config.params["g"]*config.params["depth"]))
-  config.params["finish_time"]=2./4*period
-  config.params["dt"]=config.params["finish_time"]/40
+  config.params["dt"] = 1.0
   config.params["dump_period"]=100000
 
-  config.params["start_time"] = period/4 
-
   # Turbine settings
-  config.params["friction"]=0.0025
   config.params["turbine_pos"] = turbine_pos 
   config.params["turbine_friction"] = 12./config.params["depth"]*numpy.ones(len(config.params["turbine_pos"]))
 
@@ -44,7 +40,7 @@ def run_model(nx, ny, turbine_model, turbine_pos):
   W=sw_lib.p1dgp2(config.mesh)
 
   state=Function(W)
-  state.interpolate(config.get_sin_initial_condition()())
+  state.interpolate(Constant((2.0, 0.0, 0.0)))
 
   # Option 2: Interpolate the turbine field onto a high order function space and then project it to the computational function space 
   #config2 = sw_config.DefaultConfiguration(nx, ny)
@@ -77,9 +73,9 @@ def run_model(nx, ny, turbine_model, turbine_pos):
     print "L2 Norm of turbine function: ", tf_norm 
   sw_lib.save_to_file_scalar(tf, turbine_model+"_"+str(nx)+"x"+str(ny)+"_turbine_pos="+str(turbine_pos))
 
-  M,G,rhs_contr,ufl=sw_lib.construct_shallow_water(W, config.ds, config.params, turbine_field = tf)
+  A, M = construct_mini_model(W, config.params, tf)
   functional = DefaultFunctional(config.params)
-  j, djdm, state = sw_lib.timeloop_theta(M, G, rhs_contr, ufl, state, config.params, time_functional=functional)
+  j, djdm, state = mini_model(A, M, state, config.params, functional)
   return j
 
 def refine_res(nx, ny, level=0.66):
@@ -88,7 +84,7 @@ def refine_res(nx, ny, level=0.66):
 
 
 # Run test functional convergence tests
-turbine_pos = [[1000., 500.], [2000., 500.]]
+turbine_pos = [[1500., 500.]]
 nx_orig = 30
 ny_orig = 10
 
@@ -98,8 +94,8 @@ if myid == 0:
 # The types of turbines to be tested and their tolerances
 #turbine_types = {"RectangleTurbine": RectangleTurbines, "GaussianTurbine": GaussianTurbines}
 turbine_types = ["BumpTurbine", "GaussianTurbine"]
-turbine_types_tol_ref = {"GaussianTurbine": 0.4, "BumpTurbine": 0.4}
-turbine_types_tol_mov = {"GaussianTurbine": 0.4, "BumpTurbine": 1.2}
+turbine_types_tol_ref = {"GaussianTurbine": 0.1, "BumpTurbine": 0.2}
+turbine_types_tol_mov = {"GaussianTurbine": 0.2, "BumpTurbine": 0.5}
 results = {}
 for turbine_type in turbine_types:
   results[turbine_type] = {True: [], False: []}
