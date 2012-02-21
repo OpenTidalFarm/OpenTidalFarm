@@ -24,11 +24,16 @@ class  IPOptFunction(object):
     return (numpy.array([]), numpy.array([]))
 
 def position_constraints(params):
-  ''' This function returns the constraints for valid turbine positions. '''
-  l = len(params["turbine_pos"])
+  ''' This function returns the constraints to ensure that the turbine positions remain inside the domain. '''
+  n = len(params["turbine_pos"])
   lc = []
-  lb_x = params["turbine_x"] 
-  #lb_y = 
-  for i in range(l):
-    lc.append([lb, ub])
+  lb_x = params["turbine_x"]/2 
+  lb_y = params["turbine_y"]/2 
+  ub_x = params["basin_x"] - params["turbine_x"]/2 
+  ub_y = params["basin_y"] - params["turbine_y"]/2 
   
+  # The control variable is ordered as [t1_x, t1_y, t2_x, t2_y, t3_x, ...]
+  lb = n * [lb_x, lb_y]
+  ub = n * [ub_x, ub_y]
+  return lb, ub 
+
