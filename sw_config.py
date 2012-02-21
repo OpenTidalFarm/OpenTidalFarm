@@ -15,12 +15,12 @@ class DefaultConfiguration:
         'f' : 0.0,
         'dump_period' : 1,
         'eta0' : 2, # Wave height
-        'basin_x' : 3000, # The length of the basin
-        'basin_y' : 1000, # The width of the basin
+        'basin_x' : 3000., # The length of the basin
+        'basin_y' : 1000., # The width of the basin
         'friction' : 0.0, # Bottom friction
         'turbine_pos' : [],
-        'turbine_length' : 20,
-        'turbine_width' : 5,
+        'turbine_length' : 20., # The turbine extension in the x direction
+        'turbine_width' : 5., # The turbine extension in the y direction
         'turbine_friction' : 12.0,
         'turbine_model': 'BumpTurbine'
         })
