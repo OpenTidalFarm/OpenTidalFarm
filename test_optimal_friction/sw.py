@@ -54,6 +54,7 @@ def j_and_dj(m):
 
   W=sw_lib.p1dgp2(config.mesh)
   state=Function(W)
+  state.interpolate(Constant((2.0, 0.0, 0.0)))
 
   # Set the control values
   U = W.split()[0].sub(0) # Extract the first component of the velocity function space 
@@ -68,19 +69,19 @@ def j_and_dj(m):
   count+=1
   sw_lib.save_to_file_scalar(tf, "turbines_"+str(count))
 
-  A, rhs = construct_mini_model(W, config.params, tf)
+  A, M = construct_mini_model(W, config.params, tf)
 
   functional = DefaultFunctional(config.params)
 
   # Solve the shallow water system
-  j, djdm, state = mini_model(A, rhs, state, config.params, functional)
+  j, djdm, state = mini_model(A, M, state, config.params, functional)
   #print "Layout power extraction: ", j/1000000, " MW."
   #print "Which is equivalent to a average power generation of: ",  j/1000000/(config.params["current_time"]-config.params["start_time"]), " MW"
 
   sw_lib.replay(state, config.params)
 
   J = TimeFunctional(functional.Jt(state))
-  adj_state = sw_lib.adjoint(state, config.params, J, until=0) # The first annotation is the idendity operator for the turbine field
+  adj_state = sw_lib.adjoint(state, config.params, J, until=1) # The first annotation is the idendity operator for the turbine field
 
   # Let J be the functional, m the parameter and u the solution of the PDE equation F(u) = 0.
   # Then we have 

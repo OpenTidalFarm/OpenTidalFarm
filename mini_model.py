@@ -14,11 +14,10 @@ def construct_mini_model(W, params, turbine_field):
     A = (1.0+turbine_field)*inner(v,u)*dx
     A += inner(q,h)*dx
 
-    rhs = action(M, Constant((2.0, 0.0, 0.0)))
-    return A, rhs
+    return A, M
 
 
-def mini_model(A, rhs, state, params, time_functional=None, annotate=True):
+def mini_model(A, M, state, params, time_functional=None, annotate=True):
     '''Solve (1+turbine)*M*state = (2, 0, 0)*M. 
        The solutioin is a x-velocity of 2/(turbine+1) and a pressure and y-velocity of 0. 
     '''
@@ -29,6 +28,7 @@ def mini_model(A, rhs, state, params, time_functional=None, annotate=True):
 
     tmpstate=Function(state.function_space())
 
+    rhs = action(M, state)
     # Solve the mini model 
     solver_parameters = {"linear_solver": "cg", "preconditioner": "sor"}
     solve(A==rhs, tmpstate, solver_parameters=solver_parameters, annotate=annotate)
