@@ -26,8 +26,8 @@ config.params["dump_period"]=100000
 config.params["friction"]=0.0025
 config.params["turbine_pos"]=[[200., 500.], [1000., 700.]]
 config.params["turbine_friction"] = 12.*numpy.ones(len(config.params["turbine_pos"]))
-config.params["turbine_length"] = 400
-config.params["turbine_width"] = 400
+config.params["turbine_x"] = 400
+config.params["turbine_y"] = 400
 config.params["turbine_model"] = 'ConstantTurbine'
 
 W=sw_lib.p1dgp2(config.mesh)

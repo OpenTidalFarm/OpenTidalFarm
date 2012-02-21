@@ -24,8 +24,8 @@ config.params["start_time"] = period/4
 config.params["friction"]=0.0025
 config.params["turbine_pos"] = [[1000., 500.], [2000., 500.]]
 config.params["turbine_friction"] = 12./config.params["depth"]
-config.params["turbine_length"] = 200
-config.params["turbine_width"] = 400
+config.params["turbine_x"] = 400
+config.params["turbine_y"] = 200
 
 W=sw_lib.p1dgp2(config.mesh)
 

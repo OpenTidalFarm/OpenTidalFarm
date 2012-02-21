@@ -19,8 +19,8 @@ class DefaultConfiguration:
         'basin_y' : 1000., # The width of the basin
         'friction' : 0.0, # Bottom friction
         'turbine_pos' : [],
-        'turbine_length' : 20., # The turbine extension in the x direction
-        'turbine_width' : 5., # The turbine extension in the y direction
+        'turbine_x' : 20., # The turbine extension in the x direction
+        'turbine_y' : 5., # The turbine extension in the y direction
         'turbine_friction' : 12.0,
         'turbine_model': 'BumpTurbine'
         })

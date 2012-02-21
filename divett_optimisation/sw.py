@@ -23,8 +23,8 @@ def default_config():
   config.params["friction"]=0.0025
   config.params["turbine_pos"] = [[1000., 500.], [2000., 500.]]
   config.params["turbine_friction"] = 12./config.params["depth"]
-  config.params["turbine_length"] = 200
-  config.params["turbine_width"] = 400
+  config.params["turbine_x"] = 200
+  config.params["turbine_y"] = 400
 
   return config
 

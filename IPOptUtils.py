@@ -22,3 +22,13 @@ class  IPOptFunction(object):
   def jacobian(self, x):
     ''' The Jacobian of the constraint functions evaluated at x. '''
     return (numpy.array([]), numpy.array([]))
+
+def position_constraints(params):
+  ''' This function returns the constraints for valid turbine positions. '''
+  l = len(params["turbine_pos"])
+  lc = []
+  lb_x = params["turbine_x"] 
+  #lb_y = 
+  for i in range(l):
+    lc.append([lb, ub])
+  

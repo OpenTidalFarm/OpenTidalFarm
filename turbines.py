@@ -15,12 +15,12 @@ class Turbines(Expression):
 
       # Precompute some turbine parameters for efficiency. 
       self.x_pos = numpy.array(params["turbine_pos"])[:,0] 
-      self.x_pos_low = self.x_pos-params["turbine_length"]/2
-      self.x_pos_high = self.x_pos+params["turbine_length"]/2
+      self.x_pos_low = self.x_pos-params["turbine_x"]/2
+      self.x_pos_high = self.x_pos+params["turbine_x"]/2
 
       self.y_pos = numpy.array(params["turbine_pos"])[:,1] 
-      self.y_pos_low = self.y_pos-params["turbine_width"]/2
-      self.y_pos_high = self.y_pos+params["turbine_width"]/2
+      self.y_pos_low = self.y_pos-params["turbine_y"]/2
+      self.y_pos_high = self.y_pos+params["turbine_y"]/2
 
       super(Turbines, self).__init__(args, kwargs)
 
@@ -94,15 +94,15 @@ class Turbines(Expression):
               # Just compute the evaluation
               f = self.turbine_function(params)
 
-              x_unit = (x[0]-x_pos[i]) / (0.5*params["turbine_length"])
-              y_unit = (x[1]-y_pos[i]) / (0.5*params["turbine_width"])
+              x_unit = (x[0]-x_pos[i]) / (0.5*params["turbine_x"])
+              y_unit = (x[1]-y_pos[i]) / (0.5*params["turbine_y"])
               friction += f([x_unit, y_unit])*params["turbine_friction"][i] 
 
             elif i == self.derivative_index_selector:
               # Compute the derivative with respect to the specified variable
               i = self.derivative_index_selector
-              x_unit = (x[0]-x_pos[i]) / (0.5*params["turbine_length"])
-              y_unit = (x[1]-y_pos[i]) / (0.5*params["turbine_width"])
+              x_unit = (x[0]-x_pos[i]) / (0.5*params["turbine_x"])
+              y_unit = (x[1]-y_pos[i]) / (0.5*params["turbine_y"])
 
               # Now check with which variable we want to take the derivative with respect to.
               var = self.derivative_var_selector
@@ -113,7 +113,7 @@ class Turbines(Expression):
                 # The coordinate dimension for which the derivative is to be computed
                 d = {'turbine_pos_x': 0, 'turbine_pos_y': 1}[var]
                 # The turbine extension in that coordinate dimension
-                ext = {'turbine_pos_x': "turbine_length", 'turbine_pos_y': "turbine_width"}[var]
+                ext = {'turbine_pos_x': "turbine_x", 'turbine_pos_y': "turbine_y"}[var]
                 f = self.turbine_derivative(params)
                 friction += f([x_unit, y_unit], d)*params["turbine_friction"][i]*(-1.0/(0.5*params[ext])) # The last multiplier is the derivative of x_unit due to the chain rule
               else: 

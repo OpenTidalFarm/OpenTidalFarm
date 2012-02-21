@@ -33,8 +33,8 @@ def default_config():
   config.params["turbine_pos"] = [[500., 500.], [1500., 500.], [2500., 500.]]
   # The turbine friction is the control variable 
   config.params["turbine_friction"] = 12.0*numpy.random.rand(len(config.params["turbine_pos"]))
-  config.params["turbine_length"] = 800
-  config.params["turbine_width"] = 800
+  config.params["turbine_x"] = 800
+  config.params["turbine_y"] = 800
 
   return config
 

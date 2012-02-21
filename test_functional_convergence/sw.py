@@ -38,8 +38,8 @@ def run_model(nx, ny, turbine_model, turbine_pos):
   config.params["turbine_pos"] = turbine_pos 
   config.params["turbine_friction"] = 12./config.params["depth"]*numpy.ones(len(config.params["turbine_pos"]))
 
-  config.params["turbine_length"] = 200
-  config.params["turbine_width"] = 200
+  config.params["turbine_x"] = 200
+  config.params["turbine_y"] = 200
 
   W=sw_lib.p1dgp2(config.mesh)
 
