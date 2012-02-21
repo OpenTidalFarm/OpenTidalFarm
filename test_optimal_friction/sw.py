@@ -37,7 +37,6 @@ def default_config():
 def initial_control(config):
   # We use the current turbine settings as the intial control
   res = config.params['turbine_friction'].tolist()
-  #res += numpy.reshape(config.params['turbine_pos'], -1).tolist()
   return numpy.array(res)
 
 def j_and_dj(m):
@@ -47,7 +46,6 @@ def j_and_dj(m):
   # Change the control variables to the config parameters
   config.params["turbine_friction"] = m[:len(config.params["turbine_friction"])]
   mp = m[len(config.params["turbine_friction"]):]
-  #config.params["turbine_pos"] = numpy.reshape(mp, (-1, 2))
 
   set_log_level(30)
   debugging["record_all"] = True
@@ -67,7 +65,7 @@ def j_and_dj(m):
 
   global count
   count+=1
-  sw_lib.save_to_file_scalar(tf, "turbines_"+str(count))
+  sw_lib.save_to_file_scalar(tf, "turbines_t=."+str(count)+".x")
 
   A, M = construct_mini_model(W, config.params, tf)
 
@@ -75,11 +73,6 @@ def j_and_dj(m):
 
   # Solve the shallow water system
   j, djdm, state = mini_model(A, M, state, config.params, functional)
-  #print "Layout power extraction: ", j/1000000, " MW."
-  #print "Which is equivalent to a average power generation of: ",  j/1000000/(config.params["current_time"]-config.params["start_time"]), " MW"
-
-  sw_lib.replay(state, config.params)
-
   J = TimeFunctional(functional.Jt(state))
   adj_state = sw_lib.adjoint(state, config.params, J, until=1) # The first annotation is the idendity operator for the turbine field
 
@@ -154,6 +147,7 @@ if opt_package == 'ipopt':
   nlp.addOption('obj_scaling_factor', -1.0)
   # Use an approximate Hessian since we do not have second order information.
   nlp.addOption('hessian_approximation', 'limited-memory')
+  nlp.addOption('max_iter', 7)
 
   m, info = nlp.solve(m0)
   print info['status_msg']
