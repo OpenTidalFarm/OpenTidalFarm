@@ -33,6 +33,10 @@ class DefaultConfiguration:
     params["dt"]=params["finish_time"]/4000.
     params["k"]=pi/params['basin_x']
 
+    # Print log messages only from the root process in parallel
+    # (See http://fenicsproject.org/documentation/dolfin/dev/python/demo/pde/navier-stokes/python/documentation.html)
+    parameters["std_out_all_processes"] = False;
+
     def generate_mesh(nx, ny):
       ''' Generates a rectangular mesh for the divett test
           nx = Number of cells in x direction

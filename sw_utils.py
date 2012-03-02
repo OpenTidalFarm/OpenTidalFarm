@@ -1,9 +1,17 @@
+from __future__ import print_function
 import libadjoint
+from dolfin import *
 from dolfin_adjoint.solving import *
+
+def pprint(*args, **kw):
+  ''' A print that only prints on the first CPU in a parallel environment. '''
+  myid = MPI.process_number()
+  if myid == 0:
+    print(*args)
 
 def replay_dolfin(forget=False):
   if "record_all" not in debugging or debugging["record_all"] is not True:
-    print "Warning: your replay test will be much more effective with debugging['record_all'] = True."
+    pprint("Warning: your replay test will be much more effective with debugging['record_all'] = True.")
 
   for i in range(adjointer.equation_count):
       (fwd_var, output) = adjointer.get_forward_solution(i)
@@ -52,7 +60,7 @@ def test_initial_condition_adjoint(J, ic, final_adjoint, seed=0.01, perturbation
 
   # We will compute the gradient of the functional with respect to the initial condition,
   # and check its correctness with the Taylor remainder convergence test.
-  print "Running Taylor remainder convergence analysis for the adjoint model ... "
+  pprint("Running Taylor remainder convergence analysis for the adjoint model ... ")
   import random
 
   # First run the problem unperturbed
@@ -84,8 +92,8 @@ def test_initial_condition_adjoint(J, ic, final_adjoint, seed=0.01, perturbation
   # First-order Taylor remainders (not using adjoint)
   no_gradient = [abs(perturbed_f - f_direct) for perturbed_f in functional_values]
 
-  print "Taylor remainder without adjoint information: ", no_gradient
-  print "Convergence orders for Taylor remainder without adjoint information (should all be 1): ", convergence_order(no_gradient)
+  pprint("Taylor remainder without adjoint information: ", no_gradient)
+  pprint("Convergence orders for Taylor remainder without adjoint information (should all be 1): ", convergence_order(no_gradient))
 
   adjoint_vector = final_adjoint.vector()
 
@@ -94,8 +102,8 @@ def test_initial_condition_adjoint(J, ic, final_adjoint, seed=0.01, perturbation
     remainder = abs(functional_values[i] - f_direct - adjoint_vector.inner(perturbations[i].vector()))
     with_gradient.append(remainder)
 
-  print "Taylor remainder with adjoint information: ", with_gradient
-  print "Convergence orders for Taylor remainder with adjoint information (should all be 2): ", convergence_order(with_gradient)
+  pprint("Taylor remainder with adjoint information: ", with_gradient)
+  pprint("Convergence orders for Taylor remainder with adjoint information (should all be 2): ", convergence_order(with_gradient))
 
   return min(convergence_order(with_gradient))
 
@@ -110,7 +118,7 @@ def test_gradient_array(J, dJ, x, seed=0.01, perturbation_direction=None):
 
   # We will compute the gradient of the functional with respect to the initial condition,
   # and check its correctness with the Taylor remainder convergence test.
-  print "Running Taylor remainder convergence analysis to check the gradient ... "
+  pprint("Running Taylor remainder convergence analysis to check the gradient ... ")
   import random
   from numpy import array, dot
 
@@ -136,8 +144,8 @@ def test_gradient_array(J, dJ, x, seed=0.01, perturbation_direction=None):
   # First-order Taylor remainders (not using adjoint)
   no_gradient = [abs(perturbed_j - j_direct) for perturbed_j in functional_values]
 
-  #print "The estimated derivative using a first order scheme is: ", [(functional_values[i] - j_direct)/(seed/(2**i)) for i in range(5)]
-  print "Convergence orders for Taylor remainder without adjoint information (should all be 1): ", convergence_order(no_gradient)
+  #pprint("The estimated derivative using a first order scheme is: ", [(functional_values[i] - j_direct)/(seed/(2**i)) for i in range(5)])n
+  pprint("Convergence orders for Taylor remainder without adjoint information (should all be 1): ", convergence_order(no_gradient))
 
   dj = dJ(x)
 
@@ -146,7 +154,7 @@ def test_gradient_array(J, dJ, x, seed=0.01, perturbation_direction=None):
     remainder = abs(functional_values[i] - j_direct - dot(perturbations[i], dj))
     with_gradient.append(remainder)
 
-  print "Convergence orders for Taylor remainder with adjoint information (should all be 2): ", convergence_order(with_gradient)
+  pprint("Convergence orders for Taylor remainder with adjoint information (should all be 2): ", convergence_order(with_gradient))
 
   return min(convergence_order(with_gradient))
 
@@ -180,7 +188,7 @@ def test_initial_condition_tlm(J, dJ, ic, seed=0.01, perturbation_direction=None
 
   # We will compute the gradient of the functional with respect to the initial condition,
   # and check its correctness with the Taylor remainder convergence test.
-  print "Running Taylor remainder convergence analysis for the tangent linear model... "
+  pprint("Running Taylor remainder convergence analysis for the tangent linear model... ")
   import random
 
   # First run the problem unperturbed
@@ -212,8 +220,8 @@ def test_initial_condition_tlm(J, dJ, ic, seed=0.01, perturbation_direction=None
   # First-order Taylor remainders (not using adjoint)
   no_gradient = [abs(perturbed_f - f_direct) for perturbed_f in functional_values]
 
-  print "Taylor remainder without tangent linear information: ", no_gradient
-  print "Convergence orders for Taylor remainder without tangent linear information (should all be 1): ", convergence_order(no_gradient)
+  pprint("Taylor remainder without tangent linear information: ", no_gradient)
+  pprint("Convergence orders for Taylor remainder without tangent linear information (should all be 1): ", convergence_order(no_gradient))
 
   with_gradient = []
   for i in range(len(perturbations)):
@@ -222,7 +230,7 @@ def test_initial_condition_tlm(J, dJ, ic, seed=0.01, perturbation_direction=None
     remainder = abs(functional_values[i] - f_direct - final_tlm.vector().inner(dJ))
     with_gradient.append(remainder)
 
-  print "Taylor remainder with tangent linear information: ", with_gradient
-  print "Convergence orders for Taylor remainder with tangent linear information (should all be 2): ", convergence_order(with_gradient)
+  pprint("Taylor remainder with tangent linear information: ", with_gradient)
+  pprint("Convergence orders for Taylor remainder with tangent linear information (should all be 2): ", convergence_order(with_gradient))
 
   return min(convergence_order(with_gradient))
