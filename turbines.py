@@ -1,5 +1,6 @@
 import numpy
 import sw_lib
+from sw_utils import pprint 
 from dolfin import *
 from math import log
 
@@ -31,7 +32,7 @@ class Turbines(Expression):
 
     def constant_derivative(self, x, d):
       if Turbines.print_warning:
-        print "Warning: The constant turbine is not differentiable at the turbine edges! The derivative will be 0.0"
+        info_red("Warning: The constant turbine is not differentiable at the turbine edges! The derivative will be 0.0")
         Turbines.print_warning = False
       return 0.0
 
@@ -42,7 +43,7 @@ class Turbines(Expression):
     def gaussian_derivative(self, x, d):
       ''' This function computes the derivative of the gaussian turbine function with respect to the d'th coordinate. '''
       if Turbines.print_warning:
-        print "Warning: The gaussian turbine is not differentiable at the turbine edges!"
+        info_red("Warning: The gaussian turbine is not differentiable at the turbine edges!")
         Turbines.print_warning = False
       return self.gaussian_function(x) * (-0.5 * (2*x[d]) * (-2*log(0.05)) )
 
