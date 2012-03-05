@@ -15,6 +15,6 @@ tests:
 	cd test_optimal_friction; make
 	@echo "=================== Running optimal position test ==================="
 	cd test_optimal_position; make
-	#@echo "=================== Running optimal friction for one turbine test ==================="
-	#cd test_optimal_friction_for_one_turbine; make
+	#@echo "=================== Running optimal friction for multiple turbine test ==================="
+	#cd test_optimal_friction_multiple_turbines; make
 	@echo "=================== All tests passed ===================" 
