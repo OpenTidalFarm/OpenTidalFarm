@@ -1,3 +1,10 @@
+''' Test description
+ - single turbine
+ - bubble velocity profile with maximum in the center of the domain
+ - control: turbine position
+ - the optimal placement for the turbine is where the velocity profile reaches its maximum
+'''
+
 import sys
 import cProfile
 import pstats
