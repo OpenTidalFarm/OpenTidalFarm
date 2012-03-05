@@ -1,10 +1,14 @@
 ''' Test description:
- - single turbine whose size exceeds the size of the domain
+ - single turbine (with constant friction distribution) whose size exceeds the size of the domain
  - constant velocity profile with an initial x-velocity of 2.
  - control: turbine friction
  - the mini model will compute a x-velocity of 2/(f + 1) wher ef is the turbine friction.
  - the functional is \int C * f * ||u||**3 where C is a constant
  - hence we maximise C * f * ( 2/(f + 1) )**3, f > 0 which has the solution f = 0.5
+
+ Note: The solution is known only because we use a consant turbine friction distribution. 
+       However this turbine model is not differentiable at its boundary, and this is why
+       the turbine size has to exceed the domain.
  '''
 
 import sys
@@ -164,8 +168,6 @@ if opt_package == 'ipopt':
   print "Solution of the dual variables: lambda=%s\n" % repr(info['mult_g'])
   print "Objective=%s\n" % repr(info['obj_val'])
 
-  if info['status'] != 0 or abs(m[0]-0.5) > 1.0**-10: 
+  if info['status'] != 0 or abs(m[0]-0.5) > 10**-10: 
     print "The optimisation algorithm did not find the correct solution."
     sys.exit(1) 
-  else:
-    exit_code = 0
