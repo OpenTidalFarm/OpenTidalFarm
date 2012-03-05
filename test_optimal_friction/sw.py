@@ -6,7 +6,7 @@
  - the functional is \int C * f * ||u||**3 where C is a constant
  - hence we maximise C * f * ( 2/(f + 1) )**3, f > 0 which has the solution f = 0.5
 
- Note: The solution is known only because we use a consant turbine friction distribution. 
+ Note: The solution is known only because we use a constant turbine friction distribution. 
        However this turbine model is not differentiable at its boundary, and this is why
        the turbine size has to exceed the domain.
  '''
@@ -21,7 +21,7 @@ import Memoize
 import ipopt 
 import IPOptUtils
 from functionals import DefaultFunctional
-from sw_utils import test_initial_condition_adjoint, test_gradient_array
+from sw_utils import test_initial_condition_adjoint, test_gradient_array, pprint
 from turbines import *
 from mini_model import *
 from dolfin import *
@@ -119,14 +119,15 @@ def j_and_dj(m):
 j_and_dj_mem = Memoize.MemoizeMutable(j_and_dj)
 def j(m):
   j = j_and_dj_mem(m)[0]
-  print 'Evaluating j(', m.__repr__(), ')=', j
+  pprint('Evaluating j(', m.__repr__(), ')=', j)
   return j 
 
 def dj(m):
   dj = j_and_dj_mem(m)[1]
-  print 'Evaluating dj(', m.__repr__(), ')=', dj
   # Return only the derivatives with respect to the friction
-  return dj[:len(config.params['turbine_friction'])]
+  dj = dj[:len(config.params['turbine_friction'])]
+  pprint('Evaluating dj(', m.__repr__(), ')=', dj)
+  return dj 
 
 config = default_config()
 m0 = initial_control(config)
@@ -134,7 +135,7 @@ m0 = initial_control(config)
 p = numpy.random.rand(len(m0))
 minconv = test_gradient_array(j, dj, m0, seed=0.001, perturbation_direction=p)
 if minconv < 1.99:
-  print "The gradient taylor remainder test failed."
+  pprint("The gradient taylor remainder test failed.")
   sys.exit(1)
 
 # If this option does not produce any ipopt outputs, delete the ipopt.opt file
@@ -162,11 +163,11 @@ nlp.addOption('hessian_approximation', 'limited-memory')
 nlp.addOption('max_iter', 7)
 
 m, info = nlp.solve(m0)
-print info['status_msg']
-print "Solution of the primal variables: m=%s\n" % repr(m) 
-print "Solution of the dual variables: lambda=%s\n" % repr(info['mult_g'])
-print "Objective=%s\n" % repr(info['obj_val'])
+pprint(info['status_msg'])
+pprint("Solution of the primal variables: m=%s\n" % repr(m))
+pprint("Solution of the dual variables: lambda=%s\n" % repr(info['mult_g']))
+pprint("Objective=%s\n" % repr(info['obj_val']))
 
 if info['status'] != 0 or abs(m[0]-0.5) > 10**-10: 
-  print "The optimisation algorithm did not find the correct solution."
+  pprint("The optimisation algorithm did not find the correct solution.")
   sys.exit(1) 
