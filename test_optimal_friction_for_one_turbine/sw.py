@@ -22,7 +22,7 @@ def default_config():
   config.params["finish_time"] = 2./4*period
   config.params["dt"] = config.params["finish_time"]/10
   print "Wave period (in h): ", period/60/60 
-  config.params["dump_period"] = 1000
+  config.params["dump_period"] = 1
   config.params["verbose"] = 0
 
   # Start at rest state

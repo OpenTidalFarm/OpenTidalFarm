@@ -18,8 +18,8 @@ def construct_mini_model(W, params, turbine_field):
 
 
 def mini_model(A, M, state, params, time_functional=None, annotate=True):
-    '''Solve (1+turbine)*M*state = (2, 0, 0)*M. 
-       The solutioin is a x-velocity of 2/(turbine+1) and a pressure and y-velocity of 0. 
+    '''Solve (1+turbine)*M*state = M*old_state. 
+       The solution is a x-velocity of old_state/(turbine_friction + 1) and a zero pressure value y-velocity.
     '''
     
     u_out, p_out = sw_lib.output_files(params["basename"])

@@ -1,3 +1,12 @@
+''' Test description:
+ - single turbine whose size exceeds the size of the domain
+ - constant velocity profile with an initial x-velocity of 2.
+ - control: turbine friction
+ - the mini model will compute a x-velocity of 2/(f + 1) wher ef is the turbine friction.
+ - the functional is \int C * f * ||u||**3 where C is a constant
+ - hence we maximise C * f * ( 2/(f + 1) )**3, f > 0 which has the solution f = 0.5
+ '''
+
 import sys
 import cProfile
 import pstats
