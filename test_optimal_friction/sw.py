@@ -18,6 +18,7 @@ import sw_config
 import sw_lib
 import numpy
 import Memoize
+import ipopt 
 import IPOptUtils
 from functionals import DefaultFunctional
 from sw_utils import test_initial_condition_adjoint, test_gradient_array
@@ -64,6 +65,8 @@ def j_and_dj(m):
   debugging["record_all"] = True
 
   W=sw_lib.p1dgp2(config.mesh)
+
+  # Set initial conditions
   state=Function(W)
   state.interpolate(Constant((2.0, 0.0, 0.0)))
 
@@ -134,40 +137,36 @@ if minconv < 1.99:
   print "The gradient taylor remainder test failed."
   sys.exit(1)
 
-opt_package = 'ipopt'
+# If this option does not produce any ipopt outputs, delete the ipopt.opt file
+g = lambda m: []
+dg = lambda m: []
 
-if opt_package == 'ipopt':
-  # If this option does not produce any ipopt outputs, delete the ipopt.opt file
-  import ipopt 
-  g = lambda m: []
-  dg = lambda m: []
+f = IPOptUtils.IPOptFunction()
+# Overwrite the functional and gradient function with our implementation
+f.objective= j 
+f.gradient= dj 
 
-  f = IPOptUtils.IPOptFunction()
-  # Overwrite the functional and gradient function with our implementation
-  f.objective= j 
-  f.gradient= dj 
+nlp = ipopt.problem(len(m0), 
+                    0, 
+                    f, 
+                    numpy.zeros(len(m0)), 
+                    100*numpy.ones(len(m0)))
+nlp.addOption('mu_strategy', 'adaptive')
+nlp.addOption('tol', 1e-9)
+nlp.addOption('print_level', 5)
+nlp.addOption('check_derivatives_for_naninf', 'yes')
+# A -1.0 scaling factor transforms the min problem to a max problem.
+nlp.addOption('obj_scaling_factor', -1.0)
+# Use an approximate Hessian since we do not have second order information.
+nlp.addOption('hessian_approximation', 'limited-memory')
+nlp.addOption('max_iter', 7)
 
-  nlp = ipopt.problem(len(m0), 
-                      0, 
-                      f, 
-                      numpy.zeros(len(m0)), 
-                      100*numpy.ones(len(m0)))
-  nlp.addOption('mu_strategy', 'adaptive')
-  nlp.addOption('tol', 1e-9)
-  nlp.addOption('print_level', 5)
-  nlp.addOption('check_derivatives_for_naninf', 'yes')
-  # A -1.0 scaling factor transforms the min problem to a max problem.
-  nlp.addOption('obj_scaling_factor', -1.0)
-  # Use an approximate Hessian since we do not have second order information.
-  nlp.addOption('hessian_approximation', 'limited-memory')
-  nlp.addOption('max_iter', 7)
+m, info = nlp.solve(m0)
+print info['status_msg']
+print "Solution of the primal variables: m=%s\n" % repr(m) 
+print "Solution of the dual variables: lambda=%s\n" % repr(info['mult_g'])
+print "Objective=%s\n" % repr(info['obj_val'])
 
-  m, info = nlp.solve(m0)
-  print info['status_msg']
-  print "Solution of the primal variables: m=%s\n" % repr(m) 
-  print "Solution of the dual variables: lambda=%s\n" % repr(info['mult_g'])
-  print "Objective=%s\n" % repr(info['obj_val'])
-
-  if info['status'] != 0 or abs(m[0]-0.5) > 10**-10: 
-    print "The optimisation algorithm did not find the correct solution."
-    sys.exit(1) 
+if info['status'] != 0 or abs(m[0]-0.5) > 10**-10: 
+  print "The optimisation algorithm did not find the correct solution."
+  sys.exit(1) 
