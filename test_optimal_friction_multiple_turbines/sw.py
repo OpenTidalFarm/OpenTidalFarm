@@ -1,3 +1,9 @@
+''' Test description:
+ - three turbines (with a bump function as friction distribution), alsmot filling the whole domain so that the influence each other.
+ - shallow water model 
+ - control: turbine friction
+ '''
+
 import sys
 import sw_config 
 import sw_lib
@@ -109,12 +115,12 @@ def j_and_dj(m):
 
 j_and_dj_mem = Memoize.MemoizeMutable(j_and_dj)
 def j(m):
-  j = j_and_dj_mem(m)[0]*10**-13
+  j = j_and_dj_mem(m)[0]
   pprint('Evaluating j(', m.__repr__(), ')=', j)
   return j 
 
 def dj(m):
-  dj = j_and_dj_mem(m)[1]*10**-13
+  dj = j_and_dj_mem(m)[1]
   pprint('Evaluating dj(', m.__repr__(), ')=', dj)
   # Return only the derivatives with respect to the friction
   return dj[:len(config.params['turbine_friction'])]
@@ -122,11 +128,11 @@ def dj(m):
 config = default_config()
 m0 = initial_control(config)
 
-p = numpy.random.rand(len(m0))
-minconv = test_gradient_array(j, dj, m0, seed=0.001, perturbation_direction=p)
-if minconv < 1.98:
-  pprint("The gradient taylor remainder test failed.")
-  sys.exit(1)
+#p = numpy.random.rand(len(m0))
+#minconv = test_gradient_array(j, dj, m0, seed=0.001, perturbation_direction=p)
+#if minconv < 1.98:
+#  pprint("The gradient taylor remainder test failed.")
+#  sys.exit(1)
 
 # If this option does not produce any ipopt outputs, delete the ipopt.opt file
 g = lambda m: []
@@ -141,12 +147,14 @@ nlp = ipopt.problem(len(m0),
                     0, 
                     f, 
                     numpy.zeros(len(m0)), 
-                    100*numpy.ones(len(m0)))
+                    10000*numpy.ones(len(m0)))
 nlp.addOption('mu_strategy', 'adaptive')
 nlp.addOption('tol', 1e-7)
 nlp.addOption('print_level', 5)
 nlp.addOption('check_derivatives_for_naninf', 'yes')
-# A -1.0 scaling factor transforms the min problem to a max problem.
+# Add the internal scaling method so that the first derivtive is arount 1.0
+nlp.addOption('nlp_scaling_max_gradient', 2.0)
+# A -1.0 objective scaling factor transforms the min problem to a max problem.
 nlp.addOption('obj_scaling_factor', -1.0)
 # Use an approximate Hessian since we do not have second order information.
 nlp.addOption('hessian_approximation', 'limited-memory')

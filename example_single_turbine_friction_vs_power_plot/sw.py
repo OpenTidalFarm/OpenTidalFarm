@@ -1,4 +1,4 @@
-''' An example that plots the power ouput of a single turbine for different fricition values. 
+''' An example that plots the power ouput of a single turbine for different fricition values. (see also test_optimal_friction_single_turbine) 
  - a single turbine (with a bump function as friction distribution)
  - shallow water model with implicit timestepping scheme to avoid oscillations in the turbine areas 
  - the functional is \int C * f * ||u||**3 where C is a constant
