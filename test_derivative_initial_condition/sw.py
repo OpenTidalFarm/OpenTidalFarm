@@ -41,10 +41,8 @@ U = U.collapse() # Recompute the DOF map
 tf = Function(U)
 tf.interpolate(Turbines(config.params))
 
-M,G,rhs_contr,ufl = sw_lib.construct_shallow_water(W, config.ds, config.params, turbine_field = tf)
-
 functional = DefaultFunctional(config.params) 
-myj, djdm, state = sw_lib.timeloop_theta(M, G, rhs_contr, ufl, state, config.params, time_functional=functional)
+myj, djdm, state = sw_lib.sw_solve(W, config, state, time_functional=functional)
 
 sw_lib.replay(state, config.params)
 
@@ -54,7 +52,7 @@ adj_state = sw_lib.adjoint(state, config.params, J)
 ic = Function(W)
 ic.interpolate(config.get_sin_initial_condition()())
 def J(ic):
-  j, djdm, state = sw_lib.timeloop_theta(M, G, rhs_contr, ufl, ic, config.params, time_functional=functional, annotate=False)
+  j, djdm, state = sw_lib.sw_solve(W, config, ic, time_functional=functional, annotate=False)
   return j
 
 minconv = test_initial_condition_adjoint(J, ic, adj_state, seed=0.0001)

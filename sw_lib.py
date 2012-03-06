@@ -135,6 +135,7 @@ def sw_solve(W, config, ic, turbine_field=None, time_functional=None, annotate=T
     dt = params["dt"]
     g = params["g"]
     depth = params["depth"]
+    params["current_time"] = params["start_time"]
     t = params["current_time"]
 
     # To begin with, check if the provided parameters are valid
@@ -235,8 +236,6 @@ def sw_solve(W, config, ic, turbine_field=None, time_functional=None, annotate=T
     u_out << u_out_state
     p_out << p_out_state
     
-    params["current_time"] = params["start_time"]
-    
     step = 0    
     j = 0
     djdm = None 
@@ -258,7 +257,7 @@ def sw_solve(W, config, ic, turbine_field=None, time_functional=None, annotate=T
         solver_parameters = {"linear_solver": "default"}
         solver_parameters["newton_solver"] = {}
         solver_parameters["newton_solver"]["convergence_criterion"] = "incremental"
-        solver_parameters["newton_solver"]["relative_tolerance"] = 1e-12
+        solver_parameters["newton_solver"]["relative_tolerance"] = 1e-16
 
         solve(F == 0, state, solver_parameters=solver_parameters, annotate=annotate)
 
