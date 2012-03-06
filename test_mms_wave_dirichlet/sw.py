@@ -13,8 +13,7 @@ def error(config):
   initstate=Function(W)
   initstate.interpolate(config.get_sin_initial_condition()())
 
-  M,G,rhs_contr,ufl=sw_lib.construct_shallow_water(W, config.ds, config.params)
-  finalstate = sw_lib.timeloop_theta(M, G, rhs_contr, ufl, initstate, config.params, annotate=False)
+  finalstate = sw_lib.sw_solve(W, config, initstate, annotate=False)
 
   analytic_sol = Expression(("eta0*sqrt(g*depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", \
                              "0", \
@@ -67,7 +66,7 @@ adj_state = sw_lib.adjoint(state, config.params, J)
 ic = Function(W)
 ic.interpolate(config.InitialConditions())
 def J(ic):
-  state = sw_lib.timeloop_theta(M, G, rhs_contr,ufl,ic, config.params, annotate=False)
+  state = sw_lib.sw_solve(W, config, ic, annotate=False)
   analytic_sol = Expression("eta0*cos(pi/3000*x[0]-sqrt(g/h)*pi/3000*t")
   return assemble(dot(state, state)*dx)
 

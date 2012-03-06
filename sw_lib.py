@@ -96,68 +96,6 @@ def bdmp1dg(mesh):
 
     return W
 
-def construct_shallow_water(W, ds, params, turbine_field=None):
-    """Construct the linear shallow water equations for the space W(=U*H) and a
-    dictionary of parameters params. 
-    The optimal turbine_field is added to the fraction term."""
-    # Sanity check for parameters.
-    params.check()
-
-    (v, q) = TestFunctions(W)
-    (u, h) = TrialFunctions(W)
-
-    n = FacetNormal(W.mesh())
-
-    # Mass matrix
-    M = inner(v,u)*dx
-    M += inner(q,h)*dx
-
-    # Divergence term.
-    Ct=-inner(u,grad(q))*dx
-    #+inner(avg(u),jump(q,n))*dS # This term is only needed for dg element pairs
-
-    if params["bctype"] == 'dirichlet':
-      # The dirichlet boundary condition on the left hand side 
-      ufl = Expression(("eta0*sqrt(g*depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0", "0"), eta0=params["eta0"], g=params["g"], depth=params["depth"], t=params["current_time"], k=params["k"])
-      rhs_contr = -dot(ufl, n)*q*ds(1)
-
-      # The dirichlet boundary condition on the right hand side
-      rhs_contr -= dot(ufl, n)*q*ds(2)
-
-    elif params["bctype"] == 'flather':
-      # The Flather boundary condition on the left hand side 
-      ufl = Expression(("2*eta0*sqrt(g*depth)*cos(-sqrt(g*depth)*k*t)", "0", "0"), eta0=params["eta0"], g=params["g"], depth=params["depth"], t=params["current_time"], k=params["k"])
-      rhs_contr = -dot(ufl,n)*q*ds(1)
-      Ct += sqrt(params["g"]*params["depth"])*inner(h,q)*ds(1)
-
-      # The contributions of the Flather boundary condition on the right hand side
-      Ct += sqrt(params["g"]*params["depth"])*inner(h,q)*ds(2)
-    else:
-      print "Unknown boundary condition type"
-      sys.exit(1)
-
-    # Pressure gradient operator
-    C = (params["g"]*params["depth"])*\
-        inner(v,grad(h))*dx
-    #+inner(avg(v),jump(h,n))*dS # This term is only needed for dg element pairs
-
-
-    # Add the bottom friction
-    class FrictionExpr(Expression):
-        def eval(self, value, x):
-           value[0] = params["friction"] 
-
-    friction = FrictionExpr()
-    if turbine_field:
-      friction += turbine_field
-
-    if params["quadratic_friction"]:
-      R = friction * inner(norm(u)*u / (sqrt(params["depth"]*params["g"])), v) * dx 
-    else:
-      R = friction * inner(u / (sqrt(params["depth"]*params["g"])), v) * dx 
-
-    return (M, C+Ct+R, rhs_contr, ufl)
-
 def save_to_file_scalar(function, basename):
     u_out, p_out = output_files(basename)
 
@@ -177,21 +115,108 @@ def save_to_file(function, basename):
 
     # Project the solution to P1 for visualisation.
     rhs = assemble(inner(v_out,function.split()[0])*dx)
-    solve(M_u_out, u_out_func.vector(),rhs,"cg","sor", annotate=False) 
+    solve(M_u_out, u_out_func.vector(), rhs, "cg", "sor", annotate=False) 
     
     # Project the solution to P1 for visualisation.
     rhs = assemble(inner(q_out,function.split()[1])*dx)
-    solve(M_p_out, p_out_func.vector(),rhs,"cg","sor", annotate=False) 
+    solve(M_p_out, p_out_func.vector(), rhs, "cg", "sor", annotate=False) 
     
     u_out << u_out_func
     p_out << p_out_func
 
-def timeloop_theta(M, G, rhs_contr, ufl, state, params, time_functional=None, annotate=True):
-    '''Solve M*dstate/dt = G*state using a theta scheme.'''
-    
-    A = M+params["theta"]*params["dt"]*G
+def sw_solve(W, config, ic, turbine_field=None, time_functional=None, annotate=True):
+    '''Solve the shallow water equations with the parameters specified in params.''' 
+    ############################### Setting up the equations ###########################
 
-    A_r = M-(1-params["theta"])*params["dt"]*G
+    # Define variables for all used parameters
+    ds = config.ds
+    params = config.params
+    theta = params["theta"]
+    dt = params["dt"]
+    g = params["g"]
+    depth = params["depth"]
+    t = params["current_time"]
+
+    # To begin with, check if the provided parameters are valid
+    params.check()
+
+    # Define test functions
+    (v, q) = TestFunctions(W)
+
+    # Define functions
+    state = Function(W) # current solution
+    state0  = Function(W)  # solution from previous converged step
+
+    # Split mixed functions
+    u, h = split(state) 
+    u0, h0 = split(state0)
+
+    # Create intial conditions and interpolate
+    state.assign(ic, annotate=False)
+    state0.assign(ic, annotate=False)
+
+    # u_(n+theta) and h_(n+theta)
+    u_mid = (1.0-theta)*u0 + theta*u
+    h_mid = (1.0-theta)*h0 + theta*h
+
+    # The normal direction
+    n = FacetNormal(W.mesh())
+
+    # Mass matrix
+    M = inner(v, u) * dx
+    M += inner(q, h) * dx
+    M0 = inner(v, u0) * dx
+    M0 += inner(q, h0) * dx
+
+    # Divergence term.
+    Ct_mid =- inner(u_mid, grad(q))*dx
+    #+inner(avg(u_mid),jump(q,n))*dS # This term is only needed for dg element pairs
+
+    if params["bctype"] == 'dirichlet':
+      # The dirichlet boundary condition on the left hand side 
+      ufl = Expression(("eta0*sqrt(g*depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0", "0"), eta0=params["eta0"], g=g, depth=depth, t=t, k=params["k"])
+      rhs_contr = -dot(ufl, n) * q * ds(1)
+
+      # The dirichlet boundary condition on the right hand side
+      rhs_contr -= dot(ufl, n) * q * ds(2)
+
+    elif params["bctype"] == 'flather':
+      # The Flather boundary condition on the left hand side 
+      ufl = Expression(("2*eta0*sqrt(g*depth)*cos(-sqrt(g*depth)*k*t)", "0", "0"), eta0=params["eta0"], g=g, depth=depth, t=t, k=params["k"])
+      rhs_contr = -dot(ufl, n) * q * ds(1)
+      Ct_mid += sqrt(g*depth)*inner(h_mid, q)*ds(1)
+
+      # The contributions of the Flather boundary condition on the right hand side
+      Ct_mid += sqrt(g*depth)*inner(h_mid, q)*ds(2)
+    else:
+      print "Unknown boundary condition type"
+      sys.exit(1)
+
+    # Pressure gradient operator
+    C_mid = (g * depth) * inner(v, grad(h_mid)) * dx
+    #+inner(avg(v),jump(h_mid,n))*dS # This term is only needed for dg element pairs
+
+    # The bottom friction
+    class FrictionExpr(Expression):
+        def eval(self, value, x):
+           value[0] = params["friction"] 
+
+    friction = FrictionExpr()
+    if turbine_field:
+      friction += turbine_field
+
+    # The friction term
+    R_mid = friction * inner(u_mid / (sqrt(depth * g)), v) * dx 
+    if params["quadratic_friction"]:
+      R_mid = dot(u_mid, u_mid)**0.5 * friction * inner(u_mid / (sqrt(depth * g)), v) * dx 
+    else:
+      R_mid = friction * inner(u_mid / (sqrt(depth * g)), v) * dx 
+
+    # Create the final form
+    G_mid = C_mid + Ct_mid + R_mid
+    F = M - M0 + dt * G_mid - dt * rhs_contr
+
+    ############################### Perform the simulation ###########################
 
     u_out, p_out = output_files(params["basename"])
 
@@ -200,33 +225,30 @@ def timeloop_theta(M, G, rhs_contr, ufl, state, params, time_functional=None, an
     M_p_out, q_out, p_out_state = p_output_projector(state.function_space())
 
     # Project the solution to P1 for visualisation.
-    rhs = assemble(inner(v_out,state.split()[0])*dx)
-    solve(M_u_out, u_out_state.vector(),rhs,"cg","sor", annotate=False) 
+    rhs = assemble(inner(v_out, state.split()[0])*dx)
+    solve(M_u_out, u_out_state.vector(), rhs, "cg", "sor", annotate=False) 
     
     # Project the solution to P1 for visualisation.
-    rhs = assemble(inner(q_out,state.split()[1])*dx)
-    solve(M_p_out, p_out_state.vector(),rhs,"cg","sor", annotate=False) 
+    rhs = assemble(inner(q_out, state.split()[1])*dx)
+    solve(M_p_out, p_out_state.vector(), rhs, "cg", "sor", annotate=False) 
     
     u_out << u_out_state
     p_out << p_out_state
     
     params["current_time"] = params["start_time"]
-    t = params["current_time"]
-    dt = params["dt"]
     
     step = 0    
     j = 0
     djdm = None 
 
-    tmpstate = Function(state.function_space())
-
     while (t < params["finish_time"]):
         t += dt
         params["current_time"] = t
 
-        ufl.t=t-(1.0-params["theta"])*dt # Update time for the Boundary condition expression
+        ufl.t=t-(1.0-theta)*dt # Update time for the Boundary condition expression
         step+=1
-        rhs=action(A_r,state)+params["dt"]*rhs_contr
+
+        state0.assign(state, annotate=annotate)
         
         # Solve the shallow water equations.
         # Choose from: linear_solver: lu, cholesky, cg, gmres, bicgstab, minres, tfqmr, richardson
@@ -234,19 +256,21 @@ def timeloop_theta(M, G, rhs_contr, ufl, state, params, time_functional=None, an
         #solver_parameters = {"linear_solver": "gmres", "preconditioner": "amg",
         #                            "krylov_solver": {"relative_tolerance": 1.0e-10}}
         solver_parameters = {"linear_solver": "default"}
-        solve(A==rhs, tmpstate, solver_parameters=solver_parameters, annotate=annotate)
+        solver_parameters["newton_solver"] = {}
+        solver_parameters["newton_solver"]["convergence_criterion"] = "incremental"
+        solver_parameters["newton_solver"]["relative_tolerance"] = 1e-12
 
-        state.assign(tmpstate, annotate=annotate)
+        solve(F == 0, state, solver_parameters=solver_parameters, annotate=annotate)
 
         if step%params["dump_period"] == 0:
         
             # Project the solution to P1 for visualisation.
             rhs=assemble(inner(v_out,state.split()[0])*dx)
-            solve(M_u_out, u_out_state.vector(),rhs,"cg","sor", annotate=False) 
+            solve(M_u_out, u_out_state.vector(), rhs, "cg", "sor", annotate=False) 
 
             # Project the solution to P1 for visualisation.
             rhs=assemble(inner(q_out,state.split()[1])*dx)
-            solve(M_p_out, p_out_state.vector(),rhs,"cg","sor", annotate=False) 
+            solve(M_p_out, p_out_state.vector(), rhs, "cg", "sor", annotate=False) 
             
             u_out << u_out_state
             p_out << p_out_state
@@ -258,6 +282,8 @@ def timeloop_theta(M, G, rhs_contr, ufl, state, params, time_functional=None, an
             djdm = djtdm
           else:
             djdm += djtdm
+
+        # Increase the adjoint timestep
         adj_inc_timestep()
 
     if time_functional is not None:
