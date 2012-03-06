@@ -95,7 +95,7 @@ def j(m):
 
 config = default_config()
 m0 = initial_control(config)
-f = [0.001*m0*i**2 for i in range(15)]
+f = [0.002*m0*i**2 for i in range(15)]
 P = []
 for fr in f: 
   P.append(j(fr))

@@ -17,6 +17,7 @@ class DefaultConfiguration:
         'eta0' : 2, # Wave height
         'basin_x' : 3000., # The length of the basin
         'basin_y' : 1000., # The width of the basin
+        'quadratic_friction' : False, 
         'friction' : 0.0, # Bottom friction
         'turbine_pos' : [],
         'turbine_x' : 20., # The turbine extension in the x direction

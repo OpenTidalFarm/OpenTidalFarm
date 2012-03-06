@@ -92,31 +92,31 @@ def bdmp1dg(mesh):
  
     H = FunctionSpace(mesh, 'DG', 1)             # Height space
 
-    W=V*H                                        # Mixed space of both.
+    W = V*H                                        # Mixed space of both.
 
     return W
 
-def construct_shallow_water(W,ds,params, turbine_field=None):
+def construct_shallow_water(W, ds, params, turbine_field=None):
     """Construct the linear shallow water equations for the space W(=U*H) and a
-    dictionary of parameters params. If a turbine_field is given, it will be 
-    added to the fraction term."""
+    dictionary of parameters params. 
+    The optimal turbine_field is added to the fraction term."""
     # Sanity check for parameters.
     params.check()
 
-    (v, q)=TestFunctions(W)
-    (u, h)=TrialFunctions(W)
+    (v, q) = TestFunctions(W)
+    (u, h) = TrialFunctions(W)
 
-    n=FacetNormal(W.mesh())
+    n = FacetNormal(W.mesh())
 
     # Mass matrix
-    M=inner(v,u)*dx
-    M+=inner(q,h)*dx
+    M = inner(v,u)*dx
+    M += inner(q,h)*dx
 
     # Divergence term.
     Ct=-inner(u,grad(q))*dx
     #+inner(avg(u),jump(q,n))*dS # This term is only needed for dg element pairs
 
-    if params["bctype"]=='dirichlet':
+    if params["bctype"] == 'dirichlet':
       # The dirichlet boundary condition on the left hand side 
       ufl = Expression(("eta0*sqrt(g*depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0", "0"), eta0=params["eta0"], g=params["g"], depth=params["depth"], t=params["current_time"], k=params["k"])
       rhs_contr = -dot(ufl, n)*q*ds(1)
@@ -124,20 +124,20 @@ def construct_shallow_water(W,ds,params, turbine_field=None):
       # The dirichlet boundary condition on the right hand side
       rhs_contr -= dot(ufl, n)*q*ds(2)
 
-    elif params["bctype"]=='flather':
+    elif params["bctype"] == 'flather':
       # The Flather boundary condition on the left hand side 
       ufl = Expression(("2*eta0*sqrt(g*depth)*cos(-sqrt(g*depth)*k*t)", "0", "0"), eta0=params["eta0"], g=params["g"], depth=params["depth"], t=params["current_time"], k=params["k"])
       rhs_contr = -dot(ufl,n)*q*ds(1)
-      Ct+=sqrt(params["g"]*params["depth"])*inner(h,q)*ds(1)
+      Ct += sqrt(params["g"]*params["depth"])*inner(h,q)*ds(1)
 
       # The contributions of the Flather boundary condition on the right hand side
-      Ct+=sqrt(params["g"]*params["depth"])*inner(h,q)*ds(2)
+      Ct += sqrt(params["g"]*params["depth"])*inner(h,q)*ds(2)
     else:
       print "Unknown boundary condition type"
       sys.exit(1)
 
     # Pressure gradient operator
-    C=(params["g"]*params["depth"])*\
+    C = (params["g"]*params["depth"])*\
         inner(v,grad(h))*dx
     #+inner(avg(v),jump(h,n))*dS # This term is only needed for dg element pairs
 
@@ -151,33 +151,36 @@ def construct_shallow_water(W,ds,params, turbine_field=None):
     if turbine_field:
       friction += turbine_field
 
-    R=friction*inner(2*u/(sqrt(params["depth"]*params["g"])),v)*dx # TODO: Replace 2 by |u|
+    if params["quadratic_friction"]:
+      R = friction * inner(norm(u)*u / (sqrt(params["depth"]*params["g"])), v) * dx 
+    else:
+      R = friction * inner(u / (sqrt(params["depth"]*params["g"])), v) * dx 
 
     return (M, C+Ct+R, rhs_contr, ufl)
 
 def save_to_file_scalar(function, basename):
-    u_out,p_out=output_files(basename)
+    u_out, p_out = output_files(basename)
 
-    M_p_out, q_out, p_out_func=p_output_projector(function.function_space())
+    M_p_out, q_out, p_out_func = p_output_projector(function.function_space())
 
     # Project the solution to P1 for visualisation.
-    rhs=assemble(inner(q_out,function)*dx)
+    rhs = assemble(inner(q_out,function)*dx)
     solve(M_p_out, p_out_func.vector(),rhs,"cg","sor", annotate=False) 
     
     p_out << p_out_func
 
 def save_to_file(function, basename):
-    u_out,p_out=output_files(basename)
+    u_out,p_out = output_files(basename)
 
-    M_u_out, v_out, u_out_func=u_output_projector(function.function_space())
-    M_p_out, q_out, p_out_func=p_output_projector(function.function_space())
+    M_u_out, v_out, u_out_func = u_output_projector(function.function_space())
+    M_p_out, q_out, p_out_func = p_output_projector(function.function_space())
 
     # Project the solution to P1 for visualisation.
-    rhs=assemble(inner(v_out,function.split()[0])*dx)
+    rhs = assemble(inner(v_out,function.split()[0])*dx)
     solve(M_u_out, u_out_func.vector(),rhs,"cg","sor", annotate=False) 
     
     # Project the solution to P1 for visualisation.
-    rhs=assemble(inner(q_out,function.split()[1])*dx)
+    rhs = assemble(inner(q_out,function.split()[1])*dx)
     solve(M_p_out, p_out_func.vector(),rhs,"cg","sor", annotate=False) 
     
     u_out << u_out_func
@@ -186,22 +189,22 @@ def save_to_file(function, basename):
 def timeloop_theta(M, G, rhs_contr, ufl, state, params, time_functional=None, annotate=True):
     '''Solve M*dstate/dt = G*state using a theta scheme.'''
     
-    A=M+params["theta"]*params["dt"]*G
+    A = M+params["theta"]*params["dt"]*G
 
-    A_r=M-(1-params["theta"])*params["dt"]*G
+    A_r = M-(1-params["theta"])*params["dt"]*G
 
-    u_out,p_out=output_files(params["basename"])
+    u_out, p_out = output_files(params["basename"])
 
-    M_u_out, v_out, u_out_state=u_output_projector(state.function_space())
+    M_u_out, v_out, u_out_state = u_output_projector(state.function_space())
 
-    M_p_out, q_out, p_out_state=p_output_projector(state.function_space())
+    M_p_out, q_out, p_out_state = p_output_projector(state.function_space())
 
     # Project the solution to P1 for visualisation.
-    rhs=assemble(inner(v_out,state.split()[0])*dx)
+    rhs = assemble(inner(v_out,state.split()[0])*dx)
     solve(M_u_out, u_out_state.vector(),rhs,"cg","sor", annotate=False) 
     
     # Project the solution to P1 for visualisation.
-    rhs=assemble(inner(q_out,state.split()[1])*dx)
+    rhs = assemble(inner(q_out,state.split()[1])*dx)
     solve(M_p_out, p_out_state.vector(),rhs,"cg","sor", annotate=False) 
     
     u_out << u_out_state
@@ -209,16 +212,16 @@ def timeloop_theta(M, G, rhs_contr, ufl, state, params, time_functional=None, an
     
     params["current_time"] = params["start_time"]
     t = params["current_time"]
-    dt= params["dt"]
+    dt = params["dt"]
     
-    step=0    
+    step = 0    
     j = 0
     djdm = None 
 
-    tmpstate=Function(state.function_space())
+    tmpstate = Function(state.function_space())
 
     while (t < params["finish_time"]):
-        t+=dt
+        t += dt
         params["current_time"] = t
 
         ufl.t=t-(1.0-params["theta"])*dt # Update time for the Boundary condition expression

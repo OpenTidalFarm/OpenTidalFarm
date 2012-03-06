@@ -4,8 +4,8 @@
  - shallow water model with implicit timestepping scheme to avoid oscillations in the turbine areas 
  - control: turbine friction, initially zero
  - the functional is \int C * f * ||u||**3 where C is a constant
- - in order to avoid the global maximum +oo, the friction coefficient is limited to 0 <= f <= 0.5 
- - the plot in 'example_single_turbine_friction_vs_power_plot' suggestes that the optimal friction coefficient is at about 0.064
+ - in order to avoid the global maximum +oo, the friction coefficient is limited to 0 <= f <= 1.0 
+ - the plot in 'example_single_turbine_friction_vs_power_plot' suggestes that the optimal friction coefficient is at about 0.122
  '''
 
 import sys
@@ -155,8 +155,8 @@ nlp = ipopt.problem(len(m0),
                     0, 
                     f, 
                     numpy.zeros(len(m0)), 
-                    # Set the maximum friction value to 0.5 to enforce the local minimum at 0.06
-                    0.5*numpy.ones(len(m0)))
+                    # Set the maximum friction value to 1.0 to enforce the local minimum at 0.122
+                    1.0*numpy.ones(len(m0)))
 nlp.addOption('mu_strategy', 'adaptive')
 nlp.addOption('tol', 1e-7)
 nlp.addOption('print_level', 5)
@@ -174,6 +174,6 @@ pprint("Solution of the primal variables: m=%s\n" % repr(m))
 pprint("Solution of the dual variables: lambda=%s\n" % repr(info['mult_g']))
 pprint("Objective=%s\n" % repr(info['obj_val']))
 
-if info['status'] != 0 or abs(m-0.064) > 0.1: 
+if info['status'] != 0 or abs(m-0.122) > 0.0005: 
   pprint("The optimisation algorithm did not find the correct solution.")
   sys.exit(1) 
