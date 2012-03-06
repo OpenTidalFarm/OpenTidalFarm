@@ -103,7 +103,7 @@ for fr in f:
 if MPI.process_number() == 0:
   plt.plot(f, P)
   plt.title('Power output of a single turbine for different friction values.')
-  plt.xlabel('Power output')
-  plt.ylabel('Friction coefficient')
+  plt.ylabel('Power output')
+  plt.xlabel('Friction coefficient')
   plt.show()
   plt.hold()
