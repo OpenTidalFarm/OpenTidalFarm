@@ -1,3 +1,6 @@
+'''This tests checks the corrections of the adjoint by using it to compute the 
+   derivative of the functional with respect to the initial condition.'''
+
 import sys
 import sw_config 
 import sw_lib
@@ -47,7 +50,9 @@ myj, djdm, state = sw_lib.sw_solve(W, config, state, time_functional=functional)
 sw_lib.replay(state, config.params)
 
 J = TimeFunctional(functional.Jt(state))
-adj_state = sw_lib.adjoint(state, config.params, J)
+# Because no turbine field is used, the first equation in the annotation is the initialisation
+# of the initial condition, hence the adjoint is computed all the way back to equation 0.
+adj_state = sw_lib.adjoint(state, config.params, J, until = 0)
 
 ic = Function(W)
 ic.interpolate(config.get_sin_initial_condition()())
