@@ -67,13 +67,10 @@ def j_and_dj(m):
   # Set up the turbine friction field using the provided control variable
   tf.interpolate(Turbines(config.params))
 
-  M,G,rhs_contr,ufl=sw_lib.construct_shallow_water(W, config.ds, config.params, turbine_field = tf)
-
   functional = DefaultFunctional(config.params)
 
   # Solve the shallow water system
-  j, djdm, state = sw_lib.timeloop_theta(M, G, rhs_contr, ufl, state, config.params, time_functional=functional)
-
+  j, djdm, state = sw_lib.sw_solve(W, config, state, time_functional=functional, turbine_field = tf)
   J = TimeFunctional(functional.Jt(state))
   adj_state = sw_lib.adjoint(state, config.params, J, until=1)
 

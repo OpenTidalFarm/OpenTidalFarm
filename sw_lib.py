@@ -207,7 +207,6 @@ def sw_solve(W, config, ic, turbine_field=None, time_functional=None, annotate=T
       friction += turbine_field
 
     # The friction term
-    R_mid = friction * inner(u_mid / (sqrt(depth * g)), v) * dx 
     if params["quadratic_friction"]:
       R_mid = dot(u_mid, u_mid)**0.5 * friction * inner(u_mid / (sqrt(depth * g)), v) * dx 
     else:
