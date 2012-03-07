@@ -1,3 +1,6 @@
+'''This tests checks the corrections of the adjoint by using it to compute the 
+   derivative of the functional with respect to the friction field.'''
+
 import sys
 import sw_config 
 import sw_lib
@@ -72,7 +75,10 @@ def j_and_dj(m):
   # Solve the shallow water system
   j, djdm, state = sw_lib.sw_solve(W, config, state, time_functional=functional, turbine_field = tf)
   J = TimeFunctional(functional.Jt(state))
-  adj_state = sw_lib.adjoint(state, config.params, J, until=1)
+  # Because a turbine field is used, the first equation in the annotation is the initialisation
+  # of this turbine field (the second equation will be the initial condition). Hence the adjoint 
+  # is computed all the way back to equation 0.
+  adj_state = sw_lib.adjoint(state, config.params, J, until=0)
 
   # Let J be the functional, m the parameter and u the solution of the PDE equation F(u) = 0.
   # Then we have 
