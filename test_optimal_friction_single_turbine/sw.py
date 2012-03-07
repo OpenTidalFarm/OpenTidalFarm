@@ -87,14 +87,12 @@ def j_and_dj(m):
   count+=1
   sw_lib.save_to_file_scalar(tf, "turbines_t=."+str(count)+".x")
 
-  M,G,rhs_contr,ufl=sw_lib.construct_shallow_water(W, config.ds, config.params, turbine_field = tf)
-
   functional = DefaultFunctional(config.params)
 
   # Solve the shallow water system
-  j, djdm, state = sw_lib.timeloop_theta(M, G, rhs_contr, ufl, state, config.params, time_functional=functional)
+  j, djdm, state = sw_lib.sw_solve(W, config, state, turbine_field = tf, time_functional=functional)
   J = TimeFunctional(functional.Jt(state))
-  adj_state = sw_lib.adjoint(state, config.params, J, until=1) # The first annotation is the idendity operator for the turbine field
+  adj_state = sw_lib.adjoint(state, config.params, J, until=0) # The first annotation is the idendity operator for the turbine field
 
   # Let J be the functional, m the parameter and u the solution of the PDE equation F(u) = 0.
   # Then we have 
