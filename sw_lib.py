@@ -137,6 +137,7 @@ def sw_solve(W, config, ic, turbine_field=None, time_functional=None, annotate=T
     depth = params["depth"]
     params["current_time"] = params["start_time"]
     t = params["current_time"]
+    quadratic_friction = params["quadratic_friction"]
 
     # To begin with, check if the provided parameters are valid
     params.check()
@@ -149,7 +150,10 @@ def sw_solve(W, config, ic, turbine_field=None, time_functional=None, annotate=T
     state0  = Function(W)  # solution from previous converged step
 
     # Split mixed functions
-    u, h = split(state) 
+    if quadratic_friction:
+      u, h = split(state) 
+    else:
+      (u, h) = TrialFunctions(W) 
     u0, h0 = split(state0)
 
     # Create intial conditions and interpolate
@@ -207,7 +211,7 @@ def sw_solve(W, config, ic, turbine_field=None, time_functional=None, annotate=T
       friction += turbine_field
 
     # The friction term
-    if params["quadratic_friction"]:
+    if quadratic_friction:
       R_mid = dot(u_mid, u_mid)**0.5 * friction * inner(u_mid / (sqrt(depth * g)), v) * dx 
     else:
       R_mid = friction * inner(u_mid / (sqrt(depth * g)), v) * dx 
@@ -254,11 +258,16 @@ def sw_solve(W, config, ic, turbine_field=None, time_functional=None, annotate=T
         #solver_parameters = {"linear_solver": "gmres", "preconditioner": "amg",
         #                            "krylov_solver": {"relative_tolerance": 1.0e-10}}
         solver_parameters = {"linear_solver": "default"}
-        solver_parameters["newton_solver"] = {}
-        solver_parameters["newton_solver"]["convergence_criterion"] = "incremental"
-        solver_parameters["newton_solver"]["relative_tolerance"] = 1e-16
+        if quadratic_friction:
+          # Use a Newton solver to solve the nonlinear problem.
+          solver_parameters["newton_solver"] = {}
+          solver_parameters["newton_solver"]["convergence_criterion"] = "incremental"
+          solver_parameters["newton_solver"]["relative_tolerance"] = 1e-16
 
-        solve(F == 0, state, solver_parameters=solver_parameters, annotate=annotate)
+          solve(F == 0, state, solver_parameters=solver_parameters, annotate=annotate)
+        else:
+          solve(dolfin.lhs(F) == dolfin.rhs(F), state, solver_parameters=solver_parameters, annotate=annotate)
+
 
         if step%params["dump_period"] == 0:
         
