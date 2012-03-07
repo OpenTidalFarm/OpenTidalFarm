@@ -45,6 +45,7 @@ def default_config():
   config.params["turbine_friction"] = 12.0*numpy.ones(len(config.params["turbine_pos"]))
   config.params["turbine_x"] = 600
   config.params["turbine_y"] = 600
+  config.params["newton_solver"] = True
   #config.params["bctype"]="dirichlet"
 
   return config

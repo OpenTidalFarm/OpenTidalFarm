@@ -138,6 +138,8 @@ def sw_solve(W, config, ic, turbine_field=None, time_functional=None, annotate=T
     params["current_time"] = params["start_time"]
     t = params["current_time"]
     quadratic_friction = params["quadratic_friction"]
+    newton_solver = params["newton_solver"] 
+    picard_iterations = params["picard_iterations"]
 
     # To begin with, check if the provided parameters are valid
     params.check()
@@ -258,7 +260,7 @@ def sw_solve(W, config, ic, turbine_field=None, time_functional=None, annotate=T
         #solver_parameters = {"linear_solver": "gmres", "preconditioner": "amg",
         #                            "krylov_solver": {"relative_tolerance": 1.0e-10}}
         solver_parameters = {"linear_solver": "default"}
-        if quadratic_friction:
+        if quadratic_friction and newton_solver:
           # Use a Newton solver to solve the nonlinear problem.
           solver_parameters["newton_solver"] = {}
           solver_parameters["newton_solver"]["convergence_criterion"] = "incremental"
@@ -266,8 +268,12 @@ def sw_solve(W, config, ic, turbine_field=None, time_functional=None, annotate=T
 
           solve(F == 0, state, solver_parameters=solver_parameters, annotate=annotate)
         else:
-          solve(dolfin.lhs(F) == dolfin.rhs(F), state, solver_parameters=solver_parameters, annotate=annotate)
-
+          # We need only one solve with a lienear drag
+          if not quadratic_friction:
+            picard_iterations = 1
+          # Solve the problem using a picard iteration
+          for i in range(picard_iterations):
+            solve(dolfin.lhs(F) == dolfin.rhs(F), state, solver_parameters=solver_parameters, annotate=annotate)
 
         if step%params["dump_period"] == 0:
         

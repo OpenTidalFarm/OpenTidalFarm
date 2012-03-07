@@ -23,7 +23,9 @@ class DefaultConfiguration:
         'turbine_x' : 20., # The turbine extension in the x direction
         'turbine_y' : 5., # The turbine extension in the y direction
         'turbine_friction' : 12.0,
-        'turbine_model': 'BumpTurbine'
+        'turbine_model': 'BumpTurbine',
+        'newton_solver': False, # Only used with quadratic friction: Use a Newton solver to solve the nonlinear problem. The default is to use Picard iterations.
+        'picard_iterations': 3 # If quadratic_friction is True and newton_solver is False, then this many picard iterations are performed to solve the nonlinear problem.
         })
 
     # Basin radius.

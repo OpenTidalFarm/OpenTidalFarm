@@ -142,7 +142,7 @@ def j(m):
 def dj(m):
   dj = j_and_dj_mem(m)[1]
   print 'Evaluating dj(', m.__repr__(), ')=', dj
-  # Return only the derivatives with respect to the position
+  # Return the derivatives with respect to the position only
   return dj[len(config.params['turbine_friction']):]
 
 config = default_config()
