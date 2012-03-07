@@ -84,26 +84,43 @@ def j(m):
   count+=1
   sw_lib.save_to_file_scalar(tf, "turbines_t=."+str(count)+".x")
 
-  M,G,rhs_contr,ufl=sw_lib.construct_shallow_water(W, config.ds, config.params, turbine_field = tf)
-
   functional = DefaultFunctional(config.params)
 
   # Solve the shallow water system
-  j, djdm, state = sw_lib.timeloop_theta(M, G, rhs_contr, ufl, state, config.params, time_functional=functional)
+  j, djdm, state = sw_lib.sw_solve(W, config, state, turbine_field=tf, time_functional=functional)
 
   return j
 
 config = default_config()
+
+# Generate the friction values of interest
 m0 = initial_control(config)
-f = [0.002*m0*i**2 for i in range(15)]
+f = [0.002*m0*i**2 for i in range(7)]
+
+# Produce the power values for linear friction
 P = []
 for fr in f: 
   P.append(j(fr))
 
+# Produce the power values for quadratic friction
+config.params["quadratic_friction"] = True 
+P_quad = []
+for fr in f: 
+  print "Solve quad for fr=", fr
+  P_quad.append(j(fr))
+
+# Plot the results
 if MPI.process_number() == 0:
+  plt.figure(1)
   plt.plot(f, P)
-  plt.title('Power output of a single turbine for different friction values.')
+  plt.title('Power output of a single turbine with linear friction.')
   plt.ylabel('Power output')
-  plt.xlabel('Friction coefficient')
+  plt.xlabel('Linear friction coefficient')
+
+  plt.figure(2)
+  plt.plot(f, P_quad)
+  plt.title('Power output of a single turbine with quadratic friction.')
+  plt.ylabel('Power output')
+  plt.xlabel('Quadratic friction coefficient')
   plt.show()
   plt.hold()
