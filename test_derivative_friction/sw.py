@@ -70,7 +70,7 @@ def j_and_dj(m):
   # Set up the turbine friction field using the provided control variable
   tf.interpolate(Turbines(config.params))
 
-  functional = DefaultFunctional(config.params)
+  functional = DefaultFunctional(config.params, turbine_size_scaling=0.5)
 
   # Solve the shallow water system
   j, djdm, state = sw_lib.sw_solve(W, config, state, time_functional=functional, turbine_field = tf)
