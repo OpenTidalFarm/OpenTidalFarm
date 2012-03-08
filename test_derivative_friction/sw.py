@@ -70,6 +70,8 @@ def j_and_dj(m):
   # Set up the turbine friction field using the provided control variable
   tf.interpolate(Turbines(config.params))
 
+  # Scale the turbine size by 0.5 for the functional definition. This is used for obtaining 
+  # a physical power curve.
   functional = DefaultFunctional(config.params, turbine_size_scaling=0.5)
 
   # Solve the shallow water system
