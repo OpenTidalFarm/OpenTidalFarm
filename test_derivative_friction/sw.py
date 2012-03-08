@@ -131,5 +131,5 @@ p_y[i+1] = 1.
 for p in (p_rand, p_f, p_x, p_y):
   print "Running derivative test in direction", p 
   minconv = test_gradient_array(j, dj, m0, seed=0.01, perturbation_direction=p)
-  if minconv < 1.99:
+  if minconv < 1.98:
     sys.exit(1)
