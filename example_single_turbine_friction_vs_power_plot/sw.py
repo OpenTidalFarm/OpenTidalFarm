@@ -45,8 +45,8 @@ def default_config():
   config.params["turbine_friction"] = 12.0*numpy.ones(len(config.params["turbine_pos"]))
   config.params["turbine_x"] = 600
   config.params["turbine_y"] = 600
-  config.params["newton_solver"] = True
-  #config.params["bctype"]="dirichlet"
+  config.params["newton_solver"] = False 
+  config.params["picard_iterations"] = 4
 
   return config
 
@@ -96,18 +96,19 @@ config = default_config()
 
 # Generate the friction values of interest
 m0 = initial_control(config)
-f = [0.002*m0*i**2 for i in range(7)]
+f = [0.002*m0*i**2 for i in range(15)]
 
 # Produce the power values for linear friction
+info_green("Compute values for linear friction")
 P = []
 for fr in f: 
   P.append(j(fr))
 
 # Produce the power values for quadratic friction
+info_green("Compute values for quadratic friction")
 config.params["quadratic_friction"] = True 
 P_quad = []
 for fr in f: 
-  print "Solve quad for fr=", fr
   P_quad.append(j(fr))
 
 # Plot the results
