@@ -85,7 +85,7 @@ def j(m):
   count+=1
   sw_lib.save_to_file_scalar(tf, "turbines_t=."+str(count)+".x")
 
-  functional = DefaultFunctional(config.params)
+  functional = DefaultFunctional(config.params, turbine_size_scaling=0.5)
 
   # Solve the shallow water system
   j, djdm, state = sw_lib.sw_solve(W, config, state, turbine_field=tf, time_functional=functional)
