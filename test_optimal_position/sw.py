@@ -2,7 +2,7 @@
  - single turbine
  - bubble velocity profile with maximum in the center of the domain
  - control: turbine position
- - the optimal placement for the turbine is where the velocity profile reaches its maximum
+ - the optimal placement for the turbine is where the velocity profile reaches its maximum (the center of the domain)
 '''
 
 import sys
@@ -46,12 +46,13 @@ def initial_control(config):
   return numpy.array(res)
 
 class BumpInitialConditions(Expression):
-  '''This class implements a initial condition with a bump velocity profile.'''
+  '''This class implements a initial condition with a bump velocity profile.
+     With that we know that the optimal turbine location must be in the center of the domain. '''
   def __init__(self, params):
     self.params = params
 
   def bump_function(self, x):
-    '''The turbines are modeled by the bump function (a smooth function with limited support):
+    '''The velocity is initially a bump function (a smooth function with limited support):
                /  e**-1/(1-x**2)   for |x| < 1
       psi(x) = |  
                \  0   otherwise
