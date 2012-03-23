@@ -13,6 +13,7 @@ import sw_lib
 import numpy
 import Memoize
 import IPOptUtils
+from animated_plot import *
 from functionals import DefaultFunctional
 from sw_utils import test_initial_condition_adjoint, test_gradient_array
 from turbines import *
@@ -20,8 +21,11 @@ from mini_model import *
 from dolfin import *
 from dolfin_adjoint import *
 
+
 # Global counter variable for vtk output
 count = 0
+# A animated plot to plot the development of the functional value
+plot = AnimatedPlot(xlabel='Iteration', ylabel='J')
 
 def default_config():
   # We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
@@ -138,6 +142,7 @@ j_and_dj_mem = Memoize.MemoizeMutable(j_and_dj)
 def j(m):
   j = j_and_dj_mem(m)[0]
   print 'Evaluating j(', m.__repr__(), ')=', j
+  plot.addPoint(j) 
   return j 
 
 def dj(m):
