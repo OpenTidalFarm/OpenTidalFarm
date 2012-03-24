@@ -8,6 +8,7 @@ import sw_lib
 import numpy
 import Memoize
 import IPOptUtils
+from animated_plot import *
 from functionals import DefaultFunctional
 from sw_utils import test_initial_condition_adjoint, test_gradient_array, pprint
 from turbines import *
@@ -17,11 +18,13 @@ from dolfin_adjoint import *
 
 # Global counter variable for vtk output
 count = 0
+# An animated plot to visualise the development of the functional value
+plot = AnimatedPlot(xlabel='Iteration', ylabel='Functional value')
 
 def default_config():
   # We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
   numpy.random.seed(21) 
-  config = sw_config.DefaultConfiguration(nx=120, ny=40)
+  config = sw_config.DefaultConfiguration(nx=60, ny=20)
   period = 1.24*60*60 # Wave period
   config.params["k"] = 2*pi/(period*sqrt(config.params["g"]*config.params["depth"]))
   config.params["finish_time"] = 2./4*period
@@ -113,6 +116,8 @@ j_and_dj_mem = Memoize.MemoizeMutable(j_and_dj)
 def j(m):
   j = j_and_dj_mem(m)[0]*10**-6
   pprint('Evaluating j(', m.__repr__(), ')=', j)
+  plot.addPoint(j) 
+  plot.savefig("plot_functional.png")
   return j 
 
 def dj(m):
@@ -166,4 +171,5 @@ if opt_package == 'ipopt':
   pprint("Solution of the primal variables: m=%s\n" % repr(m))
   pprint("Solution of the dual variables: lambda=%s\n" % repr(info['mult_g']))
   pprint("Objective=%s\n" % repr(info['obj_val']))
+  plot.savefig("plot_J.png")
 

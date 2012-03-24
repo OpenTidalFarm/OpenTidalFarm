@@ -24,8 +24,8 @@ from dolfin_adjoint import *
 
 # Global counter variable for vtk output
 count = 0
-# A animated plot to plot the development of the functional value
-plot = AnimatedPlot(xlabel='Iteration', ylabel='J')
+# An animated plot to visualise the development of the functional value
+plot = AnimatedPlot(xlabel='Iteration', ylabel='Functional value')
 
 def default_config():
   # We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
@@ -141,13 +141,13 @@ def j_and_dj(m):
 j_and_dj_mem = Memoize.MemoizeMutable(j_and_dj)
 def j(m):
   j = j_and_dj_mem(m)[0]
-  print 'Evaluating j(', m.__repr__(), ')=', j
+  pprint('Evaluating j(', m.__repr__(), ')=', j)
   plot.addPoint(j) 
   return j 
 
 def dj(m):
   dj = j_and_dj_mem(m)[1]
-  print 'Evaluating dj(', m.__repr__(), ')=', dj
+  pprint('Evaluating dj(', m.__repr__(), ')=', dj)
   # Return the derivatives with respect to the position only
   return dj[len(config.params['turbine_friction']):]
 
@@ -189,10 +189,11 @@ if opt_package == 'ipopt':
   nlp.addOption('max_iter', 25)
 
   m, info = nlp.solve(m0)
-  print info['status_msg']
-  print "Solution of the primal variables: m=%s\n" % repr(m) 
-  print "Solution of the dual variables: lambda=%s\n" % repr(info['mult_g'])
-  print "Objective=%s\n" % repr(info['obj_val'])
+  pprint(info['status_msg'])
+  pprint("Solution of the primal variables: m=%s\n" % repr(m))
+  pprint("Solution of the dual variables: lambda=%s\n" % repr(info['mult_g']))
+  pprint("Objective=%s\n" % repr(info['obj_val']))
+  plot.savefig("plot_functional_value.png")
 
   exit_code = 1
   if info['status'] != 0: 
