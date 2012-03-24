@@ -164,12 +164,10 @@ if opt_package == 'ipopt':
   nlp.addOption('obj_scaling_factor', -1.0)
   # Use an approximate Hessian since we do not have second order information.
   nlp.addOption('hessian_approximation', 'limited-memory')
-  nlp.addOption('max_iter', 1000)
+  nlp.addOption('max_iter', 25)
 
   m, info = nlp.solve(m0)
   pprint(info['status_msg'])
   pprint("Solution of the primal variables: m=%s\n" % repr(m))
   pprint("Solution of the dual variables: lambda=%s\n" % repr(info['mult_g']))
   pprint("Objective=%s\n" % repr(info['obj_val']))
-  plot.savefig("plot_J.png")
-
