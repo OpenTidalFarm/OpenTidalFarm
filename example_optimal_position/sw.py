@@ -164,7 +164,7 @@ if opt_package == 'ipopt':
   nlp.addOption('obj_scaling_factor', -1.0)
   # Use an approximate Hessian since we do not have second order information.
   nlp.addOption('hessian_approximation', 'limited-memory')
-  nlp.addOption('max_iter', 25)
+  nlp.addOption('max_iter', 12)
 
   m, info = nlp.solve(m0)
   pprint(info['status_msg'])
