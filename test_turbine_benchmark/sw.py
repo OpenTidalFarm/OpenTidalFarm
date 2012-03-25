@@ -1,19 +1,14 @@
-''' This example optimises the position of three turbines using the hallow water model. '''
+''' This test checks the performance of the turbine model implementation. One of the slowest part of the code is the interpolation of the
+    turbine field onto a discrete function space, because turbine's eval function is called very often. This test was used to optimise the eval
+    implementation. On 4 Intel(R) Xeon(R) CPU  E5506  @ 2.13GHz the benchmark time should be around 11s. ''' 
 
 import sys
-import cProfile
-import pstats
 import sw_config 
 import sw_lib
 import numpy
-import Memoize
-import IPOptUtils
 import cProfile
-from animated_plot import *
 from functionals import DefaultFunctional
-from sw_utils import test_initial_condition_adjoint, test_gradient_array, pprint
 from turbines import *
-from mini_model import *
 from dolfin import *
 from dolfin_adjoint import *
 
@@ -24,7 +19,6 @@ def default_config():
   config.params["k"] = 2*pi/(period*sqrt(config.params["g"]*config.params["depth"]))
   config.params["finish_time"] = 2./4*period
   config.params["dt"] = config.params["finish_time"]/20
-  pprint("Wave period (in h): ", period/60/60)
   config.params["dump_period"] = 1
   config.params["verbose"] = 100
 
@@ -48,7 +42,6 @@ def default_config():
   config.params["turbine_y"] = 20
 
   return config
-
 
 config = default_config()
 
