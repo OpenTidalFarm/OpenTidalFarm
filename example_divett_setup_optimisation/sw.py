@@ -8,6 +8,7 @@ import sw_lib
 import numpy
 import Memoize
 import IPOptUtils
+import ipopt
 from animated_plot import *
 from functionals import DefaultFunctional
 from sw_utils import test_initial_condition_adjoint, test_gradient_array, pprint
@@ -23,8 +24,7 @@ plot = AnimatedPlot(xlabel='Iteration', ylabel='Functional value')
 
 def default_config():
   # We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
-  numpy.random.seed(21) 
-  config = sw_config.DefaultConfiguration(nx=60, ny=20)
+  config = sw_config.DefaultConfiguration(nx=100, ny=30)
   period = 1.24*60*60 # Wave period
   config.params["k"] = 2*pi/(period*sqrt(config.params["g"]*config.params["depth"]))
   pprint("Wave period (in h): ", period/60/60)
@@ -33,18 +33,34 @@ def default_config():
 
   # Start at rest state
   config.params["start_time"] = period/4
-  config.params["finish_time"] = 2./4*period
-  config.params["dt"] = config.params["finish_time"]/10
+  config.params["dt"] = period/20
+  config.params["finish_time"] = 2*period/4 
+  config.params["theta"] = 0.6
+
+  # Set some DOLFIN flags
+  set_log_level(DEBUG)
+  #dolfin.parameters['optimize'] = True
+  #dolfin.parameters['optimize_use_dofmap_cache'] = True
+  #dolfin.parameters['optimize_use_tensor_cache'] = True
+  dolfin.parameters['form_compiler']['optimize'] = True
+  dolfin.parameters['form_compiler']['cpp_optimize'] = True
+  dolfin.parameters['form_compiler']['cpp_optimize_flags'] = '-O3'
 
   # Turbine settings
   config.params["friction"] = 0.0025
   # The turbine position is the control variable 
-  config.params["turbine_pos"] = [[500., 500.], [800., 450.], [1700., 500.]]
+  config.params["turbine_pos"] = [] 
+  border = 100
+  for x_r in numpy.linspace(0.+border, config.params["basin_x"]-border, 7):
+    for y_r in numpy.linspace(0.+border, config.params["basin_y"]-border, 3):
+      config.params["turbine_pos"].append((float(x_r), float(y_r)))
+
+  info_blue("Deployed " + str(len(config.params["turbine_pos"])) + " turbines.")
   # Choosing a friction coefficient of 1.0 ensures that overlapping turbines will lead to
   # less power output.
   config.params["turbine_friction"] = numpy.ones(len(config.params["turbine_pos"]))
-  config.params["turbine_x"] = 500
-  config.params["turbine_y"] = 500
+  config.params["turbine_x"] = 200
+  config.params["turbine_y"] = 200
 
   return config
 
@@ -135,39 +151,36 @@ m0 = initial_control(config)
 #  print "The gradient taylor remainder test failed."
 #  sys.exit(1)
 
-opt_package = 'ipopt'
+g = lambda m: []
+dg = lambda m: []
 
-if opt_package == 'ipopt':
-  # If this option does not produce any ipopt outputs, delete the ipopt.opt file
-  import ipopt 
-  g = lambda m: []
-  dg = lambda m: []
+f = IPOptUtils.IPOptFunction()
+# Overwrite the functional and gradient function with our implementation
+f.objective= j 
+f.gradient= dj 
 
-  f = IPOptUtils.IPOptFunction()
-  # Overwrite the functional and gradient function with our implementation
-  f.objective= j 
-  f.gradient= dj 
+# Get the upper and lower bounds for the turbine positions
+lb, ub = IPOptUtils.position_constraints(config.params)
 
-  # Get the upper and lower bounds for the turbine positions
-  lb, ub = IPOptUtils.position_constraints(config.params)
+nlp = ipopt.problem(len(m0), 
+                    0, 
+                    f, 
+                    numpy.array(lb),
+                    numpy.array(ub))
+nlp.addOption('mu_strategy', 'adaptive')
+nlp.addOption('tol', 1e-9)
+nlp.addOption('print_level', 5)
+nlp.addOption('check_derivatives_for_naninf', 'yes')
+# A -1.0 scaling factor transforms the min problem to a max problem.
+nlp.addOption('obj_scaling_factor', -1.0)
+# Use an approximate Hessian since we do not have second order information.
+nlp.addOption('hessian_approximation', 'limited-memory')
+nlp.addOption('max_iter', 12)
 
-  nlp = ipopt.problem(len(m0), 
-                      0, 
-                      f, 
-                      numpy.array(lb),
-                      numpy.array(ub))
-  nlp.addOption('mu_strategy', 'adaptive')
-  nlp.addOption('tol', 1e-9)
-  nlp.addOption('print_level', 5)
-  nlp.addOption('check_derivatives_for_naninf', 'yes')
-  # A -1.0 scaling factor transforms the min problem to a max problem.
-  nlp.addOption('obj_scaling_factor', -1.0)
-  # Use an approximate Hessian since we do not have second order information.
-  nlp.addOption('hessian_approximation', 'limited-memory')
-  nlp.addOption('max_iter', 12)
+m, info = nlp.solve(m0)
+pprint(info['status_msg'])
+pprint("Solution of the primal variables: m=%s\n" % repr(m))
+pprint("Solution of the dual variables: lambda=%s\n" % repr(info['mult_g']))
+pprint("Objective=%s\n" % repr(info['obj_val']))
 
-  m, info = nlp.solve(m0)
-  pprint(info['status_msg'])
-  pprint("Solution of the primal variables: m=%s\n" % repr(m))
-  pprint("Solution of the dual variables: lambda=%s\n" % repr(info['mult_g']))
-  pprint("Objective=%s\n" % repr(info['obj_val']))
+list_timings()
