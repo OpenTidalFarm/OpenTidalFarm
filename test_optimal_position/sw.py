@@ -141,13 +141,13 @@ def j_and_dj(m):
 j_and_dj_mem = Memoize.MemoizeMutable(j_and_dj)
 def j(m):
   j = j_and_dj_mem(m)[0]
-  pprint('Evaluating j(', m.__repr__(), ')=', j)
+  info_green('Evaluating j(' + m.__repr__() + ')=' + str(j))
   plot.addPoint(j) 
   return j 
 
 def dj(m):
   dj = j_and_dj_mem(m)[1]
-  pprint('Evaluating dj(', m.__repr__(), ')=', dj)
+  info_green('Evaluating dj(' + m.__repr__() + ')=' + str(dj))
   # Return the derivatives with respect to the position only
   return dj[len(config.params['turbine_friction']):]
 
@@ -189,10 +189,10 @@ if opt_package == 'ipopt':
   nlp.addOption('max_iter', 25)
 
   m, info = nlp.solve(m0)
-  pprint(info['status_msg'])
-  pprint("Solution of the primal variables: m=%s\n" % repr(m))
-  pprint("Solution of the dual variables: lambda=%s\n" % repr(info['mult_g']))
-  pprint("Objective=%s\n" % repr(info['obj_val']))
+  info_green(info['status_msg'])
+  info_green("Solution of the primal variables: m=" + repr(m) + "\n")
+  info_green("Solution of the dual variables: lambda=" +  repr(info['mult_g']) + "\n")
+  info_green("Objective=" + repr(info['obj_val']) + "\n")
   plot.savefig("plot_functional_value.png")
 
   exit_code = 1
