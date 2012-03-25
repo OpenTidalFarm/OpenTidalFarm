@@ -1,7 +1,6 @@
 import numpy
 import sw_lib
 import math
-from sw_utils import pprint 
 from dolfin import *
 from math import log
 
