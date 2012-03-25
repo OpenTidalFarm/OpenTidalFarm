@@ -1,8 +1,9 @@
 import numpy
 import sw_lib
+import math
 from sw_utils import pprint 
 from dolfin import *
-from math import log
+from scipy.spatial import cKDTree # Use a k-d tree to efficiently query turbines at a specific location
 
 class Turbines(Expression):
     print_warning = True
@@ -16,12 +17,16 @@ class Turbines(Expression):
 
       # Precompute some turbine parameters for efficiency. 
       self.x_pos = numpy.array(params["turbine_pos"])[:,0] 
-      self.x_pos_low = self.x_pos-params["turbine_x"]/2
-      self.x_pos_high = self.x_pos+params["turbine_x"]/2
+      self.x_pos_low = self.x_pos - params["turbine_x"]/2
+      self.x_pos_high = self.x_pos + params["turbine_x"]/2
 
       self.y_pos = numpy.array(params["turbine_pos"])[:,1] 
-      self.y_pos_low = self.y_pos-params["turbine_y"]/2
-      self.y_pos_high = self.y_pos+params["turbine_y"]/2
+      self.y_pos_low = self.y_pos - params["turbine_y"]/2
+      self.y_pos_high = self.y_pos + params["turbine_y"]/2
+
+      # Build the k-d tree from the turbine locations
+      self.tree = cKDTree(params["turbine_pos"])
+      self.distance_upper_bound = max(params["turbine_x"] , params["turbine_y"]) + 1. # Add 1.0 as an epsilon value
 
       super(Turbines, self).__init__(args, kwargs)
 
@@ -38,14 +43,14 @@ class Turbines(Expression):
 
     def gaussian_function(self, x):
       '''The turbines are modeled by a gaussian curve. ''' 
-      return exp(-0.5 * (x[0]**2 + x[1]**2) * (-2*log(0.05)) )
+      return exp(-0.5 * (x[0]**2 + x[1]**2) * (-2*math.log(0.05)) )
 
     def gaussian_derivative(self, x, d):
       ''' This function computes the derivative of the gaussian turbine function with respect to the d'th coordinate. '''
       if Turbines.print_warning:
         info_red("Warning: The gaussian turbine is not differentiable at the turbine edges!")
         Turbines.print_warning = False
-      return self.gaussian_function(x) * (-0.5 * (2*x[d]) * (-2*log(0.05)) )
+      return self.gaussian_function(x) * (-0.5 * (2*x[d]) * (-2*math.log(0.05)) )
 
     def bump_function(self, x):
       '''The turbines are modeled by the bump function (a smooth function with limited support):
@@ -54,10 +59,7 @@ class Turbines(Expression):
                  \  0   otherwise
         For more information see http://en.wikipedia.org/wiki/Bump_function
       '''
-      bump = exp(-1.0/(1.0-x[0]**2)) 
-      bump *= exp(-1.0/(1.0-x[1]**2)) 
-      bump /= exp(-1)**2
-      return bump
+      return math.exp(-1.0/(1.0-x[0]**2) - 1.0/(1.0-x[1]**2) + 2)
 
     def bump_derivative(self, x, d):
       ''' This function computes the derivative of the bump turbine function with respect to the d'th coordinate. '''
@@ -87,10 +89,17 @@ class Turbines(Expression):
         if len(params["turbine_pos"]) > 0:
 
           # active_turbines is a boolean array that whose i'th element is true if the ith turbine is present at point x
-          active_turbines = (x_pos_low < x[0]) & (x_pos_high > x[0]) & (y_pos_low < x[1]) & (y_pos_high > x[1])
-          active_turbines_indices = numpy.where(active_turbines == True)[0]
+          k = 4 # Maximum number of overlapping turbines
+          nil, active_turbines = self.tree.query(x, k = k, p = numpy.inf, distance_upper_bound = self.distance_upper_bound)
+          active_turbines = active_turbines[active_turbines < len(self.tree.data)]
 
-          for i in active_turbines_indices:
+          c = 0 # Counter for the active turbines to check that we do not exceed the limit of k
+          for i in active_turbines:
+            # Check if the point is actually in the turbine area 
+            if not ( (x_pos_low[i] < x[0]) & (x_pos_high[i] > x[0]) & (y_pos_low[i] < x[1]) & (y_pos_high[i] > x[1]) ):
+              continue
+            c += 1
+
             if self.derivative_index_selector < 0:
               # Just compute the evaluation
               f = self.turbine_function(params)
@@ -119,5 +128,9 @@ class Turbines(Expression):
                 friction += f([x_unit, y_unit], d)*params["turbine_friction"][i]*(-1.0/(0.5*params[ext])) # The last multiplier is the derivative of x_unit due to the chain rule
               else: 
                 raise ValueError, "Invalid argument for the derivarive variable selector."
+
+            if len(active_turbines) == c:
+              info_red("Warning: There are " + str(c)  + " or more overlapping turbines which exceeds the maximum value supported. Increase the k value in turbines.py if you want to change the default value")
+
 
         values[0] = friction 
