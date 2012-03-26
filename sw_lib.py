@@ -124,8 +124,13 @@ def save_to_file(function, basename):
     u_out << u_out_func
     p_out << p_out_func
 
-def sw_solve(W, config, ic, turbine_field=None, time_functional=None, annotate=True):
-    '''Solve the shallow water equations with the parameters specified in params.''' 
+def sw_solve(W, config, ic, turbine_field=None, time_functional=None, annotate=True, linear_solver="default", preconditioner="default"):
+    '''Solve the shallow water equations with the parameters specified in params.
+       Options for linear_solver and preconditioner are: 
+        linear_solver: lu, cholesky, cg, gmres, bicgstab, minres, tfqmr, richardson
+        preconditioner: none, ilu, icc, jacobi, bjacobi, sor, amg, additive_schwarz, hypre_amg, hypre_euclid, hypre_parasails, ml_amg
+    '''
+
     ############################### Setting up the equations ###########################
 
     # Define variables for all used parameters
@@ -273,17 +278,9 @@ def sw_solve(W, config, ic, turbine_field=None, time_functional=None, annotate=T
         state0.assign(state, annotate=annotate)
         
         # Solve the shallow water equations.
-        # Choose from: linear_solver: lu, cholesky, cg, gmres, bicgstab, minres, tfqmr, richardson
-        # preconditioner: none, ilu, icc, jacobi, bjacobi, sor, amg, additive_schwarz, hypre_amg, hypre_euclid, hypre_parasails, ml_amg
-        # solver_parameters = {"linear_solver": "gmres", "preconditioner": "amg",
-        #                            "krylov_solver": {"relative_tolerance": 1.0e-10}}
 
         ## Set parameters for the solvers. Note: These options are ignored if use_lu_solver == True
-        ## Default solver
-        #solver_parameters = {"linear_solver": "default"}
-
-        ## Iterative solver ##
-        solver_parameters = {"linear_solver": "gmres", "preconditioner": "hyper_amg"}
+        solver_parameters = {"linear_solver": linear_solver, "preconditioner": preconditioner}
 
         # Solve non-linear system with a Newton sovler
         if quadratic_friction and newton_solver:
@@ -318,7 +315,7 @@ def sw_solve(W, config, ic, turbine_field=None, time_functional=None, annotate=T
               info_green("Using a LU solver to solve the linear system.")
               lu_solver.solve(state.vector(), rhs_preass, annotate=annotate)
             else:
-              solve(lhs_preass, state.vector(), rhs_preass, "gmres", "amg", solver_parameters=solver_parameters, annotate=annotate)
+              solve(lhs_preass, state.vector(), rhs_preass, linear_solver, preconditioner, annotate=annotate)
 
         if step%params["dump_period"] == 0:
         
