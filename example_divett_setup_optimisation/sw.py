@@ -47,7 +47,7 @@ def default_config():
   dolfin.parameters['form_compiler']['cpp_optimize_flags'] = '-O3'
 
   # Turbine settings
-  config.params["friction"] = 0.0025
+  config.params["friction"] = 0.0
   # The turbine position is the control variable 
   config.params["turbine_pos"] = [] 
   border = 100
@@ -56,9 +56,9 @@ def default_config():
       config.params["turbine_pos"].append((float(x_r), float(y_r)))
 
   info_blue("Deployed " + str(len(config.params["turbine_pos"])) + " turbines.")
-  # Choosing a friction coefficient of 1.0 ensures that overlapping turbines will lead to
+  # Choosing a friction coefficient of less than 1 ensures that overlapping turbines will lead to
   # less power output.
-  config.params["turbine_friction"] = numpy.ones(len(config.params["turbine_pos"]))
+  config.params["turbine_friction"] = 0.1*numpy.ones(len(config.params["turbine_pos"]))
   config.params["turbine_x"] = 200
   config.params["turbine_y"] = 200
 
@@ -130,14 +130,14 @@ def j_and_dj(m):
 
 j_and_dj_mem = Memoize.MemoizeMutable(j_and_dj)
 def j(m):
-  j = j_and_dj_mem(m)[0]*10**-5
+  j = j_and_dj_mem(m)[0]*10**-4
   pprint('Evaluating j(', m.__repr__(), ')=', j)
   plot.addPoint(j) 
   plot.savefig("plot_functional.png")
   return j 
 
 def dj(m):
-  dj = j_and_dj_mem(m)[1]*10**-5
+  dj = j_and_dj_mem(m)[1]*10**-4
   pprint('Evaluating dj(', m.__repr__(), ')=', dj)
   # Return the derivatives with respect to the position only
   return dj[len(config.params['turbine_friction']):]

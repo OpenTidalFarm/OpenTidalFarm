@@ -313,6 +313,7 @@ def sw_solve(W, config, ic, turbine_field=None, time_functional=None, annotate=T
             state_nl.assign(state, annotate=annotate)
             rhs_preass = assemble(dolfin.rhs(F))
             if use_lu_solver:
+              print "Using LU solver!"
               lu_solver.solve(state.vector(), rhs_preass, annotate=annotate)
             else:
               solve(lhs_preass, state.vector(), rhs_preass, solver_parameters=solver_parameters, annotate=annotate)
