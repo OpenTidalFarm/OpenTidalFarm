@@ -269,30 +269,38 @@ def sw_solve(W, config, ic, turbine_field=None, time_functional=None, annotate=T
         # Solve the shallow water equations.
         # Choose from: linear_solver: lu, cholesky, cg, gmres, bicgstab, minres, tfqmr, richardson
         # preconditioner: none, ilu, icc, jacobi, bjacobi, sor, amg, additive_schwarz, hypre_amg, hypre_euclid, hypre_parasails, ml_amg
-        #solver_parameters = {"linear_solver": "gmres", "preconditioner": "amg",
+        # solver_parameters = {"linear_solver": "gmres", "preconditioner": "amg",
         #                            "krylov_solver": {"relative_tolerance": 1.0e-10}}
-		# Default solver
+        ## Default solver ##
+        use_lu_solver = False 
         solver_parameters = {"linear_solver": "default"}
-		# Direct LU solver
-		#solver_parameters = {"gmres": "ilu"}
-		# Iterative solver
-		#solver_parameters = {"gmres": "ilu"}
+
+        ## Direct LU solver ##
+        #use_lu_solver = True
+        #lu_solver = LUSolver(lhs_preass)
+        #lu_solver.parameters["reuse_factorization"] = True
+
+        ## Iterative solver ##
+        #use_lu_solver = False 
+        #solver_parameters = {"linear_solver": "gmres", "preconditioner": "amg"}
 
         # Solve non-linear system with a Newton sovler
         if quadratic_friction and newton_solver:
           # Use a Newton solver to solve the nonlinear problem.
+          if use_lu_solver:
+            info_red("LU solver with quadratic_friction currently not supported. Using iterative solver instead...")
+
           solver_parameters["newton_solver"] = {}
           solver_parameters["newton_solver"]["convergence_criterion"] = "incremental"
           solver_parameters["newton_solver"]["relative_tolerance"] = 1e-16
-
           solve(F == 0, state, solver_parameters=solver_parameters, annotate=annotate)
 
         # Solve non-linear system with a Picard iteration
         elif quadratic_friction:
-          # With a linear drag we need one iteration only
-          if not quadratic_friction:
-            picard_iterations = 1
           # Solve the problem using a picard iteration
+          if use_lu_solver:
+            info_red("LU solver with quadratic_friction currently not supported. Using iterative solver instead...")
+
           for i in range(picard_iterations):
             state_nl.assign(state, annotate=annotate)
             solve(dolfin.lhs(F) == dolfin.rhs(F), state, solver_parameters=solver_parameters, annotate=annotate)
@@ -304,7 +312,10 @@ def sw_solve(W, config, ic, turbine_field=None, time_functional=None, annotate=T
         else:
             state_nl.assign(state, annotate=annotate)
             rhs_preass = assemble(dolfin.rhs(F))
-            solve(lhs_preass, state.vector(), rhs_preass, solver_parameters=solver_parameters, annotate=annotate)
+            if use_lu_solver:
+              lu_solver.solve(state.vector(), rhs_preass, annotate=annotate)
+            else:
+              solve(lhs_preass, state.vector(), rhs_preass, solver_parameters=solver_parameters, annotate=annotate)
 
         if step%params["dump_period"] == 0:
         
