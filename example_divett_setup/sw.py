@@ -17,7 +17,7 @@ from dolfin_adjoint import *
 
 def default_config():
   # We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
-  config = sw_config.DefaultConfiguration(nx=100, ny=30)
+  config = sw_config.DefaultConfiguration(nx=200, ny=60)
   period = 1.24*60*60 # Wave period
   config.params["k"] = 2*pi/(period*sqrt(config.params["g"]*config.params["depth"]))
   pprint("Wave period (in h): ", period/60/60)
@@ -26,8 +26,8 @@ def default_config():
 
   # Start at rest state
   config.params["start_time"] = period/4
-  config.params["dt"] = period/20
-  config.params["finish_time"] = 2*period/4 
+  config.params["dt"] = period/120
+  config.params["finish_time"] = 4*period/4 
   config.params["theta"] = 0.6
 
   set_log_level(DEBUG)
@@ -39,7 +39,7 @@ def default_config():
   dolfin.parameters['form_compiler']['cpp_optimize_flags'] = '-O3'
 
   # Turbine settings
-  config.params["friction"] = 0.0025
+  config.params["friction"] = 0.0
   # The turbine position is the control variable 
   config.params["turbine_pos"] = [] 
   border = 100
@@ -51,8 +51,8 @@ def default_config():
   # Choosing a friction coefficient of 1.0 ensures that overlapping turbines will lead to
   # less power output.
   config.params["turbine_friction"] = numpy.ones(len(config.params["turbine_pos"]))
-  config.params["turbine_x"] = 100
-  config.params["turbine_y"] = 100
+  config.params["turbine_x"] = 200
+  config.params["turbine_y"] = 200
 
   return config
 

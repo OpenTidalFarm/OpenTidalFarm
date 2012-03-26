@@ -51,7 +51,7 @@ def default_config():
   # The turbine position is the control variable 
   config.params["turbine_pos"] = [] 
   border = 100
-  for x_r in numpy.linspace(0.+border, config.params["basin_x"]-border, 7):
+  for x_r in numpy.linspace(0.+border, config.params["basin_x"]/2-border, 7):
     for y_r in numpy.linspace(0.+border, config.params["basin_y"]-border, 3):
       config.params["turbine_pos"].append((float(x_r), float(y_r)))
 
