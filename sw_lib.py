@@ -230,6 +230,9 @@ def sw_solve(W, config, ic, turbine_field=None, time_functional=None, annotate=T
     # Create the final form
     G_mid = C_mid + Ct_mid + R_mid
     F = M - M0 + dt * G_mid - dt * rhs_contr
+	# Preassemble the lhs if possible
+    if not quadratic_friction:
+        lhs_preass = assemble(dolfin.lhs(F))
 
     ############################### Perform the simulation ###########################
 
@@ -268,7 +271,14 @@ def sw_solve(W, config, ic, turbine_field=None, time_functional=None, annotate=T
         # preconditioner: none, ilu, icc, jacobi, bjacobi, sor, amg, additive_schwarz, hypre_amg, hypre_euclid, hypre_parasails, ml_amg
         #solver_parameters = {"linear_solver": "gmres", "preconditioner": "amg",
         #                            "krylov_solver": {"relative_tolerance": 1.0e-10}}
+		# Default solver
         solver_parameters = {"linear_solver": "default"}
+		# Direct LU solver
+		#solver_parameters = {"gmres": "ilu"}
+		# Iterative solver
+		#solver_parameters = {"gmres": "ilu"}
+
+        # Solve non-linear system with a Newton sovler
         if quadratic_friction and newton_solver:
           # Use a Newton solver to solve the nonlinear problem.
           solver_parameters["newton_solver"] = {}
@@ -276,7 +286,9 @@ def sw_solve(W, config, ic, turbine_field=None, time_functional=None, annotate=T
           solver_parameters["newton_solver"]["relative_tolerance"] = 1e-16
 
           solve(F == 0, state, solver_parameters=solver_parameters, annotate=annotate)
-        else:
+
+        # Solve non-linear system with a Picard iteration
+        elif quadratic_friction:
           # With a linear drag we need one iteration only
           if not quadratic_friction:
             picard_iterations = 1
@@ -287,6 +299,12 @@ def sw_solve(W, config, ic, turbine_field=None, time_functional=None, annotate=T
             if i > 0:
               diff = abs(assemble( inner(state-state_nl, state-state_nl) * dx ))
               dolfin.info_blue("Picard iteration difference at iteration " + str(i) + " is " + str(diff) + ".")
+
+        # Solve linear system with preassembled matrices 
+        else:
+            state_nl.assign(state, annotate=annotate)
+            rhs_preass = assemble(dolfin.rhs(F))
+            solve(lhs_preass, state.vector(), rhs_preass, solver_parameters=solver_parameters, annotate=annotate)
 
         if step%params["dump_period"] == 0:
         
