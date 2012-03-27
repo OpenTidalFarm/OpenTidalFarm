@@ -185,7 +185,7 @@ def sw_solve(W, config, ic, turbine_field=None, time_functional=None, annotate=T
     M0 += inner(q, h0) * dx
 
     # Divergence term.
-    Ct_mid =- inner(u_mid, grad(q))*dx
+    Ct_mid = -inner(u_mid, grad(q))*dx
     #+inner(avg(u_mid),jump(q,n))*dS # This term is only needed for dg element pairs
 
     if params["bctype"] == 'dirichlet':
@@ -195,6 +195,9 @@ def sw_solve(W, config, ic, turbine_field=None, time_functional=None, annotate=T
 
       # The dirichlet boundary condition on the right hand side
       bc_contr -= dot(ufl, n) * q * ds(2)
+
+      # We enforce a no-normal flow on the sides by removing the surface integral. 
+      # bc_contr -= dot(u_mid, n) * q * ds(3)
 
     elif params["bctype"] == 'flather':
       # The Flather boundary condition on the left hand side 
@@ -225,7 +228,7 @@ def sw_solve(W, config, ic, turbine_field=None, time_functional=None, annotate=T
     # With a newton solver we can simply use a quadratic form
     if quadratic_friction and newton_solver:
       R_mid = dot(u_mid, u_mid)**0.5 * friction * inner(u_mid / (sqrt(depth * g)), v) * dx 
-    # With a picard iteration we need to linearise using the best guess
+    # With a picard iteration we linearise using the best guess
     if quadratic_friction and not newton_solver:
       R_mid = dot(u_mid_nl, u_mid_nl)**0.5 * friction * inner(u_mid / (sqrt(depth * g)), v) * dx 
     # Use a linear drag

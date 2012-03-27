@@ -8,7 +8,7 @@ from math import exp, sqrt, pi
 class DefaultConfiguration:
   def __init__(self, nx=20, ny=3):
     params=sw_lib.parameters({
-        'basename'  : 'p1dgp2',
+        'basename'  : 'p2p1',
         'bctype'  : 'flather',
         'depth' : 50.,
         'g' : 9.81,
@@ -32,9 +32,10 @@ class DefaultConfiguration:
     # Long wave celerity.
     c=sqrt(params["g"]*params["depth"])
 
-    params["finish_time"]=100
-    params["dt"]=params["finish_time"]/4000.
-    params["k"]=pi/params['basin_x']
+    params["start_time"] = 0
+    params["finish_time"] = 100
+    params["dt"] = params["finish_time"]/4000.
+    params["k"] = pi/params['basin_x']
 
     # Print log messages only from the root process in parallel
     # (See http://fenicsproject.org/documentation/dolfin/dev/python/demo/pde/navier-stokes/python/documentation.html)
