@@ -6,7 +6,7 @@ import sw_config
 import sw_lib
 import numpy
 from turbines import *
-from functionals import DefaultFunctional
+from functionals import DefaultFunctional, build_turbine_cache
 from dolfin import *
 from dolfin_adjoint import *
 from sw_utils import test_initial_condition_adjoint
