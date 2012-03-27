@@ -9,7 +9,7 @@ import numpy
 import Memoize
 import IPOptUtils
 from animated_plot import *
-from functionals import DefaultFunctional
+from functionals import DefaultFunctional, build_turbine_cache 
 from sw_utils import test_initial_condition_adjoint, test_gradient_array, pprint
 from turbines import *
 from mini_model import *
@@ -81,11 +81,12 @@ def j_and_dj(m):
   sw_lib.save_to_file_scalar(tf, "turbines_t=."+str(count)+".x")
 
   # Scale the turbines in the functional for a physically consistent power/friction curve
-  functional = DefaultFunctional(config.params, turbine_size_scaling=0.5)
+  turbine_cache = build_turbine_cache(config.params, U, turbine_size_scaling=0.5)
+  functional = DefaultFunctional(config.params, turbine_cache)
 
   # Solve the shallow water system
   j, djdm, state = sw_lib.sw_solve(W, config, state, turbine_field = tf, time_functional=functional)
-  J = TimeFunctional(functional.Jt(state))
+  J = TimeFunctional(functional.Jt(state), staticvariables = [turbine_cache["turbine_field"]])
   adj_state = sw_lib.adjoint(state, config.params, J, until=0) # The first annotation is the idendity operator for the turbine field
 
   # Let J be the functional, m the parameter and u the solution of the PDE equation F(u) = 0.

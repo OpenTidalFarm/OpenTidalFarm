@@ -5,7 +5,7 @@
  - control: turbine friction, initially zero
  - the functional is \int C * f * ||u||**3 where C is a constant
  - in order to avoid the global maximum +oo, the friction coefficient is limited to 0 <= f <= 1.0 
- - the plot in 'example_single_turbine_friction_vs_power_plot' suggestes that the optimal friction coefficient is at about 0.122
+ - the plot in 'example_single_turbine_friction_vs_power_plot' suggestes that the optimal friction coefficient is at about 0.066
  '''
 
 import sys
@@ -15,7 +15,7 @@ import numpy
 import Memoize
 import ipopt 
 import IPOptUtils
-from functionals import DefaultFunctional
+from functionals import DefaultFunctional, build_turbine_cache
 from dolfin import *
 from dolfin_adjoint import *
 from sw_utils import test_initial_condition_adjoint, test_gradient_array, pprint
@@ -48,7 +48,6 @@ def default_config():
   config.params["turbine_friction"] = numpy.zeros(len(config.params["turbine_pos"]))
   config.params["turbine_x"] = 600
   config.params["turbine_y"] = 600
-  #config.params["bctype"]="dirichlet"
 
   return config
 
@@ -87,11 +86,12 @@ def j_and_dj(m):
   count+=1
   sw_lib.save_to_file_scalar(tf, "turbines_t=."+str(count)+".x")
 
-  functional = DefaultFunctional(config.params)
+  turbine_cache = build_turbine_cache(config.params, U, turbine_size_scaling=0.5)
+  functional = DefaultFunctional(config.params, turbine_cache)
 
   # Solve the shallow water system
   j, djdm, state = sw_lib.sw_solve(W, config, state, turbine_field = tf, time_functional=functional)
-  J = TimeFunctional(functional.Jt(state))
+  J = TimeFunctional(functional.Jt(state), staticvariables = [turbine_cache["turbine_field"]])
   adj_state = sw_lib.adjoint(state, config.params, J, until=1) # The first annotation is the idendity operator for the turbine field
 
   # Let J be the functional, m the parameter and u the solution of the PDE equation F(u) = 0.
@@ -120,12 +120,12 @@ def j_and_dj(m):
 
 j_and_dj_mem = Memoize.MemoizeMutable(j_and_dj)
 def j(m):
-  j = j_and_dj_mem(m)[0] * 10**-13
+  j = j_and_dj_mem(m)[0] * 10**-10
   pprint('Evaluating j(', m.__repr__(), ')=', j)
   return j 
 
 def dj(m):
-  dj = j_and_dj_mem(m)[1] * 10**-13
+  dj = j_and_dj_mem(m)[1] * 10**-10
   # Return only the derivatives with respect to the friction
   dj = dj[:len(config.params['turbine_friction'])]
   pprint('Evaluating dj(', m.__repr__(), ')=', dj)
@@ -172,6 +172,6 @@ pprint("Solution of the primal variables: m=%s\n" % repr(m))
 pprint("Solution of the dual variables: lambda=%s\n" % repr(info['mult_g']))
 pprint("Objective=%s\n" % repr(info['obj_val']))
 
-if info['status'] != 0 or abs(m-0.122) > 0.0005: 
-  pprint("The optimisation algorithm did not find the correct solution.")
+if info['status'] != 0 or abs(m-0.066) > 0.0005: 
+  pprint("The optimisation algorithm did not find the correct solution: Expected m = 0.066, but got m = " + str(m) + ".")
   sys.exit(1) 

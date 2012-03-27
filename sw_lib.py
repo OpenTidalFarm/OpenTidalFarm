@@ -124,7 +124,7 @@ def save_to_file(function, basename):
     u_out << u_out_func
     p_out << p_out_func
 
-def sw_solve(W, config, ic, turbine_cache, turbine_field=None, time_functional=None, annotate=True, linear_solver="default", preconditioner="default"):
+def sw_solve(W, config, ic, turbine_field=None, time_functional=None, annotate=True, linear_solver="default", preconditioner="default"):
     '''Solve the shallow water equations with the parameters specified in params.
        Options for linear_solver and preconditioner are: 
         linear_solver: lu, cholesky, cg, gmres, bicgstab, minres, tfqmr, richardson
@@ -274,12 +274,6 @@ def sw_solve(W, config, ic, turbine_cache, turbine_field=None, time_functional=N
 
         ufl.t=t-(1.0-theta)*dt # Update time for the Boundary condition expression
         step+=1
-
-        testfunc = TestFunction(turbine_cache["turbine_field"].function_space())
-        trialfunc = TrialFunction(turbine_cache["turbine_field"].function_space())
-        smallM = inner(testfunc, trialfunc) * dx
-        rhs = action(smallM, turbine_cache["turbine_field"])
-        solve(smallM == rhs, turbine_cache["turbine_field"])
 
         state0.assign(state, annotate=annotate)
         

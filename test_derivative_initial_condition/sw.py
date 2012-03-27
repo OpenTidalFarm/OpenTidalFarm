@@ -44,60 +44,21 @@ U = U.collapse() # Recompute the DOF map
 tf = Function(U)
 tf.interpolate(Turbines(config.params))
 
-def build_turbine_cache(params, function_space, turbine_size_scaling = 1.0):
-  ''' Interpolates all the fields that are required for the Functional.'''
-  turbine_cache = {}
-
-  params = sw_lib.parameters(dict(params))
-  # Scale the turbine size by the given factor.
-  if turbine_size_scaling != 1.0:
-    info_green("The functional uses turbines which size is scaled by a factor of " + str(turbine_size_scaling) + ".")
-  params["turbine_x"] *= turbine_size_scaling
-  params["turbine_y"] *= turbine_size_scaling
-
-  turbines = Turbines(params)
-  tf = Function(function_space)
-  tf.interpolate(turbines)
-  turbine_cache["turbine_field"] = tf
-
-  # The derivatives with respect to the friction
-  turbine_cache["turbine_derivative_friction"] = []
-  for n in range(len(params["turbine_friction"])):
-    tf = Function(U)
-    turbines = Turbines(params, derivative_index_selector=n, derivative_var_selector='turbine_friction')
-    tf = Function(function_space)
-    tf.interpolate(turbines)
-    turbine_cache["turbine_derivative_friction"].append(tf)
-
-  # The derivatives with respect to the turbine position
-  turbine_cache["turbine_derivative_pos"] = []
-  for n in range(len(params["turbine_pos"])):
-    turbine_cache["turbine_derivative_pos"].append({})
-    for var in ('turbine_pos_x', 'turbine_pos_y'):
-      tf = Function(U)
-      turbines = Turbines(params, derivative_index_selector=n, derivative_var_selector=var)
-      tf = Function(function_space)
-      tf.interpolate(turbines)
-      turbine_cache["turbine_derivative_pos"][-1][var] = tf
-
-  return turbine_cache
-
 turbine_cache = build_turbine_cache(config.params, U)
 functional = DefaultFunctional(config.params, turbine_cache) 
-myj, djdm, state = sw_lib.sw_solve(W, config, state, turbine_cache, time_functional=functional)
+myj, djdm, state = sw_lib.sw_solve(W, config, state, time_functional=functional)
 
-adj_html('annot.html', 'forward')
 sw_lib.replay(state, config.params)
 
-J = TimeFunctional(functional.Jt(state))
+J = TimeFunctional(functional.Jt(state), staticvariables = [turbine_cache["turbine_field"]])
 # Because no turbine field is used, the first equation in the annotation is the initialisation
 # of the initial condition, hence the adjoint is computed all the way back to equation 0.
-adj_state = sw_lib.adjoint(state, config.params, J, until = 2)
+adj_state = sw_lib.adjoint(state, config.params, J, until = 0)
 
 ic = Function(W)
 ic.interpolate(config.get_sin_initial_condition()())
 def J(ic):
-  j, djdm, state = sw_lib.sw_solve(W, config, ic, turbine_cache, time_functional=functional, annotate=False)
+  j, djdm, state = sw_lib.sw_solve(W, config, ic, time_functional=functional, annotate=False)
   return j
 
 minconv = test_initial_condition_adjoint(J, ic, adj_state, seed=0.0001)

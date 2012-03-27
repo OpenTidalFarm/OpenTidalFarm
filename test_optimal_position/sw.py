@@ -14,7 +14,7 @@ import numpy
 import Memoize
 import IPOptUtils
 from animated_plot import *
-from functionals import DefaultFunctional
+from functionals import DefaultFunctional, build_turbine_cache
 from sw_utils import test_initial_condition_adjoint, test_gradient_array
 from turbines import *
 from mini_model import *
@@ -107,11 +107,12 @@ def j_and_dj(m):
 
   A, M = construct_mini_model(W, config.params, tf)
 
-  functional = DefaultFunctional(config.params)
+  turbine_cache = build_turbine_cache(config.params, U)
+  functional = DefaultFunctional(config.params, turbine_cache)
 
   # Solve the shallow water system
   j, djdm, state = mini_model(A, M, state, config.params, functional)
-  J = TimeFunctional(functional.Jt(state))
+  J = TimeFunctional(functional.Jt(state), staticvariables = [turbine_cache["turbine_field"]])
   adj_state = sw_lib.adjoint(state, config.params, J, until=1) # The first annotation is the idendity operator for the turbine field
 
   # Let J be the functional, m the parameter and u the solution of the PDE equation F(u) = 0.
@@ -140,13 +141,13 @@ def j_and_dj(m):
 
 j_and_dj_mem = Memoize.MemoizeMutable(j_and_dj)
 def j(m):
-  j = j_and_dj_mem(m)[0]
+  j = j_and_dj_mem(m)[0]*10
   info_green('Evaluating j(' + m.__repr__() + ')=' + str(j))
   plot.addPoint(j) 
   return j 
 
 def dj(m):
-  dj = j_and_dj_mem(m)[1]
+  dj = j_and_dj_mem(m)[1]*10
   info_green('Evaluating dj(' + m.__repr__() + ')=' + str(dj))
   # Return the derivatives with respect to the position only
   return dj[len(config.params['turbine_friction']):]
@@ -156,7 +157,7 @@ m0 = initial_control(config)
 
 p = numpy.random.rand(len(m0))
 minconv = test_gradient_array(j, dj, m0, seed=0.001, perturbation_direction=p)
-if minconv < 1.99:
+if minconv < 1.98:
   print "The gradient taylor remainder test failed."
   sys.exit(1)
 

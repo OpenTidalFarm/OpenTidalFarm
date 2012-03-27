@@ -52,3 +52,42 @@ class DefaultFunctional(FunctionalPrototype):
         djtdm.append(self.expr(state, self.turbine_cache['turbine_derivative_pos'][n][var]))
     return djtdm 
 
+def build_turbine_cache(params, function_space, turbine_size_scaling = 1.0):
+  ''' Creates a list of all turbine function/derivative interpolations. This list is used as a cache 
+      to avoid the recomputation of the expensive interpolation of the turbine expression. '''
+  turbine_cache = {}
+
+  params = sw_lib.parameters(dict(params))
+  # Scale the turbine size by the given factor.
+  if turbine_size_scaling != 1.0:
+    info_green("The functional uses turbines which size is scaled by a factor of " + str(turbine_size_scaling) + ".")
+  params["turbine_x"] *= turbine_size_scaling
+  params["turbine_y"] *= turbine_size_scaling
+
+  # Precompute the interpolation of the friction function
+  turbines = Turbines(params)
+  tf = Function(function_space)
+  tf.interpolate(turbines)
+  turbine_cache["turbine_field"] = tf
+
+  # Precompute the derivatives with respect to the friction
+  turbine_cache["turbine_derivative_friction"] = []
+  for n in range(len(params["turbine_friction"])):
+    tf = Function(function_space)
+    turbines = Turbines(params, derivative_index_selector=n, derivative_var_selector='turbine_friction')
+    tf = Function(function_space)
+    tf.interpolate(turbines)
+    turbine_cache["turbine_derivative_friction"].append(tf)
+
+  # Precompute the derivatives with respect to the turbine position
+  turbine_cache["turbine_derivative_pos"] = []
+  for n in range(len(params["turbine_pos"])):
+    turbine_cache["turbine_derivative_pos"].append({})
+    for var in ('turbine_pos_x', 'turbine_pos_y'):
+      tf = Function(function_space)
+      turbines = Turbines(params, derivative_index_selector=n, derivative_var_selector=var)
+      tf = Function(function_space)
+      tf.interpolate(turbines)
+      turbine_cache["turbine_derivative_pos"][-1][var] = tf
+
+  return turbine_cache

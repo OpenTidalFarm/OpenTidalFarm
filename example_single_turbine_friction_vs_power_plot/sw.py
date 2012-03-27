@@ -12,7 +12,7 @@ import Memoize
 import ipopt 
 import IPOptUtils
 import matplotlib.pyplot as plt
-from functionals import DefaultFunctional
+from functionals import DefaultFunctional, build_turbine_cache
 from dolfin import *
 from dolfin_adjoint import *
 from sw_utils import test_initial_condition_adjoint, test_gradient_array, pprint
@@ -85,7 +85,8 @@ def j(m):
   count+=1
   sw_lib.save_to_file_scalar(tf, "turbines_t=."+str(count)+".x")
 
-  functional = DefaultFunctional(config.params, turbine_size_scaling=0.5)
+  turbine_cache = build_turbine_cache(config.params, U, turbine_size_scaling=0.5)
+  functional = DefaultFunctional(config.params, turbine_cache)
 
   # Solve the shallow water system
   j, djdm, state = sw_lib.sw_solve(W, config, state, turbine_field=tf, time_functional=functional)
@@ -96,7 +97,8 @@ config = default_config()
 
 # Generate the friction values of interest
 m0 = initial_control(config)
-f = [0.002*m0*i**2 for i in range(15)]
+f = [0.00025*m0*i**2 for i in range(25)]
+info_green("Tested friction coefficients: " + str([fx[0] for fx in f]))
 
 # Produce the power values for linear friction
 info_green("Compute values for linear friction")
