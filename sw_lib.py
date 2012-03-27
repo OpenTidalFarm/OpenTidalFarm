@@ -191,15 +191,15 @@ def sw_solve(W, config, ic, turbine_field=None, time_functional=None, annotate=T
     if params["bctype"] == 'dirichlet':
       # The dirichlet boundary condition on the left hand side 
       ufl = Expression(("eta0*sqrt(g*depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0", "0"), eta0=params["eta0"], g=g, depth=depth, t=t, k=params["k"])
-      rhs_contr = -dot(ufl, n) * q * ds(1)
+      bc_contr = -dot(ufl, n) * q * ds(1)
 
       # The dirichlet boundary condition on the right hand side
-      rhs_contr -= dot(ufl, n) * q * ds(2)
+      bc_contr -= dot(ufl, n) * q * ds(2)
 
     elif params["bctype"] == 'flather':
       # The Flather boundary condition on the left hand side 
       ufl = Expression(("2*eta0*sqrt(g*depth)*cos(-sqrt(g*depth)*k*t)", "0", "0"), eta0=params["eta0"], g=g, depth=depth, t=t, k=params["k"])
-      rhs_contr = -dot(ufl, n) * q * ds(1)
+      bc_contr = -dot(ufl, n) * q * ds(1)
       Ct_mid += sqrt(g*depth)*inner(h_mid, q)*ds(1)
 
       # The contributions of the Flather boundary condition on the right hand side
@@ -234,7 +234,7 @@ def sw_solve(W, config, ic, turbine_field=None, time_functional=None, annotate=T
 
     # Create the final form
     G_mid = C_mid + Ct_mid + R_mid
-    F = M - M0 + dt * G_mid - dt * rhs_contr
+    F = M - M0 + dt * G_mid - dt * bc_contr
     # Preassemble the lhs if possible
     if not quadratic_friction:
         lhs_preass = assemble(dolfin.lhs(F))
