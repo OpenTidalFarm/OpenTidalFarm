@@ -6,7 +6,7 @@ import sw_config
 import sw_lib
 import numpy
 from mini_model import *
-from functionals import DefaultFunctional
+from functionals import DefaultFunctional, build_turbine_cache
 from turbines import *
 from dolfin import *
 from dolfin_adjoint import *
@@ -74,7 +74,8 @@ def run_model(nx, ny, turbine_model, turbine_pos):
   sw_lib.save_to_file_scalar(tf, turbine_model+"_"+str(nx)+"x"+str(ny)+"_turbine_pos="+str(turbine_pos))
 
   A, M = construct_mini_model(W, config.params, tf)
-  functional = DefaultFunctional(config.params)
+  turbine_cache = build_turbine_cache(config.params, U, turbine_size_scaling = 0.5)
+  functional = DefaultFunctional(config.params, turbine_cache)
   j, djdm, state = mini_model(A, M, state, config.params, functional)
   return j
 
@@ -85,8 +86,8 @@ def refine_res(nx, ny, level=0.66):
 
 # Run test functional convergence tests
 turbine_pos = [[1500., 500.]]
-nx_orig = 30
-ny_orig = 10
+nx_orig = 60
+ny_orig = 20
 
 if myid == 0:
   print "Turbine size: 200x200"
@@ -130,7 +131,7 @@ for t in turbine_types:
     r = results[t][shift]
     relative_change = [(r[i+1]-r[i]) / min(r[i+1], r[i]) for i in range(len(r)-1)]
     if myid == 0:
-      print "Relative change for ", t, " and shifted ", shift, " is: ", relative_change 
+      print "Relative change for ", t, " and shifted ", shift, " is due to mesh refinement: ", relative_change 
 
     # Test that the relative change of the highest resolution run is smaller than the allowed tolerance
     if abs(relative_change[-1]) > turbine_types_tol_ref[t]:

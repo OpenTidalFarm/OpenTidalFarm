@@ -6,7 +6,7 @@ import sw_config
 import sw_lib
 import numpy
 import Memoize
-from functionals import DefaultFunctional
+from functionals import DefaultFunctional, build_turbine_cache
 from dolfin import *
 from dolfin_adjoint import *
 from sw_utils import test_initial_condition_adjoint, test_gradient_array
@@ -72,11 +72,12 @@ def j_and_dj(m):
 
   # Scale the turbine size by 0.5 for the functional definition. This is used for obtaining 
   # a physical power curve.
-  functional = DefaultFunctional(config.params, turbine_size_scaling=0.5)
+  turbine_cache = build_turbine_cache(config.params, U, turbine_size_scaling=0.5)
+  functional = DefaultFunctional(config.params, turbine_cache)
 
   # Solve the shallow water system
   j, djdm, state = sw_lib.sw_solve(W, config, state, time_functional=functional, turbine_field = tf)
-  J = TimeFunctional(functional.Jt(state))
+  J = TimeFunctional(functional.Jt(state), staticvariables = [turbine_cache["turbine_field"]])
   # Because a turbine field is used, the first equation in the annotation is the initialisation
   # of this turbine field (the second equation will be the initial condition). Hence the adjoint 
   # is computed all the way back to equation 0.

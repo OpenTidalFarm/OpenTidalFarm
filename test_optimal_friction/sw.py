@@ -20,7 +20,7 @@ import numpy
 import Memoize
 import ipopt 
 import IPOptUtils
-from functionals import DefaultFunctional
+from functionals import DefaultFunctional, build_turbine_cache
 from sw_utils import test_initial_condition_adjoint, test_gradient_array, pprint
 from turbines import *
 from mini_model import *
@@ -85,11 +85,12 @@ def j_and_dj(m):
 
   A, M = construct_mini_model(W, config.params, tf)
 
-  functional = DefaultFunctional(config.params)
+  turbine_cache = build_turbine_cache(config.params, U)
+  functional = DefaultFunctional(config.params, turbine_cache)
 
   # Solve the shallow water system
   j, djdm, state = mini_model(A, M, state, config.params, functional)
-  J = TimeFunctional(functional.Jt(state))
+  J = TimeFunctional(functional.Jt(state), staticvariables = [turbine_cache["turbine_field"]])
   adj_state = sw_lib.adjoint(state, config.params, J, until=1) # The first annotation is the idendity operator for the turbine field
 
   # Let J be the functional, m the parameter and u the solution of the PDE equation F(u) = 0.

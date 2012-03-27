@@ -44,12 +44,13 @@ U = U.collapse() # Recompute the DOF map
 tf = Function(U)
 tf.interpolate(Turbines(config.params))
 
-functional = DefaultFunctional(config.params) 
+turbine_cache = build_turbine_cache(config.params, U)
+functional = DefaultFunctional(config.params, turbine_cache) 
 myj, djdm, state = sw_lib.sw_solve(W, config, state, time_functional=functional)
 
 sw_lib.replay(state, config.params)
 
-J = TimeFunctional(functional.Jt(state))
+J = TimeFunctional(functional.Jt(state), staticvariables = [turbine_cache["turbine_field"]])
 # Because no turbine field is used, the first equation in the annotation is the initialisation
 # of the initial condition, hence the adjoint is computed all the way back to equation 0.
 adj_state = sw_lib.adjoint(state, config.params, J, until = 0)

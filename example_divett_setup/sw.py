@@ -8,7 +8,7 @@ import sw_lib
 import numpy
 import Memoize
 from animated_plot import *
-from functionals import DefaultFunctional
+from functionals import DefaultFunctional, build_turbine_cache
 from sw_utils import test_initial_condition_adjoint, test_gradient_array, pprint
 from turbines import *
 from mini_model import *
@@ -87,7 +87,8 @@ def j(m):
   sw_lib.save_to_file_scalar(tf, "turbines_t=.0.x")
 
   # Scale the turbines in the functional for a physically consistent power/friction curve
-  functional = DefaultFunctional(config.params, turbine_size_scaling=0.5)
+  turbine_cache = build_turbine_cache(config.params, U, turbine_size_scaling=0.5)
+  functional = DefaultFunctional(config.params, turbine_cache)
 
   # Solve the shallow water system
   j, djdm, state = sw_lib.sw_solve(W, config, state, turbine_field = tf, time_functional=functional, linear_solver='gmres', preconditioner='amg')
