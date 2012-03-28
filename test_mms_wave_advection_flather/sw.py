@@ -13,10 +13,10 @@ def error(config):
   initstate=Function(W)
   initstate.interpolate(config.get_sin_initial_condition()())
   u_exact = "eta0*sqrt(g*depth) * cos(k*x[0]-sqrt(g*depth)*k*t)" # The analytical veclocity of the shallow water equations has been multiplied by depth to account for the change of variable (\tilde u = H u) in this code.
-  du_exact = "eta0*sqrt(g*depth) * sin(k*x[0]-sqrt(g*depth)*k*t) * k"
+  du_exact = "(- eta0*sqrt(g*depth) * sin(k*x[0]-sqrt(g*depth)*k*t) * k)"
   eta_exact = "eta0*cos(k*x[0]-sqrt(g*depth)*k*t)"
   # The source term
-  source = Expression((u_exact + " * " + du_exact, \
+  source = Expression(("1.0/depth" + "*" + u_exact + " * " + du_exact, \
   #source = Expression(("0.0*" +u_exact, \
   #source = Expression(("1.0/depth" + "*" + u_exact, \
                              "0.0"), \
@@ -39,14 +39,14 @@ def test(refinment_level):
   config = sw_config.DefaultConfiguration(nx=2*2**refinment_level, ny=2*2**refinment_level) 
   config.params["finish_time"] = pi/(sqrt(config.params["g"]*config.params["depth"])*config.params["k"])/10
   config.params["dt"] = config.params["finish_time"]/150
-  config.params["dump_period"] = 100000
+  config.params["dump_period"] = 1
   config.params["include_advection"] = True
   config.params["newton_solver"] = True
 
   return error(config)
 
 errors = []
-tests = 3
+tests = 4
 for refinment_level in range(1, tests):
   errors.append(test(refinment_level))
 # Compute the order of convergence 
