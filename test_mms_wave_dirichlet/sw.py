@@ -9,7 +9,7 @@ set_log_level(30)
 myid = MPI.process_number()
 
 def error(config):
-  W=sw_lib.p2p1(config.mesh)
+  W=sw_lib.p1dgp2(config.mesh)
   initstate=Function(W)
   initstate.interpolate(config.get_sin_initial_condition()())
 
@@ -23,16 +23,14 @@ def error(config):
   exactstate=Function(W)
   exactstate.interpolate(analytic_sol)
   e = finalstate-exactstate
-  plot(e[0])
-  interactive()
   return sqrt(assemble(dot(e,e)*dx))
 
 def test(refinment_level):
-  config = sw_config.DefaultConfiguration(nx=4*2**refinment_level, ny=2*2**refinment_level) 
-  config.params["finish_time"] = pi/(sqrt(config.params["g"]*config.params["depth"])*config.params["k"])
-  config.params["dt"] = config.params["finish_time"]/100
-  config.params["dump_period"] = 100000
-  config.params["bctype"] = "dirichlet"
+  config = sw_config.DefaultConfiguration(nx=2*2**refinment_level, ny=2) 
+  config.params["finish_time"]=pi/(sqrt(config.params["g"]*config.params["depth"])*config.params["k"])/10
+  config.params["dt"]=config.params["finish_time"]/100
+  config.params["dump_period"]=100000
+  config.params["bctype"]="dirichlet"
 
   return error(config)
 

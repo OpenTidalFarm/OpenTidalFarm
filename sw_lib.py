@@ -124,7 +124,7 @@ def save_to_file(function, basename):
     u_out << u_out_func
     p_out << p_out_func
 
-def sw_solve(W, config, ic, turbine_field=None, time_functional=None, annotate=True, linear_solver="default", preconditioner="default"):
+def sw_solve(W, config, ic, turbine_field=None, time_functional=None, annotate=True, linear_solver="default", preconditioner="default", u_source = None):
     '''Solve the shallow water equations with the parameters specified in params.
        Options for linear_solver and preconditioner are: 
         linear_solver: lu, cholesky, cg, gmres, bicgstab, minres, tfqmr, richardson
@@ -143,6 +143,7 @@ def sw_solve(W, config, ic, turbine_field=None, time_functional=None, annotate=T
     params["current_time"] = params["start_time"]
     t = params["current_time"]
     quadratic_friction = params["quadratic_friction"]
+    include_advection = params["include_advection"]
     newton_solver = params["newton_solver"] 
     picard_iterations = params["picard_iterations"]
 
@@ -158,14 +159,14 @@ def sw_solve(W, config, ic, turbine_field=None, time_functional=None, annotate=T
     state_nl  = Function(W)  # the last computed state used for picard iteration
 
     # Split mixed functions
-    if quadratic_friction and newton_solver:
+    if (include_advection or quadratic_friction) and newton_solver:
       u, h = split(state) 
     else:
       (u, h) = TrialFunctions(W) 
     u0, h0 = split(state0)
     u_nl, h_nl = split(state_nl)
 
-    # Create intial conditions and interpolate
+    # Create initial conditions and interpolate
     state.assign(ic, annotate=False)
     state0.assign(ic, annotate=False)
     state_nl.assign(ic, annotate=False)
@@ -215,7 +216,7 @@ def sw_solve(W, config, ic, turbine_field=None, time_functional=None, annotate=T
     C_mid = (g * depth) * inner(v, grad(h_mid)) * dx
     #+inner(avg(v),jump(h_mid,n))*dS # This term is only needed for dg element pairs
 
-    # The bottom friction
+    # Bottom friction
     class FrictionExpr(Expression):
         def eval(self, value, x):
            value[0] = params["friction"] 
@@ -224,29 +225,43 @@ def sw_solve(W, config, ic, turbine_field=None, time_functional=None, annotate=T
     if turbine_field:
       friction += turbine_field
 
-    # The friction term
-    # With a newton solver we can simply use a quadratic form
+    # Friction term
+    # With a newton solver we can simply use a non-linear form
     if quadratic_friction and newton_solver:
       R_mid = dot(u_mid, u_mid)**0.5 * friction * inner(u_mid / (sqrt(depth * g)), v) * dx 
-    # With a picard iteration we linearise using the best guess
-    if quadratic_friction and not newton_solver:
+    # With a picard iteration we need to linearise using the best guess
+    elif quadratic_friction and not newton_solver:
       R_mid = dot(u_mid_nl, u_mid_nl)**0.5 * friction * inner(u_mid / (sqrt(depth * g)), v) * dx 
     # Use a linear drag
     else:
       R_mid = friction * inner(u_mid / (sqrt(depth * g)), v) * dx 
 
-    # Create the final form
-    G_mid = C_mid + Ct_mid + R_mid
-    F = M - M0 + dt * G_mid - dt * bc_contr
-    # Preassemble the lhs if possible
-    if not quadratic_friction:
-        lhs_preass = assemble(dolfin.lhs(F))
+    # Advection term 
+    # With a newton solver we can simply use a quadratic form
+    if include_advection and newton_solver:
+      Ad_mid = 1/depth * inner(grad(u_mid)*u_mid, v)*dx
+    # With a picard iteration we need to linearise using the best guess
+    if include_advection and not newton_solver:
+      Ad_mid = 1/depth * inner(grad(u_mid)*u_mid_nl, v)*dx
 
-    ## Direct LU solver ##
-    use_lu_solver = False
-    if use_lu_solver:
-      lu_solver = LUSolver(lhs_preass)
-      lu_solver.parameters["reuse_factorization"] = True
+    # Create the final form
+    G_mid = C_mid + Ct_mid + R_mid 
+    # Add the advection term
+    if include_advection:
+      G_mid += Ad_mid
+    # Add the source term
+    if u_source:
+      G_mid -= inner(u_source, v)*dx 
+    F = M - M0 + dt * G_mid - dt * bc_contr
+
+    # Preassemble the lhs if possible
+    use_lu_solver = (linear_solver == "lu") 
+    if not quadratic_friction and not include_advection:
+        lhs_preass = assemble(dolfin.lhs(F))
+        # Precompute the LU factorisation 
+        if use_lu_solver:
+          lu_solver = LUSolver(lhs_preass)
+          lu_solver.parameters["reuse_factorization"] = True
 
     ############################### Perform the simulation ###########################
 
@@ -276,6 +291,8 @@ def sw_solve(W, config, ic, turbine_field=None, time_functional=None, annotate=T
         params["current_time"] = t
 
         ufl.t=t-(1.0-theta)*dt # Update time for the Boundary condition expression
+        if u_source:
+          u_source.t = t-(1.0-theta)*dt  # Update time for the source term
         step+=1
 
         state0.assign(state, annotate=annotate)
@@ -286,7 +303,7 @@ def sw_solve(W, config, ic, turbine_field=None, time_functional=None, annotate=T
         solver_parameters = {"linear_solver": linear_solver, "preconditioner": preconditioner}
 
         # Solve non-linear system with a Newton sovler
-        if quadratic_friction and newton_solver:
+        if (quadratic_friction or include_advection) and newton_solver:
           # Use a Newton solver to solve the nonlinear problem.
           if use_lu_solver:
             info_red("LU solver with quadratic_friction currently not supported. Using iterative solver instead...")
@@ -297,7 +314,7 @@ def sw_solve(W, config, ic, turbine_field=None, time_functional=None, annotate=T
           solve(F == 0, state, solver_parameters=solver_parameters, annotate=annotate)
 
         # Solve non-linear system with a Picard iteration
-        elif quadratic_friction:
+        elif quadratic_friction or include_advection:
           # Solve the problem using a picard iteration
           if use_lu_solver:
             info_red("LU solver with quadratic_friction currently not supported. Using iterative solver instead...")

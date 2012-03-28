@@ -17,7 +17,7 @@ from dolfin_adjoint import *
 
 def default_config():
   # We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
-  config = sw_config.DefaultConfiguration(nx=200, ny=60)
+  config = sw_config.DefaultConfiguration(nx=100, ny=40)
   period = 1.24*60*60 # Wave period
   config.params["k"] = 2*pi/(period*sqrt(config.params["g"]*config.params["depth"]))
   pprint("Wave period (in h): ", period/60/60)
@@ -25,10 +25,13 @@ def default_config():
   config.params["verbose"] = 0
 
   # Start at rest state
-  config.params["start_time"] = period/4
-  config.params["dt"] = period/120
-  config.params["finish_time"] = 4*period/4 
+  config.params["start_time"] = 3.*period/4
+  config.params["dt"] = period/800
+  config.params["finish_time"] = 4.*period/4 
   config.params["theta"] = 0.6
+  config.params["include_advection"] = True
+  config.params["newton_solver"] = True 
+  config.params['picard_iterations'] = 3 
 
   set_log_level(DEBUG)
   #dolfin.parameters['optimize'] = True
@@ -39,10 +42,10 @@ def default_config():
   dolfin.parameters['form_compiler']['cpp_optimize_flags'] = '-O3'
 
   # Turbine settings
-  config.params["friction"] = 0.0
+  config.params["friction"] = 0.00
   # The turbine position is the control variable 
   config.params["turbine_pos"] = [] 
-  border = 100
+  border = 200
   for x_r in numpy.linspace(0.+border, config.params["basin_x"]-border, 7):
     for y_r in numpy.linspace(0.+border, config.params["basin_y"]-border, 3):
       config.params["turbine_pos"].append((float(x_r), float(y_r)))
@@ -91,7 +94,7 @@ def j(m):
   functional = DefaultFunctional(config.params, turbine_cache)
 
   # Solve the shallow water system
-  j, djdm, state = sw_lib.sw_solve(W, config, state, turbine_field = tf, time_functional=functional, linear_solver='gmres', preconditioner='amg')
+  j, djdm, state = sw_lib.sw_solve(W, config, state, turbine_field = tf, time_functional=functional, linear_solver='lu', preconditioner='none')
 
   return j
 
