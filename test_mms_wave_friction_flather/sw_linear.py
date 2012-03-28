@@ -36,7 +36,7 @@ def error(config):
 def test(refinment_level):
   config = sw_config.DefaultConfiguration(nx=2*2**refinment_level, ny=2*2**refinment_level) 
   config.params["finish_time"] = pi/(sqrt(config.params["g"]*config.params["depth"])*config.params["k"])/10
-  config.params["dt"] = config.params["finish_time"]/150
+  config.params["dt"] = config.params["finish_time"]/75
   config.params["dump_period"] = 100000
   config.params["friction"] = 0.25 
   config.params["quadratic_friction"] = False
