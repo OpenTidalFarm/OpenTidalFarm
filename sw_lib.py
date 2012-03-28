@@ -237,6 +237,9 @@ def sw_solve(W, config, ic, turbine_field=None, time_functional=None, annotate=T
     # Use a linear drag
     else:
       R_mid = friction * inner(u_mid / (sqrt(depth * g)), v) * dx 
+      
+    myexpr = Expression(("1.0", "0.0"))
+    R_mid = inner(myexpr, v) * dx 
 
     # Advection term 
     # With a newton solver we can simply use a quadratic form
