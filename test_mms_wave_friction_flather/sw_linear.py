@@ -17,7 +17,7 @@ def error(config):
   eta_exact = "eta0*cos(k*x[0]-sqrt(g*depth)*k*t)"
   # The source term
   #source = Expression(("1.0/depth" + "*" + u_exact + " * " + du_exact, # The 1/depth factor comes from the fact that we multiplied the momentum equation by "depth" and the change of variable for velocity (\tilde u = depth u). Hence we have a multiplication factor of depth/(depth*depth) = 1/depth  
-  source = Expression(("0.0025", 
+  source = Expression(("0.0025*0.0025", 
                        "0.0"), \
                        eta0=config.params["eta0"], g=config.params["g"], \
                        depth=config.params["depth"], t=config.params["current_time"], k=config.params["k"])
