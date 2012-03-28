@@ -10,6 +10,7 @@ class DefaultConfiguration:
     params=sw_lib.parameters({
         'basename'  : 'p2p1',
         'bctype'  : 'flather',
+        'include_advection': False,
         'depth' : 50.,
         'g' : 9.81,
         'f' : 0.0,
