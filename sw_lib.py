@@ -262,8 +262,10 @@ def sw_solve(W, config, ic, turbine_field=None, time_functional=None, annotate=T
         lhs_preass = assemble(dolfin.lhs(F))
         # Precompute the LU factorisation 
         if use_lu_solver:
+          info_green("Computing the LU factorisation for later use ...")
           lu_solver = LUSolver(lhs_preass)
           lu_solver.parameters["reuse_factorization"] = True
+          info_green("deon")
 
     ############################### Perform the simulation ###########################
 
@@ -318,9 +320,6 @@ def sw_solve(W, config, ic, turbine_field=None, time_functional=None, annotate=T
         # Solve non-linear system with a Picard iteration
         elif quadratic_friction or include_advection:
           # Solve the problem using a picard iteration
-          if use_lu_solver:
-            info_red("LU solver with quadratic_friction currently not supported. Using iterative solver instead...")
-
           for i in range(picard_iterations):
             state_nl.assign(state, annotate=annotate)
             solve(dolfin.lhs(F) == dolfin.rhs(F), state, solver_parameters=solver_parameters, annotate=annotate)
