@@ -245,7 +245,7 @@ def sw_solve(W, config, ic, turbine_field=None, time_functional=None, annotate=T
       Ad_mid = 1/depth * inner(grad(u_mid)*u_mid_nl, v)*dx
 
     adexpr = Expression(("1.0", "0.0"))
-    Ad_mid = 1./depth * inner(u_mid, v)*dx
+    Ad_mid = 1./depth * inner(grad(u_mid)*u_mid, v)*dx
 
     # Create the final form
     G_mid = C_mid + Ct_mid + R_mid 
