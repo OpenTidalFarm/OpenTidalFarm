@@ -16,7 +16,7 @@ def error(config):
   du_exact = "(- eta0*sqrt(g*depth) * sin(k*x[0]-sqrt(g*depth)*k*t) * k)"
   eta_exact = "eta0*cos(k*x[0]-sqrt(g*depth)*k*t)"
   # The source term
-  source = Expression(("friction*friction*g/(pow(depth, (1.0/3.0)))", 
+  source = Expression(("friction*friction*g/(pow(depth, (1.0/3.0))) * " + u_exact, 
                        "0.0"), \
                        eta0=config.params["eta0"], g=config.params["g"], \
                        depth=config.params["depth"], t=config.params["current_time"], k=config.params["k"], friction = config.params["friction"])
