@@ -23,22 +23,20 @@ def error(config):
   exactstate=Function(W)
   exactstate.interpolate(analytic_sol)
   e = finalstate-exactstate
-  plot(e[0])
-  interactive()
   return sqrt(assemble(dot(e,e)*dx))
 
 def test(refinment_level):
-  config = sw_config.DefaultConfiguration(nx=2*2**refinment_level, ny=2*2**refinment_level) 
+  config = sw_config.DefaultConfiguration(nx=2*2**refinment_level, ny=2) 
   config.params["finish_time"]=pi/(sqrt(config.params["g"]*config.params["depth"])*config.params["k"])/10
   config.params["dt"]=config.params["finish_time"]/100
-  config.params["dump_period"]=1
+  config.params["dump_period"]=100000
   config.params["bctype"]="dirichlet"
 
   return error(config)
 
 errors = []
-tests = 5
-for refinment_level in range(4, tests):
+tests = 6
+for refinment_level in range(1, tests):
   errors.append(test(refinment_level))
 # Compute the order of convergence 
 conv = [] 
