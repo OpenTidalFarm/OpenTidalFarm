@@ -16,7 +16,7 @@ def error(config):
   du_exact = "(- eta0*sqrt(g*depth) * sin(k*x[0]-sqrt(g*depth)*k*t) * k)"
   eta_exact = "eta0*cos(k*x[0]-sqrt(g*depth)*k*t)"
   # The source term
-  source = Expression(("friction*friction*g/(pow(depth, (1.0/3.0))) * " + u_exact + "*pow(pow(" + u_exact + ", 2), 0.5)",  
+  source = Expression(("friction*friction*g/(pow(depth, (4.0/3.0))) * " + u_exact + "*pow(pow(" + u_exact + ", 2), 0.5)",  
                        "0.0"), \
                        eta0=config.params["eta0"], g=config.params["g"], \
                        depth=config.params["depth"], t=config.params["current_time"], k=config.params["k"], friction = config.params["friction"])
@@ -36,7 +36,7 @@ def error(config):
 def test(refinment_level):
   config = sw_config.DefaultConfiguration(nx=2*2**refinment_level, ny=2*2**refinment_level) 
   config.params["finish_time"] = pi/(sqrt(config.params["g"]*config.params["depth"])*config.params["k"])/10
-  config.params["dt"] = config.params["finish_time"]/75
+  config.params["dt"] = config.params["finish_time"]/150
   config.params["dump_period"] = 100000
   config.params["friction"] = 0.25 
   config.params["quadratic_friction"] = True
