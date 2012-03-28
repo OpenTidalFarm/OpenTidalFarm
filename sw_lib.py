@@ -144,6 +144,8 @@ def sw_solve(W, config, ic, turbine_field=None, time_functional=None, annotate=T
     t = params["current_time"]
     quadratic_friction = params["quadratic_friction"]
     include_advection = params["include_advection"]
+    include_diffusion = params["include_diffusion"]
+    diffusion_coef = params["diffusion_coef"]
     newton_solver = params["newton_solver"] 
     picard_iterations = params["picard_iterations"]
 
@@ -246,11 +248,17 @@ def sw_solve(W, config, ic, turbine_field=None, time_functional=None, annotate=T
     if include_advection and not newton_solver:
       Ad_mid = 1/depth * inner(grad(u_mid)*u_mid_nl, v)*dx
 
+    if include_diffusion:
+      D_mid = diffusion_coef*inner(grad(u_mid), grad(v))*dx
+
     # Create the final form
     G_mid = C_mid + Ct_mid + R_mid 
     # Add the advection term
     if include_advection:
       G_mid += Ad_mid
+    # Add the diffusion term
+    if include_diffusion:
+      G_mid += D_mid
     # Add the source term
     if u_source:
       G_mid -= inner(u_source, v)*dx 

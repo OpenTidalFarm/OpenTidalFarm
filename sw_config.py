@@ -11,6 +11,8 @@ class DefaultConfiguration:
         'basename'  : 'p1dgp2',
         'bctype'  : 'flather',
         'include_advection': False,
+        'include_diffusion': False,
+        'diffusion_coef': 0.0,
         'depth' : 50.,
         'g' : 9.81,
         'f' : 0.0,
