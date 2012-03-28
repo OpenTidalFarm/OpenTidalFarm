@@ -3,6 +3,8 @@ tests:
 	cd test_mms_wave_dirichlet; make
 	@echo "=================== Running wave_flather test ==================="
 	cd test_mms_wave_flather; make
+	@echo "=================== Running wave_flather advection test ==================="
+	cd test_mms_wave_advection_flather; make
 	@echo "=================== Running turbine function derivative test ==================="
 	cd test_derivative_turbine_function; make
 	@echo "=================== Running initial condition derivative test ==================="
