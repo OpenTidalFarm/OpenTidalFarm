@@ -38,8 +38,9 @@ def test(refinment_level):
   config.params["finish_time"] = pi/(sqrt(config.params["g"]*config.params["depth"])*config.params["k"])/10
   config.params["dt"] = config.params["finish_time"]/75
   config.params["dump_period"] = 100000
-  config.params["friction"] = 0.0025 
-  config.params["quadratic_friction"] = True 
+  config.params["friction"] = 0.25 
+  config.params["quadratic_friction"] = True
+  config.params["newton_solver"] = True
 
   return error(config)
 
