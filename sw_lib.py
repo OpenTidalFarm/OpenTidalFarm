@@ -193,9 +193,11 @@ def sw_solve(W, config, ic, turbine_field=None, time_functional=None, annotate=T
       # The dirichlet boundary condition on the left hand side 
       ufl = Expression(("eta0*sqrt(g*depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0", "0"), eta0=params["eta0"], g=g, depth=depth, t=t, k=params["k"])
       bc_contr = -dot(ufl, n) * q * ds(1)
+      #bc_contr = -dot(u_mid, n) * q * ds(1)
 
       # The dirichlet boundary condition on the right hand side
       bc_contr -= dot(ufl, n) * q * ds(2)
+      #bc_contr -= dot(u_mid, n) * q * ds(2)
 
       # We enforce a no-normal flow on the sides by removing the surface integral. 
       # bc_contr -= dot(u_mid, n) * q * ds(3)

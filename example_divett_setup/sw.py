@@ -42,7 +42,8 @@ def default_config():
   dolfin.parameters['form_compiler']['cpp_optimize_flags'] = '-O3'
 
   # Turbine settings
-  config.params["friction"] = 0.00
+  config.params["quadratic_friction"] = True
+  config.params["friction"] = 0.0025
   # The turbine position is the control variable 
   config.params["turbine_pos"] = [] 
   border = 200

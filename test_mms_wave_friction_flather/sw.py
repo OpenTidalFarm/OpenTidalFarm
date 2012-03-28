@@ -23,22 +23,19 @@ def error(config):
   exactstate=Function(W)
   exactstate.interpolate(analytic_sol)
   e = finalstate-exactstate
-  plot(e[0])
-  interactive()
   return sqrt(assemble(dot(e,e)*dx))
 
 def test(refinment_level):
-  config = sw_config.DefaultConfiguration(nx=2*2**refinment_level, ny=2*2**refinment_level) 
+  config = sw_config.DefaultConfiguration(nx=2*2**refinment_level, ny=2) 
   config.params["finish_time"]=pi/(sqrt(config.params["g"]*config.params["depth"])*config.params["k"])/10
-  config.params["dt"]=config.params["finish_time"]/100
-  config.params["dump_period"]=1
-  config.params["bctype"]="dirichlet"
+  config.params["dt"]=config.params["finish_time"]/150
+  config.params["dump_period"]=100000
 
   return error(config)
 
 errors = []
-tests = 5
-for refinment_level in range(4, tests):
+tests = 6
+for refinment_level in range(1, tests):
   errors.append(test(refinment_level))
 # Compute the order of convergence 
 conv = [] 
@@ -49,7 +46,7 @@ if myid == 0:
   print "Spatial order of convergence (expecting 2.0):", conv
 if min(conv)<1.8:
   if myid == 0:
-    print "Spatial convergence test failed for wave_dirichlet"
+    print "Spatial convergence test failed for wave_flather"
   sys.exit(1)
 else:
   if myid == 0:
