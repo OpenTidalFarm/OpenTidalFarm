@@ -44,7 +44,7 @@ def test(refinment_level):
   return error(config)
 
 errors = []
-tests = 3
+tests = 4
 for refinment_level in range(1, tests):
   errors.append(test(refinment_level))
 # Compute the order of convergence 
