@@ -245,7 +245,7 @@ def sw_solve(W, config, ic, turbine_field=None, time_functional=None, annotate=T
       Ad_mid = 1/depth * inner(grad(u_mid)*u_mid_nl, v)*dx
 
     adexpr = Expression(("1.0", "0.0"))
-    Ad_mid = depth * inner(adexpr, v)*dx
+    Ad_mid = inner(adexpr, v)*dx
 
     # Create the final form
     G_mid = C_mid + Ct_mid + R_mid 
@@ -254,7 +254,7 @@ def sw_solve(W, config, ic, turbine_field=None, time_functional=None, annotate=T
       G_mid += Ad_mid
     # Add the source term
     if u_source:
-      G_mid -= depth * inner(u_source, v)*dx 
+      G_mid -= inner(u_source, v)*dx 
     F = M - M0 + dt * G_mid - dt * bc_contr
 
     # Preassemble the lhs if possible
