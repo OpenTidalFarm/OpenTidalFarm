@@ -231,7 +231,7 @@ def sw_solve(W, config, ic, turbine_field=None, time_functional=None, annotate=T
     # With a newton solver we can simply use a non-linear form
     if quadratic_friction and newton_solver:
       #R_mid = dot(u_mid, u_mid)**0.5 * friction * inner(u_mid / (sqrt(depth * g)), v) * dx 
-      R_mid = g * friction**2 / (depth**(1./3)) * inner(u_mid, v) * dx 
+      R_mid = g * friction**2 / (depth**(1./3)) * dot(u_mid, u_mid)**0.5 * inner(u_mid, v) * dx 
     # With a picard iteration we need to linearise using the best guess
     elif quadratic_friction and not newton_solver:
       R_mid = dot(u_mid_nl, u_mid_nl)**0.5 * friction * inner(u_mid / (sqrt(depth * g)), v) * dx 
