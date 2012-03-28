@@ -18,7 +18,7 @@ def error(config):
   # The source term
   #source = Expression((u_exact + " * " + du_exact, \
   #source = Expression(("0.0*" +u_exact, \
-  source = Expression(("1.0", \
+  source = Expression(("1.0/depth", \
                              "0.0"), \
                              eta0=config.params["eta0"], g=config.params["g"], \
                              depth=config.params["depth"], t=config.params["current_time"], k=config.params["k"])
