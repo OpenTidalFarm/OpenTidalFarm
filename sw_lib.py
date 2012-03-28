@@ -230,11 +230,10 @@ def sw_solve(W, config, ic, turbine_field=None, time_functional=None, annotate=T
     # Friction term
     # With a newton solver we can simply use a non-linear form
     if quadratic_friction and newton_solver:
-      #R_mid = dot(u_mid, u_mid)**0.5 * friction * inner(u_mid / (sqrt(depth * g)), v) * dx 
       R_mid = g * friction**2 / (depth**(4./3)) * dot(u_mid, u_mid)**0.5 * inner(u_mid, v) * dx 
     # With a picard iteration we need to linearise using the best guess
     elif quadratic_friction and not newton_solver:
-      R_mid = dot(u_mid_nl, u_mid_nl)**0.5 * friction * inner(u_mid / (sqrt(depth * g)), v) * dx 
+      R_mid = g * friction**2 / (depth**(4./3)) * dot(u_mid_nl, u_mid_nl)**0.5 * inner(u_mid, v) * dx 
     # Use a linear drag
     else:
       R_mid = g * friction**2 / (depth**(1./3)) * inner(u_mid, v) * dx 
@@ -327,13 +326,12 @@ def sw_solve(W, config, ic, turbine_field=None, time_functional=None, annotate=T
             solve(dolfin.lhs(F) == dolfin.rhs(F), state, solver_parameters=solver_parameters, annotate=annotate)
             if i > 0:
               diff = abs(assemble( inner(state-state_nl, state-state_nl) * dx ))
-              dolfin.info_blue("Picard iteration difference at iteration " + str(i) + " is " + str(diff) + ".")
+              dolfin.info_blue("Picard iteration difference at iteration " + str(i+1) + " is " + str(diff) + ".")
 
         # Solve linear system with preassembled matrices 
         else:
             state_nl.assign(state, annotate=annotate)
             rhs_preass = assemble(dolfin.rhs(F))
-            info_green("Solving the linear system")
             if use_lu_solver:
               info_green("Using a LU solver to solve the linear system.")
               lu_solver.solve(state.vector(), rhs_preass, annotate=annotate)
