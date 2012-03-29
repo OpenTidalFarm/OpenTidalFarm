@@ -148,6 +148,7 @@ def sw_solve(W, config, ic, turbine_field=None, time_functional=None, annotate=T
     diffusion_coef = params["diffusion_coef"]
     newton_solver = params["newton_solver"] 
     picard_iterations = params["picard_iterations"]
+    solver_benchmark = params["solver_benchmark"]
 
     # To begin with, check if the provided parameters are valid
     params.check()
@@ -322,38 +323,93 @@ def sw_solve(W, config, ic, turbine_field=None, time_functional=None, annotate=T
         # Solve the shallow water equations.
 
         ## Set parameters for the solvers. Note: These options are ignored if use_lu_solver == True
-        solver_parameters = {"linear_solver": linear_solver, "preconditioner": preconditioner}
+        if solver_benchmark:
+          linear_solver_set = [linear_solver, "lu", "gmres", "bicgstab", "minres", "tfqmr", "richardson"]
+          preconditioner_set =[preconditioner, "none", "ilu", "icc", "jacobi", "bjacobi", "sor", "amg", "additive_schwarz", "hypre_amg", "hypre_euclid", "hypre_parasails"]
+          solver_parameters_set = []
+          for l in linear_solver_set:
+            for p in preconditioner_set:
+              if l == "lu" and p != "none":
+                continue
+              if l == "default" and p != "none":
+                continue
+              if l == "cholesky" and p != "none":
+                continue
+              if l == "gmres" and (p == "none" or p == "default"):
+                continue
+              solver_parameters_set.append({"linear_solver": l, "preconditioner": p})
 
-        # Solve non-linear system with a Newton sovler
-        if (quadratic_friction or include_advection) and newton_solver:
-          # Use a Newton solver to solve the nonlinear problem.
-          if use_lu_solver:
-            info_red("LU solver with quadratic_friction currently not supported. Using iterative solver instead...")
+          solver_benchmark_results = {}
+          info_green("Starting solver benchmark...")
 
-          solver_parameters["newton_solver"] = {}
-          solver_parameters["newton_solver"]["convergence_criterion"] = "incremental"
-          solver_parameters["newton_solver"]["relative_tolerance"] = 1e-16
-          solve(F == 0, state, solver_parameters=solver_parameters, annotate=annotate)
-
-        # Solve non-linear system with a Picard iteration
-        elif quadratic_friction or include_advection:
-          # Solve the problem using a picard iteration
-          for i in range(picard_iterations):
-            state_nl.assign(state, annotate=annotate)
-            solve(dolfin.lhs(F) == dolfin.rhs(F), state, solver_parameters=solver_parameters, annotate=annotate)
-            if i > 0:
-              diff = abs(assemble( inner(state-state_nl, state-state_nl) * dx ))
-              dolfin.info_blue("Picard iteration difference at iteration " + str(i+1) + " is " + str(diff) + ".")
-
-        # Solve linear system with preassembled matrices 
         else:
-            state_nl.assign(state, annotate=annotate)
-            rhs_preass = assemble(dolfin.rhs(F))
+          solver_parameters_set = [{"linear_solver": linear_solver, "preconditioner": preconditioner}]
+        
+        # Solve the problem with the chosen parameters
+        for solver_parameters in solver_parameters_set:
+          if solver_benchmark:
+            solver_failed = False
+            timer = Timer("Solver benchmark")
+            timer.start()
+
+          # Solve non-linear system with a Newton sovler
+          if (quadratic_friction or include_advection) and newton_solver:
+            # Use a Newton solver to solve the nonlinear problem.
             if use_lu_solver:
-              info_green("Using a LU solver to solve the linear system.")
-              lu_solver.solve(state.vector(), rhs_preass, annotate=annotate)
+              info_red("LU solver with quadratic_friction currently not supported. Using iterative solver instead...")
+
+            solver_parameters["newton_solver"] = {}
+            solver_parameters["newton_solver"]["convergence_criterion"] = "incremental"
+            solver_parameters["newton_solver"]["relative_tolerance"] = 1e-16
+            solve(F == 0, state, solver_parameters=solver_parameters, annotate=annotate)
+
+          # Solve non-linear system with a Picard iteration
+          elif quadratic_friction or include_advection:
+            # Solve the problem using a picard iteration
+            for i in range(picard_iterations):
+              state_nl.assign(state, annotate=annotate)
+              solve(dolfin.lhs(F) == dolfin.rhs(F), state, solver_parameters=solver_parameters, annotate=annotate)
+              if i > 0:
+                diff = abs(assemble( inner(state-state_nl, state-state_nl) * dx ))
+                dolfin.info_blue("Picard iteration difference at iteration " + str(i+1) + " is " + str(diff) + ".")
+
+          # Solve linear system with preassembled matrices 
+          else:
+              state_nl.assign(state, annotate=annotate)
+              rhs_preass = assemble(dolfin.rhs(F))
+              if use_lu_solver:
+                info_green("Using a LU solver to solve the linear system.")
+                lu_solver.solve(state.vector(), rhs_preass, annotate=annotate)
+              else:
+                try:
+                  solve(lhs_preass, state.vector(), rhs_preass, solver_parameters["linear_solver"], solver_parameters["preconditioner"], annotate=annotate)
+                except RuntimeError as e:
+                  if solver_benchmark:
+                    solver_failed = True
+                    pass
+                  else:
+                    raise RuntimeError, e.message
+
+          if solver_benchmark:
+            timer.stop()
+            if solver_failed:
+              info_red(solver_parameters["linear_solver"] + ", " + solver_parameters["preconditioner"] + ": Solver failed")
             else:
-              solve(lhs_preass, state.vector(), rhs_preass, linear_solver, preconditioner, annotate=annotate)
+              info_green(solver_parameters["linear_solver"] + ", " + solver_parameters["preconditioner"] + ": " + str(timer.value()) + "s")
+            if not solver_failed:
+              solver_benchmark_results[timer.value()] = solver_parameters 
+
+        # Let's analyse the result of the benchmark test:
+        if solver_benchmark:
+          info_green("\n **** Benchmark results for timestep " + str(step) + " *** \n")
+          def sortDict(dict):
+             keys = dict.keys()
+             keys.sort()
+             return keys, [dict[key] for key in keys]
+
+          times, solvers = sortDict(solver_benchmark_results)
+          for i in range(len(times)):
+            print "%s, %s: %.2f s" % (str(solvers[i]['linear_solver']), str(solvers[i]['preconditioner']), times[i])
 
         if step%params["dump_period"] == 0:
         
