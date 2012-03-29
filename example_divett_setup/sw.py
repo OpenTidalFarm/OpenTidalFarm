@@ -31,7 +31,7 @@ def default_config():
   config.params["theta"] = 0.6
   config.params["include_advection"] = True
   config.params["include_diffusion"] = True
-  config.params["diffusion_coef"] = 1.0
+  config.params["diffusion_coef"] = 100.0
   config.params["newton_solver"] = True 
   config.params['picard_iterations'] = 3 
 
@@ -77,7 +77,7 @@ def j(m):
   set_log_level(30)
   debugging["record_all"] = True
 
-  W=sw_lib.p1dgp2(config.mesh)
+  W = sw_lib.p2p1(config.mesh)
   state=Function(W)
   state.interpolate(config.get_sin_initial_condition()())
 

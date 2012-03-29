@@ -152,6 +152,13 @@ def sw_solve(W, config, ic, turbine_field=None, time_functional=None, annotate=T
     # To begin with, check if the provided parameters are valid
     params.check()
 
+    # Print out an estimation of the Reynolds number 
+    print "Expected Reynolds number is roughly (assumes velocity is 2): ",
+    if include_diffusion and diffusion_coef>0:
+      print params["turbine_x"]*2./diffusion_coef
+    else:
+      print "Infinity"
+
     # Define test functions
     (v, q) = TestFunctions(W)
 
