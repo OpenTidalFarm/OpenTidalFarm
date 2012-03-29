@@ -5,7 +5,7 @@
  - control: turbine friction, initially zero
  - the functional is \int C * f * ||u||**3 where C is a constant
  - in order to avoid the global maximum +oo, the friction coefficient is limited to 0 <= f <= 1.0 
- - the plot in 'example_single_turbine_friction_vs_power_plot' suggestes that the optimal friction coefficient is at about 0.066
+ - the plot in 'example_single_turbine_friction_vs_power_plot' suggestes that the optimal friction coefficient is at about 0.0204
  '''
 
 import sys
@@ -45,7 +45,7 @@ def default_config():
   config.params["friction"] = 0.0025
   config.params["turbine_pos"] = [[1500., 500.]]
   # The turbine friction is the control variable 
-  config.params["turbine_friction"] = numpy.zeros(len(config.params["turbine_pos"]))
+  config.params["turbine_friction"] = numpy.ones(len(config.params["turbine_pos"]))
   config.params["turbine_x"] = 600
   config.params["turbine_y"] = 600
 
@@ -59,6 +59,7 @@ def initial_control(config):
 def j_and_dj(m):
   adjointer.reset()
   adj_variables.__init__()
+
 
   # Change the control variables to the config parameters
   config.params["turbine_friction"] = m[:len(config.params["turbine_friction"])]
@@ -120,12 +121,12 @@ def j_and_dj(m):
 
 j_and_dj_mem = Memoize.MemoizeMutable(j_and_dj)
 def j(m):
-  j = j_and_dj_mem(m)[0] * 10**-10
+  j = j_and_dj_mem(m)[0] * 10**-6
   pprint('Evaluating j(', m.__repr__(), ')=', j)
   return j 
 
 def dj(m):
-  dj = j_and_dj_mem(m)[1] * 10**-10
+  dj = j_and_dj_mem(m)[1] * 10**-6
   # Return only the derivatives with respect to the friction
   dj = dj[:len(config.params['turbine_friction'])]
   pprint('Evaluating dj(', m.__repr__(), ')=', dj)
@@ -156,7 +157,7 @@ nlp = ipopt.problem(len(m0),
                     # Set the maximum friction value to 1.0 to enforce the local minimum at 0.122
                     1.0*numpy.ones(len(m0)))
 nlp.addOption('mu_strategy', 'adaptive')
-nlp.addOption('tol', 1e-7)
+nlp.addOption('tol', 1e-4)
 nlp.addOption('print_level', 5)
 nlp.addOption('check_derivatives_for_naninf', 'yes')
 # Add the internal scaling method so that the first derivtive is arount 1.0
@@ -165,6 +166,7 @@ nlp.addOption('check_derivatives_for_naninf', 'yes')
 nlp.addOption('obj_scaling_factor', -1.0)
 # Use an approximate Hessian since we do not have second order information.
 nlp.addOption('hessian_approximation', 'limited-memory')
+nlp.addOption('max_iter', 13)
 
 m, info = nlp.solve(m0)
 pprint(info['status_msg'])
@@ -172,6 +174,6 @@ pprint("Solution of the primal variables: m=%s\n" % repr(m))
 pprint("Solution of the dual variables: lambda=%s\n" % repr(info['mult_g']))
 pprint("Objective=%s\n" % repr(info['obj_val']))
 
-if info['status'] != 0 or abs(m-0.066) > 0.0005: 
-  pprint("The optimisation algorithm did not find the correct solution: Expected m = 0.066, but got m = " + str(m) + ".")
+if info['status'] != 0 or abs(m-0.0204) > 0.0005: 
+  pprint("The optimisation algorithm did not find the correct solution: Expected m = 0.0204, but got m = " + str(m) + ".")
   sys.exit(1) 
