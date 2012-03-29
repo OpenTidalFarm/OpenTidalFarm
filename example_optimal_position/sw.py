@@ -115,14 +115,14 @@ def j_and_dj(m):
 
 j_and_dj_mem = Memoize.MemoizeMutable(j_and_dj)
 def j(m):
-  j = j_and_dj_mem(m)[0]*10**-6
+  j = j_and_dj_mem(m)[0]*10**-5
   pprint('Evaluating j(', m.__repr__(), ')=', j)
   plot.addPoint(j) 
   plot.savefig("plot_functional.png")
   return j 
 
 def dj(m):
-  dj = j_and_dj_mem(m)[1]*10**-6
+  dj = j_and_dj_mem(m)[1]*10**-5
   pprint('Evaluating dj(', m.__repr__(), ')=', dj)
   # Return the derivatives with respect to the position only
   return dj[len(config.params['turbine_friction']):]

@@ -30,6 +30,8 @@ def default_config():
   config.params["finish_time"] = 4.*period/4 
   config.params["theta"] = 0.6
   config.params["include_advection"] = True
+  config.params["include_diffusion"] = True
+  config.params["diffusion_coef"] = 1.0
   config.params["newton_solver"] = True 
   config.params['picard_iterations'] = 3 
 
@@ -52,9 +54,9 @@ def default_config():
       config.params["turbine_pos"].append((float(x_r), float(y_r)))
 
   info_blue("Deployed " + str(len(config.params["turbine_pos"])) + " turbines.")
-  # Choosing a friction coefficient of 1.0 ensures that overlapping turbines will lead to
+  # Choosing a friction coefficient of > 0.02 ensures that overlapping turbines will lead to
   # less power output.
-  config.params["turbine_friction"] = numpy.ones(len(config.params["turbine_pos"]))
+  config.params["turbine_friction"] = 0.2*numpy.ones(len(config.params["turbine_pos"]))
   config.params["turbine_x"] = 200
   config.params["turbine_y"] = 200
 

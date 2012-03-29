@@ -250,6 +250,7 @@ def sw_solve(W, config, ic, turbine_field=None, time_functional=None, annotate=T
 
     if include_diffusion:
       D_mid = diffusion_coef*inner(grad(u_mid), grad(v))*dx
+      D_mid = diffusion_coef*inner(u_mid, v)*dx
 
     # Create the final form
     G_mid = C_mid + Ct_mid + R_mid 
