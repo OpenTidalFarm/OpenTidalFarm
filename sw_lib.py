@@ -249,8 +249,10 @@ def sw_solve(W, config, ic, turbine_field=None, time_functional=None, annotate=T
       Ad_mid = 1/depth * inner(grad(u_mid)*u_mid_nl, v)*dx
 
     if include_diffusion:
+      # Check that we are not using a DG velocity function space, as the facet integrals are not implemented.
+      if "Discontinuous" in str(W.split()[0]):
+        raise NotImplementedError, "The diffusion term for discontinuous elements is not implemented yet."
       D_mid = diffusion_coef*inner(grad(u_mid), grad(v))*dx
-      D_mid = diffusion_coef*inner(u_mid, v)*dx
 
     # Create the final form
     G_mid = C_mid + Ct_mid + R_mid 
