@@ -8,9 +8,9 @@ import numpy
 import Memoize
 from functionals import DefaultFunctional, build_turbine_cache
 from dolfin import *
-from dolfin_adjoint import *
 from sw_utils import test_initial_condition_adjoint, test_gradient_array
 from turbines import *
+from dolfin_adjoint import *
 
 def default_config():
   # We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
@@ -55,17 +55,17 @@ def j_and_dj(m):
   set_log_level(30)
   debugging["record_all"] = True
 
-  W=sw_lib.p1dgp2(config.mesh)
+  W = sw_lib.p1dgp2(config.mesh)
 
   # Get initial conditions
-  state=Function(W)
+  state = Function(W, name="Current_state")
   state.interpolate(config.get_sin_initial_condition()())
 
   # Set the control values
   U = W.split()[0].sub(0) # Extract the first component of the velocity function space 
   U = U.collapse() # Recompute the DOF map
-  tf = Function(U) # The turbine function
-  tfd = Function(U) # The derivative turbine function
+  tf = Function(U, name="friction") 
+  tfd = Function(U, name="friction_derivative") 
 
   # Set up the turbine friction field using the provided control variable
   tf.interpolate(Turbines(config.params))
@@ -81,7 +81,7 @@ def j_and_dj(m):
   # Because a turbine field is used, the first equation in the annotation is the initialisation
   # of this turbine field (the second equation will be the initial condition). Hence the adjoint 
   # is computed all the way back to equation 0.
-  adj_state = sw_lib.adjoint(state, config.params, J, until=1)
+  adj_state = sw_lib.adjoint(state, config.params, J, until={"name": "friction", "timestep": 0, "iteration": 0})
 
   # Let J be the functional, m the parameter and u the solution of the PDE equation F(u) = 0.
   # Then we have 
