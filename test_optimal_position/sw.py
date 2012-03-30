@@ -79,8 +79,7 @@ class BumpInitialConditions(Expression):
     return (3,)
 
 def j_and_dj(m):
-  adjointer.reset()
-  solving.adj_variables.__init__()
+  adj_reset()
 
   # Change the control variables to the config parameters
   config.params["turbine_pos"] = numpy.reshape(m, (-1, 2))

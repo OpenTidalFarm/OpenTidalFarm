@@ -26,7 +26,7 @@ def mini_model(A, M, state, params, time_functional=None, annotate=True):
     M_u_out, v_out, u_out_state=sw_lib.u_output_projector(state.function_space())
     M_p_out, q_out, p_out_state=sw_lib.p_output_projector(state.function_space())
 
-    tmpstate=Function(state.function_space())
+    tmpstate=Function(state.function_space(), name="Tmpstate")
 
     rhs = action(M, state)
     # Solve the mini model 
@@ -47,9 +47,6 @@ def mini_model(A, M, state, params, time_functional=None, annotate=True):
     p_out << p_out_state
 
     if time_functional is not None:
-      j = params["dt"]*assemble(time_functional.Jt(state)) 
-      djdm = params["dt"]*numpy.array([assemble(f) for f in time_functional.dJtdm(state)])
-      return j, djdm, state 
-    else: 
-      return state
-
+      j = 0.5*params["dt"]*assemble(time_functional.Jt(state)) 
+      djdm = 0.5*params["dt"]*numpy.array([assemble(f) for f in time_functional.dJtdm(state)])
+      return j, djdm

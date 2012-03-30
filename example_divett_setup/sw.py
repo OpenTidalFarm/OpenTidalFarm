@@ -31,9 +31,10 @@ def default_config():
   config.params["theta"] = 0.6
   config.params["include_advection"] = True
   config.params["include_diffusion"] = True
-  config.params["diffusion_coef"] = 100.0
+  config.params["diffusion_coef"] = 1.0
   config.params["newton_solver"] = True 
   config.params['picard_iterations'] = 3 
+  config.params['basename'] = "p2p1"
 
   set_log_level(DEBUG)
   #dolfin.parameters['optimize'] = True
@@ -68,8 +69,7 @@ def initial_control(config):
   return numpy.array(res)
 
 def j(m):
-  adjointer.reset()
-  solving.adj_variables.__init__()
+  adj_reset()
 
   # Change the control variables to the config parameters
   config.params["turbine_pos"] = numpy.reshape(m, (-1, 2))

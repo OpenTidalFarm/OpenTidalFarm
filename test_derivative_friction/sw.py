@@ -44,8 +44,7 @@ def initial_control(config):
   return numpy.array(res)
 
 def j_and_dj(m):
-  adjointer.reset()
-  solving.adj_variables.__init__()
+  adj_reset()
 
   # Change the control variables to the config parameters
   config.params["turbine_friction"] = m[:len(config.params["turbine_friction"])]

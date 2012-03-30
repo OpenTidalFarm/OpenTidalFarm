@@ -54,8 +54,7 @@ def initial_control(config):
   return numpy.array(res)
 
 def j_and_dj(m):
-  adjointer.reset()
-  solving.adj_variables.__init__()
+  adj_reset()
 
   # Change the control variables to the config parameters
   config.params["turbine_friction"] = m[:len(config.params["turbine_friction"])]
@@ -67,14 +66,14 @@ def j_and_dj(m):
   W=sw_lib.p1dgp2(config.mesh)
 
   # Set initial conditions
-  state=Function(W)
+  state=Function(W, name="current_state")
   state.interpolate(Constant((2.0, 0.0, 0.0)))
 
   # Set the control values
   U = W.split()[0].sub(0) # Extract the first component of the velocity function space 
   U = U.collapse() # Recompute the DOF map
-  tf = Function(U) # The turbine function
-  tfd = Function(U) # The derivative turbine function
+  tf = Function(U, name="turbine") # The turbine function
+  tfd = Function(U, name="turbine_derivative") # The derivative turbine function
 
   # Set up the turbine friction field using the provided control variable
   tf.interpolate(Turbines(config.params))
@@ -89,9 +88,10 @@ def j_and_dj(m):
   functional = DefaultFunctional(config.params, turbine_cache)
 
   # Solve the shallow water system
-  j, djdm, state = mini_model(A, M, state, config.params, functional)
-  J = TimeFunctional(functional.Jt(state), staticvariables = [turbine_cache["turbine_field"]])
-  adj_state = sw_lib.adjoint(state, config.params, J, until=1) # The first annotation is the idendity operator for the turbine field
+  j, djdm = mini_model(A, M, state, config.params, functional)
+  J = TimeFunctional(functional.Jt(state), static_variables = [turbine_cache["turbine_field"]], dt=config.params["dt"])
+  adj_html("forward.html", "forward")
+  adj_state = sw_lib.adjoint(state, config.params, J, until={"name": "turbine", "timestep": 0, "iteration": 0}) 
 
   # Let J be the functional, m the parameter and u the solution of the PDE equation F(u) = 0.
   # Then we have 
