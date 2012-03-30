@@ -2,6 +2,7 @@ import numpy
 import sw_lib
 import math
 from dolfin import *
+from dolfin_adjoint import *
 from math import log
 
 class Turbines(Expression):
