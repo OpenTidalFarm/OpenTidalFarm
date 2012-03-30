@@ -65,30 +65,30 @@ def j(m):
   set_log_level(30)
   debugging["record_all"] = True
 
-  W=sw_lib.p1dgp2(config.mesh)
+  W = sw_lib.p1dgp2(config.mesh)
 
   # Set initial conditions
-  state=Function(W)
+  state = Function(W, name = "current_state")
   state.interpolate(config.get_sin_initial_condition()())
 
   # Set the control values
   U = W.split()[0].sub(0) # Extract the first component of the velocity function space 
   U = U.collapse() # Recompute the DOF map
-  tf = Function(U) # The turbine function
-  tfd = Function(U) # The derivative turbine function
+  tf = Function(U, name = "turbine") # The turbine function
+  tfd = Function(U, name = "turbine_derivative") # The derivative turbine function
 
   # Set up the turbine friction field using the provided control variable
   tf.interpolate(Turbines(config.params))
 
   global count
-  count+=1
+  count += 1
   sw_lib.save_to_file_scalar(tf, "turbines_t=."+str(count)+".x")
 
   turbine_cache = build_turbine_cache(config.params, U, turbine_size_scaling=0.5)
   functional = DefaultFunctional(config.params, turbine_cache)
 
   # Solve the shallow water system
-  j, djdm, state = sw_lib.sw_solve(W, config, state, turbine_field=tf, time_functional=functional)
+  j, djdm = sw_lib.sw_solve(W, config, state, turbine_field = tf, time_functional = functional)
 
   return j
 
