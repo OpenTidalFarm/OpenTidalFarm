@@ -26,8 +26,12 @@ def mini_model(A, M, state, params, time_functional=None, annotate=True):
     M_u_out, v_out, u_out_state=sw_lib.u_output_projector(state.function_space())
     M_p_out, q_out, p_out_state=sw_lib.p_output_projector(state.function_space())
 
-    tmpstate=Function(state.function_space(), name="Tmpstate")
+    if time_functional is not None:
+      fac = 0.0
+      j = fac*0.5*params["dt"]*assemble(time_functional.Jt(state)) 
+      djdm = fac*0.5*params["dt"]*numpy.array([assemble(f) for f in time_functional.dJtdm(state)])
 
+    tmpstate=Function(state.function_space(), name="tmp_state")
     rhs = action(M, state)
     # Solve the mini model 
     solver_parameters = {"linear_solver": "cg", "preconditioner": "sor"}
@@ -46,7 +50,11 @@ def mini_model(A, M, state, params, time_functional=None, annotate=True):
     u_out << u_out_state
     p_out << p_out_state
 
+    # Bump timestep to shut up libadjoint.
+    adj_inc_timestep()
+
     if time_functional is not None:
-      j = 0.5*params["dt"]*assemble(time_functional.Jt(state)) 
-      djdm = 0.5*params["dt"]*numpy.array([assemble(f) for f in time_functional.dJtdm(state)])
+      j += 0.5*params["dt"]*assemble(time_functional.Jt(state)) 
+      djdm += 0.5*params["dt"]*numpy.array([assemble(f) for f in time_functional.dJtdm(state)])
+      print j, djdm
       return j, djdm

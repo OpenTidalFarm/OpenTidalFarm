@@ -144,10 +144,10 @@ def test_gradient_array(J, dJ, x, seed=0.01, perturbation_direction=None):
   # First-order Taylor remainders (not using adjoint)
   no_gradient = [abs(perturbed_j - j_direct) for perturbed_j in functional_values]
 
-  #pprint("The estimated derivative using a first order scheme is: ", [(functional_values[i] - j_direct)/(seed/(2**i)) for i in range(5)])n
-  pprint("Convergence orders for Taylor remainder without adjoint information (should all be 1): ", convergence_order(no_gradient))
-
   dj = dJ(x)
+  pprint("Gradient approximated with finite differences: ", [-no_gradient[i]/perturbations[i][0] for i in range(len(no_gradient))])
+  pprint("Gradient computed using the adjoint solution: ", dj)
+  pprint("Convergence orders for Taylor remainder without adjoint information (should all be 1): ", convergence_order(no_gradient))
 
   with_gradient = []
   for i in range(len(perturbations)):
