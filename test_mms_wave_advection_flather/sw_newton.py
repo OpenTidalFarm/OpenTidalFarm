@@ -10,8 +10,8 @@ myid = MPI.process_number()
 
 def error(config):
   W=sw_lib.p1dgp2(config.mesh)
-  initstate=Function(W)
-  initstate.interpolate(config.get_sin_initial_condition()())
+  state=Function(W)
+  state.interpolate(config.get_sin_initial_condition()())
   u_exact = "eta0*sqrt(g*depth) * cos(k*x[0]-sqrt(g*depth)*k*t)" # The analytical veclocity of the shallow water equations has been multiplied by depth to account for the change of variable (\tilde u = depth u) in this code.
   du_exact = "(- eta0*sqrt(g*depth) * sin(k*x[0]-sqrt(g*depth)*k*t) * k)"
   eta_exact = "eta0*cos(k*x[0]-sqrt(g*depth)*k*t)"
@@ -21,16 +21,16 @@ def error(config):
                              eta0=config.params["eta0"], g=config.params["g"], \
                              depth=config.params["depth"], t=config.params["current_time"], k=config.params["k"])
 
-  finalstate = sw_lib.sw_solve(W, config, initstate, annotate=False, u_source = source)
+  sw_lib.sw_solve(W, config, state, annotate=False, u_source = source)
 
   analytic_sol = Expression((u_exact, \
                              "0", \
                              eta_exact), \
                              eta0=config.params["eta0"], g=config.params["g"], \
                              depth=config.params["depth"], t=config.params["current_time"], k=config.params["k"])
-  exactstate=Function(W)
+  exactstate = Function(W)
   exactstate.interpolate(analytic_sol)
-  e = finalstate-exactstate
+  e = state - exactstate
   return sqrt(assemble(dot(e,e)*dx))
 
 def test(refinment_level):
@@ -61,27 +61,3 @@ if min(conv)<1.8:
 else:
   if myid == 0:
     print "Test passed"
-
-sys.exit()
-
-adj_html("sw_forward.html", "forward")
-adj_html("sw_adjoint.html", "adjoint")
-sw_lib.replay(state, config.params)
-
-J = Functional(dot(state, state)*dx)
-f_direct = assemble(dot(state, state)*dx)
-adj_state = sw_lib.adjoint(state, config.params, J)
-
-ic = Function(W)
-ic.interpolate(config.InitialConditions())
-def J(ic):
-  state = sw_lib.sw_solve(W, config, ic, annotate=False)
-  analytic_sol = Expression("eta0*cos(pi/3000*x[0]-sqrt(g/h)*pi/3000*t")
-  return assemble(dot(state, state)*dx)
-
-minconv = test_initial_condition(J, ic, adj_state, seed=0.001)
-if minconv < 1.9:
-  exit_code = 1
-else:
-  exit_code = 0
-sys.exit(exit_code)

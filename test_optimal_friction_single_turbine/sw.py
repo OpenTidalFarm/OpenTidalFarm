@@ -17,9 +17,9 @@ import ipopt
 import IPOptUtils
 from functionals import DefaultFunctional, build_turbine_cache
 from dolfin import *
-from dolfin_adjoint import *
 from sw_utils import test_initial_condition_adjoint, test_gradient_array, pprint
 from turbines import *
+from dolfin_adjoint import *
 
 # Global counter variable for vtk output
 count = 0
@@ -43,6 +43,7 @@ def default_config():
 
   # Turbine settings
   config.params["friction"] = 0.0025
+  #config.params["quadratic_friction"] = True
   config.params["turbine_pos"] = [[1500., 500.]]
   # The turbine friction is the control variable 
   config.params["turbine_friction"] = numpy.ones(len(config.params["turbine_pos"]))
@@ -58,7 +59,7 @@ def initial_control(config):
 
 def j_and_dj(m):
   adjointer.reset()
-  adj_variables.__init__()
+  solving.adj_variables.__init__()
 
 
   # Change the control variables to the config parameters
@@ -71,14 +72,14 @@ def j_and_dj(m):
   W=sw_lib.p1dgp2(config.mesh)
 
   # Set initial conditions
-  state=Function(W)
+  state = Function(W, name="Current_state")
   state.interpolate(config.get_sin_initial_condition()())
 
   # Set the control values
   U = W.split()[0].sub(0) # Extract the first component of the velocity function space 
   U = U.collapse() # Recompute the DOF map
-  tf = Function(U) # The turbine function
-  tfd = Function(U) # The derivative turbine function
+  tf = Function(U, name="turbine function") # The turbine function
+  tfd = Function(U, name="derivative of the turbine function") # The derivative turbine function
 
   # Set up the turbine friction field using the provided control variable
   tf.interpolate(Turbines(config.params))
@@ -91,8 +92,8 @@ def j_and_dj(m):
   functional = DefaultFunctional(config.params, turbine_cache)
 
   # Solve the shallow water system
-  j, djdm, state = sw_lib.sw_solve(W, config, state, turbine_field = tf, time_functional=functional)
-  J = TimeFunctional(functional.Jt(state), staticvariables = [turbine_cache["turbine_field"]])
+  j, djdm = sw_lib.sw_solve(W, config, state, turbine_field = tf, time_functional=functional)
+  J = TimeFunctional(functional.Jt(state), static_variables = [turbine_cache["turbine_field"]], dt=config.params["dt"])
   adj_state = sw_lib.adjoint(state, config.params, J, until=1) # The first annotation is the idendity operator for the turbine field
 
   # Let J be the functional, m the parameter and u the solution of the PDE equation F(u) = 0.

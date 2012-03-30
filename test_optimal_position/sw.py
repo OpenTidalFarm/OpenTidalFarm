@@ -34,7 +34,7 @@ def default_config():
   config.params["verbose"] = 0
 
   # dt is used in the functional only, so we set it here to 1.0
-  config.params["dt"] = 1.0
+  config.params["dt"] = 0.8
   # Turbine settings
   # The turbine position is the control variable 
   config.params["turbine_pos"] = [[500., 200.]]
@@ -80,7 +80,7 @@ class BumpInitialConditions(Expression):
 
 def j_and_dj(m):
   adjointer.reset()
-  adj_variables.__init__()
+  solving.adj_variables.__init__()
 
   # Change the control variables to the config parameters
   config.params["turbine_pos"] = numpy.reshape(m, (-1, 2))
@@ -112,7 +112,7 @@ def j_and_dj(m):
 
   # Solve the shallow water system
   j, djdm, state = mini_model(A, M, state, config.params, functional)
-  J = TimeFunctional(functional.Jt(state), staticvariables = [turbine_cache["turbine_field"]])
+  J = TimeFunctional(functional.Jt(state), staticvariables = [turbine_cache["turbine_field"]], dt=config.params["dt"])
   adj_state = sw_lib.adjoint(state, config.params, J, until=1) # The first annotation is the idendity operator for the turbine field
 
   # Let J be the functional, m the parameter and u the solution of the PDE equation F(u) = 0.
@@ -141,13 +141,13 @@ def j_and_dj(m):
 
 j_and_dj_mem = Memoize.MemoizeMutable(j_and_dj)
 def j(m):
-  j = j_and_dj_mem(m)[0]*10
+  j = j_and_dj_mem(m)[0]*10**4
   info_green('Evaluating j(' + m.__repr__() + ')=' + str(j))
   plot.addPoint(j) 
   return j 
 
 def dj(m):
-  dj = j_and_dj_mem(m)[1]*10
+  dj = j_and_dj_mem(m)[1]*10**4
   info_green('Evaluating dj(' + m.__repr__() + ')=' + str(dj))
   # Return the derivatives with respect to the position only
   return dj[len(config.params['turbine_friction']):]
@@ -157,7 +157,7 @@ m0 = initial_control(config)
 
 p = numpy.random.rand(len(m0))
 minconv = test_gradient_array(j, dj, m0, seed=0.001, perturbation_direction=p)
-if minconv < 1.98:
+if minconv < 1.9:
   print "The gradient taylor remainder test failed."
   sys.exit(1)
 

@@ -33,9 +33,9 @@ config.params["turbine_x"] = 400
 config.params["turbine_y"] = 400
 config.params["turbine_model"] = 'ConstantTurbine'
 
-W=sw_lib.p1dgp2(config.mesh)
-
-state=Function(W)
+# Setup the model and run it so that the annotation exists.
+W = sw_lib.p1dgp2(config.mesh)
+state = Function(W, name="Current_state")
 state.interpolate(config.get_sin_initial_condition()())
 
 # Extract the first dimension of the velocity function space 
@@ -46,22 +46,24 @@ tf.interpolate(Turbines(config.params))
 
 turbine_cache = build_turbine_cache(config.params, U)
 functional = DefaultFunctional(config.params, turbine_cache) 
-myj, djdm, state = sw_lib.sw_solve(W, config, state, time_functional=functional)
+sw_lib.sw_solve(W, config, state, time_functional=functional)
 
-sw_lib.replay(state, config.params)
+# Check the replay
+sw_lib.replay(config.params)
 
-J = TimeFunctional(functional.Jt(state), staticvariables = [turbine_cache["turbine_field"]])
+# Run the adjoint model 
+J = TimeFunctional(functional.Jt(state), static_variables = [turbine_cache["turbine_field"]], dt=config.params["dt"])
 # Because no turbine field is used, the first equation in the annotation is the initialisation
 # of the initial condition, hence the adjoint is computed all the way back to equation 0.
-adj_state = sw_lib.adjoint(state, config.params, J, until = 0)
+adj_state = sw_lib.adjoint(state, config.params, J, until = {"name": "Current_state", "timestep": 0, "iteration": 0})
 
-ic = Function(W)
-ic.interpolate(config.get_sin_initial_condition()())
-def J(ic):
-  j, djdm, state = sw_lib.sw_solve(W, config, ic, time_functional=functional, annotate=False)
+# And finally check the computed gradient with the taylor test
+def J(state):
+  j, djdm = sw_lib.sw_solve(W, config, state, time_functional=functional, annotate=False)
   return j
 
-minconv = test_initial_condition_adjoint(J, ic, adj_state, seed=0.0001)
+state.interpolate(config.get_sin_initial_condition()())
+minconv = test_initial_condition_adjoint(J, state, adj_state, seed=0.0001)
 if minconv < 1.9:
   exit_code = 1
 else:

@@ -10,8 +10,8 @@ myid = MPI.process_number()
 
 def error(config):
   W=sw_lib.p1dgp2(config.mesh)
-  initstate=Function(W)
-  initstate.interpolate(config.get_sin_initial_condition()())
+  state=Function(W)
+  state.interpolate(config.get_sin_initial_condition()())
   u_exact = "eta0*sqrt(g*depth) * cos(k*x[0]-sqrt(g*depth)*k*t)" # The analytical veclocity of the shallow water equations has been multiplied by depth to account for the change of variable (\tilde u = depth u) in this code.
   du_exact = "(- eta0*sqrt(g*depth) * sin(k*x[0]-sqrt(g*depth)*k*t) * k)"
   eta_exact = "eta0*cos(k*x[0]-sqrt(g*depth)*k*t)"
@@ -21,16 +21,16 @@ def error(config):
                        eta0=config.params["eta0"], g=config.params["g"], \
                        depth=config.params["depth"], t=config.params["current_time"], k=config.params["k"], friction = config.params["friction"])
 
-  finalstate = sw_lib.sw_solve(W, config, initstate, annotate=False, u_source = source)
+  sw_lib.sw_solve(W, config, state, annotate=False, u_source = source)
 
   analytic_sol = Expression((u_exact, \
                              "0", \
                              eta_exact), \
                              eta0=config.params["eta0"], g=config.params["g"], \
                              depth=config.params["depth"], t=config.params["current_time"], k=config.params["k"])
-  exactstate=Function(W)
+  exactstate = Function(W)
   exactstate.interpolate(analytic_sol)
-  e = finalstate-exactstate
+  e = state - exactstate
   return sqrt(assemble(dot(e,e)*dx))
 
 def test(refinment_level):

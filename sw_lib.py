@@ -1,5 +1,6 @@
 from dolfin import *
 from dolfin_adjoint import *
+import libadjoint
 import numpy
 import sys
 
@@ -124,7 +125,7 @@ def save_to_file(function, basename):
     u_out << u_out_func
     p_out << p_out_func
 
-def sw_solve(W, config, ic, turbine_field=None, time_functional=None, annotate=True, linear_solver="default", preconditioner="default", u_source = None):
+def sw_solve(W, config, state, turbine_field=None, time_functional=None, annotate=True, linear_solver="default", preconditioner="default", u_source = None):
     '''Solve the shallow water equations with the parameters specified in params.
        Options for linear_solver and preconditioner are: 
         linear_solver: lu, cholesky, cg, gmres, bicgstab, minres, tfqmr, richardson
@@ -149,6 +150,7 @@ def sw_solve(W, config, ic, turbine_field=None, time_functional=None, annotate=T
     newton_solver = params["newton_solver"] 
     picard_iterations = params["picard_iterations"]
     solver_benchmark = params["solver_benchmark"]
+    is_nonlinear = (include_advection or quadratic_friction)
 
     # To begin with, check if the provided parameters are valid
     params.check()
@@ -164,27 +166,29 @@ def sw_solve(W, config, ic, turbine_field=None, time_functional=None, annotate=T
     (v, q) = TestFunctions(W)
 
     # Define functions
-    state = Function(W) # current solution
-    state0  = Function(W)  # solution from previous converged step
-    state_nl  = Function(W)  # the last computed state used for picard iteration
+    state_new = Function(W, name="New_state")  # solution of the next timestep 
+    state_nl = Function(W, name="Best_guess_state")  # the last computed state of the next timestep, used for the picard iteration
 
     # Split mixed functions
-    if (include_advection or quadratic_friction) and newton_solver:
-      u, h = split(state) 
+    if is_nonlinear and newton_solver:
+      u, h = split(state_new) 
     else:
       (u, h) = TrialFunctions(W) 
-    u0, h0 = split(state0)
+    u0, h0 = split(state)
     u_nl, h_nl = split(state_nl)
 
     # Create initial conditions and interpolate
-    state.assign(ic, annotate=False)
-    state0.assign(ic, annotate=False)
-    state_nl.assign(ic, annotate=False)
+    state_new.assign(state, annotate=annotate)
 
     # u_(n+theta) and h_(n+theta)
     u_mid = (1.0-theta)*u0 + theta*u
     h_mid = (1.0-theta)*h0 + theta*h
-    u_mid_nl = (1.0-theta)*u0 + theta*u_nl
+
+    # If a picard iteration is used we need an intermediate state 
+    if is_nonlinear and not newton_solver:
+      u_nl, h_nl = split(state_nl)
+      state_nl.assign(state, annotate=annotate)
+      u_mid_nl = (1.0-theta)*u0 + theta*u_nl
 
     # The normal direction
     n = FacetNormal(W.mesh())
@@ -284,30 +288,27 @@ def sw_solve(W, config, ic, turbine_field=None, time_functional=None, annotate=T
           info_green("Computing the LU factorisation for later use ...")
           lu_solver = LUSolver(lhs_preass)
           lu_solver.parameters["reuse_factorization"] = True
-          info_green("deon")
 
     ############################### Perform the simulation ###########################
 
     u_out, p_out = output_files(params["basename"])
-
     M_u_out, v_out, u_out_state = u_output_projector(state.function_space())
-
     M_p_out, q_out, p_out_state = p_output_projector(state.function_space())
 
     # Project the solution to P1 for visualisation.
     rhs = assemble(inner(v_out, state.split()[0])*dx)
     solve(M_u_out, u_out_state.vector(), rhs, "cg", "sor", annotate=False) 
-    
-    # Project the solution to P1 for visualisation.
     rhs = assemble(inner(q_out, state.split()[1])*dx)
     solve(M_p_out, p_out_state.vector(), rhs, "cg", "sor", annotate=False) 
-    
     u_out << u_out_state
     p_out << p_out_state
     
     step = 0    
-    j = 0
-    djdm = None 
+
+    if time_functional is not None:
+      quad = 0.5
+      j =  dt * quad * assemble(time_functional.Jt(state)) 
+      djdm = dt * quad * numpy.array([assemble(f) for f in time_functional.dJtdm(state)])
 
     while (t < params["finish_time"]):
         t += dt
@@ -317,10 +318,6 @@ def sw_solve(W, config, ic, turbine_field=None, time_functional=None, annotate=T
         if u_source:
           u_source.t = t-(1.0-theta)*dt  # Update time for the source term
         step+=1
-
-        state0.assign(state, annotate=annotate)
-        
-        # Solve the shallow water equations.
 
         ## Set parameters for the solvers. Note: These options are ignored if use_lu_solver == True
         if solver_benchmark:
@@ -353,36 +350,33 @@ def sw_solve(W, config, ic, turbine_field=None, time_functional=None, annotate=T
             timer.start()
 
           # Solve non-linear system with a Newton sovler
-          if (quadratic_friction or include_advection) and newton_solver:
+          if is_nonlinear and newton_solver:
             # Use a Newton solver to solve the nonlinear problem.
-            if use_lu_solver:
-              info_red("LU solver with quadratic_friction currently not supported. Using iterative solver instead...")
-
             solver_parameters["newton_solver"] = {}
             solver_parameters["newton_solver"]["convergence_criterion"] = "incremental"
             solver_parameters["newton_solver"]["relative_tolerance"] = 1e-16
-            solve(F == 0, state, solver_parameters=solver_parameters, annotate=annotate)
+            solve(F == 0, state_new, solver_parameters=solver_parameters, annotate=annotate)
 
           # Solve non-linear system with a Picard iteration
-          elif quadratic_friction or include_advection:
+          elif is_nonlinear:
             # Solve the problem using a picard iteration
             for i in range(picard_iterations):
-              state_nl.assign(state, annotate=annotate)
-              solve(dolfin.lhs(F) == dolfin.rhs(F), state, solver_parameters=solver_parameters, annotate=annotate)
+              solve(dolfin.lhs(F) == dolfin.rhs(F), state_new, solver_parameters=solver_parameters, annotate=annotate)
               if i > 0:
-                diff = abs(assemble( inner(state-state_nl, state-state_nl) * dx ))
+                diff = abs(assemble( inner(state_new-state_nl, state_new-state_nl) * dx ))
                 dolfin.info_blue("Picard iteration difference at iteration " + str(i+1) + " is " + str(diff) + ".")
+              state_nl.assign(state_new)
 
           # Solve linear system with preassembled matrices 
           else:
-              state_nl.assign(state, annotate=annotate)
               rhs_preass = assemble(dolfin.rhs(F))
               if use_lu_solver:
                 info_green("Using a LU solver to solve the linear system.")
                 lu_solver.solve(state.vector(), rhs_preass, annotate=annotate)
               else:
                 try:
-                  solve(lhs_preass, state.vector(), rhs_preass, solver_parameters["linear_solver"], solver_parameters["preconditioner"], annotate=annotate)
+                  state_tmp = Function(state.function_space(), name="TempState")
+                  solve(lhs_preass, state_new.vector(), rhs_preass, solver_parameters["linear_solver"], solver_parameters["preconditioner"], annotate=annotate)
                 except RuntimeError as e:
                   if solver_benchmark:
                     solver_failed = True
@@ -398,6 +392,9 @@ def sw_solve(W, config, ic, turbine_field=None, time_functional=None, annotate=T
               info_green(solver_parameters["linear_solver"] + ", " + solver_parameters["preconditioner"] + ": " + str(timer.value()) + "s")
             if not solver_failed:
               solver_benchmark_results[timer.value()] = solver_parameters 
+
+        # After the timestep solve, update state
+        state.assign(state_new)
 
         # Let's analyse the result of the benchmark test:
         if solver_benchmark:
@@ -416,8 +413,6 @@ def sw_solve(W, config, ic, turbine_field=None, time_functional=None, annotate=T
             # Project the solution to P1 for visualisation.
             rhs=assemble(inner(v_out,state.split()[0])*dx)
             solve(M_u_out, u_out_state.vector(), rhs, "cg", "sor", annotate=False) 
-
-            # Project the solution to P1 for visualisation.
             rhs=assemble(inner(q_out,state.split()[1])*dx)
             solve(M_p_out, p_out_state.vector(), rhs, "cg", "sor", annotate=False) 
             
@@ -425,22 +420,21 @@ def sw_solve(W, config, ic, turbine_field=None, time_functional=None, annotate=T
             p_out << p_out_state
 
         if time_functional is not None:
-          j += assemble(time_functional.Jt(state)) 
-          djtdm = numpy.array([assemble(f) for f in time_functional.dJtdm(state)])
-          if djdm == None:
-            djdm = djtdm
+          if t >= params["finish_time"]:
+            quad = 0.5
           else:
-            djdm += djtdm
+            quad = 1.0
+          j += dt * quad * assemble(time_functional.Jt(state)) 
+          djtdm = numpy.array([assemble(f) for f in time_functional.dJtdm(state)])
+          djdm += dt * quad * djtdm
 
         # Increase the adjoint timestep
         adj_inc_timestep()
 
     if time_functional is not None:
-      return j, djdm, state # return the state at the final time
-    else: 
-      return state
+      return j, djdm # return the state at the final time
 
-def replay(state,params):
+def replay(params):
 
     myid = MPI.process_number()
     if myid == 0 and params["verbose"] > 0:
@@ -455,7 +449,7 @@ def replay(state,params):
 
         adjointer.record_variable(fwd_var, s)
 
-def adjoint(state, params, functional, until=0):
+def adjoint(state, params, functional, until=None):
     ''' Runs the adjoint model with the provided functional and returns the adjoint solution 
         of the last adjoint solve. The optional until parameter must be an integer that specified,
         up to which equation the adjoint model is to be solved.''' 
@@ -464,10 +458,13 @@ def adjoint(state, params, functional, until=0):
     if myid == 0 and params["verbose"] > 0:
       print "Running adjoint"
 
-    for i in range(until, adjointer.equation_count)[::-1]:
+    for i in range(adjointer.equation_count)[::-1]:
         if myid == 0 and params["verbose"] > 2:
           print "  solving adjoint equation ", i
         (adj_var, output) = adjointer.get_adjoint_solution(i, functional)
+        if until != None:
+          if adj_var.name == until["name"] and adj_var.timestep == until["timestep"] and adj_var.iteration == until["iteration"]:
+            break
 
         s=libadjoint.MemoryStorage(output)
         adjointer.record_variable(adj_var, s)

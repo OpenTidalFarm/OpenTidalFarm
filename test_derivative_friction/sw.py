@@ -18,14 +18,14 @@ def default_config():
   config = sw_config.DefaultConfiguration(nx=30, ny=15)
   period = 1.24*60*60 # Wave period
   config.params["k"] = 2*pi/(period*sqrt(config.params["g"]*config.params["depth"]))
+
+  # Start at rest state
+  config.params["start_time"] = period/4 
   config.params["finish_time"] = 2./4*period
   config.params["dt"] = config.params["finish_time"]/5
   print "Wave period (in h): ", period/60/60 
   config.params["dump_period"] = 1000
   config.params["verbose"] = 0
-
-  # Start at rest state
-  config.params["start_time"] = period/4 
 
   # Turbine settings
   config.params["friction"] = 0.0025
@@ -45,7 +45,7 @@ def initial_control(config):
 
 def j_and_dj(m):
   adjointer.reset()
-  adj_variables.__init__()
+  solving.adj_variables.__init__()
 
   # Change the control variables to the config parameters
   config.params["turbine_friction"] = m[:len(config.params["turbine_friction"])]
@@ -76,12 +76,12 @@ def j_and_dj(m):
   functional = DefaultFunctional(config.params, turbine_cache)
 
   # Solve the shallow water system
-  j, djdm, state = sw_lib.sw_solve(W, config, state, time_functional=functional, turbine_field = tf)
-  J = TimeFunctional(functional.Jt(state), staticvariables = [turbine_cache["turbine_field"]])
+  j, djdm = sw_lib.sw_solve(W, config, state, time_functional=functional, turbine_field = tf)
+  J = TimeFunctional(functional.Jt(state), static_variables = [turbine_cache["turbine_field"]], dt = config.params["dt"])
   # Because a turbine field is used, the first equation in the annotation is the initialisation
   # of this turbine field (the second equation will be the initial condition). Hence the adjoint 
   # is computed all the way back to equation 0.
-  adj_state = sw_lib.adjoint(state, config.params, J, until=0)
+  adj_state = sw_lib.adjoint(state, config.params, J, until=1)
 
   # Let J be the functional, m the parameter and u the solution of the PDE equation F(u) = 0.
   # Then we have 

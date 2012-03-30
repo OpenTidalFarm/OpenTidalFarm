@@ -33,7 +33,7 @@ class DefaultFunctional(FunctionalPrototype):
     self.params = sw_lib.parameters(dict(params))
 
   def expr(self, state, turbines):
-    return self.params["dt"]*turbines*0.5*(dot(state[0], state[0]) + dot(state[1], state[1]))**1.5*dx
+    return turbines*0.5*(dot(state[0], state[0]) + dot(state[1], state[1]))**1.5*dx
 
   def Jt(self, state):
     return self.expr(state, self.turbine_cache['turbine_field']) 

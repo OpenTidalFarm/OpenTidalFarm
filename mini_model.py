@@ -47,8 +47,8 @@ def mini_model(A, M, state, params, time_functional=None, annotate=True):
     p_out << p_out_state
 
     if time_functional is not None:
-      j = assemble(time_functional.Jt(state)) 
-      djdm = numpy.array([assemble(f) for f in time_functional.dJtdm(state)])
+      j = params["dt"]*assemble(time_functional.Jt(state)) 
+      djdm = params["dt"]*numpy.array([assemble(f) for f in time_functional.dJtdm(state)])
       return j, djdm, state 
     else: 
       return state
