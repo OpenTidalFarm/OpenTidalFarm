@@ -1,3 +1,8 @@
+''' This test checks the correct implemetation of the turbine derivative terms.
+    For that, we apply the Taylor remainder test on functional J(u, m) = <turbine_friction(m), turbine_friction(m)>,
+    where m contains the turbine positions and the friction magnitude. 
+'''
+
 import sys
 import sw_config 
 import sw_lib
@@ -40,14 +45,14 @@ def j_and_dj(m):
   W=sw_lib.p1dgp2(config.mesh)
 
   # Get initial conditions
-  state=Function(W)
+  state=Function(W, name = "current_state")
   state.interpolate(config.get_sin_initial_condition()())
 
   # Set the control values
   U = W.split()[0].sub(0) # Extract the first component of the velocity function space 
   U = U.collapse() # Recompute the DOF map
-  tf = Function(U) # The turbine function
-  tfd = Function(U) # The derivative turbine function
+  tf = Function(U, name = "turbine") # The turbine function
+  tfd = Function(U, name = "turbine_derivative") # The derivative turbine function
 
   # Set up the turbine friction field using the provided control variable
   tf.interpolate(Turbines(config.params))
