@@ -42,7 +42,7 @@ def default_config():
   config.params["friction"] = 0.0025
   config.params["turbine_pos"] = [[1500., 500.]]
   # The turbine friction is the control variable 
-  config.params["turbine_friction"] = 12.0*numpy.ones(len(config.params["turbine_pos"]))
+  config.params["turbine_friction"] = numpy.ones(len(config.params["turbine_pos"]))
   config.params["turbine_x"] = 600
   config.params["turbine_y"] = 600
   config.params["newton_solver"] = False 
@@ -96,7 +96,7 @@ config = default_config()
 
 # Generate the friction values of interest
 m0 = initial_control(config)
-f = [0.00025*m0*i**2 for i in range(25)]
+f = [m0*i for i in numpy.linspace(0., 1., 40)]
 info_green("Tested friction coefficients: " + str([fx[0] for fx in f]))
 
 # Produce the power values for linear friction
