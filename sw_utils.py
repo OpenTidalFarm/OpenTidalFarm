@@ -146,6 +146,7 @@ def test_gradient_array(J, dJ, x, seed=0.01, perturbation_direction=None):
   no_gradient = [abs(perturbed_j - j_direct) for perturbed_j in functional_values]
 
   dj = dJ(x)
+  pprint("Absolute functional evaluation differences: ", no_gradient)
   pprint("Gradient approximated with finite differences: ", [(functional_values[i] - j_direct)/perturbations[i] for i in range(len(no_gradient))])
   pprint("Gradient computed using the adjoint solution: ", dj)
   pprint("Convergence orders for Taylor remainder without adjoint information (should all be 1): ", convergence_order(no_gradient))
