@@ -27,6 +27,8 @@ def default_config():
   config = sw_config.DefaultConfiguration(nx=20, ny=10)
   period = 1.24*60*60 # Wave period
   config.params["k"] = 2*pi/(period*sqrt(config.params["g"]*config.params["depth"]))
+  # Start at rest state
+  config.params["start_time"] = period/4 
   config.params["finish_time"] = period/2
   config.params["dt"] = config.params["finish_time"]/10
   pprint("Wave period (in h): ", period/60/60)
@@ -35,9 +37,6 @@ def default_config():
   # We need a implicit scheme to avoid oscillations in the turbine areas.
   config.params["theta"] = 1.0
 
-  # Start at rest state
-  config.params["start_time"] = period/4 
-
   # Turbine settings
   config.params["friction"] = 0.0025
   config.params["turbine_pos"] = [[1500., 500.]]
@@ -45,7 +44,7 @@ def default_config():
   config.params["turbine_friction"] = numpy.ones(len(config.params["turbine_pos"]))
   config.params["turbine_x"] = 600
   config.params["turbine_y"] = 600
-  config.params["newton_solver"] = False 
+  # Solver options
   config.params["picard_iterations"] = 4
 
   return config
@@ -96,7 +95,7 @@ config = default_config()
 
 # Generate the friction values of interest
 m0 = initial_control(config)
-f = [m0*i for i in numpy.linspace(0., 1., 40)]
+f = [m0*i for i in numpy.linspace(0., 0.1, 20)]
 info_green("Tested friction coefficients: " + str([fx[0] for fx in f]))
 
 # Produce the power values for linear friction
@@ -116,12 +115,14 @@ for fr in f:
 if MPI.process_number() == 0:
   plt.figure(1)
   plt.plot(f, P)
+  info_green("Linear friction: The maximum functional value of " + str(max(P)) + " is achieved with a friction coefficient of " + str(f[numpy.argmax(P)]) + ".")
   plt.title('Power output of a single turbine with linear friction.')
   plt.ylabel('Power output')
   plt.xlabel('Linear friction coefficient')
 
   plt.figure(2)
   plt.plot(f, P_quad)
+  info_green("Quadratic friction: The maximum functional value of " + str(max(P_quad)) + " is achieved with a friction coefficient of " + str(f[numpy.argmax(P_quad)]) + ".")
   plt.title('Power output of a single turbine with quadratic friction.')
   plt.ylabel('Power output')
   plt.xlabel('Quadratic friction coefficient')
