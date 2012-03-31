@@ -5,7 +5,7 @@
  - control: turbine friction, initially zero
  - the functional is \int C * f * ||u||**3 where C is a constant
  - in order to avoid the global maximum +oo, the friction coefficient is limited to 0 <= f <= 1.0 
- - the plot in 'example_single_turbine_friction_vs_power_plot' suggestes that the optimal friction coefficient is at about 0.0204
+ - the plot in 'example_single_turbine_friction_vs_power_plot' suggestes that the optimal friction coefficient is at about 0.036
  '''
 
 import sys
@@ -30,6 +30,8 @@ def default_config():
   config = sw_config.DefaultConfiguration(nx=20, ny=10)
   period = 1.24*60*60 # Wave period
   config.params["k"] = 2*pi/(period*sqrt(config.params["g"]*config.params["depth"]))
+  # Start at rest state
+  config.params["start_time"] = period/4 
   config.params["finish_time"] = period/2
   config.params["dt"] = config.params["finish_time"]/10
   pprint("Wave period (in h): ", period/60/60)
@@ -38,17 +40,16 @@ def default_config():
   # We need a implicit scheme to avoid oscillations in the turbine areas.
   config.params["theta"] = 1.0
 
-  # Start at rest state
-  config.params["start_time"] = period/4 
-
   # Turbine settings
   config.params["friction"] = 0.0025
-  #config.params["quadratic_friction"] = True
   config.params["turbine_pos"] = [[1500., 500.]]
   # The turbine friction is the control variable 
   config.params["turbine_friction"] = numpy.ones(len(config.params["turbine_pos"]))
   config.params["turbine_x"] = 600
   config.params["turbine_y"] = 600
+  # Solver options
+  config.params["quadratic_friction"] = True
+  config.params["picard_iterations"] = 4
 
   return config
 
@@ -60,7 +61,6 @@ def initial_control(config):
 def j_and_dj(m):
   adj_reset()
 
-
   # Change the control variables to the config parameters
   config.params["turbine_friction"] = m[:len(config.params["turbine_friction"])]
   mp = m[len(config.params["turbine_friction"]):]
@@ -68,23 +68,23 @@ def j_and_dj(m):
   set_log_level(30)
   debugging["record_all"] = True
 
-  W=sw_lib.p1dgp2(config.mesh)
+  W = sw_lib.p1dgp2(config.mesh)
 
   # Set initial conditions
-  state = Function(W, name="current_state")
+  state = Function(W, name = "current_state")
   state.interpolate(config.get_sin_initial_condition()())
 
   # Set the control values
   U = W.split()[0].sub(0) # Extract the first component of the velocity function space 
   U = U.collapse() # Recompute the DOF map
-  tf = Function(U, name="turbine") # The turbine function
-  tfd = Function(U, name="turbine_derivative") # The derivative turbine function
+  tf = Function(U, name = "turbine") # The turbine function
+  tfd = Function(U, name = "turbine_derivative") # The derivative turbine function
 
   # Set up the turbine friction field using the provided control variable
   tf.interpolate(Turbines(config.params))
 
   global count
-  count+=1
+  count += 1
   sw_lib.save_to_file_scalar(tf, "turbines_t=."+str(count)+".x")
 
   turbine_cache = build_turbine_cache(config.params, U, turbine_size_scaling=0.5)
@@ -121,12 +121,12 @@ def j_and_dj(m):
 
 j_and_dj_mem = Memoize.MemoizeMutable(j_and_dj)
 def j(m):
-  j = j_and_dj_mem(m)[0] * 10**-6
+  j = j_and_dj_mem(m)[0] * 10**-9
   pprint('Evaluating j(', m.__repr__(), ')=', j)
   return j 
 
 def dj(m):
-  dj = j_and_dj_mem(m)[1] * 10**-6
+  dj = j_and_dj_mem(m)[1] * 10**-9
   # Return only the derivatives with respect to the friction
   dj = dj[:len(config.params['turbine_friction'])]
   pprint('Evaluating dj(', m.__repr__(), ')=', dj)
@@ -136,7 +136,8 @@ config = default_config()
 m0 = initial_control(config)
 
 p = numpy.random.rand(len(m0))
-minconv = test_gradient_array(j, dj, m0, seed=0.0001, perturbation_direction=p)
+# Note: we choose 0.2*m0 here, because at m0 the problem is almost linear and hence the taylor convergence test will not work.
+minconv = test_gradient_array(j, dj, 0.04*m0, seed=0.001, perturbation_direction=p)
 if minconv < 1.98:
   pprint("The gradient taylor remainder test failed.")
   sys.exit(1)
@@ -166,7 +167,7 @@ nlp.addOption('check_derivatives_for_naninf', 'yes')
 nlp.addOption('obj_scaling_factor', -1.0)
 # Use an approximate Hessian since we do not have second order information.
 nlp.addOption('hessian_approximation', 'limited-memory')
-nlp.addOption('max_iter', 13)
+nlp.addOption('max_iter', 20)
 
 m, info = nlp.solve(m0)
 pprint(info['status_msg'])
@@ -174,6 +175,6 @@ pprint("Solution of the primal variables: m=%s\n" % repr(m))
 pprint("Solution of the dual variables: lambda=%s\n" % repr(info['mult_g']))
 pprint("Objective=%s\n" % repr(info['obj_val']))
 
-if info['status'] != 0 or abs(m-0.0204) > 0.0005: 
-  pprint("The optimisation algorithm did not find the correct solution: Expected m = 0.0204, but got m = " + str(m) + ".")
+if info['status'] != 0 or abs(m-0.036) > 0.0005: 
+  pprint("The optimisation algorithm did not find the correct solution: Expected m = 0.036, but got m = " + str(m) + ".")
   sys.exit(1) 
