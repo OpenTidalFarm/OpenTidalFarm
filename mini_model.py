@@ -35,7 +35,7 @@ def mini_model(A, M, state, params, time_functional=None, annotate=True):
     rhs = action(M, state)
     # Solve the mini model 
     solver_parameters = {"linear_solver": "cg", "preconditioner": "sor"}
-    solve(A==rhs, tmpstate, solver_parameters=solver_parameters, annotate=annotate)
+    solve(A==rhs, tmpstate, solver_parameters=solver_parameters, annotate = annotate)
 
     state.assign(tmpstate, annotate=annotate)
 

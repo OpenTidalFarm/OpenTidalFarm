@@ -32,9 +32,10 @@ def default_config():
   config.params["include_advection"] = True
   config.params["include_diffusion"] = True
   config.params["diffusion_coef"] = 1.0
-  config.params["newton_solver"] = True 
+  config.params["newton_solver"] = False
   config.params['picard_iterations'] = 3 
   config.params['basename'] = "p2p1"
+  config.params["run_benchmark"] = True
 
   set_log_level(DEBUG)
   #dolfin.parameters['optimize'] = True
