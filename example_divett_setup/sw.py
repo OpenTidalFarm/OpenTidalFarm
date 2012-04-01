@@ -37,7 +37,8 @@ def default_config():
   config.params['basename'] = "p2p1"
   config.params["run_benchmark"] = True
 
-  set_log_level(DEBUG)
+  #set_log_level(DEBUG)
+  set_log_level(20)
   #dolfin.parameters['optimize'] = True
   #dolfin.parameters['optimize_use_dofmap_cache'] = True
   #dolfin.parameters['optimize_use_tensor_cache'] = True
