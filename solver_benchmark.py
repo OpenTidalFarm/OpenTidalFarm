@@ -4,10 +4,6 @@ def solver_parameters(solver_exclude, preconditioner_exclude):
     linear_solver_set = ["lu", "gmres", "bicgstab", "minres", "tfqmr", "richardson"]
     preconditioner_set =["none", "ilu", "icc", "jacobi", "bjacobi", "sor", "amg", "additive_schwarz", "hypre_amg", "hypre_euclid", "hypre_parasails"]
 
-    from IPython.Shell import IPShellEmbed
-    ipshell = IPShellEmbed()
-    ipshell()
-
     solver_parameters_set = []
     for l in linear_solver_set:
         if l in solver_exclude:

@@ -151,6 +151,7 @@ def sw_solve(W, config, state, turbine_field=None, time_functional=None, annotat
     newton_solver = params["newton_solver"] 
     picard_iterations = params["picard_iterations"]
     run_benchmark = params["run_benchmark"]
+    solver_exclude = params["solver_exclude"]
     is_nonlinear = (include_advection or quadratic_friction)
 
     # To begin with, check if the provided parameters are valid
@@ -329,13 +330,13 @@ def sw_solve(W, config, state, turbine_field=None, time_functional=None, annotat
           solver_parameters["newton_solver"] = {}
           solver_parameters["newton_solver"]["convergence_criterion"] = "incremental"
           solver_parameters["newton_solver"]["relative_tolerance"] = 1e-16
-          solver_benchmark.solve(F == 0, state_new, solver_parameters = solver_parameters, annotate=annotate, benchmark = run_benchmark, solve = solve)
+          solver_benchmark.solve(F == 0, state_new, solver_parameters = solver_parameters, annotate=annotate, benchmark = run_benchmark, solve = solve, solver_exclude = solver_exclude)
 
         # Solve non-linear system with a Picard iteration
         elif is_nonlinear:
           # Solve the problem using a picard iteration
           for i in range(picard_iterations):
-            solver_benchmark.solve(dolfin.lhs(F) == dolfin.rhs(F), state_new, solver_parameters = solver_parameters, annotate=annotate, benchmark = run_benchmark, solve = solve)
+            solver_benchmark.solve(dolfin.lhs(F) == dolfin.rhs(F), state_new, solver_parameters = solver_parameters, annotate=annotate, benchmark = run_benchmark, solve = solve, solver_exclude = solver_exclude)
             if i > 0:
               diff = abs(assemble( inner(state_new-state_nl, state_new-state_nl) * dx ))
               dolfin.info_blue("Picard iteration difference at iteration " + str(i+1) + " is " + str(diff) + ".")
@@ -349,7 +350,7 @@ def sw_solve(W, config, state, turbine_field=None, time_functional=None, annotat
               lu_solver.solve(state.vector(), rhs_preass, annotate=annotate)
             else:
               state_tmp = Function(state.function_space(), name="TempState")
-              solver_benchmark.solve(lhs_preass, state_new.vector(), rhs_preass, solver_parameters["linear_solver"], solver_parameters["preconditioner"], annotate=annotate, benchmark = run_benchmark, solve = solve)
+              solver_benchmark.solve(lhs_preass, state_new.vector(), rhs_preass, solver_parameters["linear_solver"], solver_parameters["preconditioner"], annotate=annotate, benchmark = run_benchmark, solve = solve, solver_exclude = solver_exclude)
 
         # After the timestep solve, update state
         state.assign(state_new)
