@@ -1,21 +1,29 @@
 import dolfin
 
-def solver_parameters():
+def solver_parameters(solver_exclude, preconditioner_exclude):
     linear_solver_set = ["lu", "gmres", "bicgstab", "minres", "tfqmr", "richardson"]
     preconditioner_set =["none", "ilu", "icc", "jacobi", "bjacobi", "sor", "amg", "additive_schwarz", "hypre_amg", "hypre_euclid", "hypre_parasails"]
 
+    from IPython.Shell import IPShellEmbed
+    ipshell = IPShellEmbed()
+    ipshell()
+
     solver_parameters_set = []
     for l in linear_solver_set:
+        if l in solver_exclude:
+            continue
         for p in preconditioner_set:
-              if l == "lu" and p != "none":
-                  continue
-              if l == "default" and p != "none":
-                  continue
-              if l == "cholesky" and p != "none":
-                  continue
-              if l == "gmres" and (p == "none" or p == "default"):
-                  continue
-              solver_parameters_set.append({"linear_solver": l, "preconditioner": p})
+            if p in preconditioner_exclude:
+                continue
+            if l == "lu" and p != "none":
+                continue
+            if l == "default" and p != "none":
+                continue
+            if l == "cholesky" and p != "none":
+                continue
+            if l == "gmres" and (p == "none" or p == "default"):
+                continue
+            solver_parameters_set.append({"linear_solver": l, "preconditioner": p})
     return solver_parameters_set
 
 def print_benchmark_results(solver_benchmark_results):
@@ -35,10 +43,13 @@ def print_benchmark_results(solver_benchmark_results):
 
 def solve(*args, **kwargs):
     ''' This function overwrites the dolfin.solve function but provides additional functionality to benchmark 
-        different solver/preconditioner settings. The arguments of equivalent to dolfin.solve except two optional additional parameters:
+        different solver/preconditioner settings. The arguments of equivalent to dolfin.solve except some (optional) additional parameters:
         - benchmark = [True, False]: If True, the problem will be solved with all different solver/precondition combinations and the results reported.
                                      If False, the problem is solved using the default solver settings.
         - solve: An optional function parameter that is called instead of dolfin.solve. This parameter is useful if dolfin.solve is overwritten by a custom solver routine.
+        - solver_exclude: A list of solvers that are to be excluded from the benchmark.
+        - preconditioner_exclude: A list of preconditioners that are to be excluded from the benchmark.
+
     '''
 
     # Retrieve the extended benchmark arguments.
@@ -52,10 +63,19 @@ def solve(*args, **kwargs):
     else:
         solve = dolfin.fem.solving.solve
 
+    if kwargs.has_key('solver_exclude'):
+        solver_exclude = kwargs.pop('solver_exclude')
+    else:
+        solver_exclude = [] 
+
+    if kwargs.has_key('preconditioner_exclude'):
+        preconditioner_exclude = kwargs.pop('preconditioner_exclude')
+    else:
+        preconditioner_exclude = [] 
+
     if benchmark: 
         dolfin.info_blue("Running solver benchmark...")
-        global solver_parameters
-        solver_parameters_set = solver_parameters()
+        solver_parameters_set = solver_parameters(solver_exclude, preconditioner_exclude)
         solver_benchmark_results = {}
 
         # Perform the benchmark

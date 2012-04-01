@@ -29,7 +29,8 @@ class DefaultConfiguration:
         'turbine_model': 'BumpTurbine',
         'newton_solver': False, # Only used with quadratic friction: Use a Newton solver to solve the nonlinear problem. The default is to use Picard iterations.
         'picard_iterations': 3, # If quadratic_friction is True and newton_solver is False, then this many picard iterations are performed to solve the nonlinear problem.
-        'run_benchmark': False # If true, then a combination of solver/preconditioner variations are used for each solve and their timings reported
+        'run_benchmark': False, # If true, then a combination of solver/preconditioner variations are used for each solve and their timings reported
+        'solver_exclude': [] # A list of solvers that are to be excluded from the benchmark test 
         })
 
     # Basin radius.

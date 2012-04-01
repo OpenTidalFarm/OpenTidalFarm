@@ -17,7 +17,7 @@ from dolfin_adjoint import *
 
 def default_config():
   # We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
-  config = sw_config.DefaultConfiguration(nx=100, ny=40)
+  config = sw_config.DefaultConfiguration(nx=600, ny=200)
   period = 1.24*60*60 # Wave period
   config.params["k"] = 2*pi/(period*sqrt(config.params["g"]*config.params["depth"]))
   pprint("Wave period (in h): ", period/60/60)
@@ -36,6 +36,7 @@ def default_config():
   config.params['picard_iterations'] = 3 
   config.params['basename'] = "p2p1"
   config.params["run_benchmark"] = True
+  config.params['solver_exclude'] = 'lu'
 
   #set_log_level(DEBUG)
   set_log_level(20)
@@ -76,7 +77,7 @@ def j(m):
   # Change the control variables to the config parameters
   config.params["turbine_pos"] = numpy.reshape(m, (-1, 2))
 
-  set_log_level(30)
+  set_log_level(20)
   debugging["record_all"] = True
 
   W = sw_lib.p2p1(config.mesh)
