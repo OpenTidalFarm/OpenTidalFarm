@@ -76,7 +76,7 @@ def run_model(nx, ny, turbine_model, turbine_pos):
   A, M = construct_mini_model(W, config.params, tf)
   turbine_cache = build_turbine_cache(config.params, U, turbine_size_scaling = 0.5)
   functional = DefaultFunctional(config.params, turbine_cache)
-  j, djdm, state = mini_model(A, M, state, config.params, functional)
+  j, djdm = mini_model(A, M, state, config.params, functional)
   return j
 
 def refine_res(nx, ny, level=0.66):
