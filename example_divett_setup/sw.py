@@ -97,7 +97,7 @@ def j(m):
   functional = DefaultFunctional(config.params, turbine_cache)
 
   # Solve the shallow water system
-  j, djdm, state = sw_lib.sw_solve(W, config, state, turbine_field = tf, time_functional=functional, linear_solver='lu', preconditioner='none')
+  j, djdm = sw_lib.sw_solve(W, config, state, turbine_field = tf, time_functional=functional, linear_solver='lu', preconditioner='none')
 
   return j
 

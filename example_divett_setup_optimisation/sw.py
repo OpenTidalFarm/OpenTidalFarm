@@ -100,8 +100,8 @@ def j_and_dj(m):
   functional = DefaultFunctional(config.params, turbine_cache)
 
   # Solve the shallow water system
-  j, djdm, state = sw_lib.sw_solve(W, config, state, turbine_field = tf, time_functional=functional)
-  J = TimeFunctional(functional.Jt(state), staticvariables = [turbine_cache["turbine_field"]])
+  j, djdm = sw_lib.sw_solve(W, config, state, turbine_field = tf, time_functional=functional)
+  J = TimeFunctional(functional.Jt(state), static_variables = [turbine_cache["turbine_field"]], dt = config.params["dt"])
   adj_state = sw_lib.adjoint(state, config.params, J, until=0) # The first annotation is the idendity operator for the turbine field
 
   # Let J be the functional, m the parameter and u the solution of the PDE equation F(u) = 0.
