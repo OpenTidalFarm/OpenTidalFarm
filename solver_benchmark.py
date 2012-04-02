@@ -1,8 +1,11 @@
 import dolfin
+import ufl
+import operator
 
 def solver_parameters(solver_exclude, preconditioner_exclude):
-    linear_solver_set = ["lu", "gmres", "bicgstab", "minres", "tfqmr", "richardson"]
-    preconditioner_set =["none", "ilu", "icc", "jacobi", "bjacobi", "sor", "amg", "additive_schwarz", "hypre_amg", "hypre_euclid", "hypre_parasails"]
+    linear_solver_set = ["lu"] 
+    linear_solver_set += [e[0] for e in dolfin.krylov_solver_methods()]
+    preconditioner_set = [e[0] for e in dolfin.krylov_solver_preconditioners()]
 
     solver_parameters_set = []
     for l in linear_solver_set:
@@ -11,31 +14,42 @@ def solver_parameters(solver_exclude, preconditioner_exclude):
         for p in preconditioner_set:
             if p in preconditioner_exclude:
                 continue
-            if l == "lu" and p != "none":
-                continue
-            if l == "default" and p != "none":
-                continue
-            if l == "cholesky" and p != "none":
-                continue
-            if l == "gmres" and (p == "none" or p == "default"):
+            if (l == "lu" or l == "default") and p != "none":
                 continue
             solver_parameters_set.append({"linear_solver": l, "preconditioner": p})
     return solver_parameters_set
 
-def print_benchmark_results(solver_benchmark_results):
+def print_benchmark_report(solver_timings, failed_solvers):
         # Let's analyse the result of the benchmark test:
-        def sortDict(dict):
-            keys = dict.keys()
-            keys.sort()
-            return keys, [dict[key] for key in keys]
-
-        times, solvers = sortDict(solver_benchmark_results)
+        solver_timings = sorted(solver_timings.iteritems(), key=operator.itemgetter(1)) 
+        failed_solvers = sorted(failed_solvers.iteritems(), key=operator.itemgetter(1)) 
 
         dolfin.info_blue("***********************************************") 
         dolfin.info_blue("********** Solver benchmark results: **********")
         dolfin.info_blue("***********************************************") 
-        for i in range(len(times)):
-            dolfin.info_blue("%s, %s: %.2f s" % (str(solvers[i]['linear_solver']), str(solvers[i]['preconditioner']), times[i]))
+        for solver, timing in solver_timings:
+            dolfin.info_blue("%s: %.2f s" % (solver, timing))
+        for solver, reason in failed_solvers:
+            dolfin.info_red("%s: %s" % (solver, reason))
+
+def replace_solver_settings(args, kwargs, parameters):
+    ''' Replace the arguments of a solve call and replace the solver settings with the ones given in solver_settings. '''
+
+    # The way how to set the solver settings depends on how the system is solved:
+    #  Adaptive solve 
+    if "tol" in kwargs:
+        raise NotImplementedError, 'The benchmark solver is currently not implemented for adaptive solver calls.'
+
+    # Variational problem solver 
+    elif isinstance(args[0], ufl.classes.Equation):
+        kwargs['solver_parameters'] = parameters
+
+    # Default case: call the c++ solve routine
+    else:
+        args = args[0:3] + (parameters['linear_solver'], parameters['preconditioner'])
+
+    return args, kwargs
+
 
 def solve(*args, **kwargs):
     ''' This function overwrites the dolfin.solve function but provides additional functionality to benchmark 
@@ -72,30 +86,44 @@ def solve(*args, **kwargs):
     if benchmark: 
         dolfin.info_blue("Running solver benchmark...")
         solver_parameters_set = solver_parameters(solver_exclude, preconditioner_exclude)
-        solver_benchmark_results = {}
+        solver_timings = {}
+        failed_solvers = {}
+        ret = None
 
         # Perform the benchmark
         for parameters in solver_parameters_set:
             solver_failed = False
+            # Replace the existing solver setting with the benchmark one's.
+            new_args, new_kwargs = replace_solver_settings(args, kwargs, parameters) 
+
+            # Solve the problem
             timer = dolfin.Timer("Solver benchmark")
             timer.start()
-
             try:
-                ret = solve(*args, **kwargs)
-            except RunTimeError:
+                ret = solve(*new_args, **new_kwargs)
+            except RuntimeError as e:
                 solver_failed = True
+                if 'diverged' in e.message.lower():
+                    failure_reason = 'diverged'
+                else:
+                    failure_reason = 'unknown'
+                    from IPython.Shell import IPShellEmbed
+                    ipshell = IPShellEmbed()
+                    ipshell()
                 pass
-
             timer.stop()
-            if solver_failed:
-                dolfin.info_red(parameters["linear_solver"] + ", " + parameters["preconditioner"] + ": solver failed.")
-            else:
-                dolfin.info(parameters["linear_solver"] + ", " + parameters["preconditioner"] + ": " + str(timer.value()) + "s.")
-            if not solver_failed:
-                solver_benchmark_results[timer.value()] = parameters
 
-        # Print the results
-        print_benchmark_results(solver_benchmark_results) 
+            # Save the result
+            parameters_str = parameters["linear_solver"] + ", " + parameters["preconditioner"]
+            if solver_failed:
+                dolfin.info_red(parameters_str + ": solver failed.")
+                failed_solvers[parameters_str] = failure_reason 
+            else:
+                dolfin.info(parameters_str + ": " + str(timer.value()) + "s.")
+                solver_timings[parameters_str] = timer.value() 
+
+        # Print the report
+        print_benchmark_report(solver_timings, failed_solvers) 
 
     else:
         ret = solve(*args, **kwargs)
