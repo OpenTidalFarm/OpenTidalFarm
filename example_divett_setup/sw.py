@@ -79,7 +79,6 @@ def j(m):
   # Change the control variables to the config parameters
   config.params["turbine_pos"] = numpy.reshape(m, (-1, 2))
 
-  set_log_level(20)
   debugging["record_all"] = True
 
   W = sw_lib.p2p1(config.mesh)

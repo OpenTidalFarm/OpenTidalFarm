@@ -8,7 +8,7 @@ from math import exp, sqrt, pi
 class DefaultConfiguration:
   def __init__(self, nx=20, ny=3, mesh_file=None):
     params=sw_lib.parameters({
-        'basename'  : 'p1dgp2',
+        'element_type'  : sw_lib.p1dgp2,
         'bctype'  : 'flather',
         'include_advection': False,
         'include_diffusion': False,

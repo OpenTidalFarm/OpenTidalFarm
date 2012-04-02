@@ -22,15 +22,13 @@ class parameters(dict):
             "dt" : "timestep",
             "finish_time" : "finish time",
             "dump_period" : "dump period in timesteps",
-            "basename" : "base name for I/O"
+            "element_type" : "build the function space"
             }
 
     def check(self):
         for key, error in self.required.iteritems():
             if not self.has_key(key):
-                sys.stderr.write("Missing parameter: "+key+"\n"+
-                                 "This is used to set the "+error+"\n")
-                raise KeyError
+                raise KeyError, "Missing parameter: " + key + ". " + "This is used to set the " + error + "."
 
 def rt0(mesh):
     "Return a function space U*H on mesh from the rt0 space."
@@ -296,7 +294,7 @@ def sw_solve(W, config, state, turbine_field=None, time_functional=None, annotat
 
     ############################### Perform the simulation ###########################
 
-    u_out, p_out = output_files(params["basename"])
+    u_out, p_out = output_files(params["element_type"].func_name)
     M_u_out, v_out, u_out_state = u_output_projector(state.function_space())
     M_p_out, q_out, p_out_state = p_output_projector(state.function_space())
 

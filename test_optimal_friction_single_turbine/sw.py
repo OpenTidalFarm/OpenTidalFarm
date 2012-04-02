@@ -40,6 +40,10 @@ def default_config():
   # We need a implicit scheme to avoid oscillations in the turbine areas.
   config.params["theta"] = 1.0
 
+  config.params["include_advection"] = True 
+  config.params["include_diffusion"] = True 
+  config.params["diffusion_coef"] = 20.0
+
   # Turbine settings
   config.params["friction"] = 0.0025
   config.params["turbine_pos"] = [[1500., 500.]]
@@ -68,7 +72,7 @@ def j_and_dj(m):
   set_log_level(30)
   debugging["record_all"] = True
 
-  W = sw_lib.p1dgp2(config.mesh)
+  W = sw_lib.p2p1(config.mesh)
 
   # Set initial conditions
   state = Function(W, name = "current_state")

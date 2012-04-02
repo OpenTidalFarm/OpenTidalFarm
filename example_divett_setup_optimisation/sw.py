@@ -1,8 +1,6 @@
 ''' This example optimises the position of three turbines using the hallow water model. '''
 
 import sys
-import cProfile
-import pstats
 import sw_config 
 import sw_lib
 import numpy
@@ -24,7 +22,7 @@ plot = AnimatedPlot(xlabel='Iteration', ylabel='Functional value')
 
 def default_config():
   # We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
-  config = sw_config.DefaultConfiguration(nx=100, ny=30)
+  config = sw_config.DefaultConfiguration(nx=30, ny=10)
   period = 1.24*60*60 # Wave period
   config.params["k"] = 2*pi/(period*sqrt(config.params["g"]*config.params["depth"]))
   pprint("Wave period (in h): ", period/60/60)
@@ -33,12 +31,21 @@ def default_config():
 
   # Start at rest state
   config.params["start_time"] = period/4
-  config.params["dt"] = period/20
-  config.params["finish_time"] = 2*period/4 
+  config.params["dt"] = period/2
+  config.params["finish_time"] = 5.*period/4 
   config.params["theta"] = 0.6
+  config.params["include_advection"] = True 
+  config.params["include_diffusion"] = True 
+  config.params["diffusion_coef"] = 20.0
+  config.params["newton_solver"] = False 
+  config.params["picard_iterations"] = 20
+  config.params['basename'] = "p2p1"
+  config.params["run_benchmark"] = False 
+  config.params['solver_exclude'] = ['cg', 'lu']
+  info_green("Approximate CFL number (assuming a velocity of 2): " +str(2*config.params["dt"]/config.mesh.hmin())) 
 
-  # Set some DOLFIN flags
-  set_log_level(DEBUG)
+  #set_log_level(DEBUG)
+  set_log_level(20)
   #dolfin.parameters['optimize'] = True
   #dolfin.parameters['optimize_use_dofmap_cache'] = True
   #dolfin.parameters['optimize_use_tensor_cache'] = True
@@ -47,18 +54,20 @@ def default_config():
   dolfin.parameters['form_compiler']['cpp_optimize_flags'] = '-O3'
 
   # Turbine settings
-  config.params["friction"] = 0.0
+  config.params["quadratic_friction"] = True
+  config.params["friction"] = 0.0025
   # The turbine position is the control variable 
   config.params["turbine_pos"] = [] 
-  border = 100
-  for x_r in numpy.linspace(0.+border, config.params["basin_x"]/2-border, 7):
-    for y_r in numpy.linspace(0.+border, config.params["basin_y"]-border, 3):
+  border_x = 500
+  border_y = 300
+  for x_r in numpy.linspace(0.+border_x, config.params["basin_x"]-border_x, 3):
+    for y_r in numpy.linspace(0.+border_y, config.params["basin_y"]-border_y, 2):
       config.params["turbine_pos"].append((float(x_r), float(y_r)))
 
   info_blue("Deployed " + str(len(config.params["turbine_pos"])) + " turbines.")
-  # Choosing a friction coefficient of less than 1 ensures that overlapping turbines will lead to
+  # Choosing a friction coefficient of > 0.02 ensures that overlapping turbines will lead to
   # less power output.
-  config.params["turbine_friction"] = 0.1*numpy.ones(len(config.params["turbine_pos"]))
+  config.params["turbine_friction"] = 0.2*numpy.ones(len(config.params["turbine_pos"]))
   config.params["turbine_x"] = 200
   config.params["turbine_y"] = 200
 
@@ -75,18 +84,18 @@ def j_and_dj(m):
   # Change the control variables to the config parameters
   config.params["turbine_pos"] = numpy.reshape(m, (-1, 2))
 
-  set_log_level(30)
   debugging["record_all"] = True
 
-  W=sw_lib.p1dgp2(config.mesh)
-  state=Function(W)
+  W = sw_lib.p2p1(config.mesh)
+
+  state = Function(W, name="Current_state")
   state.interpolate(config.get_sin_initial_condition()())
 
   # Set the control values
   U = W.split()[0].sub(0) # Extract the first component of the velocity function space 
   U = U.collapse() # Recompute the DOF map
-  tf = Function(U) # The turbine function
-  tfd = Function(U) # The derivative turbine function
+  tf = Function(U, name = 'friction')
+  tfd = Function(U, name = 'friction_derivative')
 
   # Set up the turbine friction field using the provided control variable
   tf.interpolate(Turbines(config.params))
@@ -102,7 +111,8 @@ def j_and_dj(m):
   # Solve the shallow water system
   j, djdm = sw_lib.sw_solve(W, config, state, turbine_field = tf, time_functional=functional)
   J = TimeFunctional(functional.Jt(state), static_variables = [turbine_cache["turbine_field"]], dt = config.params["dt"])
-  adj_state = sw_lib.adjoint(state, config.params, J, until=0) # The first annotation is the idendity operator for the turbine field
+  #dJdfriction = compute_gradient(J, InitialConditionParameter("friction"))
+  adj_state = sw_lib.adjoint(state, config.params, J, until={"name": "friction", "timestep": 0, "iteration": 0})
 
   # Let J be the functional, m the parameter and u the solution of the PDE equation F(u) = 0.
   # Then we have 
@@ -145,11 +155,11 @@ def dj(m):
 config = default_config()
 m0 = initial_control(config)
 
-#p = numpy.random.rand(len(m0))
-#minconv = test_gradient_array(j, dj, m0, seed=0.00001, perturbation_direction=p)
-#if minconv < 1.98:
-#  print "The gradient taylor remainder test failed."
-#  sys.exit(1)
+p = numpy.random.rand(len(m0))
+minconv = test_gradient_array(j, dj, m0, seed=0.00001, perturbation_direction=p)
+if minconv < 1.98:
+  print "The gradient taylor remainder test failed."
+  sys.exit(1)
 
 g = lambda m: []
 dg = lambda m: []

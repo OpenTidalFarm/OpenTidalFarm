@@ -62,15 +62,15 @@ def j_and_dj(m):
   set_log_level(30)
   debugging["record_all"] = True
 
-  W=sw_lib.p1dgp2(config.mesh)
-  state=Function(W)
+  W = sw_lib.p1dgp2(config.mesh)
+  state = Function(W, name = 'current_state')
   state.interpolate(config.get_sin_initial_condition()())
 
   # Set the control values
   U = W.split()[0].sub(0) # Extract the first component of the velocity function space 
   U = U.collapse() # Recompute the DOF map
-  tf = Function(U) # The turbine function
-  tfd = Function(U) # The derivative turbine function
+  tf = Function(U, name = 'turbine_friction') 
+  tfd = Function(U, name = 'turbine_friction_derivative') 
 
   # Set up the turbine friction field using the provided control variable
   tf.interpolate(Turbines(config.params))
@@ -86,7 +86,7 @@ def j_and_dj(m):
   # Solve the shallow water system
   j, djdm = sw_lib.sw_solve(W, config, state, turbine_field = tf, time_functional=functional)
   J = TimeFunctional(functional.Jt(state), static_variables = [turbine_cache["turbine_field"]], dt = config.params["dt"])
-  adj_state = sw_lib.adjoint(state, config.params, J, until=0) # The first annotation is the idendity operator for the turbine field
+  adj_state = sw_lib.adjoint(state, config.params, J, until = {"name": "turbine", "timestep": 0, "iteration": 0}) 
 
   # Let J be the functional, m the parameter and u the solution of the PDE equation F(u) = 0.
   # Then we have 
