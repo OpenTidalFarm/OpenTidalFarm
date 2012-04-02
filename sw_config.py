@@ -4,18 +4,69 @@ from turbines import *
 from dolfin import * 
 from math import exp, sqrt, pi
 
+class Parameters(dict):
+    '''Parameter dictionary. This subclasses dict so defaults can be set.'''
+    def __init__(self, dict={}):
+        # Apply dict after defaults so as to overwrite the defaults
+        for key,val in dict.iteritems():
+            self[key]=val
+
+        self.required={
+            "verbose" : "output verbosity",
+            "depth" : "water depth",
+            "dt" : "timestep",
+            "theta" : "the implicitness for the time discretisation",
+            "start_time" : "start time",
+            "current_time" : "current time",
+            "finish_time" : "finish time",
+            "dump_period" : "dump period in timesteps",
+            "element_type" : "build the function space",
+            'bctype'  : "type of boundary condition to be applied",
+            'include_advection': "advection term on",
+            'include_diffusion': "diffusion term on",
+            'diffusion_coef': "diffusion coefficient",
+            'depth' : "water depth in rest",
+            'g' : "graviation",
+            'k' : "",
+            'dump_period' : "dump period",
+            'eta0' : "deviantion of the water depth in rest",
+            'basin_x' : "length of the basin",
+            'basin_y' : "width of the basin",
+            'quadratic_friction' : "quadratic friction",
+            'friction' : "friction term on",
+            'turbine_pos' : "list of turbine positions",
+            'turbine_x' : "turbine extension in the x direction",
+            'turbine_y' : "turbine extension in the y direction",
+            'turbine_friction' : "turbine friction", 
+            'turbine_model': "turbine model",
+            'newton_solver': "newton solver instead of a picard iteration",
+            'picard_relative_tolerance': "relative tolerance for the picard iteration",
+            'picard_iterations': "maximum number of picard iterations",
+            'run_benchmark': "benchmark to compare different solver/preconditioner combinations", 
+            'solver_exclude': "solvers/preconditioners to be excluded from the benchmark"
+            }
+
+    def check(self):
+        # First check that no parameters are missing
+        for key, error in self.required.iteritems():
+            if not self.has_key(key):
+                raise KeyError, "Missing parameter: " + key + ". " + "This is used to set the " + error + "."
+        # Then check that no parameter is too much (as this is likely to be a mistake!)
+        diff = set(self.keys()) - set(self.required.keys())
+        if len(diff) > 0:
+            raise KeyError, "Configuration has too many parameters: " + str(diff)
 
 class DefaultConfiguration:
   def __init__(self, nx=20, ny=3, mesh_file=None):
-    params=sw_lib.parameters({
+    params = Parameters({
         'element_type'  : sw_lib.p1dgp2,
+        'theta' : 0.6,
         'bctype'  : 'flather',
         'include_advection': False,
         'include_diffusion': False,
         'diffusion_coef': 0.0,
         'depth' : 50.,
         'g' : 9.81,
-        'f' : 0.0,
         'dump_period' : 1,
         'eta0' : 2, # Wave height
         'basin_x' : 3000., # The length of the basin
@@ -39,6 +90,7 @@ class DefaultConfiguration:
     c=sqrt(params["g"]*params["depth"])
 
     params["start_time"] = 0
+    params["current_time"] = 0
     params["finish_time"] = 100
     params["dt"] = params["finish_time"]/4000.
     params["k"] = pi/params['basin_x']

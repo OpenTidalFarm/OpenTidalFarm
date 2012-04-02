@@ -30,7 +30,7 @@ class DefaultFunctional(FunctionalPrototype):
         '''
     # Create a copy of the parameters so that future changes will not affect the definition of this object.
     self.turbine_cache = turbine_cache
-    self.params = sw_lib.parameters(dict(params))
+    self.params = sw_config.Parameters(dict(params))
 
   def expr(self, state, turbines):
     return turbines*0.5*(dot(state[0], state[0]) + dot(state[1], state[1]))**1.5*dx
@@ -57,7 +57,7 @@ def build_turbine_cache(params, function_space, turbine_size_scaling = 1.0):
       to avoid the recomputation of the expensive interpolation of the turbine expression. '''
   turbine_cache = {}
 
-  params = sw_lib.parameters(dict(params))
+  params = sw_config.Parameters(dict(params))
   # Scale the turbine size by the given factor.
   if turbine_size_scaling != 1.0:
     info_green("The functional uses turbines which size is scaled by a factor of " + str(turbine_size_scaling) + ".")

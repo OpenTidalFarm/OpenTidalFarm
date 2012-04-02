@@ -5,31 +5,6 @@ import libadjoint
 import numpy
 import sys
 
-class parameters(dict):
-    '''Parameter dictionary. This subclasses dict so defaults can be set.'''
-    def __init__(self, dict={}):
-        self["start_time"] = 0.0
-        self["current_time"] = 0.0
-        self["theta"] = 0.5
-        self["verbose"] = 10
-
-        # Apply dict after defaults so as to overwrite the defaults
-        for key,val in dict.iteritems():
-            self[key]=val
-
-        self.required={
-            "depth" : "water depth",
-            "dt" : "timestep",
-            "finish_time" : "finish time",
-            "dump_period" : "dump period in timesteps",
-            "element_type" : "build the function space"
-            }
-
-    def check(self):
-        for key, error in self.required.iteritems():
-            if not self.has_key(key):
-                raise KeyError, "Missing parameter: " + key + ". " + "This is used to set the " + error + "."
-
 def rt0(mesh):
     "Return a function space U*H on mesh from the rt0 space."
 
@@ -136,10 +111,15 @@ def sw_solve(W, config, state, turbine_field=None, time_functional=None, annotat
     # Define variables for all used parameters
     ds = config.ds
     params = config.params
+
+    # To begin with, check if the provided parameters are valid
+    params.check()
+
     theta = params["theta"]
     dt = params["dt"]
     g = params["g"]
     depth = params["depth"]
+    # Reset the time
     params["current_time"] = params["start_time"]
     t = params["current_time"]
     quadratic_friction = params["quadratic_friction"]
@@ -152,9 +132,6 @@ def sw_solve(W, config, state, turbine_field=None, time_functional=None, annotat
     run_benchmark = params["run_benchmark"]
     solver_exclude = params["solver_exclude"]
     is_nonlinear = (include_advection or quadratic_friction)
-
-    # To begin with, check if the provided parameters are valid
-    params.check()
 
     # Print out an estimation of the Reynolds number 
     print "Expected Reynolds number is roughly (assumes velocity is 2): ",

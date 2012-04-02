@@ -1,5 +1,6 @@
 import numpy
 import memoize
+import sw_lib
 from functionals import DefaultFunctional, build_turbine_cache
 from dolfin import *
 from turbines import *
@@ -10,7 +11,7 @@ class DefaultModel:
         # Hide the configuration since changes would break the memorize algorithm. 
         self.__config__ = config
 
-        def j_and_dj(m):
+        def j_and_dj(m, forward_only):
           adj_reset()
 
           # Change the control variables to the config parameters
@@ -43,44 +44,49 @@ class DefaultModel:
 
           # Solve the shallow water system
           j, djdm = sw_lib.sw_solve(W, config, state, time_functional=functional, turbine_field = tf)
-          J = TimeFunctional(functional.Jt(state), static_variables = [turbine_cache["turbine_field"]], dt = config.params["dt"])
-          adj_state = sw_lib.adjoint(state, config.params, J, until={"name": "friction", "timestep": 0, "iteration": 0})
 
-          # Let J be the functional, m the parameter and u the solution of the PDE equation F(u) = 0.
-          # Then we have 
-          # dJ/dm = (\partial J)/(\partial u) * (d u) / d m + \partial J / \partial m
-          #               = adj_state * \partial F / \partial u + \partial J / \partial m
-          # In this particular case m = turbine_friction, J = \sum_t(ft) 
-          dj = [] 
-          v = adj_state.vector()
-          # Compute the derivatives with respect to the turbine friction
-          for n in range(len(config.params["turbine_friction"])):
-            tfd.interpolate(Turbines(config.params, derivative_index_selector=n, derivative_var_selector='turbine_friction'))
-            dj.append( v.inner(tfd.vector()) )
+          # And the adjoint system to compute the gradient if it was asked for
+          if forward_only:
+              dj = None
+          else:
+              J = TimeFunctional(functional.Jt(state), static_variables = [turbine_cache["turbine_field"]], dt = config.params["dt"])
+              adj_state = sw_lib.adjoint(state, config.params, J, until={"name": "friction", "timestep": 0, "iteration": 0})
 
-          # Compute the derivatives with respect to the turbine position
-          for n in range(len(config.params["turbine_pos"])):
-            for var in ('turbine_pos_x', 'turbine_pos_y'):
-              tfd.interpolate(Turbines(config.params, derivative_index_selector=n, derivative_var_selector=var))
-              dj.append( v.inner(tfd.vector()) )
-          dj = numpy.array(dj)  
-          
-          # Now add the \partial J / \partial m term
-          dj += djdm
+              # Let J be the functional, m the parameter and u the solution of the PDE equation F(u) = 0.
+              # Then we have 
+              # dJ/dm = (\partial J)/(\partial u) * (d u) / d m + \partial J / \partial m
+              #               = adj_state * \partial F / \partial u + \partial J / \partial m
+              # In this particular case m = turbine_friction, J = \sum_t(ft) 
+              dj = [] 
+              v = adj_state.vector()
+              # Compute the derivatives with respect to the turbine friction
+              for n in range(len(config.params["turbine_friction"])):
+                tfd.interpolate(Turbines(config.params, derivative_index_selector=n, derivative_var_selector='turbine_friction'))
+                dj.append( v.inner(tfd.vector()) )
+
+              # Compute the derivatives with respect to the turbine position
+              for n in range(len(config.params["turbine_pos"])):
+                for var in ('turbine_pos_x', 'turbine_pos_y'):
+                  tfd.interpolate(Turbines(config.params, derivative_index_selector=n, derivative_var_selector=var))
+                  dj.append( v.inner(tfd.vector()) )
+              dj = numpy.array(dj)  
+              
+              # Now add the \partial J / \partial m term
+              dj += djdm
 
           return j, dj 
 
         self.j_and_dj_mem = memoize.MemoizeMutable(j_and_dj)
 
-    def j(self, m):
-      return self.j_and_dj_mem(m)[0]
+    def j(self, m, forward_only = False):
+      return self.j_and_dj_mem(m, forward_only)[0]
 
     def dj(self, m):
-      return self.j_and_dj_mem(m)[1]
+      return self.j_and_dj_mem(m, forward_only = False)[1]
 
     def initial_control(self):
         # We use the current turbine settings as the intial control
-        self.__config__ = config
+        config = self.__config__ 
         res = config.params['turbine_friction'].tolist()
         res += numpy.reshape(config.params['turbine_pos'], -1).tolist()
         return numpy.array(res)

@@ -1,5 +1,5 @@
 import numpy
-import sw_lib
+import sw_config
 import math
 from dolfin import *
 from dolfin_adjoint import *
@@ -11,7 +11,7 @@ class Turbines(Expression):
     def __init__(self, params, derivative_index_selector=-1,  derivative_var_selector=None, *args, **kwargs):
       ''' If the derivative selector is i >= 0, the Expression will compute the derivative of the turbine with index i with respect 
           to either the x or y coorinate or its friction parameter. '''
-      self.params = sw_lib.parameters(params)
+      self.params = sw_config.Parameters(params)
       self.derivative_index_selector = derivative_index_selector
       self.derivative_var_selector = derivative_var_selector
 
