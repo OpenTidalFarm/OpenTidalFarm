@@ -112,7 +112,7 @@ def j_and_dj(m):
 
   return j, dj 
 
-j_and_dj_mem = Memoize.MemoizeMutable(j_and_dj)
+j_and_dj_mem = memoize.MemoizeMutable(j_and_dj)
 def j(m):
   j = j_and_dj_mem(m)[0]*10**-5
   pprint('Evaluating j(', m.__repr__(), ')=', j)

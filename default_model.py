@@ -70,7 +70,7 @@ class DefaultModel:
 
           return j, dj 
 
-        self.j_and_dj_mem = Memoize.MemoizeMutable(j_and_dj)
+        self.j_and_dj_mem = memoize.MemoizeMutable(j_and_dj)
 
     def j(self, m):
       return self.j_and_dj_mem(m)[0]
