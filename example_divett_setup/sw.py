@@ -1,22 +1,23 @@
 ''' This example optimises the position of three turbines using the hallow water model. '''
 
 import sw_config 
+import sw_lib
 import numpy
 from sw_utils import pprint
 from default_model import DefaultModel
 from dolfin import *
-from dolfin_adjoint import *
 
 def default_config():
   # We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
   config = sw_config.DefaultConfiguration(nx=100, ny=33)
   period = 1.24*60*60 # Wave period
-  #config.params["k"] = 2*pi/(period*sqrt(config.params["g"]*config.params["depth"]))
+  config.params["k"] = 2*pi/(period*sqrt(config.params["g"]*config.params["depth"]))
   pprint("Wave period (in h): ", period/60/60)
   config.params["dump_period"] = 1
   config.params["verbose"] = 0
 
   # Start at rest state
+  config.params["element_type"] = sw_lib.p2p1
   config.params["start_time"] = period/4
   config.params["dt"] = period/50
   config.params["finish_time"] = 5.*period/4 

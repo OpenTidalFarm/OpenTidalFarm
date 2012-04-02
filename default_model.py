@@ -20,7 +20,7 @@ class DefaultModel:
           config.params["turbine_pos"] = numpy.reshape(mp, (-1, 2))
 
           set_log_level(30)
-          debugging["record_all"] = True
+          debugging["record_all"] = not forward_only
 
           W = config.params['element_type'](config.mesh)
 
