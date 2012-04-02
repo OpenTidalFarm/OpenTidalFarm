@@ -149,6 +149,7 @@ def sw_solve(W, config, state, turbine_field=None, time_functional=None, annotat
     include_diffusion = params["include_diffusion"]
     diffusion_coef = params["diffusion_coef"]
     newton_solver = params["newton_solver"] 
+    picard_relative_tolerance = params["picard_relative_tolerance"]
     picard_iterations = params["picard_iterations"]
     run_benchmark = params["run_benchmark"]
     solver_exclude = params["solver_exclude"]
@@ -335,11 +336,20 @@ def sw_solve(W, config, state, turbine_field=None, time_functional=None, annotat
         # Solve non-linear system with a Picard iteration
         elif is_nonlinear:
           # Solve the problem using a picard iteration
-          for i in range(picard_iterations):
+          iter_counter = 0
+          while True:
             solver_benchmark.solve(dolfin.lhs(F) == dolfin.rhs(F), state_new, solver_parameters = solver_parameters, annotate=annotate, benchmark = run_benchmark, solve = solve, solver_exclude = solver_exclude)
-            if i > 0:
-              diff = abs(assemble( inner(state_new-state_nl, state_new-state_nl) * dx ))
-              dolfin.info_blue("Picard iteration difference at iteration " + str(i+1) + " is " + str(diff) + ".")
+            iter_counter += 1
+            if iter_counter > 0:
+              relative_diff = abs(assemble( inner(state_new-state_nl, state_new-state_nl) * dx ))/norm(state_new)
+
+              if relative_diff < picard_relative_tolerance:
+                dolfin.info_blue("Picard iteration converged after " + str(iter_counter) + " iterations.")
+                break
+              elif iter_counter >= picard_iterations:
+                dolfin.info_blue("Picard iteration reached maximum number of iterations (" + str(picard_iterations) + ") with a relative difference of " + str(relative_diff) + ".")
+                break
+
             state_nl.assign(state_new)
 
         # Solve linear system with preassembled matrices 
