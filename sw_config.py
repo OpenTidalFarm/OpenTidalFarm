@@ -6,7 +6,7 @@ from math import exp, sqrt, pi
 
 
 class DefaultConfiguration:
-  def __init__(self, nx=20, ny=3):
+  def __init__(self, nx=20, ny=3, mesh_file=None):
     params=sw_lib.parameters({
         'basename'  : 'p1dgp2',
         'bctype'  : 'flather',
@@ -25,12 +25,13 @@ class DefaultConfiguration:
         'turbine_pos' : [],
         'turbine_x' : 20., # The turbine extension in the x direction
         'turbine_y' : 5., # The turbine extension in the y direction
-        'turbine_friction' : 12.0,
+        'turbine_friction' : [],
         'turbine_model': 'BumpTurbine',
         'newton_solver': False, # Only used with quadratic friction: Use a Newton solver to solve the nonlinear problem. The default is to use Picard iterations.
-        'picard_iterations': 3, # If quadratic_friction is True and newton_solver is False, then this many picard iterations are performed to solve the nonlinear problem.
+        'picard_relative_tolerance': 1e-5, # The Picard iteration stops if the relative tolerance has been reached
+        'picard_iterations': 3, # The Picard iteration stops after this many iterations
         'run_benchmark': False, # If true, then a combination of solver/preconditioner variations are used for each solve and their timings reported
-        'solver_exclude': [] # A list of solvers that are to be excluded from the benchmark test 
+        'solver_exclude': ['cg'] # A list of solvers that are to be excluded from the benchmark test 
         })
 
     # Basin radius.
@@ -67,7 +68,10 @@ class DefaultConfiguration:
           def inside(self, x, on_boundary):
                return on_boundary and (near(x[1], 0.0) or near(x[1], params["basin_y"]))
 
-    mesh = generate_mesh(nx, ny)
+    if mesh_file == None:
+        mesh = generate_mesh(nx, ny)
+    else:
+        mesh = dolfin.Mesh(mesh_file)
     # Initialize sub-domain instances
     left = Left()
     right = Right()
