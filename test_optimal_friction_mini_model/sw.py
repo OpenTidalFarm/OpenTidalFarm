@@ -12,21 +12,14 @@
  '''
 
 import sys
-import cProfile
-import pstats
 import sw_config 
-import sw_lib
 import numpy
-import memoize
 import ipopt 
 import IPOptUtils
-from functionals import DefaultFunctional, build_turbine_cache
-from sw_utils import test_initial_condition_adjoint, test_gradient_array, pprint
-from turbines import *
+from sw_utils import test_gradient_array, pprint
 from mini_model import *
-from dolfin import *
-from dolfin_adjoint import *
 from default_model import DefaultModel
+from dolfin import *
 
 # Global counter variable for vtk output
 count = 0
@@ -48,88 +41,6 @@ def default_config():
   config.params["turbine_model"] = "ConstantTurbine"
 
   return config
-
-def initial_control(config):
-  # We use the current turbine settings as the intial control
-  res = config.params['turbine_friction'].tolist()
-  return numpy.array(res)
-
-def j_and_dj(m):
-  adj_reset()
-
-  # Change the control variables to the config parameters
-  config.params["turbine_friction"] = m[:len(config.params["turbine_friction"])]
-  mp = m[len(config.params["turbine_friction"]):]
-
-  set_log_level(30)
-  debugging["record_all"] = True
-
-  W=sw_lib.p1dgp2(config.mesh)
-
-  # Set initial conditions
-  state=Function(W, name="current_state")
-  state.interpolate(Constant((2.0, 0.0, 0.0)))
-
-  # Set the control values
-  U = W.split()[0].sub(0) # Extract the first component of the velocity function space 
-  U = U.collapse() # Recompute the DOF map
-  tf = Function(U, name="turbine") # The turbine function
-  tfd = Function(U, name="turbine_derivative") # The derivative turbine function
-
-  # Set up the turbine friction field using the provided control variable
-  tf.interpolate(Turbines(config.params))
-
-  global count
-  count+=1
-  sw_lib.save_to_file_scalar(tf, "turbines_t=."+str(count)+".x")
-
-  A, M = construct_mini_model(W, config.params, tf)
-
-  turbine_cache = build_turbine_cache(config.params, U)
-  functional = DefaultFunctional(config.params, turbine_cache)
-
-  # Solve the shallow water system
-  j, djdm = mini_model(A, M, state, config.params, functional)
-  J = TimeFunctional(functional.Jt(state), static_variables = [turbine_cache["turbine_field"]], dt=config.params["dt"])
-  adj_html("forward.html", "forward")
-  adj_state = sw_lib.adjoint(state, config.params, J, until={"name": "turbine", "timestep": 0, "iteration": 0}) 
-
-  # Let J be the functional, m the parameter and u the solution of the PDE equation F(u) = 0.
-  # Then we have 
-  # dJ/dm = (\partial J)/(\partial u) * (d u) / d m + \partial J / \partial m
-  #               = adj_state * \partial F / \partial u + \partial J / \partial m
-  # In this particular case m = turbine_friction, J = \sum_t(ft) 
-  dj = [] 
-  v = adj_state.vector()
-  # Compute the derivatives with respect to the turbine friction
-  for n in range(len(config.params["turbine_friction"])):
-    tfd.interpolate(Turbines(config.params, derivative_index_selector=n, derivative_var_selector='turbine_friction'))
-    dj.append( v.inner(tfd.vector()) )
-
-  # Compute the derivatives with respect to the turbine position
-  for n in range(len(config.params["turbine_pos"])):
-    for var in ('turbine_pos_x', 'turbine_pos_y'):
-      tfd.interpolate(Turbines(config.params, derivative_index_selector=n, derivative_var_selector=var))
-      dj.append( v.inner(tfd.vector()) )
-  dj = numpy.array(dj)  
-  
-  # Now add the \partial J / \partial m term
-  dj += djdm
-
-  return j, dj 
-
-j_and_dj_mem = memoize.MemoizeMutable(j_and_dj)
-def j(m):
-  j = j_and_dj_mem(m)[0]*10**-5
-  pprint('Evaluating j(', m.__repr__(), ')=', j)
-  return j 
-
-def dj(m):
-  dj = j_and_dj_mem(m)[1]*10**-5
-  # Return only the derivatives with respect to the friction
-  dj = dj[:len(config.params['turbine_friction'])]
-  pprint('Evaluating dj(', m.__repr__(), ')=', dj)
-  return dj 
 
 config = default_config()
 model = DefaultModel(config, scaling_factor = 10**-5, forward_model = mini_model_solve)
