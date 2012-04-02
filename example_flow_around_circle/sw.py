@@ -31,7 +31,7 @@ def default_config():
   config.params["theta"] = 0.6
   config.params["include_advection"] = True 
   config.params["include_diffusion"] = True 
-  config.params["diffusion_coef"] = 2.0
+  config.params["diffusion_coef"] = 0.5
   config.params["newton_solver"] = False 
   config.params["picard_iterations"] = 20
   config.params['basename'] = "p2p1"
