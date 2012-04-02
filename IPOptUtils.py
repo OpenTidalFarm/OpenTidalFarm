@@ -1,5 +1,5 @@
 import numpy
-import Memoize
+import memoize
 
 # The wrapper class of the objective/constaint functions that as required by the ipopt package
 class  IPOptFunction(object):

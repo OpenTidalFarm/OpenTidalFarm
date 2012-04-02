@@ -8,7 +8,7 @@ import sys
 import sw_config 
 import sw_lib
 import numpy
-import Memoize
+import memoize
 import ipopt 
 import IPOptUtils
 import matplotlib.pyplot as plt

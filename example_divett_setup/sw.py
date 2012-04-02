@@ -6,7 +6,7 @@ import pstats
 import sw_config 
 import sw_lib
 import numpy
-import Memoize
+import memoize
 from animated_plot import *
 from functionals import DefaultFunctional, build_turbine_cache
 from sw_utils import test_initial_condition_adjoint, test_gradient_array, pprint

@@ -1,5 +1,5 @@
 import numpy
-import Memoize
+import memoize
 from functionals import DefaultFunctional, build_turbine_cache
 from dolfin import *
 from turbines import *
@@ -7,6 +7,7 @@ from dolfin_adjoint import *
 
 class DefaultModel:
     def __init__(self, config):
+        # Hide the configuration since changes would break the memorize algorithm. 
         self.__config__ = config
 
         def j_and_dj(m):
@@ -79,7 +80,7 @@ class DefaultModel:
 
     def initial_control(self):
         # We use the current turbine settings as the intial control
-        config = self.__config__
+        self.__config__ = config
         res = config.params['turbine_friction'].tolist()
         res += numpy.reshape(config.params['turbine_pos'], -1).tolist()
         return numpy.array(res)

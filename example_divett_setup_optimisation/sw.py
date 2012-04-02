@@ -4,7 +4,7 @@ import sys
 import sw_config 
 import sw_lib
 import numpy
-import Memoize
+import memoize
 import IPOptUtils
 import ipopt
 from animated_plot import *

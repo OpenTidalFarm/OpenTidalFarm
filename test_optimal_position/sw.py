@@ -11,7 +11,7 @@ import pstats
 import sw_config 
 import sw_lib
 import numpy
-import Memoize
+import memoize
 import IPOptUtils
 from animated_plot import *
 from functionals import DefaultFunctional, build_turbine_cache
