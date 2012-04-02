@@ -26,6 +26,7 @@ from turbines import *
 from mini_model import *
 from dolfin import *
 from dolfin_adjoint import *
+from default_model import DefaultModel
 
 # Global counter variable for vtk output
 count = 0
@@ -131,10 +132,11 @@ def dj(m):
   return dj 
 
 config = default_config()
-m0 = initial_control(config)
+model = DefaultModel(config, scaling_factor = 10**-5, forward_model = mini_model_solve)
+m0 = model.initial_control()
 
 p = numpy.random.rand(len(m0))
-minconv = test_gradient_array(j, dj, m0, seed=0.001, perturbation_direction=p)
+minconv = test_gradient_array(model.j, model.dj, m0, seed=0.001, perturbation_direction=p)
 if minconv < 1.99:
   pprint("The gradient taylor remainder test failed.")
   sys.exit(1)
@@ -145,8 +147,8 @@ dg = lambda m: []
 
 f = IPOptUtils.IPOptFunction()
 # Overwrite the functional and gradient function with our implementation
-f.objective= j 
-f.gradient= dj 
+f.objective = model.j 
+f.gradient = model.dj 
 
 nlp = ipopt.problem(len(m0), 
                     0, 

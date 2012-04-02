@@ -16,13 +16,12 @@ def construct_mini_model(W, params, turbine_field):
 
     return A, M
 
-
 def mini_model(A, M, state, params, time_functional=None, annotate=True):
     '''Solve (1+turbine)*M*state = M*old_state. 
        The solution is a x-velocity of old_state/(turbine_friction + 1) and a zero pressure value y-velocity.
     '''
     
-    u_out, p_out = sw_lib.output_files(params["basename"])
+    u_out, p_out = sw_lib.output_files(params["element_type"].func_name)
     M_u_out, v_out, u_out_state=sw_lib.u_output_projector(state.function_space())
     M_p_out, q_out, p_out_state=sw_lib.p_output_projector(state.function_space())
 
@@ -58,3 +57,7 @@ def mini_model(A, M, state, params, time_functional=None, annotate=True):
       djdm += 0.5*params["dt"]*numpy.array([assemble(f) for f in time_functional.dJtdm(state)])
       print j, djdm
       return j, djdm
+
+def mini_model_solve(W, config, state, turbine_field=None, time_functional=None, annotate=True, linear_solver="default", preconditioner="default", u_source = None):
+    A, M = construct_mini_model(W, config.params, turbine_field)
+    return mini_model(A, M, state, params = config.params, time_functional = time_functional)

@@ -7,9 +7,10 @@ from turbines import *
 from dolfin_adjoint import *
 
 class DefaultModel:
-    def __init__(self, config):
+    def __init__(self, config, scaling_factor = 1.0, forward_model = sw_lib.sw_solve):
         # Hide the configuration since changes would break the memorize algorithm. 
         self.__config__ = config
+        self.scaling_factor = scaling_factor
 
         def j_and_dj(m, forward_only):
           adj_reset()
@@ -43,7 +44,7 @@ class DefaultModel:
           functional = DefaultFunctional(config.params, turbine_cache)
 
           # Solve the shallow water system
-          j, djdm = sw_lib.sw_solve(W, config, state, time_functional=functional, turbine_field = tf)
+          j, djdm = forward_model(W, config, state, time_functional=functional, turbine_field = tf)
 
           # And the adjoint system to compute the gradient if it was asked for
           if forward_only:
@@ -79,10 +80,10 @@ class DefaultModel:
         self.j_and_dj_mem = memoize.MemoizeMutable(j_and_dj)
 
     def j(self, m, forward_only = False):
-      return self.j_and_dj_mem(m, forward_only)[0]
+      return self.j_and_dj_mem(m, forward_only)[0] * self.scaling_factor
 
     def dj(self, m):
-      return self.j_and_dj_mem(m, forward_only = False)[1]
+      return self.j_and_dj_mem(m, forward_only = False)[1] * self.scaling_factor
 
     def initial_control(self):
         # We use the current turbine settings as the intial control

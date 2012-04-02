@@ -59,6 +59,7 @@ class Parameters(dict):
 class DefaultConfiguration:
   def __init__(self, nx=20, ny=3, mesh_file=None):
     params = Parameters({
+        'verbose'  : 1,
         'element_type'  : sw_lib.p1dgp2,
         'theta' : 0.6,
         'bctype'  : 'flather',

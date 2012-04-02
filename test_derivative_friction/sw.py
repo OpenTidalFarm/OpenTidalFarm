@@ -3,7 +3,6 @@
 
 import sys
 import sw_config 
-import sw_lib
 import numpy
 import memoize
 from functionals import DefaultFunctional, build_turbine_cache
