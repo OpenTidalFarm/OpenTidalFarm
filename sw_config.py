@@ -68,26 +68,22 @@ class DefaultConfiguration:
         'depth' : 50.,
         'g' : 9.81,
         'dump_period' : 1,
-        'eta0' : 2, # Wave height
-        'basin_x' : 3000., # The length of the basin
-        'basin_y' : 1000., # The width of the basin
+        'eta0' : 2, 
+        'basin_x' : 3000.,
+        'basin_y' : 1000.,
         'quadratic_friction' : False, 
-        'friction' : 0.0, # Bottom friction
+        'friction' : 0.0, 
         'turbine_pos' : [],
-        'turbine_x' : 20., # The turbine extension in the x direction
-        'turbine_y' : 5., # The turbine extension in the y direction
+        'turbine_x' : 20., 
+        'turbine_y' : 5., 
         'turbine_friction' : [],
         'turbine_model': 'BumpTurbine',
-        'newton_solver': False, # Only used with quadratic friction: Use a Newton solver to solve the nonlinear problem. The default is to use Picard iterations.
-        'picard_relative_tolerance': 1e-5, # The Picard iteration stops if the relative tolerance has been reached
-        'picard_iterations': 3, # The Picard iteration stops after this many iterations
-        'run_benchmark': False, # If true, then a combination of solver/preconditioner variations are used for each solve and their timings reported
-        'solver_exclude': ['cg'] # A list of solvers that are to be excluded from the benchmark test 
+        'newton_solver': False, 
+        'picard_relative_tolerance': 1e-5, 
+        'picard_iterations': 3, 
+        'run_benchmark': False, 
+        'solver_exclude': ['cg'] 
         })
-
-    # Basin radius.
-    # Long wave celerity.
-    c=sqrt(params["g"]*params["depth"])
 
     params["start_time"] = 0
     params["current_time"] = 0

@@ -3,7 +3,6 @@
 import sw_config 
 import sw_lib
 import numpy
-from sw_utils import pprint
 from default_model import DefaultModel
 from dolfin import *
 
@@ -12,7 +11,7 @@ def default_config():
   config = sw_config.DefaultConfiguration(nx=100, ny=33)
   period = 1.24*60*60 # Wave period
   config.params["k"] = 2*pi/(period*sqrt(config.params["g"]*config.params["depth"]))
-  pprint("Wave period (in h): ", period/60/60)
+  info("Wave period (in h): %f" % (period/60/60) )
   config.params["dump_period"] = 1
   config.params["verbose"] = 0
 
@@ -65,8 +64,8 @@ model = DefaultModel(config)
 
 m0 = model.initial_control()
 j0 = model.j(m0, forward_only = True)
-pprint("Power outcome: ", j0)
-pprint("Timing summary:")
+info("Power outcome: %f" % (j0, ))
+info("Timing summary:")
 timer = Timer("NULL")
 timer.stop()
 
