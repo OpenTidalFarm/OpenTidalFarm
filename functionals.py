@@ -54,17 +54,17 @@ class DefaultFunctional(FunctionalPrototype):
             djtdm.append(self.expr(state, self.turbine_cache['turbine_derivative_pos'][n][var]))
     return djtdm 
 
-def build_turbine_cache(params, function_space, turbine_size_scaling = 1.0):
+def build_turbine_cache(params, function_space):
   ''' Creates a list of all turbine function/derivative interpolations. This list is used as a cache 
       to avoid the recomputation of the expensive interpolation of the turbine expression. '''
   turbine_cache = {}
 
   params = sw_config.Parameters(dict(params))
   # Scale the turbine size by the given factor.
-  if turbine_size_scaling != 1.0:
-    info_green("The functional uses turbines which size is scaled by a factor of " + str(turbine_size_scaling) + ".")
-  params["turbine_x"] *= turbine_size_scaling
-  params["turbine_y"] *= turbine_size_scaling
+  if params["functional_turbine_scaling"] != 1.0:
+    info_green("The functional uses turbines which size is scaled by a factor of " + str(params["functional_turbine_scaling"]) + ".")
+  params["turbine_x"] *= params["functional_turbine_scaling"]
+  params["turbine_y"] *= params["functional_turbine_scaling"] 
 
   # Precompute the interpolation of the friction function
   turbines = Turbines(params)

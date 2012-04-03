@@ -12,12 +12,12 @@ import sw_config
 import sw_lib
 import numpy
 import memoize
+import ipopt 
 import IPOptUtils
 from animated_plot import *
-from functionals import DefaultFunctional, build_turbine_cache
-from sw_utils import test_initial_condition_adjoint, test_gradient_array
-from turbines import *
-from mini_model import *
+from sw_utils import test_gradient_array
+from mini_model import mini_model_solve
+from default_model import DefaultModel
 from dolfin import *
 from dolfin_adjoint import *
 
@@ -41,19 +41,16 @@ def default_config():
   config.params["turbine_friction"] = 12.0*numpy.random.rand(len(config.params["turbine_pos"]))
   config.params["turbine_x"] = 800
   config.params["turbine_y"] = 800
+  config.params["controls"] = ['turbine_pos']
+  config.params["functional_turbine_scaling"] = 1.0
 
   return config
-
-def initial_control(config):
-  # We use the current turbine settings as the intial control
-  res = numpy.reshape(config.params['turbine_pos'], -1).tolist()
-  return numpy.array(res)
 
 class BumpInitialConditions(Expression):
   '''This class implements a initial condition with a bump velocity profile.
      With that we know that the optimal turbine location must be in the center of the domain. '''
-  def __init__(self, params):
-    self.params = params
+  def __init__(self, config):
+    self.params = config.params
 
   def bump_function(self, x):
     '''The velocity is initially a bump function (a smooth function with limited support):
@@ -78,131 +75,56 @@ class BumpInitialConditions(Expression):
   def value_shape(self):
     return (3,)
 
-def j_and_dj(m):
-  adj_reset()
-
-  # Change the control variables to the config parameters
-  config.params["turbine_pos"] = numpy.reshape(m, (-1, 2))
-
-  set_log_level(30)
-  debugging["record_all"] = True
-
-  W=sw_lib.p1dgp2(config.mesh)
-  state=Function(W, name = "current_state")
-  state.interpolate(BumpInitialConditions(config.params))
-
-  # Set the control values
-  U = W.split()[0].sub(0) # Extract the first component of the velocity function space 
-  U = U.collapse() # Recompute the DOF map
-  tf = Function(U, name="turbine")
-  tfd = Function(U, name="turbine_derivative") 
-
-  # Set up the turbine friction field using the provided control variable
-  tf.interpolate(Turbines(config.params))
-
-  global count
-  count+=1
-  sw_lib.save_to_file_scalar(tf, "turbines_t=."+str(count)+".x")
-
-  A, M = construct_mini_model(W, config.params, tf)
-
-  turbine_cache = build_turbine_cache(config.params, U)
-  functional = DefaultFunctional(config.params, turbine_cache)
-
-  # Solve the shallow water system
-  j, djdm = mini_model(A, M, state, config.params, functional)
-  J = TimeFunctional(functional.Jt(state), static_variables = [turbine_cache["turbine_field"]], dt=config.params["dt"])
-  adj_state = sw_lib.adjoint(state, config.params, J, until={"name": "turbine", "timestep": 0, "iteration": 0}) 
-
-  # Let J be the functional, m the parameter and u the solution of the PDE equation F(u) = 0.
-  # Then we have 
-  # dJ/dm = (\partial J)/(\partial u) * (d u) / d m + \partial J / \partial m
-  #               = adj_state * \partial F / \partial u + \partial J / \partial m
-  # In this particular case m = turbine_friction, J = \sum_t(ft) 
-  dj = [] 
-  v = adj_state.vector()
-  # Compute the derivatives with respect to the turbine friction
-  for n in range(len(config.params["turbine_friction"])):
-    tfd.interpolate(Turbines(config.params, derivative_index_selector=n, derivative_var_selector='turbine_friction'))
-    dj.append( v.inner(tfd.vector()) )
-
-  # Compute the derivatives with respect to the turbine position
-  for n in range(len(config.params["turbine_pos"])):
-    for var in ('turbine_pos_x', 'turbine_pos_y'):
-      tfd.interpolate(Turbines(config.params, derivative_index_selector=n, derivative_var_selector=var))
-      dj.append( v.inner(tfd.vector()) )
-  dj = numpy.array(dj)  
-  
-  # Now add the \partial J / \partial m term
-  dj += djdm
-
-  return j, dj 
-
-j_and_dj_mem = memoize.MemoizeMutable(j_and_dj)
-def j(m):
-  j = j_and_dj_mem(m)[0]*10**4
-  info_green('Evaluating j(' + m.__repr__() + ')=' + str(j))
-  plot.addPoint(j) 
-  return j 
-
-def dj(m):
-  dj = j_and_dj_mem(m)[1]*10**4
-  info_green('Evaluating dj(' + m.__repr__() + ')=' + str(dj))
-  # Return the derivatives with respect to the position only
-  return dj[len(config.params['turbine_friction']):]
-
 config = default_config()
-m0 = initial_control(config)
+initial_condition = BumpInitialConditions(config)
+model = DefaultModel(config, scaling_factor = 10**4, forward_model = mini_model_solve, initial_condition = initial_condition)
+m0 = model.initial_control()
 
 p = numpy.random.rand(len(m0))
-minconv = test_gradient_array(j, dj, m0, seed=0.001, perturbation_direction=p)
+minconv = test_gradient_array(model.j, model.dj, m0, seed=0.001, perturbation_direction=p)
 if minconv < 1.9:
   print "The gradient taylor remainder test failed."
   sys.exit(1)
 
-opt_package = 'ipopt'
+# If this option does not produce any ipopt outputs, delete the ipopt.opt file
+g = lambda m: []
+dg = lambda m: []
 
-if opt_package == 'ipopt':
-  # If this option does not produce any ipopt outputs, delete the ipopt.opt file
-  import ipopt 
-  g = lambda m: []
-  dg = lambda m: []
+f = IPOptUtils.IPOptFunction()
+# Overwrite the functional and gradient function with our implementation
+f.objective= model.j 
+f.gradient= model.dj 
 
-  f = IPOptUtils.IPOptFunction()
-  # Overwrite the functional and gradient function with our implementation
-  f.objective= j 
-  f.gradient= dj 
+nlp = ipopt.problem(len(m0), 
+                  0, 
+                  f, 
+                  numpy.zeros(len(m0)), 
+                  3000.*numpy.ones(len(m0)))
+nlp.addOption('mu_strategy', 'adaptive')
+nlp.addOption('tol', 1e-9)
+nlp.addOption('print_level', 5)
+nlp.addOption('check_derivatives_for_naninf', 'yes')
+# A -1.0 scaling factor transforms the min problem to a max problem.
+nlp.addOption('obj_scaling_factor', -1.0)
+# Use an approximate Hessian since we do not have second order information.
+nlp.addOption('hessian_approximation', 'limited-memory')
+nlp.addOption('max_iter', 25)
 
-  nlp = ipopt.problem(len(m0), 
-                      0, 
-                      f, 
-                      numpy.zeros(len(m0)), 
-                      3000.*numpy.ones(len(m0)))
-  nlp.addOption('mu_strategy', 'adaptive')
-  nlp.addOption('tol', 1e-9)
-  nlp.addOption('print_level', 5)
-  nlp.addOption('check_derivatives_for_naninf', 'yes')
-  # A -1.0 scaling factor transforms the min problem to a max problem.
-  nlp.addOption('obj_scaling_factor', -1.0)
-  # Use an approximate Hessian since we do not have second order information.
-  nlp.addOption('hessian_approximation', 'limited-memory')
-  nlp.addOption('max_iter', 25)
+m, info = nlp.solve(m0)
+info_green(info['status_msg'])
+info_green("Solution of the primal variables: m=" + repr(m) + "\n")
+info_green("Solution of the dual variables: lambda=" +  repr(info['mult_g']) + "\n")
+info_green("Objective=" + repr(info['obj_val']) + "\n")
+plot.savefig("plot_functional_value.png")
 
-  m, info = nlp.solve(m0)
-  info_green(info['status_msg'])
-  info_green("Solution of the primal variables: m=" + repr(m) + "\n")
-  info_green("Solution of the dual variables: lambda=" +  repr(info['mult_g']) + "\n")
-  info_green("Objective=" + repr(info['obj_val']) + "\n")
-  plot.savefig("plot_functional_value.png")
-
-  exit_code = 1
-  if info['status'] != 0: 
+exit_code = 1
+if info['status'] != 0: 
     print "The optimisation algorithm did not find a solution."
-  elif abs(m[0]-1500) > 40:
+elif abs(m[0]-1500) > 40:
     print "The optimisation algorithm did not find the optimal x position:", m[0] , "instead of 1500."
-  elif abs(m[1]-500) > 0.4:
+elif abs(m[1]-500) > 0.4:
     print "The optimisation algorithm did not find the optimal y position:", m[1] , "instead of 500."
-  else:
+else:
     exit_code = 0
 
 sys.exit(exit_code) 

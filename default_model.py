@@ -7,7 +7,7 @@ from turbines import *
 from dolfin_adjoint import *
 
 class DefaultModel:
-    def __init__(self, config, scaling_factor = 1.0, forward_model = sw_lib.sw_solve):
+    def __init__(self, config, scaling_factor = 1.0, forward_model = sw_lib.sw_solve, initial_condition = None):
         # Hide the configuration since changes would break the memorize algorithm. 
         self.__config__ = config
         self.scaling_factor = scaling_factor
@@ -16,10 +16,12 @@ class DefaultModel:
           adj_reset()
 
           # Change the control variables to the config parameters
+          shift = 0
           if 'turbine_friction' in config.params['controls']: 
-              config.params["turbine_friction"] = m[:len(config.params["turbine_friction"])]
+              shift = len(config.params["turbine_friction"])
+              config.params["turbine_friction"] = m[:shift]
           if 'turbine_pos' in config.params['controls']: 
-              mp = m[len(config.params["turbine_friction"]):]
+              mp = m[shift:]
               config.params["turbine_pos"] = numpy.reshape(mp, (-1, 2))
 
           set_log_level(30)
@@ -29,7 +31,10 @@ class DefaultModel:
 
           # Get initial conditions
           state = Function(W, name="Current_state")
-          state.interpolate(config.get_sin_initial_condition()())
+          if initial_condition == None:
+              state.interpolate(config.get_sin_initial_condition()())
+          else:
+              state.interpolate(initial_condition)
 
           # Set the control values
           U = W.split()[0].sub(0) # Extract the first component of the velocity function space 
@@ -42,7 +47,7 @@ class DefaultModel:
 
           # Scale the turbine size by 0.5 for the functional definition. This is used for obtaining 
           # a physical power curve.
-          turbine_cache = build_turbine_cache(config.params, U, turbine_size_scaling=0.5)
+          turbine_cache = build_turbine_cache(config.params, U)
           functional = DefaultFunctional(config.params, turbine_cache)
 
           # Solve the shallow water system
@@ -53,7 +58,7 @@ class DefaultModel:
               dj = None
           else:
               J = TimeFunctional(functional.Jt(state), static_variables = [turbine_cache["turbine_field"]], dt = config.params["dt"])
-              adj_state = sw_lib.adjoint(state, config.params, J, until={"name": "friction", "timestep": 0, "iteration": 0})
+              djdudm = compute_gradient(J, InitialConditionParameter("friction"))
 
               # Let J be the functional, m the parameter and u the solution of the PDE equation F(u) = 0.
               # Then we have 
@@ -61,19 +66,18 @@ class DefaultModel:
               #               = adj_state * \partial F / \partial u + \partial J / \partial m
               # In this particular case m = turbine_friction, J = \sum_t(ft) 
               dj = [] 
-              v = adj_state.vector()
               if 'turbine_friction' in config.params["controls"]:
                   # Compute the derivatives with respect to the turbine friction
                   for n in range(len(config.params["turbine_friction"])):
                     tfd.interpolate(Turbines(config.params, derivative_index_selector=n, derivative_var_selector='turbine_friction'))
-                    dj.append( v.inner(tfd.vector()) )
+                    dj.append( djdudm.vector().inner(tfd.vector()) )
 
               if 'turbine_pos' in config.params["controls"]:
                   # Compute the derivatives with respect to the turbine position
                   for n in range(len(config.params["turbine_pos"])):
                     for var in ('turbine_pos_x', 'turbine_pos_y'):
                       tfd.interpolate(Turbines(config.params, derivative_index_selector=n, derivative_var_selector=var))
-                      dj.append( v.inner(tfd.vector()) )
+                      dj.append( djdudm.vector().inner(tfd.vector()) )
               dj = numpy.array(dj)  
               
               # Now add the \partial J / \partial m term

@@ -53,9 +53,7 @@ sw_lib.replay(config.params)
 
 # Run the adjoint model 
 J = TimeFunctional(functional.Jt(state), static_variables = [turbine_cache["turbine_field"]], dt=config.params["dt"])
-# Because no turbine field is used, the first equation in the annotation is the initialisation
-# of the initial condition, hence the adjoint is computed all the way back to equation 0.
-adj_state = sw_lib.adjoint(state, config.params, J, until = {"name": "Current_state", "timestep": 0, "iteration": 0})
+dJdm = compute_gradient(J, InitialConditionParameter("Current_state"))
 
 # And finally check the computed gradient with the taylor test
 def J(state):
@@ -63,7 +61,7 @@ def J(state):
   return j
 
 state.interpolate(config.get_sin_initial_condition()())
-minconv = test_initial_condition_adjoint(J, state, adj_state, seed=0.0001)
+minconv = test_initial_condition_adjoint(J, state, dJdm, seed=0.0001)
 if minconv < 1.9:
   exit_code = 1
 else:
