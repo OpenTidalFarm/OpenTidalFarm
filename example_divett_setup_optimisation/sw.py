@@ -30,8 +30,8 @@ def default_config():
   config.params["dt"] = period/2
   config.params["finish_time"] = 5.*period/4 
   config.params["theta"] = 0.6
-  config.params["include_advection"] = True 
-  config.params["include_diffusion"] = True 
+  config.params["include_advection"] = False 
+  config.params["include_diffusion"] = False 
   config.params["diffusion_coef"] = 20.0
   config.params["newton_solver"] = False 
   config.params["picard_iterations"] = 20
@@ -49,7 +49,7 @@ def default_config():
   dolfin.parameters['form_compiler']['cpp_optimize_flags'] = '-O3'
 
   # Turbine settings
-  config.params["quadratic_friction"] = True
+  config.params["quadratic_friction"] = False 
   config.params["friction"] = 0.0025
   # The turbine position is the control variable 
   config.params["turbine_pos"] = [] 
