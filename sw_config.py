@@ -1,4 +1,4 @@
-import sw_lib
+import function_spaces
 from dolfin import * 
 from math import exp, sqrt, pi
 
@@ -60,7 +60,7 @@ class DefaultConfiguration:
   def __init__(self, nx=20, ny=3, mesh_file=None):
     params = Parameters({
         'verbose'  : 1,
-        'element_type'  : sw_lib.p1dgp2,
+        'element_type'  : function_spaces.p1dgp2,
         'theta' : 0.6,
         'bctype'  : 'flather',
         'include_advection': False,

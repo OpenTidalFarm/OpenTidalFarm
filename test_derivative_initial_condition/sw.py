@@ -35,7 +35,7 @@ config.params["turbine_y"] = 400
 config.params["turbine_model"] = 'ConstantTurbine'
 
 # Setup the model and run it so that the annotation exists.
-W = sw_lib.p1dgp2(config.mesh)
+W = function_spaces.p1dgp2(config.mesh)
 state = Function(W, name="Current_state")
 state.interpolate(config.get_sin_initial_condition()())
 
