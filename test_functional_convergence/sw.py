@@ -4,6 +4,7 @@
 import sys
 import sw_config 
 import sw_lib
+import function_spaces
 import numpy
 from mini_model import *
 from functionals import DefaultFunctional, build_turbine_cache
@@ -37,7 +38,7 @@ def run_model(nx, ny, turbine_model, turbine_pos):
   config.params["turbine_x"] = 200
   config.params["turbine_y"] = 200
 
-  W=sw_lib.p1dgp2(config.mesh)
+  W = function_spaces.p1dgp2(config.mesh)
 
   state=Function(W)
   state.interpolate(Constant((2.0, 0.0, 0.0)))

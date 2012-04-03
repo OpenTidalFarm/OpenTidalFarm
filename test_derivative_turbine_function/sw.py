@@ -5,7 +5,7 @@
 
 import sys
 import sw_config 
-import sw_lib
+import function_spaces
 from functionals import * 
 import numpy
 from dolfin import *
@@ -42,7 +42,7 @@ def j_and_dj(m):
 
   set_log_level(30)
 
-  W=sw_lib.p1dgp2(config.mesh)
+  W = function_spaces.p1dgp2(config.mesh)
 
   # Get initial conditions
   state=Function(W, name = "current_state")

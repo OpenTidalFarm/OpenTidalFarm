@@ -45,7 +45,7 @@ def default_config():
 
 config = default_config()
 
-W=sw_lib.p1dgp2(config.mesh)
+W = function_spaces.p1dgp2(config.mesh)
 state=Function(W)
 
 # Set the control values

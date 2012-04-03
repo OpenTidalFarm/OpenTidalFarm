@@ -1,6 +1,7 @@
 import sys
 import sw_config 
 import sw_lib
+import function_spaces
 from dolfin import *
 from dolfin_adjoint import *
 from math import log
@@ -9,8 +10,8 @@ set_log_level(30)
 myid = MPI.process_number()
 
 def error(config):
-  W=sw_lib.p1dgp2(config.mesh)
-  state=Function(W)
+  W = function_spaces.p1dgp2(config.mesh)
+  state = Function(W)
   state.interpolate(config.InitialConditions())
 
   sw_lib.sw_solve(W, config, state, annotate=False)

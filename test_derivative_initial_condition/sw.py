@@ -4,6 +4,7 @@
 import sys
 import sw_config 
 import sw_lib
+import function_spaces
 import numpy
 from turbines import *
 from functionals import DefaultFunctional, build_turbine_cache

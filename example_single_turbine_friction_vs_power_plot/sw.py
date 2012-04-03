@@ -6,7 +6,7 @@
 
 import sys
 import sw_config 
-import sw_lib
+import function_spaces
 import numpy
 import matplotlib.pyplot as plt
 from dolfin import *
@@ -20,7 +20,7 @@ def default_config():
   period = 1.24*60*60 # Wave period
   config.params["k"] = 2*pi/(period*sqrt(config.params["g"]*config.params["depth"]))
   # Start at rest state
-  config.params["element_type"] = sw_lib.p2p1
+  config.params["element_type"] = function_spaces.p2p1
   config.params["start_time"] = period/4 
   config.params["finish_time"] = period/2
   config.params["dt"] = config.params["finish_time"]/10

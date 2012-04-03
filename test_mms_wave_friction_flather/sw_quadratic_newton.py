@@ -1,6 +1,7 @@
 import sys
 import sw_config 
 import sw_lib
+import function_spaces
 from dolfin import *
 from dolfin_adjoint import *
 from math import log
@@ -9,7 +10,7 @@ set_log_level(30)
 myid = MPI.process_number()
 
 def error(config):
-  W = sw_lib.p1dgp2(config.mesh)
+  W = function_spaces.p1dgp2(config.mesh)
   state = Function(W)
   state.interpolate(config.get_sin_initial_condition()())
   u_exact = "eta0*sqrt(g*depth) * cos(k*x[0]-sqrt(g*depth)*k*t)" # The analytical veclocity of the shallow water equations has been multiplied by depth to account for the change of variable (\tilde u = depth u) in this code.

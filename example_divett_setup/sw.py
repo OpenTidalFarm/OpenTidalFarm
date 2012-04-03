@@ -1,7 +1,7 @@
 ''' This example optimises the position of three turbines using the hallow water model. '''
 
 import sw_config 
-import sw_lib
+import function_spaces
 import numpy
 from default_model import DefaultModel
 from dolfin import *
@@ -16,7 +16,7 @@ def default_config():
   config.params["verbose"] = 0
 
   # Start at rest state
-  config.params["element_type"] = sw_lib.p2p1
+  config.params["element_type"] = function_spaces.p2p1
   config.params["start_time"] = period/4
   config.params["dt"] = period/50
   config.params["finish_time"] = 5.*period/4 
