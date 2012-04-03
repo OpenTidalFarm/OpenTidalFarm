@@ -5,7 +5,7 @@
  - control: turbine friction, initially zero
  - the functional is \int C * f * ||u||**3 where C is a constant
  - in order to avoid the global maximum +oo, the friction coefficient is limited to 0 <= f <= 1.0 
- - the plot in 'example_single_turbine_friction_vs_power_plot' suggestes that the optimal friction coefficient is at about 0.036
+ - the plot in 'example_single_turbine_friction_vs_power_plot' suggestes that the optimal friction coefficient is at about 0.04413 
  '''
 
 import sys
@@ -30,7 +30,7 @@ def default_config():
   config.params["start_time"] = period/4 
   config.params["finish_time"] = period/2
   config.params["dt"] = config.params["finish_time"]/10
-  pprint("Wave period (in h): ", period/60/60)
+  info_green("Wave period (in h): %f" % (period/60/60, ))
   config.params["dump_period"] = 1
   config.params["verbose"] = 0
   # We need a implicit scheme to avoid oscillations in the turbine areas.
@@ -62,7 +62,7 @@ p = numpy.random.rand(len(m0))
 # Note: we choose 0.04*m0 here, because at m0 the problem is almost linear and hence the taylor convergence test will not work.
 minconv = test_gradient_array(model.j, model.dj, 0.04*m0, seed=0.001, perturbation_direction=p)
 if minconv < 1.98:
-  pprint("The gradient taylor remainder test failed.")
+  info_red("The gradient taylor remainder test failed.")
   sys.exit(1)
 
 # If this option does not produce any ipopt outputs, delete the ipopt.opt file
@@ -98,6 +98,6 @@ pprint("Solution of the primal variables: m=%s\n" % repr(m))
 pprint("Solution of the dual variables: lambda=%s\n" % repr(info['mult_g']))
 pprint("Objective=%s\n" % repr(info['obj_val']))
 
-if info['status'] != 0 or abs(m-0.036) > 0.0005: 
-  pprint("The optimisation algorithm did not find the correct solution: Expected m = 0.036, but got m = " + str(m) + ".")
+if info['status'] != 0 or abs(m-0.04413) > 0.0005: 
+  pprint("The optimisation algorithm did not find the correct solution: Expected m = 0.04413, but got m = " + str(m) + ".")
   sys.exit(1) 
