@@ -53,20 +53,12 @@ def default_config():
   # Turbine settings
   config.params["quadratic_friction"] = False 
   config.params["friction"] = 0.0025
-  # The turbine position is the control variable 
-  config.params["turbine_pos"] = [] 
-  border_x = 500
-  border_y = 300
-  for x_r in numpy.linspace(0.+border_x, config.params["basin_x"]-border_x, 3):
-    for y_r in numpy.linspace(0.+border_y, config.params["basin_y"]-border_y, 2):
-      config.params["turbine_pos"].append((float(x_r), float(y_r)))
+  config.params["turbine_pos"] = [[1500., 500.]]
 
-  info_blue("Deployed " + str(len(config.params["turbine_pos"])) + " turbines.")
-  # Choosing a friction coefficient of > 0.02 ensures that overlapping turbines will lead to
   # less power output.
   config.params["turbine_friction"] = 0.2*numpy.ones(len(config.params["turbine_pos"]))
-  config.params["turbine_x"] = 200
-  config.params["turbine_y"] = 200
+  config.params["turbine_x"] = 600
+  config.params["turbine_y"] = 600
 
   return config
 
