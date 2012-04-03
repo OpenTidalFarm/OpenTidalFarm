@@ -4,19 +4,14 @@ import sys
 import sw_config 
 import sw_lib
 import numpy
-import memoize
 import IPOptUtils
 import ipopt
+from sw_utils import test_gradient_array
 from animated_plot import *
-from functionals import DefaultFunctional, build_turbine_cache
-from sw_utils import test_initial_condition_adjoint, test_gradient_array, pprint
-from turbines import *
-from mini_model import *
+from default_model import DefaultModel
 from dolfin import *
 from dolfin_adjoint import *
 
-# Global counter variable for vtk output
-count = 0
 # An animated plot to visualise the development of the functional value
 plot = AnimatedPlot(xlabel='Iteration', ylabel='Functional value')
 
@@ -25,11 +20,12 @@ def default_config():
   config = sw_config.DefaultConfiguration(nx=30, ny=10)
   period = 1.24*60*60 # Wave period
   config.params["k"] = 2*pi/(period*sqrt(config.params["g"]*config.params["depth"]))
-  pprint("Wave period (in h): ", period/60/60)
+  info("Wave period (in h): %f" % (period/60/60) )
   config.params["dump_period"] = 1
   config.params["verbose"] = 0
 
   # Start at rest state
+  config.params["element_type"] = sw_lib.p2p1
   config.params["start_time"] = period/4
   config.params["dt"] = period/2
   config.params["finish_time"] = 5.*period/4 
@@ -39,7 +35,6 @@ def default_config():
   config.params["diffusion_coef"] = 20.0
   config.params["newton_solver"] = False 
   config.params["picard_iterations"] = 20
-  config.params['basename'] = "p2p1"
   config.params["run_benchmark"] = False 
   config.params['solver_exclude'] = ['cg', 'lu']
   info_green("Approximate CFL number (assuming a velocity of 2): " +str(2*config.params["dt"]/config.mesh.hmin())) 
@@ -73,90 +68,12 @@ def default_config():
 
   return config
 
-def initial_control(config):
-  # We use the current turbine settings as the intial control
-  res = numpy.reshape(config.params['turbine_pos'], -1).tolist()
-  return numpy.array(res)
-
-def j_and_dj(m):
-  adj_reset()
-
-  # Change the control variables to the config parameters
-  config.params["turbine_pos"] = numpy.reshape(m, (-1, 2))
-
-  debugging["record_all"] = True
-
-  W = sw_lib.p2p1(config.mesh)
-
-  state = Function(W, name="Current_state")
-  state.interpolate(config.get_sin_initial_condition()())
-
-  # Set the control values
-  U = W.split()[0].sub(0) # Extract the first component of the velocity function space 
-  U = U.collapse() # Recompute the DOF map
-  tf = Function(U, name = 'friction')
-  tfd = Function(U, name = 'friction_derivative')
-
-  # Set up the turbine friction field using the provided control variable
-  tf.interpolate(Turbines(config.params))
-
-  global count
-  count+=1
-  sw_lib.save_to_file_scalar(tf, "turbines_t=."+str(count)+".x")
-
-  # Scale the turbines in the functional for a physically consistent power/friction curve
-  turbine_cache = build_turbine_cache(config.params, U, turbine_size_scaling=0.5)
-  functional = DefaultFunctional(config.params, turbine_cache)
-
-  # Solve the shallow water system
-  j, djdm = sw_lib.sw_solve(W, config, state, turbine_field = tf, time_functional=functional)
-  J = TimeFunctional(functional.Jt(state), static_variables = [turbine_cache["turbine_field"]], dt = config.params["dt"])
-  #dJdfriction = compute_gradient(J, InitialConditionParameter("friction"))
-  adj_state = sw_lib.adjoint(state, config.params, J, until={"name": "friction", "timestep": 0, "iteration": 0})
-
-  # Let J be the functional, m the parameter and u the solution of the PDE equation F(u) = 0.
-  # Then we have 
-  # dJ/dm = (\partial J)/(\partial u) * (d u) / d m + \partial J / \partial m
-  #               = adj_state * \partial F / \partial u + \partial J / \partial m
-  # In this particular case m = turbine_friction, J = \sum_t(ft) 
-  dj = [] 
-  v = adj_state.vector()
-  # Compute the derivatives with respect to the turbine friction
-  for n in range(len(config.params["turbine_friction"])):
-    tfd.interpolate(Turbines(config.params, derivative_index_selector=n, derivative_var_selector='turbine_friction'))
-    dj.append( v.inner(tfd.vector()) )
-
-  # Compute the derivatives with respect to the turbine position
-  for n in range(len(config.params["turbine_pos"])):
-    for var in ('turbine_pos_x', 'turbine_pos_y'):
-      tfd.interpolate(Turbines(config.params, derivative_index_selector=n, derivative_var_selector=var))
-      dj.append( v.inner(tfd.vector()) )
-  dj = numpy.array(dj)  
-  
-  # Now add the \partial J / \partial m term
-  dj += djdm
-
-  return j, dj 
-
-j_and_dj_mem = memoize.MemoizeMutable(j_and_dj)
-def j(m):
-  j = j_and_dj_mem(m)[0]*10**-4
-  pprint('Evaluating j(', m.__repr__(), ')=', j)
-  plot.addPoint(j) 
-  plot.savefig("plot_functional.png")
-  return j 
-
-def dj(m):
-  dj = j_and_dj_mem(m)[1]*10**-4
-  pprint('Evaluating dj(', m.__repr__(), ')=', dj)
-  # Return the derivatives with respect to the position only
-  return dj[len(config.params['turbine_friction']):]
-
 config = default_config()
-m0 = initial_control(config)
+model = DefaultModel(config, scaling_factor = 10**-4)
+m0 = model.initial_control()
 
 p = numpy.random.rand(len(m0))
-minconv = test_gradient_array(j, dj, m0, seed=0.00001, perturbation_direction=p)
+minconv = test_gradient_array(model.j, model.dj, m0, seed=0.00001, perturbation_direction=p)
 if minconv < 1.98:
   print "The gradient taylor remainder test failed."
   sys.exit(1)
@@ -166,8 +83,8 @@ dg = lambda m: []
 
 f = IPOptUtils.IPOptFunction()
 # Overwrite the functional and gradient function with our implementation
-f.objective= j 
-f.gradient= dj 
+f.objective= model.j 
+f.gradient= model.dj 
 
 # Get the upper and lower bounds for the turbine positions
 lb, ub = IPOptUtils.position_constraints(config.params)
