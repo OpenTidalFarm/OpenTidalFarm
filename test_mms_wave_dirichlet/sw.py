@@ -9,8 +9,8 @@ set_log_level(30)
 myid = MPI.process_number()
 
 def error(config):
-  W=sw_lib.p1dgp2(config.mesh)
-  state=Function(W)
+  W = sw_lib.p1dgp2(config.mesh)
+  state = Function(W)
   state.interpolate(config.get_sin_initial_condition()())
 
   sw_lib.sw_solve(W, config, state, annotate=False)
@@ -20,7 +20,7 @@ def error(config):
                              "eta0*cos(k*x[0]-sqrt(g*depth)*k*t)"), \
                              eta0=config.params["eta0"], g=config.params["g"], \
                              depth=config.params["depth"], t=config.params["current_time"], k=config.params["k"])
-  exactstate=Function(W)
+  exactstate = Function(W)
   exactstate.interpolate(analytic_sol)
   e = state-exactstate
   return sqrt(assemble(dot(e,e)*dx))

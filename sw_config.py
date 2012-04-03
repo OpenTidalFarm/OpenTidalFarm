@@ -1,6 +1,4 @@
 import sw_lib
-from turbines import *
-
 from dolfin import * 
 from math import exp, sqrt, pi
 
