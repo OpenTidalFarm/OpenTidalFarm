@@ -6,6 +6,7 @@ import configuration
 import numpy
 from utils import test_gradient_array
 from reduced_functional import *
+set_log_level(PROGRESS)
 
 # We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
 numpy.random.seed(21) 
