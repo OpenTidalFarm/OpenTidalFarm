@@ -33,6 +33,7 @@ config.params["turbine_friction"] = 12.*numpy.ones(len(config.params["turbine_po
 config.params["turbine_x"] = 400
 config.params["turbine_y"] = 400
 config.params["turbine_model"] = 'ConstantTurbine'
+config.params["functional_turbine_scaling"] = 1.0
 
 # Setup the model and run it so that the annotation exists.
 W = function_spaces.p1dgp2(config.mesh)
@@ -50,7 +51,8 @@ functional = DefaultFunctional(config.params, turbine_cache)
 sw_lib.sw_solve(W, config, state, time_functional=functional)
 
 # Check the replay
-sw_lib.replay(config.params)
+info("Replaying the forward model")
+replay_dolfin()
 
 # Run the adjoint model 
 J = TimeFunctional(functional.Jt(state), static_variables = [turbine_cache["turbine_field"]], dt=config.params["dt"])
