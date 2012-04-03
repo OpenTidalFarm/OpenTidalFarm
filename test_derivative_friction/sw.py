@@ -2,7 +2,7 @@
    derivative of the functional with respect to the friction field.'''
 
 import sys
-import sw_config 
+import configuration 
 import numpy
 from utils import test_gradient_array
 from reduced_functional import *
@@ -11,7 +11,7 @@ from reduced_functional import *
 numpy.random.seed(21) 
 
 # Create the model configuration
-config = sw_config.DefaultConfiguration(nx=30, ny=15)
+config = configuration.DefaultConfiguration(nx=30, ny=15)
 period = 1.24*60*60 # Wave period
 config.params["k"] = 2*pi/(period*sqrt(config.params["g"]*config.params["depth"]))
 # Start at rest state

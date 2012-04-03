@@ -1,5 +1,5 @@
 import sys
-import sw_config 
+import configuration 
 import sw_lib
 from dolfin import *
 from dolfin_adjoint import *
@@ -34,7 +34,7 @@ def error(config):
   return sqrt(assemble(dot(e,e)*dx))
 
 def test(refinment_level):
-  config = sw_config.DefaultConfiguration(nx=2*2**refinment_level, ny=2*2**refinment_level) 
+  config = configuration.DefaultConfiguration(nx=2*2**refinment_level, ny=2*2**refinment_level) 
   config.params["finish_time"] = pi/(sqrt(config.params["g"]*config.params["depth"])*config.params["k"])/10
   config.params["dt"] = config.params["finish_time"]/75
   config.params["dump_period"] = 100000

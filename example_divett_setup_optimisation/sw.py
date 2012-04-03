@@ -1,7 +1,7 @@
 ''' This example optimises the position of three turbines using the hallow water model. '''
 
 import sys
-import sw_config 
+import configuration 
 import function_spaces
 import numpy
 import IPOptUtils
@@ -18,7 +18,7 @@ plot = AnimatedPlot(xlabel='Iteration', ylabel='Functional value')
 def default_config():
   # We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
   numpy.random.seed(21) 
-  config = sw_config.DefaultConfiguration(nx=60, ny=20)
+  config = configuration.DefaultConfiguration(nx=60, ny=20)
   period = 1.24*60*60 # Wave period
   config.params["k"] = 2*pi/(period*sqrt(config.params["g"]*config.params["depth"]))
   info("Wave period (in h): %f" % (period/60/60) )

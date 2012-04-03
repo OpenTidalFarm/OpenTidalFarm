@@ -2,7 +2,7 @@
    It also checks that the power output is independent of minimal movement of its position,
    to ensure that no numerical effects influence its value.'''
 import sys
-import sw_config 
+import configuration 
 import sw_lib
 import function_spaces
 import numpy
@@ -24,7 +24,7 @@ def run_model(nx, ny, turbine_model, turbine_pos):
      and returns the power output'''
 
   # Model specific settings
-  config = sw_config.DefaultConfiguration(nx, ny)
+  config = configuration.DefaultConfiguration(nx, ny)
   period = 1.24*60*60 # Wave period
   config.params["dt"] = 1.0
   config.params["dump_period"]=100000
@@ -43,7 +43,7 @@ def run_model(nx, ny, turbine_model, turbine_pos):
   state.interpolate(Constant((2.0, 0.0, 0.0)))
 
   # Option 2: Interpolate the turbine field onto a high order function space and then project it to the computational function space 
-  #config2 = sw_config.DefaultConfiguration(nx, ny)
+  #config2 = configuration.DefaultConfiguration(nx, ny)
   #Uh = FunctionSpace(config.mesh, "DG", 10)
   #tfh = Function(Uh)
   #tfh.interpolate(turbine_model(config))

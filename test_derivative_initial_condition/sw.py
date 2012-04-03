@@ -2,7 +2,7 @@
    derivative of the functional with respect to the initial condition.'''
 
 import sys
-import sw_config 
+import configuration 
 import sw_lib
 import function_spaces
 import numpy
@@ -15,7 +15,7 @@ set_log_level(PROGRESS)
 myid = MPI.process_number()
 debugging["record_all"] = True
 
-config = sw_config.DefaultConfiguration(nx=10, ny=2) 
+config = configuration.DefaultConfiguration(nx=10, ny=2) 
 period = 1.24*60*60 # Wave period
 config.params["k"]=2*pi/(period*sqrt(config.params["g"]*config.params["depth"]))
 config.params["start_time"]=0

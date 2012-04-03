@@ -12,7 +12,7 @@
  '''
 
 import sys
-import sw_config 
+import configuration 
 import numpy
 import ipopt 
 import IPOptUtils
@@ -25,7 +25,7 @@ set_log_level(PROGRESS)
 def default_config():
   # We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
   numpy.random.seed(21) 
-  config = sw_config.DefaultConfiguration(nx=20, ny=10)
+  config = configuration.DefaultConfiguration(nx=20, ny=10)
   config.params["verbose"] = 0
 
   # dt is used in the functional only, so we set it here to 1.0

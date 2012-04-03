@@ -3,7 +3,7 @@
     implementation. On 4 Intel(R) Xeon(R) CPU  E5506  @ 2.13GHz the benchmark time should be around 11s. ''' 
 
 import sys
-import sw_config 
+import configuration 
 import sw_lib
 import numpy
 import cProfile
@@ -14,7 +14,7 @@ from dolfin_adjoint import *
 
 def default_config():
   # We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
-  config = sw_config.DefaultConfiguration(nx=600, ny=200)
+  config = configuration.DefaultConfiguration(nx=600, ny=200)
   period = 1.24*60*60 # Wave period
   config.params["k"] = 2*pi/(period*sqrt(config.params["g"]*config.params["depth"]))
   config.params["finish_time"] = 2./4*period

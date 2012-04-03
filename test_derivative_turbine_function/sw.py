@@ -4,7 +4,7 @@
 '''
 
 import sys
-import sw_config 
+import configuration 
 import function_spaces
 from functionals import * 
 import numpy
@@ -15,7 +15,7 @@ from turbines import *
 
 def default_config():
   numpy.random.seed(21) 
-  config = sw_config.DefaultConfiguration(nx=40, ny=20)
+  config = configuration.DefaultConfiguration(nx=40, ny=20)
   config.params["dump_period"] = 1000
   config.params["verbose"] = 0
 

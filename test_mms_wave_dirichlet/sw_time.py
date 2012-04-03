@@ -1,5 +1,5 @@
 import sys
-import sw_config 
+import configuration 
 import sw_lib
 import function_spaces
 from dolfin import *
@@ -27,7 +27,7 @@ def error(config):
   return sqrt(assemble(dot(e,e)*dx))
 
 def test(refinment_level):
-  config = sw_config.DefaultConfiguration(nx=2**8, ny=2) 
+  config = configuration.DefaultConfiguration(nx=2**8, ny=2) 
   config.params["finish_time"] = 2*pi/(sqrt(config.params["g"]*config.params["depth"])*config.params["k"])
   config.params["dt"] = config.params["finish_time"]/(2*2**refinment_level)
   config.params["theta"] = 0.5
