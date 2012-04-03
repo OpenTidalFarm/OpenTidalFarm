@@ -18,7 +18,7 @@ plot = AnimatedPlot(xlabel='Iteration', ylabel='Functional value')
 def default_config():
   # We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
   numpy.random.seed(21) 
-  config = configuration.DefaultConfiguration(nx=60, ny=20)
+  config = configuration.DefaultConfiguration(nx=100, ny=33)
   period = 1.24*60*60 # Wave period
   config.params["k"] = 2*pi/(period*sqrt(config.params["g"]*config.params["depth"]))
   info("Wave period (in h): %f" % (period/60/60) )
@@ -28,17 +28,17 @@ def default_config():
   # Start at rest state
   config.params["element_type"] = function_spaces.p2p1
   config.params["start_time"] = period/4
-  config.params["dt"] = period/2
+  config.params["dt"] = period/50
   config.params["finish_time"] = 5.*period/4 
   config.params["theta"] = 0.6
   config.params["include_advection"] = True 
   config.params["include_diffusion"] = True 
-  config.params["diffusion_coef"] = 20.0
+  config.params["diffusion_coef"] = 2.0
   config.params["newton_solver"] = False 
   config.params["picard_iterations"] = 20
   config.params["run_benchmark"] = False 
   config.params['solver_exclude'] = ['cg', 'lu']
-  #config.params["controls"] = ["turbine_pos"]
+  config.params["controls"] = ["turbine_pos"]
   info_green("Approximate CFL number (assuming a velocity of 2): " +str(2*config.params["dt"]/config.mesh.hmin())) 
 
 

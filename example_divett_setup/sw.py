@@ -30,8 +30,8 @@ def default_config():
   config.params['solver_exclude'] = ['cg', 'lu']
   info_green("Approximate CFL number (assuming a velocity of 2): " +str(2*config.params["dt"]/config.mesh.hmin())) 
 
-  #set_log_level(DEBUG)
-  set_log_level(20)
+
+  set_log_level(PROGRESS)
   #dolfin.parameters['optimize'] = True
   #dolfin.parameters['optimize_use_dofmap_cache'] = True
   #dolfin.parameters['optimize_use_tensor_cache'] = True
