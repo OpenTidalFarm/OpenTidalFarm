@@ -15,7 +15,7 @@ import memoize
 import ipopt 
 import IPOptUtils
 from animated_plot import *
-from sw_utils import test_gradient_array
+from utils import test_gradient_array
 from mini_model import mini_model_solve
 from reduced_functional import ReducedFunctional
 from dolfin import *

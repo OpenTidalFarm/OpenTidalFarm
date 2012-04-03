@@ -6,7 +6,7 @@ import function_spaces
 import numpy
 import IPOptUtils
 import ipopt
-from sw_utils import test_gradient_array
+from utils import test_gradient_array
 from animated_plot import *
 from reduced_functional import ReducedFunctional
 from dolfin import *

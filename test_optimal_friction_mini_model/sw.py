@@ -16,7 +16,7 @@ import sw_config
 import numpy
 import ipopt 
 import IPOptUtils
-from sw_utils import test_gradient_array
+from utils import test_gradient_array
 from mini_model import *
 from reduced_functional import ReducedFunctional
 from dolfin import *

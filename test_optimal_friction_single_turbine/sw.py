@@ -15,7 +15,7 @@ import numpy
 import ipopt 
 import IPOptUtils
 from dolfin import *
-from sw_utils import test_gradient_array 
+from utils import test_gradient_array 
 from dolfin_adjoint import *
 from reduced_functional import ReducedFunctional
 set_log_level(PROGRESS)

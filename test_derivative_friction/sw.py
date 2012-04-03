@@ -4,7 +4,7 @@
 import sys
 import sw_config 
 import numpy
-from sw_utils import test_gradient_array
+from utils import test_gradient_array
 from reduced_functional import *
 
 # We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
