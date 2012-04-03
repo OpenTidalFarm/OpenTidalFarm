@@ -17,7 +17,7 @@ import IPOptUtils
 from animated_plot import *
 from sw_utils import test_gradient_array
 from mini_model import mini_model_solve
-from default_model import DefaultModel
+from reduced_functional import ReducedFunctional
 from dolfin import *
 from dolfin_adjoint import *
 
@@ -77,7 +77,7 @@ class BumpInitialConditions(Expression):
 
 config = default_config()
 initial_condition = BumpInitialConditions(config)
-model = DefaultModel(config, scaling_factor = 10**4, forward_model = mini_model_solve, initial_condition = initial_condition)
+model = ReducedFunctional(config, scaling_factor = 10**4, forward_model = mini_model_solve, initial_condition = initial_condition)
 m0 = model.initial_control()
 
 p = numpy.random.rand(len(m0))

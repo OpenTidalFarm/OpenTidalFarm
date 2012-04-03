@@ -3,7 +3,7 @@
 import sw_config 
 import function_spaces
 import numpy
-from default_model import DefaultModel
+from reduced_functional import ReducedFunctional
 from dolfin import *
 
 def default_config():
@@ -60,7 +60,7 @@ def default_config():
   return config
 
 config = default_config()
-model = DefaultModel(config)
+model = ReducedFunctional(config)
 
 m0 = model.initial_control()
 j0 = model.j(m0, forward_only = True)

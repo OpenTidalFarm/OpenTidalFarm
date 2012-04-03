@@ -17,7 +17,7 @@ import IPOptUtils
 from dolfin import *
 from sw_utils import test_gradient_array, pprint
 from dolfin_adjoint import *
-from default_model import DefaultModel
+from reduced_functional import ReducedFunctional
 
 def default_config():
   # We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
@@ -55,7 +55,7 @@ def default_config():
   return config
 
 config = default_config()
-model = DefaultModel(config, scaling_factor = 10**-9)
+model = ReducedFunctional(config, scaling_factor = 10**-9)
 m0 = model.initial_control()
 
 p = numpy.random.rand(len(m0))

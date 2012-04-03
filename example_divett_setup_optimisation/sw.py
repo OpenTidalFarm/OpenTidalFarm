@@ -8,7 +8,7 @@ import IPOptUtils
 import ipopt
 from sw_utils import test_gradient_array
 from animated_plot import *
-from default_model import DefaultModel
+from reduced_functional import ReducedFunctional
 from dolfin import *
 from dolfin_adjoint import *
 
@@ -71,7 +71,7 @@ def default_config():
   return config
 
 config = default_config()
-model = DefaultModel(config, scaling_factor = 10**-4)
+model = ReducedFunctional(config, scaling_factor = 10**-4)
 m0 = model.initial_control()
 
 p = numpy.random.rand(len(m0))

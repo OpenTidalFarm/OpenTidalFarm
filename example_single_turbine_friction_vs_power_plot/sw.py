@@ -11,7 +11,7 @@ import numpy
 import matplotlib.pyplot as plt
 from dolfin import *
 from dolfin_adjoint import *
-from default_model import DefaultModel
+from reduced_functional import ReducedFunctional
 
 def default_config():
   # We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
@@ -48,7 +48,7 @@ def default_config():
   return config
 
 config = default_config()
-model = DefaultModel(config)
+model = ReducedFunctional(config)
 m0 = model.initial_control()
 m_list = [m0*i for i in numpy.linspace(0., 0.1, 15)]
 info_green("Tested friction coefficients: " + str([fx[0] for fx in f]))
@@ -62,7 +62,7 @@ for m in m_list:
 # Produce the power values for quadratic friction
 info_green("Compute values for quadratic friction")
 config.params["quadratic_friction"] = True 
-model = DefaultModel(config)
+model = ReducedFunctional(config)
 P_quad = []
 for m in m_list: 
   P_quad.append(model.j(m, forward_only = True))

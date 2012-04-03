@@ -18,7 +18,7 @@ import ipopt
 import IPOptUtils
 from sw_utils import test_gradient_array, pprint
 from mini_model import *
-from default_model import DefaultModel
+from reduced_functional import ReducedFunctional
 from dolfin import *
 
 # Global counter variable for vtk output
@@ -43,7 +43,7 @@ def default_config():
   return config
 
 config = default_config()
-model = DefaultModel(config, scaling_factor = 10**-5, forward_model = mini_model_solve)
+model = ReducedFunctional(config, scaling_factor = 10**-5, forward_model = mini_model_solve)
 m0 = model.initial_control()
 
 p = numpy.random.rand(len(m0))

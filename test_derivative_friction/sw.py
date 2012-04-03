@@ -9,7 +9,7 @@ from functionals import DefaultFunctional, build_turbine_cache
 from dolfin import *
 from sw_utils import test_initial_condition_adjoint, test_gradient_array
 from turbines import *
-from default_model import *
+from reduced_functional import *
 from dolfin_adjoint import *
 
 # We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
@@ -35,7 +35,7 @@ config.params["turbine_x"] = 200
 config.params["turbine_y"] = 400
 
 # Set up the model 
-model = DefaultModel(config)
+model = ReducedFunctional(config)
 m0 = model.initial_control()
 
 # Run the taylor test
