@@ -33,10 +33,11 @@ def error(config):
   e = state - exactstate
   return sqrt(assemble(dot(e,e)*dx))
 
-def test(refinment_level):
+def test(refinement_level):
   config = sw_config.DefaultConfiguration(nx=2**8, ny=2) 
   config.params["finish_time"] = pi/(sqrt(config.params["g"]*config.params["depth"])*config.params["k"])
-  config.params["dt"] = config.params["finish_time"]/(2*2**refinment_level)
+  config.params["dt"] = config.params["finish_time"]/(2*2**refinement_level)
+  config.params["theta"] = 0.5
   config.params["dump_period"] = 1
   config.params["include_advection"] = True
   config.params["newton_solver"] = True 
@@ -45,8 +46,8 @@ def test(refinment_level):
 
 errors = []
 tests = 6
-for refinment_level in range(1, tests):
-  errors.append(test(refinment_level))
+for refinement_level in range(1, tests):
+  errors.append(test(refinement_level))
 # Compute the order of convergence 
 conv = [] 
 for i in range(len(errors)-1):
