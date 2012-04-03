@@ -381,29 +381,6 @@ def replay(params):
 
         adjointer.record_variable(fwd_var, s)
 
-def adjoint(state, params, functional, until=None):
-    ''' Runs the adjoint model with the provided functional and returns the adjoint solution 
-        of the last adjoint solve. The optional until parameter must be an integer that specified,
-        up to which equation the adjoint model is to be solved.''' 
-
-    myid = MPI.process_number()
-    if myid == 0 and params["verbose"] > 0:
-      print "Running adjoint"
-
-    for i in range(adjointer.equation_count)[::-1]:
-        if myid == 0 and params["verbose"] > 2:
-          print "  solving adjoint equation ", i
-        (adj_var, output) = adjointer.get_adjoint_solution(i, functional)
-        if until != None:
-          if adj_var.name == until["name"] and adj_var.timestep == until["timestep"] and adj_var.iteration == until["iteration"]:
-            break
-
-        s=libadjoint.MemoryStorage(output)
-        adjointer.record_variable(adj_var, s)
-
-    return output.data # return the adjoint solution associated with the initial condition
-
-
 def u_output_projector(W):
     # Projection operator for output.
     Output_V=VectorFunctionSpace(W.mesh(), 'CG', 1, dim=2)
