@@ -15,9 +15,10 @@ import numpy
 import ipopt 
 import IPOptUtils
 from dolfin import *
-from sw_utils import test_gradient_array, pprint
+from sw_utils import test_gradient_array 
 from dolfin_adjoint import *
 from reduced_functional import ReducedFunctional
+set_log_level(PROGRESS)
 
 def default_config():
   # We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
@@ -92,12 +93,12 @@ nlp.addOption('obj_scaling_factor', -1.0)
 nlp.addOption('hessian_approximation', 'limited-memory')
 nlp.addOption('max_iter', 20)
 
-m, info = nlp.solve(m0)
-pprint(info['status_msg'])
-pprint("Solution of the primal variables: m=%s\n" % repr(m))
-pprint("Solution of the dual variables: lambda=%s\n" % repr(info['mult_g']))
-pprint("Objective=%s\n" % repr(info['obj_val']))
+m, sinfo = nlp.solve(m0)
+info(sinfo['status_msg'])
+info("Solution of the primal variables: m=%s\n" % repr(m))
+info("Solution of the dual variables: lambda=%s\n" % repr(sinfo['mult_g']))
+info("Objective=%s\n" % repr(sinfo['obj_val']))
 
-if info['status'] != 0 or abs(m-0.04413) > 0.0005: 
-  pprint("The optimisation algorithm did not find the correct solution: Expected m = 0.04413, but got m = " + str(m) + ".")
+if sinfo['status'] != 0 or abs(m-0.04413) > 0.0005: 
+  info("The optimisation algorithm did not find the correct solution: Expected m = 0.04413, but got m = " + str(m) + ".")
   sys.exit(1) 

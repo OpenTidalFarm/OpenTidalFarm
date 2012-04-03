@@ -11,14 +11,12 @@ from functionals import DefaultFunctional, build_turbine_cache
 from turbines import *
 from dolfin import *
 from dolfin_adjoint import *
-from sw_utils import test_initial_condition_adjoint
-from dolfin import parameters
 # There are multiple options on how to project the analytical expression of the turbine friction function onto the computational function space, see below.
 
 # Option 1: Use a high order quadrature rule
 #parameters["form_compiler"]["quadrature_degree"] = 10
 
-set_log_level(30)
+set_log_level(PROGRESS)
 myid = MPI.process_number()
 
 def run_model(nx, ny, turbine_model, turbine_pos):
@@ -37,6 +35,7 @@ def run_model(nx, ny, turbine_model, turbine_pos):
 
   config.params["turbine_x"] = 200
   config.params["turbine_y"] = 200
+  config.params["functional_turbine_scaling"] = 0.5
 
   W = function_spaces.p1dgp2(config.mesh)
 
@@ -75,7 +74,7 @@ def run_model(nx, ny, turbine_model, turbine_pos):
   sw_lib.save_to_file_scalar(tf, turbine_model+"_"+str(nx)+"x"+str(ny)+"_turbine_pos="+str(turbine_pos))
 
   A, M = construct_mini_model(W, config.params, tf)
-  turbine_cache = build_turbine_cache(config.params, U, turbine_size_scaling = 0.5)
+  turbine_cache = build_turbine_cache(config.params, U)
   functional = DefaultFunctional(config.params, turbine_cache)
   j, djdm = mini_model(A, M, state, config.params, functional)
   return j

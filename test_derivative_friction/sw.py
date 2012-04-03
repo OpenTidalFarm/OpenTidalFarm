@@ -4,13 +4,8 @@
 import sys
 import sw_config 
 import numpy
-import memoize
-from functionals import DefaultFunctional, build_turbine_cache
-from dolfin import *
-from sw_utils import test_initial_condition_adjoint, test_gradient_array
-from turbines import *
+from sw_utils import test_gradient_array
 from reduced_functional import *
-from dolfin_adjoint import *
 
 # We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
 numpy.random.seed(21) 

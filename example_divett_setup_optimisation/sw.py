@@ -41,8 +41,8 @@ def default_config():
   #config.params["controls"] = ["turbine_pos"]
   info_green("Approximate CFL number (assuming a velocity of 2): " +str(2*config.params["dt"]/config.mesh.hmin())) 
 
-  #set_log_level(DEBUG)
-  set_log_level(20)
+
+  set_log_level(PROGRESS)
   #dolfin.parameters['optimize'] = True
   #dolfin.parameters['optimize_use_dofmap_cache'] = True
   #dolfin.parameters['optimize_use_tensor_cache'] = True
@@ -106,10 +106,10 @@ nlp.addOption('obj_scaling_factor', -1.0)
 nlp.addOption('hessian_approximation', 'limited-memory')
 nlp.addOption('max_iter', 12)
 
-m, info = nlp.solve(m0)
-pprint(info['status_msg'])
-pprint("Solution of the primal variables: m=%s\n" % repr(m))
-pprint("Solution of the dual variables: lambda=%s\n" % repr(info['mult_g']))
-pprint("Objective=%s\n" % repr(info['obj_val']))
+m, sinfo = nlp.solve(m0)
+info(sinfo['status_msg'])
+info("Solution of the primal variables: m=%s" % repr(m))
+info("Solution of the dual variables: lambda=%s" % repr(sinfo['mult_g']))
+info("Objective=%s" % repr(sinfo['obj_val']))
 
 list_timings()

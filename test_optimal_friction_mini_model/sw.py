@@ -16,13 +16,11 @@ import sw_config
 import numpy
 import ipopt 
 import IPOptUtils
-from sw_utils import test_gradient_array, pprint
+from sw_utils import test_gradient_array
 from mini_model import *
 from reduced_functional import ReducedFunctional
 from dolfin import *
-
-# Global counter variable for vtk output
-count = 0
+set_log_level(PROGRESS)
 
 def default_config():
   # We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
@@ -49,7 +47,7 @@ m0 = model.initial_control()
 p = numpy.random.rand(len(m0))
 minconv = test_gradient_array(model.j, model.dj, m0, seed=0.001, perturbation_direction=p)
 if minconv < 1.99:
-  pprint("The gradient taylor remainder test failed.")
+  info_red("The gradient taylor remainder test failed.")
   sys.exit(1)
 
 # If this option does not produce any ipopt outputs, delete the ipopt.opt file
@@ -76,12 +74,12 @@ nlp.addOption('obj_scaling_factor', -1.0)
 nlp.addOption('hessian_approximation', 'limited-memory')
 nlp.addOption('max_iter', 7)
 
-m, info = nlp.solve(m0)
-pprint(info['status_msg'])
-pprint("Solution of the primal variables: m=%s\n" % repr(m))
-pprint("Solution of the dual variables: lambda=%s\n" % repr(info['mult_g']))
-pprint("Objective=%s\n" % repr(info['obj_val']))
+m, sinfo = nlp.solve(m0)
+info(sinfo['status_msg'])
+info("Solution of the primal variables: m=%s\n" % repr(m))
+info("Solution of the dual variables: lambda=%s\n" % repr(sinfo['mult_g']))
+info("Objective=%s\n" % repr(sinfo['obj_val']))
 
-if info['status'] != 0 or abs(m[0]-0.5) > 10**-10: 
-  pprint("The optimisation algorithm did not find the correct solution.")
+if sinfo['status'] != 0 or abs(m[0]-0.5) > 10**-10: 
+  info_red("The optimisation algorithm did not find the correct solution.")
   sys.exit(1) 

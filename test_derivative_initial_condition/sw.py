@@ -10,9 +10,8 @@ from turbines import *
 from functionals import DefaultFunctional, build_turbine_cache
 from dolfin import *
 from dolfin_adjoint import *
-from sw_utils import test_initial_condition_adjoint
 
-set_log_level(30)
+set_log_level(PROGRESS)
 myid = MPI.process_number()
 debugging["record_all"] = True
 
