@@ -50,22 +50,22 @@ def default_config():
 config = default_config()
 model = DefaultModel(config)
 m0 = model.initial_control()
-f = [m0*i for i in numpy.linspace(0., 0.1, 15)]
+m_list = [m0*i for i in numpy.linspace(0., 0.1, 15)]
 info_green("Tested friction coefficients: " + str([fx[0] for fx in f]))
 
 # Produce the power values for linear friction
 info_green("Compute values for linear friction")
 P = []
-for fr in f: 
-  P.append(model.j(fr, forward_only = True))
+for m in m_list: 
+  P.append(model.j(m, forward_only = True))
 
 # Produce the power values for quadratic friction
 info_green("Compute values for quadratic friction")
 config.params["quadratic_friction"] = True 
 model = DefaultModel(config)
 P_quad = []
-for fr in f: 
-  P_quad.append(model.j(fr, forward_only = True))
+for m in m_list: 
+  P_quad.append(model.j(m, forward_only = True))
 
 # Plot the results
 if MPI.process_number() == 0:
