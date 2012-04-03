@@ -153,8 +153,8 @@ def test_gradient_array(J, dJ, x, seed=0.01, perturbation_direction=None):
 
   with_gradient = []
   for i in range(len(perturbations)):
-    remainder = abs(functional_values[i] - j_direct - dot(perturbations[i], dj))
-    with_gradient.append(remainder)
+      remainder = abs(functional_values[i] - j_direct - dot(perturbations[i], dj))
+      with_gradient.append(remainder)
 
   pprint("Convergence orders for Taylor remainder with adjoint information (should all be 2): ", convergence_order(with_gradient))
 

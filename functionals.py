@@ -42,14 +42,16 @@ class DefaultFunctional(FunctionalPrototype):
     djtdm = [] 
     params = self.params
 
-    # The derivatives with respect to the friction parameter
-    for n in range(len(params["turbine_friction"])):
-      djtdm.append(self.expr(state, self.turbine_cache['turbine_derivative_friction'][n]))
+    if "turbine_friction" in params["controls"]:
+        # The derivatives with respect to the friction parameter
+        for n in range(len(params["turbine_friction"])):
+          djtdm.append(self.expr(state, self.turbine_cache['turbine_derivative_friction'][n]))
 
-    # The derivatives with respect to the turbine position
-    for n in range(len(params["turbine_pos"])):
-      for var in ('turbine_pos_x', 'turbine_pos_y'):
-        djtdm.append(self.expr(state, self.turbine_cache['turbine_derivative_pos'][n][var]))
+    if "turbine_pos" in params["controls"]:
+        # The derivatives with respect to the turbine position
+        for n in range(len(params["turbine_pos"])):
+          for var in ('turbine_pos_x', 'turbine_pos_y'):
+            djtdm.append(self.expr(state, self.turbine_cache['turbine_derivative_pos'][n][var]))
     return djtdm 
 
 def build_turbine_cache(params, function_space, turbine_size_scaling = 1.0):

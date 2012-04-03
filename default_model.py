@@ -16,9 +16,11 @@ class DefaultModel:
           adj_reset()
 
           # Change the control variables to the config parameters
-          config.params["turbine_friction"] = m[:len(config.params["turbine_friction"])]
-          mp = m[len(config.params["turbine_friction"]):]
-          config.params["turbine_pos"] = numpy.reshape(mp, (-1, 2))
+          if 'turbine_friction' in config.params['controls']: 
+              config.params["turbine_friction"] = m[:len(config.params["turbine_friction"])]
+          if 'turbine_pos' in config.params['controls']: 
+              mp = m[len(config.params["turbine_friction"]):]
+              config.params["turbine_pos"] = numpy.reshape(mp, (-1, 2))
 
           set_log_level(30)
           debugging["record_all"] = not forward_only
@@ -60,16 +62,18 @@ class DefaultModel:
               # In this particular case m = turbine_friction, J = \sum_t(ft) 
               dj = [] 
               v = adj_state.vector()
-              # Compute the derivatives with respect to the turbine friction
-              for n in range(len(config.params["turbine_friction"])):
-                tfd.interpolate(Turbines(config.params, derivative_index_selector=n, derivative_var_selector='turbine_friction'))
-                dj.append( v.inner(tfd.vector()) )
+              if 'turbine_friction' in config.params["controls"]:
+                  # Compute the derivatives with respect to the turbine friction
+                  for n in range(len(config.params["turbine_friction"])):
+                    tfd.interpolate(Turbines(config.params, derivative_index_selector=n, derivative_var_selector='turbine_friction'))
+                    dj.append( v.inner(tfd.vector()) )
 
-              # Compute the derivatives with respect to the turbine position
-              for n in range(len(config.params["turbine_pos"])):
-                for var in ('turbine_pos_x', 'turbine_pos_y'):
-                  tfd.interpolate(Turbines(config.params, derivative_index_selector=n, derivative_var_selector=var))
-                  dj.append( v.inner(tfd.vector()) )
+              if 'turbine_pos' in config.params["controls"]:
+                  # Compute the derivatives with respect to the turbine position
+                  for n in range(len(config.params["turbine_pos"])):
+                    for var in ('turbine_pos_x', 'turbine_pos_y'):
+                      tfd.interpolate(Turbines(config.params, derivative_index_selector=n, derivative_var_selector=var))
+                      dj.append( v.inner(tfd.vector()) )
               dj = numpy.array(dj)  
               
               # Now add the \partial J / \partial m term
@@ -88,7 +92,10 @@ class DefaultModel:
     def initial_control(self):
         # We use the current turbine settings as the intial control
         config = self.__config__ 
-        res = config.params['turbine_friction'].tolist()
-        res += numpy.reshape(config.params['turbine_pos'], -1).tolist()
+        res = []
+        if 'turbine_friction' in config.params["controls"]:
+            res += config.params['turbine_friction'].tolist()
+        if 'turbine_pos' in config.params["controls"]:
+            res += numpy.reshape(config.params['turbine_pos'], -1).tolist()
         return numpy.array(res)
 

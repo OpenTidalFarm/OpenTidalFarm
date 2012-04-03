@@ -12,17 +12,12 @@ import sys
 import sw_config 
 import sw_lib
 import numpy
-import memoize
 import ipopt 
 import IPOptUtils
-from functionals import DefaultFunctional, build_turbine_cache
 from dolfin import *
-from sw_utils import test_initial_condition_adjoint, test_gradient_array, pprint
-from turbines import *
+from sw_utils import test_gradient_array, pprint
 from dolfin_adjoint import *
-
-# Global counter variable for vtk output
-count = 0
+from default_model import DefaultModel
 
 def default_config():
   # We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
@@ -31,6 +26,7 @@ def default_config():
   period = 1.24*60*60 # Wave period
   config.params["k"] = 2*pi/(period*sqrt(config.params["g"]*config.params["depth"]))
   # Start at rest state
+  config.params["element_type"] = sw_lib.p2p1
   config.params["start_time"] = period/4 
   config.params["finish_time"] = period/2
   config.params["dt"] = config.params["finish_time"]/10
@@ -51,97 +47,20 @@ def default_config():
   config.params["turbine_friction"] = numpy.ones(len(config.params["turbine_pos"]))
   config.params["turbine_x"] = 600
   config.params["turbine_y"] = 600
+  config.params["controls"] = ["turbine_friction"]
   # Solver options
   config.params["quadratic_friction"] = True
   config.params["picard_iterations"] = 4
 
   return config
 
-def initial_control(config):
-  # We use the current turbine settings as the intial control
-  res = config.params['turbine_friction'].tolist()
-  return numpy.array(res)
-
-def j_and_dj(m):
-  adj_reset()
-
-  # Change the control variables to the config parameters
-  config.params["turbine_friction"] = m[:len(config.params["turbine_friction"])]
-  mp = m[len(config.params["turbine_friction"]):]
-
-  set_log_level(30)
-  debugging["record_all"] = True
-
-  W = sw_lib.p2p1(config.mesh)
-
-  # Set initial conditions
-  state = Function(W, name = "current_state")
-  state.interpolate(config.get_sin_initial_condition()())
-
-  # Set the control values
-  U = W.split()[0].sub(0) # Extract the first component of the velocity function space 
-  U = U.collapse() # Recompute the DOF map
-  tf = Function(U, name = "turbine") # The turbine function
-  tfd = Function(U, name = "turbine_derivative") # The derivative turbine function
-
-  # Set up the turbine friction field using the provided control variable
-  tf.interpolate(Turbines(config.params))
-
-  global count
-  count += 1
-  sw_lib.save_to_file_scalar(tf, "turbines_t=."+str(count)+".x")
-
-  turbine_cache = build_turbine_cache(config.params, U, turbine_size_scaling=0.5)
-  functional = DefaultFunctional(config.params, turbine_cache)
-
-  # Solve the shallow water system
-  j, djdm = sw_lib.sw_solve(W, config, state, turbine_field = tf, time_functional=functional)
-  J = TimeFunctional(functional.Jt(state), static_variables = [turbine_cache["turbine_field"]], dt=config.params["dt"])
-  adj_state = sw_lib.adjoint(state, config.params, J, until={"name": "turbine", "timestep": 0, "iteration":0}) 
-
-  # Let J be the functional, m the parameter and u the solution of the PDE equation F(u) = 0.
-  # Then we have 
-  # dJ/dm = (\partial J)/(\partial u) * (d u) / d m + \partial J / \partial m
-  #               = adj_state * \partial F / \partial u + \partial J / \partial m
-  # In this particular case m = turbine_friction, J = \sum_t(ft) 
-  dj = [] 
-  v = adj_state.vector()
-  # Compute the derivatives with respect to the turbine friction
-  for n in range(len(config.params["turbine_friction"])):
-    tfd.interpolate(Turbines(config.params, derivative_index_selector=n, derivative_var_selector='turbine_friction'))
-    dj.append( v.inner(tfd.vector()) )
-
-  # Compute the derivatives with respect to the turbine position
-  for n in range(len(config.params["turbine_pos"])):
-    for var in ('turbine_pos_x', 'turbine_pos_y'):
-      tfd.interpolate(Turbines(config.params, derivative_index_selector=n, derivative_var_selector=var))
-      dj.append( v.inner(tfd.vector()) )
-  dj = numpy.array(dj)  
-  
-  # Now add the \partial J / \partial m term
-  dj += djdm
-
-  return j, dj 
-
-j_and_dj_mem = memoize.MemoizeMutable(j_and_dj)
-def j(m):
-  j = j_and_dj_mem(m)[0] * 10**-9
-  pprint('Evaluating j(', m.__repr__(), ')=', j)
-  return j 
-
-def dj(m):
-  dj = j_and_dj_mem(m)[1] * 10**-9
-  # Return only the derivatives with respect to the friction
-  dj = dj[:len(config.params['turbine_friction'])]
-  pprint('Evaluating dj(', m.__repr__(), ')=', dj)
-  return dj 
-
 config = default_config()
-m0 = initial_control(config)
+model = DefaultModel(config, scaling_factor = 10**-9)
+m0 = model.initial_control()
 
 p = numpy.random.rand(len(m0))
-# Note: we choose 0.2*m0 here, because at m0 the problem is almost linear and hence the taylor convergence test will not work.
-minconv = test_gradient_array(j, dj, 0.04*m0, seed=0.001, perturbation_direction=p)
+# Note: we choose 0.04*m0 here, because at m0 the problem is almost linear and hence the taylor convergence test will not work.
+minconv = test_gradient_array(model.j, model.dj, 0.04*m0, seed=0.001, perturbation_direction=p)
 if minconv < 1.98:
   pprint("The gradient taylor remainder test failed.")
   sys.exit(1)
@@ -152,8 +71,8 @@ dg = lambda m: []
 
 f = IPOptUtils.IPOptFunction()
 # Overwrite the functional and gradient function with our implementation
-f.objective= j 
-f.gradient= dj 
+f.objective= model.j 
+f.gradient= model.dj 
 
 nlp = ipopt.problem(len(m0), 
                     0, 

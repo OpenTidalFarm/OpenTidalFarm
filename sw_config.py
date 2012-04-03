@@ -38,6 +38,7 @@ class Parameters(dict):
             'turbine_x' : "turbine extension in the x direction",
             'turbine_y' : "turbine extension in the y direction",
             'turbine_friction' : "turbine friction", 
+            'controls' : 'the control variables',
             'turbine_model': "turbine model",
             'newton_solver': "newton solver instead of a picard iteration",
             'picard_relative_tolerance': "relative tolerance for the picard iteration",
@@ -78,17 +79,18 @@ class DefaultConfiguration:
         'turbine_x' : 20., 
         'turbine_y' : 5., 
         'turbine_friction' : [],
+        'controls' : ['turbine_pos', 'turbine_friction'],
         'turbine_model': 'BumpTurbine',
         'newton_solver': False, 
         'picard_relative_tolerance': 1e-5, 
         'picard_iterations': 3, 
         'run_benchmark': False, 
-        'solver_exclude': ['cg'] 
+        'solver_exclude': ['cg'],
+        "start_time": 0.,
+        "current_time": 0.,
+        "finish_time": 100.
         })
 
-    params["start_time"] = 0
-    params["current_time"] = 0
-    params["finish_time"] = 100
     params["dt"] = params["finish_time"]/4000.
     params["k"] = pi/params['basin_x']
 
