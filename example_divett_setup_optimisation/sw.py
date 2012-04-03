@@ -28,7 +28,8 @@ def default_config():
   config.params["element_type"] = sw_lib.p2p1
   config.params["start_time"] = period/4
   config.params["dt"] = period/2
-  config.params["finish_time"] = 5.*period/4 
+  config.params["finish_time"] = config.params["start_time"] + config.params["dt"]
+  #config.params["finish_time"] = 5.*period/4 
   config.params["theta"] = 0.6
   config.params["include_advection"] = False 
   config.params["include_diffusion"] = False 
@@ -37,6 +38,7 @@ def default_config():
   config.params["picard_iterations"] = 20
   config.params["run_benchmark"] = False 
   config.params['solver_exclude'] = ['cg', 'lu']
+  config.params['controls'] = ['turbine_friction']
   info_green("Approximate CFL number (assuming a velocity of 2): " +str(2*config.params["dt"]/config.mesh.hmin())) 
 
   #set_log_level(DEBUG)
