@@ -3,7 +3,7 @@
 
 import sys
 import configuration 
-import sw_lib
+import shallow_water_model as sw_model
 import function_spaces
 import numpy
 from turbines import *
@@ -47,7 +47,7 @@ tf.interpolate(Turbines(config.params))
 
 turbine_cache = build_turbine_cache(config.params, U)
 functional = DefaultFunctional(config.params, turbine_cache) 
-sw_lib.sw_solve(W, config, state, time_functional=functional)
+sw_model.sw_solve(W, config, state, time_functional=functional)
 
 # Check the replay
 info("Replaying the forward model")
@@ -59,7 +59,7 @@ dJdm = compute_gradient(J, InitialConditionParameter("Current_state"))
 
 # And finally check the computed gradient with the taylor test
 def J(state):
-  j, djdm = sw_lib.sw_solve(W, config, state, time_functional=functional, annotate=False)
+  j, djdm = sw_model.sw_solve(W, config, state, time_functional=functional, annotate=False)
   return j
 
 state.interpolate(config.get_sin_initial_condition()())

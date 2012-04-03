@@ -6,12 +6,8 @@
 '''
 
 import sys
-import cProfile
-import pstats
 import configuration 
-import sw_lib
 import numpy
-import memoize
 import ipopt 
 import IPOptUtils
 from animated_plot import *
@@ -19,8 +15,6 @@ from utils import test_gradient_array
 from mini_model import mini_model_solve
 from reduced_functional import ReducedFunctional
 from dolfin import *
-from dolfin_adjoint import *
-
 
 # Global counter variable for vtk output
 count = 0
@@ -110,15 +104,15 @@ nlp.addOption('obj_scaling_factor', -1.0)
 nlp.addOption('hessian_approximation', 'limited-memory')
 nlp.addOption('max_iter', 25)
 
-m, info = nlp.solve(m0)
-info_green(info['status_msg'])
+m, sinfo = nlp.solve(m0)
+info_green(sinfo['status_msg'])
 info_green("Solution of the primal variables: m=" + repr(m) + "\n")
-info_green("Solution of the dual variables: lambda=" +  repr(info['mult_g']) + "\n")
-info_green("Objective=" + repr(info['obj_val']) + "\n")
+info_green("Solution of the dual variables: lambda=" +  repr(sinfo['mult_g']) + "\n")
+info_green("Objective=" + repr(sinfo['obj_val']) + "\n")
 plot.savefig("plot_functional_value.png")
 
 exit_code = 1
-if info['status'] != 0: 
+if sinfo['status'] != 0: 
     print "The optimisation algorithm did not find a solution."
 elif abs(m[0]-1500) > 40:
     print "The optimisation algorithm did not find the optimal x position:", m[0] , "instead of 1500."

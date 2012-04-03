@@ -1,13 +1,13 @@
 import numpy
 import memoize
-import sw_lib
+import shallow_water_model as sw_model
 from functionals import DefaultFunctional, build_turbine_cache
 from dolfin import *
 from turbines import *
 from dolfin_adjoint import *
 
 class ReducedFunctional:
-    def __init__(self, config, scaling_factor = 1.0, forward_model = sw_lib.sw_solve, initial_condition = None):
+    def __init__(self, config, scaling_factor = 1.0, forward_model = sw_model.sw_solve, initial_condition = None):
         # Hide the configuration since changes would break the memorize algorithm. 
         self.__config__ = config
         self.scaling_factor = scaling_factor

@@ -1,4 +1,4 @@
-import sw_lib
+import shallow_water_model as sw_model
 import numpy
 from dolfin import *
 from dolfin_adjoint import *
@@ -21,9 +21,9 @@ def mini_model(A, M, state, params, time_functional=None, annotate=True):
        The solution is a x-velocity of old_state/(turbine_friction + 1) and a zero pressure value y-velocity.
     '''
     
-    u_out, p_out = sw_lib.output_files(params["element_type"].func_name)
-    M_u_out, v_out, u_out_state=sw_lib.u_output_projector(state.function_space())
-    M_p_out, q_out, p_out_state=sw_lib.p_output_projector(state.function_space())
+    u_out, p_out = sw_model.output_files(params["element_type"].func_name)
+    M_u_out, v_out, u_out_state=sw_model.u_output_projector(state.function_space())
+    M_p_out, q_out, p_out_state=sw_model.p_output_projector(state.function_space())
 
     if time_functional is not None:
       fac = 0.0

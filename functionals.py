@@ -1,4 +1,4 @@
-import sw_lib
+from dolfin import info_green
 from turbines import *
 
 class FunctionalPrototype(object):

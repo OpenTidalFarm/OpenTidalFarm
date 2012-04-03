@@ -1,6 +1,6 @@
 import sys
 import configuration 
-import sw_lib
+import shallow_water_model as sw_model
 import function_spaces
 from dolfin import *
 from dolfin_adjoint import *
@@ -14,7 +14,7 @@ def error(config):
   state = Function(W)
   state.interpolate(config.get_sin_initial_condition()())
 
-  sw_lib.sw_solve(W, config, state, annotate=False)
+  sw_model.sw_solve(W, config, state, annotate=False)
 
   analytic_sol = Expression(("eta0*sqrt(g*depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", \
                              "0", \

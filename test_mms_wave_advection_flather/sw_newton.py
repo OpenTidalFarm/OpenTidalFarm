@@ -1,6 +1,6 @@
 import sys
 import configuration 
-import sw_lib
+import shallow_water_model as sw_model
 import function_spaces
 from dolfin import *
 from dolfin_adjoint import *
@@ -22,7 +22,7 @@ def error(config):
                              eta0=config.params["eta0"], g=config.params["g"], \
                              depth=config.params["depth"], t=config.params["current_time"], k=config.params["k"])
 
-  sw_lib.sw_solve(W, config, state, annotate=False, u_source = source)
+  sw_model.sw_solve(W, config, state, annotate=False, u_source = source)
 
   analytic_sol = Expression((u_exact, \
                              "0", \

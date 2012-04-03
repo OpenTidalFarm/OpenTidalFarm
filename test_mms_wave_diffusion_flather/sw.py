@@ -1,6 +1,7 @@
 import sys
 import configuration 
 import function_spaces
+import shallow_water_model as sw_model
 from dolfin import *
 from dolfin_adjoint import *
 from math import log
@@ -23,7 +24,7 @@ def error(config):
                        k=config.params["k"], friction = config.params["friction"], \
                        diffusion_coef=config.params["diffusion_coef"])
 
-  sw_lib.sw_solve(W, config, state, annotate=False, u_source = source)
+  sw_model.sw_solve(W, config, state, annotate=False, u_source = source)
 
   analytic_sol = Expression((u_exact, \
                              "0", \

@@ -4,13 +4,11 @@
 
 import sys
 import configuration 
-import sw_lib
 import numpy
 import cProfile
 from functionals import DefaultFunctional
 from turbines import *
 from dolfin import *
-from dolfin_adjoint import *
 
 def default_config():
   # We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
