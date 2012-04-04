@@ -10,7 +10,7 @@ from functionals import *
 import numpy
 from dolfin import *
 from dolfin_adjoint import *
-from utils import test_initial_condition_adjoint, test_gradient_array
+from helpers import test_initial_condition_adjoint, test_gradient_array
 from turbines import *
 
 def default_config():

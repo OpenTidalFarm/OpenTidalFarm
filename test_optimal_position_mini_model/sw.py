@@ -11,7 +11,7 @@ import numpy
 import ipopt 
 import IPOptUtils
 from animated_plot import *
-from utils import test_gradient_array
+from helpers import test_gradient_array
 from mini_model import mini_model_solve
 from reduced_functional import ReducedFunctional
 from initial_conditions import BumpInitialCondition
@@ -26,7 +26,7 @@ def default_config():
   config = configuration.DefaultConfiguration(nx=40, ny=20)
   config.params["verbose"] = 0
 
-  # dt is used in the functional only, so we set it here to 1.0
+  # dt is used in the functional only, so we set it here to 0.8
   config.params["dt"] = 0.8
   # Turbine settings
   # The turbine position is the control variable 

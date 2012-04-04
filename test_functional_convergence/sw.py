@@ -4,6 +4,7 @@
 import sys
 import configuration 
 import shallow_water_model as sw_model
+import helpers
 import function_spaces
 import numpy
 from mini_model import *
@@ -71,7 +72,7 @@ def run_model(nx, ny, turbine_model, turbine_pos):
   tf_norm = norm(tf, "L2")
   if myid == 0:
     print "L2 Norm of turbine function: ", tf_norm 
-  sw_model.save_to_file_scalar(tf, turbine_model+"_"+str(nx)+"x"+str(ny)+"_turbine_pos="+str(turbine_pos))
+  helpers.save_to_file_scalar(tf, turbine_model+"_"+str(nx)+"x"+str(ny)+"_turbine_pos="+str(turbine_pos))
 
   A, M = construct_mini_model(W, config.params, tf)
   turbine_cache = build_turbine_cache(config.params, U)

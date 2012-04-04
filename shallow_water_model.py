@@ -1,37 +1,9 @@
-from dolfin import *
-from dolfin_adjoint import *
 import solver_benchmark 
-import libadjoint
+import helpers
 import numpy
 import sys
-
-def save_to_file_scalar(function, basename):
-    u_out, p_out = output_files(basename)
-
-    M_p_out, q_out, p_out_func = p_output_projector(function.function_space())
-
-    # Project the solution to P1 for visualisation.
-    rhs = assemble(inner(q_out,function)*dx)
-    solve(M_p_out, p_out_func.vector(),rhs,"cg","sor", annotate=False) 
-    
-    p_out << p_out_func
-
-def save_to_file(function, basename):
-    u_out,p_out = output_files(basename)
-
-    M_u_out, v_out, u_out_func = u_output_projector(function.function_space())
-    M_p_out, q_out, p_out_func = p_output_projector(function.function_space())
-
-    # Project the solution to P1 for visualisation.
-    rhs = assemble(inner(v_out,function.split()[0])*dx)
-    solve(M_u_out, u_out_func.vector(), rhs, "cg", "sor", annotate=False) 
-    
-    # Project the solution to P1 for visualisation.
-    rhs = assemble(inner(q_out,function.split()[1])*dx)
-    solve(M_p_out, p_out_func.vector(), rhs, "cg", "sor", annotate=False) 
-    
-    u_out << u_out_func
-    p_out << p_out_func
+from dolfin import *
+from dolfin_adjoint import *
 
 def sw_solve(W, config, state, turbine_field=None, time_functional=None, annotate=True, linear_solver="default", preconditioner="default", u_source = None):
     '''Solve the shallow water equations with the parameters specified in params.
@@ -205,9 +177,9 @@ def sw_solve(W, config, state, turbine_field=None, time_functional=None, annotat
 
     ############################### Perform the simulation ###########################
 
-    u_out, p_out = output_files(params["element_type"].func_name)
-    M_u_out, v_out, u_out_state = u_output_projector(state.function_space())
-    M_p_out, q_out, p_out_state = p_output_projector(state.function_space())
+    u_out, p_out = helpers.output_files(params["element_type"].func_name)
+    M_u_out, v_out, u_out_state = helpers.u_output_projector(state.function_space())
+    M_p_out, q_out, p_out_state = helpers.p_output_projector(state.function_space())
 
     # Project the solution to P1 for visualisation.
     rhs = assemble(inner(v_out, state.split()[0])*dx)
@@ -299,54 +271,4 @@ def sw_solve(W, config, state, turbine_field=None, time_functional=None, annotat
 
     if time_functional is not None:
       return j, djdm # return the state at the final time
-
-def replay(params):
-
-    myid = MPI.process_number()
-    if myid == 0 and params["verbose"] > 0:
-      info("Replaying forward run")
-
-    for i in range(adjointer.equation_count):
-        (fwd_var, output) = adjointer.get_forward_solution(i)
-
-        s = libadjoint.MemoryStorage(output)
-        s.set_compare(0.0)
-        s.set_overwrite(True)
-
-        adjointer.record_variable(fwd_var, s)
-
-def u_output_projector(W):
-    # Projection operator for output.
-    Output_V=VectorFunctionSpace(W.mesh(), 'CG', 1, dim=2)
-    
-    u_out=TrialFunction(Output_V)
-    v_out=TestFunction(Output_V)
-    
-    M_out=assemble(inner(v_out,u_out)*dx)
-    
-    out_state=Function(Output_V)
-
-    return M_out, v_out, out_state
-
-def p_output_projector(W):
-    # Projection operator for output.
-    Output_V=FunctionSpace(W.mesh(), 'CG', 1)
-    
-    u_out=TrialFunction(Output_V)
-    v_out=TestFunction(Output_V)
-    
-    M_out=assemble(inner(v_out,u_out)*dx)
-    
-    out_state=Function(Output_V)
-
-    return M_out, v_out, out_state
-
-def output_files(basename):
-        
-    # Output file
-    u_out = File(basename+"_u.pvd", "compressed")
-    p_out = File(basename+"_p.pvd", "compressed")
-
-    return u_out, p_out
-            
 

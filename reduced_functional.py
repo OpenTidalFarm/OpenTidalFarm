@@ -2,10 +2,10 @@ import numpy
 import memoize
 import shallow_water_model as sw_model
 import initial_conditions
-from functionals import DefaultFunctional, build_turbine_cache
+import helpers 
+from functionals import DefaultFunctional
 from dolfin import *
 from turbines import *
-from dolfin_adjoint import *
 
 class ReducedFunctional:
 
@@ -13,11 +13,13 @@ class ReducedFunctional:
         # Hide the configuration since changes would break the memoize algorithm. 
         self.__config__ = config
         self.scaling_factor = scaling_factor
+        self.count = 0
 
         def j_and_dj(m, forward_only):
             ''' This function solves the forward and adjoint problem and returns the functional value and its gradient for the parameter choice m. 
                 If forward_only = True then only the functional value is computed and the gradient will be None. '''
             adj_reset()
+            self.count += 1
 
             # Change the control variables to the config parameters
             shift = 0
@@ -42,19 +44,19 @@ class ReducedFunctional:
             tf = Function(U, name = "friction") 
             tfd = Function(U, name = "friction_derivative") 
 
-            # Set up and cache the turbine (derivative) fields 
+            # Set up the turbine field 
             tf.interpolate(Turbines(config.params))
-            turbine_cache = build_turbine_cache(config.params, U)
-            functional = DefaultFunctional(config.params, turbine_cache)
+            helpers.save_to_file_scalar(tf, "turbines_t=." + str(self.count) + ".x")
 
             # Solve the shallow water system
+            functional = DefaultFunctional(W, config.params)
             j, djdm = forward_model(W, config, state, time_functional=functional, turbine_field = tf)
 
             # And the adjoint system to compute the gradient if it was asked for
             if forward_only:
                 dj = None
             else:
-                J = TimeFunctional(functional.Jt(state), static_variables = [turbine_cache["turbine_field"]], dt = config.params["dt"])
+                J = TimeFunctional(functional.Jt(state), static_variables = [functional.turbine_cache["turbine_field"]], dt = config.params["dt"])
                 djdudm = compute_gradient(J, InitialConditionParameter("friction"))
 
                 # Let J be the functional, m the parameter and u the solution of the PDE equation F(u) = 0.

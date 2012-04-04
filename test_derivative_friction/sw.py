@@ -4,7 +4,7 @@
 import sys
 import configuration 
 import numpy
-from utils import test_gradient_array
+from helpers import test_gradient_array
 from reduced_functional import *
 set_log_level(PROGRESS)
 
