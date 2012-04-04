@@ -55,7 +55,6 @@ def mini_model(A, M, state, params, time_functional=None, annotate=True):
     if time_functional is not None:
       j += 0.5*params["dt"]*assemble(time_functional.Jt(state)) 
       djdm += 0.5*params["dt"]*numpy.array([assemble(f) for f in time_functional.dJtdm(state)])
-      print j, djdm
       return j, djdm
 
 def mini_model_solve(W, config, state, turbine_field=None, time_functional=None, annotate=True, linear_solver="default", preconditioner="default", u_source = None):

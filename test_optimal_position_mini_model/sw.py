@@ -16,8 +16,6 @@ from mini_model import mini_model_solve
 from reduced_functional import ReducedFunctional
 from dolfin import *
 
-# Global counter variable for vtk output
-count = 0
 # An animated plot to visualise the development of the functional value
 plot = AnimatedPlot(xlabel='Iteration', ylabel='Functional value')
 
@@ -77,7 +75,7 @@ m0 = model.initial_control()
 p = numpy.random.rand(len(m0))
 minconv = test_gradient_array(model.j, model.dj, m0, seed=0.001, perturbation_direction=p)
 if minconv < 1.9:
-  print "The gradient taylor remainder test failed."
+  info_red("The gradient taylor remainder test failed.")
   sys.exit(1)
 
 # If this option does not produce any ipopt outputs, delete the ipopt.opt file
@@ -113,12 +111,13 @@ plot.savefig("plot_functional_value.png")
 
 exit_code = 1
 if sinfo['status'] != 0: 
-    print "The optimisation algorithm did not find a solution."
+    info_red("The optimisation algorithm did not find a solution.")
 elif abs(m[0]-1500) > 40:
-    print "The optimisation algorithm did not find the optimal x position:", m[0] , "instead of 1500."
+    info_red("The optimisation algorithm did not find the optimal x position: %f instead of 1500." % m[0])
 elif abs(m[1]-500) > 0.4:
-    print "The optimisation algorithm did not find the optimal y position:", m[1] , "instead of 500."
+    info_red("The optimisation algorithm did not find the optimal y position: %f instead of 500." %m[1])
 else:
+    info_green("Test passed")
     exit_code = 0
 
 sys.exit(exit_code) 

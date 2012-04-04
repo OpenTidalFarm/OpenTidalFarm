@@ -137,7 +137,7 @@ def sw_solve(W, config, state, turbine_field=None, time_functional=None, annotat
       # The contributions of the Flather boundary condition on the right hand side
       Ct_mid += sqrt(g*depth)*inner(h_mid, q)*ds(2)
     else:
-      print "Unknown boundary condition type"
+      info_red("Unknown boundary condition type")
       sys.exit(1)
 
     # Pressure gradient operator
@@ -197,7 +197,7 @@ def sw_solve(W, config, state, turbine_field=None, time_functional=None, annotat
         lhs_preass = assemble(dolfin.lhs(F))
         # Precompute the LU factorisation 
         if use_lu_solver:
-          info_green("Computing the LU factorisation for later use ...")
+          info("Computing the LU factorisation for later use ...")
           lu_solver = LUSolver(lhs_preass)
           lu_solver.parameters["reuse_factorization"] = True
 
@@ -253,10 +253,10 @@ def sw_solve(W, config, state, turbine_field=None, time_functional=None, annotat
               relative_diff = abs(assemble( inner(state_new-state_nl, state_new-state_nl) * dx ))/norm(state_new)
 
               if relative_diff < picard_relative_tolerance:
-                dolfin.info_blue("Picard iteration converged after " + str(iter_counter) + " iterations.")
+                dolfin.info("Picard iteration converged after " + str(iter_counter) + " iterations.")
                 break
               elif iter_counter >= picard_iterations:
-                dolfin.info_blue("Picard iteration reached maximum number of iterations (" + str(picard_iterations) + ") with a relative difference of " + str(relative_diff) + ".")
+                dolfin.info_red("Picard iteration reached maximum number of iterations (" + str(picard_iterations) + ") with a relative difference of " + str(relative_diff) + ".")
                 break
 
             state_nl.assign(state_new)
@@ -265,7 +265,7 @@ def sw_solve(W, config, state, turbine_field=None, time_functional=None, annotat
         else:
             rhs_preass = assemble(dolfin.rhs(F))
             if use_lu_solver:
-              info_green("Using a LU solver to solve the linear system.")
+              info("Using a LU solver to solve the linear system.")
               lu_solver.solve(state.vector(), rhs_preass, annotate=annotate)
             else:
               state_tmp = Function(state.function_space(), name="TempState")
@@ -304,7 +304,7 @@ def replay(params):
 
     myid = MPI.process_number()
     if myid == 0 and params["verbose"] > 0:
-      print "Replaying forward run"
+      info("Replaying forward run")
 
     for i in range(adjointer.equation_count):
         (fwd_var, output) = adjointer.get_forward_solution(i)
