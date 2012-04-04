@@ -19,8 +19,8 @@ tests:
 	cd test_functional_convergence; make
 	@echo "=================== Running optimal friction mini model test ==================="
 	cd test_optimal_friction_mini_model; make
-	@echo "=================== Running optimal position test ==================="
-	cd test_optimal_position; make
+	@echo "=================== Running optimal position mini model test ==================="
+	cd test_optimal_position_mini_model; make
 	@echo "=================== Running optimal friction for single turbine test ==================="
 	cd test_optimal_friction_single_turbine; make
 	@echo "=================== All tests passed ===================" 
