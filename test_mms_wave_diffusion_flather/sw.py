@@ -6,8 +6,9 @@ from dolfin import *
 from dolfin_adjoint import *
 from math import log
 
-set_log_level(30)
-myid = MPI.process_number()
+set_log_level(PROGRESS)
+parameters["std_out_all_processes"] = False;
+info("Test")
 
 def error(config):
   W = function_spaces.p2p1(config.mesh)
@@ -55,12 +56,9 @@ conv = []
 for i in range(len(errors)-1):
   conv.append(abs(log(errors[i+1]/errors[i], 2)))
 
-if myid == 0:
-  print "Spatial order of convergence (expecting 2.0):", conv
+info("Spatial order of convergence (expecting 2.0): %s" % str(conv))
 if min(conv)<1.8:
-  if myid == 0:
-    print "Spatial convergence test failed for wave_flather"
+  info_red("Spatial convergence test failed for wave_flather")
   sys.exit(1)
 else:
-  if myid == 0:
-    print "Test passed"
+  info_green("Test passed")

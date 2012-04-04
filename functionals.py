@@ -62,7 +62,7 @@ def build_turbine_cache(params, function_space):
   params = configuration.Parameters(dict(params))
   # Scale the turbine size by the given factor.
   if params["functional_turbine_scaling"] != 1.0:
-    info_green("The functional uses turbines which size is scaled by a factor of " + str(params["functional_turbine_scaling"]) + ".")
+    info("The functional uses turbines which size is scaled by a factor of " + str(params["functional_turbine_scaling"]) + ".")
   params["turbine_x"] *= params["functional_turbine_scaling"]
   params["turbine_y"] *= params["functional_turbine_scaling"] 
 

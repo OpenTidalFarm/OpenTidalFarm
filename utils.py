@@ -40,17 +40,17 @@ def test_gradient_array(J, dJ, x, seed=0.01, perturbation_direction=None):
   no_gradient = [abs(perturbed_j - j_direct) for perturbed_j in functional_values]
 
   dj = dJ(x)
-  info("Absolute functional evaluation differences: %s", str(no_gradient))
-  info("Gradient approximated with finite differences: %s", str([(functional_values[i] - j_direct)/perturbations[i] for i in range(len(no_gradient))]))
-  info("Gradient computed using the adjoint solution: %s", str(dj))
-  info("Convergence orders for Taylor remainder without adjoint information (should all be 1): %s", str(convergence_order(no_gradient)))
+  info("Absolute functional evaluation differences: %s" % str(no_gradient))
+  info("Gradient approximated with finite differences: %s" % str([(functional_values[i] - j_direct)/perturbations[i] for i in range(len(no_gradient))]))
+  info("Gradient computed using the adjoint solution: %s" % str(dj))
+  info("Convergence orders for Taylor remainder without adjoint information (should all be 1): %s" % str(convergence_order(no_gradient)))
 
   with_gradient = []
   for i in range(len(perturbations)):
       remainder = abs(functional_values[i] - j_direct - dot(perturbations[i], dj))
       with_gradient.append(remainder)
 
-  info("Convergence orders for Taylor remainder with adjoint information (should all be 2): %s", str(convergence_order(with_gradient)))
+  info("Convergence orders for Taylor remainder with adjoint information (should all be 2): %s" % str(convergence_order(with_gradient)))
 
   return min(convergence_order(with_gradient))
 

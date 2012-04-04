@@ -68,11 +68,11 @@ def sw_solve(W, config, state, turbine_field=None, time_functional=None, annotat
     is_nonlinear = (include_advection or quadratic_friction)
 
     # Print out an estimation of the Reynolds number 
-    print "Expected Reynolds number is roughly (assumes velocity is 2): ",
     if include_diffusion and diffusion_coef>0:
-      print params["turbine_x"]*2./diffusion_coef
+      reynolds = params["turbine_x"]*2./diffusion_coef
     else:
-      print "Infinity"
+      reynolds = "oo"
+    info("Expected Reynolds number is roughly (assumes velocity is 2): %s" % str(reynolds))
 
     # Define test functions
     (v, q) = TestFunctions(W)
