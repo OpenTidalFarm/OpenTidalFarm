@@ -103,10 +103,10 @@ nlp.addOption('hessian_approximation', 'limited-memory')
 nlp.addOption('max_iter', 25)
 
 m, sinfo = nlp.solve(m0)
-info_green(sinfo['status_msg'])
-info_green("Solution of the primal variables: m=" + repr(m) + "\n")
-info_green("Solution of the dual variables: lambda=" +  repr(sinfo['mult_g']) + "\n")
-info_green("Objective=" + repr(sinfo['obj_val']) + "\n")
+info(sinfo['status_msg'])
+info("Solution of the primal variables: m=" + repr(m) + "\n")
+info("Solution of the dual variables: lambda=" +  repr(sinfo['mult_g']) + "\n")
+info("Objective=" + repr(sinfo['obj_val']) + "\n")
 plot.savefig("plot_functional_value.png")
 
 exit_code = 1

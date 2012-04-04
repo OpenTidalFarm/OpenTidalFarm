@@ -100,5 +100,7 @@ info("Solution of the dual variables: lambda=%s\n" % repr(sinfo['mult_g']))
 info("Objective=%s\n" % repr(sinfo['obj_val']))
 
 if sinfo['status'] != 0 or abs(m-0.04413) > 0.0005: 
-  info("The optimisation algorithm did not find the correct solution: Expected m = 0.04413, but got m = " + str(m) + ".")
+  info_red("The optimisation algorithm did not find the correct solution: Expected m = 0.04413, but got m = " + str(m) + ".")
   sys.exit(1) 
+else:
+  info_green("Test passed")
