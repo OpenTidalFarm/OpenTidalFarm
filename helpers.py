@@ -55,66 +55,58 @@ def test_gradient_array(J, dJ, x, seed=0.01, perturbation_direction=None):
   return min(convergence_order(with_gradient))
 
 def save_to_file_scalar(function, basename):
-    u_out, p_out = output_files(basename)
+    out_file = File(basename+".pvd", "compressed")
+    out_file << function 
 
-    M_p_out, q_out, p_out_func = p_output_projector(function.function_space())
+class StateWriter:
+    def __init__(self, params):
+        self.u_out, self.p_out = self.output_files(params["element_type"].func_name)
 
-    # Project the solution to P1 for visualisation.
-    rhs = assemble(inner(q_out,function)*dx)
-    solve(M_p_out, p_out_func.vector(),rhs,"cg","sor", annotate=False) 
-    
-    p_out << p_out_func
+    def write(self, state):
+        W = state.function_space()
+        if not hasattr(self, "m_u_out"):
+            self.M_u_out, self.v_out, self.u_out_state = self.u_output_projector(W)
+            self.M_p_out, self.q_out, self.p_out_state = self.p_output_projector(W)
 
-def save_to_file(function, basename):
-    u_out,p_out = output_files(basename)
+        rhs = assemble(inner(self.v_out, state.split()[0])*dx)
+        solve(self.M_u_out, self.u_out_state.vector(), rhs, "cg", "sor", annotate=False) 
+        rhs = assemble(inner(self.q_out, state.split()[1])*dx)
+        solve(self.M_p_out, self.p_out_state.vector(), rhs, "cg", "sor", annotate=False)
 
-    M_u_out, v_out, u_out_func = u_output_projector(function.function_space())
-    M_p_out, q_out, p_out_func = p_output_projector(function.function_space())
+        self.u_out << self.u_out_state
+        self.p_out << self.p_out_state
 
-    # Project the solution to P1 for visualisation.
-    rhs = assemble(inner(v_out,function.split()[0])*dx)
-    solve(M_u_out, u_out_func.vector(), rhs, "cg", "sor", annotate=False) 
-    
-    # Project the solution to P1 for visualisation.
-    rhs = assemble(inner(q_out,function.split()[1])*dx)
-    solve(M_p_out, p_out_func.vector(), rhs, "cg", "sor", annotate=False) 
-    
-    u_out << u_out_func
-    p_out << p_out_func
-
-def u_output_projector(W):
-    # Projection operator for output.
-    Output_V=VectorFunctionSpace(W.mesh(), 'CG', 1, dim=2)
-    
-    u_out=TrialFunction(Output_V)
-    v_out=TestFunction(Output_V)
-    
-    M_out=assemble(inner(v_out,u_out)*dx)
-    
-    out_state=Function(Output_V)
-
-    return M_out, v_out, out_state
-
-def p_output_projector(W):
-    # Projection operator for output.
-    Output_V=FunctionSpace(W.mesh(), 'CG', 1)
-    
-    u_out=TrialFunction(Output_V)
-    v_out=TestFunction(Output_V)
-    
-    M_out=assemble(inner(v_out,u_out)*dx)
-    
-    out_state=Function(Output_V)
-
-    return M_out, v_out, out_state
-
-def output_files(basename):
+    def u_output_projector(self, W):
+        # Projection operator for output.
+        Output_V = VectorFunctionSpace(W.mesh(), 'CG', 1, dim=2)
         
-    # Output file
-    u_out = File(basename+"_u.pvd", "compressed")
-    p_out = File(basename+"_p.pvd", "compressed")
+        u_out = TrialFunction(Output_V)
+        v_out = TestFunction(Output_V)
+        
+        M_out = assemble(inner(v_out,u_out)*dx)
+        out_state = Function(Output_V)
 
-    return u_out, p_out
+        return M_out, v_out, out_state
+
+    def p_output_projector(self, W):
+        # Projection operator for output.
+        Output_V = FunctionSpace(W.mesh(), 'CG', 1)
+        
+        u_out = TrialFunction(Output_V)
+        v_out = TestFunction(Output_V)
+        
+        M_out = assemble(inner(v_out,u_out)*dx)
+        out_state = Function(Output_V)
+
+        return M_out, v_out, out_state
+
+    def output_files(self, basename):
+            
+        # Output file
+        u_out = File(basename+"_u.pvd", "compressed")
+        p_out = File(basename+"_p.pvd", "compressed")
+
+        return u_out, p_out
 
 def cpu0only(f):
   ''' A decorator class that only evaluates on the first CPU in a parallel environment. '''

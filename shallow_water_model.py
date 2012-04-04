@@ -177,17 +177,8 @@ def sw_solve(W, config, state, turbine_field=None, time_functional=None, annotat
 
     ############################### Perform the simulation ###########################
 
-    u_out, p_out = helpers.output_files(params["element_type"].func_name)
-    M_u_out, v_out, u_out_state = helpers.u_output_projector(state.function_space())
-    M_p_out, q_out, p_out_state = helpers.p_output_projector(state.function_space())
-
-    # Project the solution to P1 for visualisation.
-    rhs = assemble(inner(v_out, state.split()[0])*dx)
-    solve(M_u_out, u_out_state.vector(), rhs, "cg", "sor", annotate=False) 
-    rhs = assemble(inner(q_out, state.split()[1])*dx)
-    solve(M_p_out, p_out_state.vector(), rhs, "cg", "sor", annotate=False) 
-    u_out << u_out_state
-    p_out << p_out_state
+    writer = helpers.StateWriter(params)
+    writer.write(state)
     
     step = 0    
 
@@ -247,15 +238,7 @@ def sw_solve(W, config, state, turbine_field=None, time_functional=None, annotat
         state.assign(state_new)
 
         if step%params["dump_period"] == 0:
-        
-            # Project the solution to P1 for visualisation.
-            rhs=assemble(inner(v_out,state.split()[0])*dx)
-            solve(M_u_out, u_out_state.vector(), rhs, "cg", "sor", annotate=False) 
-            rhs=assemble(inner(q_out,state.split()[1])*dx)
-            solve(M_p_out, p_out_state.vector(), rhs, "cg", "sor", annotate=False) 
-            
-            u_out << u_out_state
-            p_out << p_out_state
+            writer.write(state)
 
         if time_functional is not None:
           if t >= params["finish_time"]:

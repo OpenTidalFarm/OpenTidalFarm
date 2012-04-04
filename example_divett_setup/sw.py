@@ -28,8 +28,8 @@ def default_config():
   config.params["picard_iterations"] = 20
   config.params["run_benchmark"] = False 
   config.params['solver_exclude'] = ['cg']
-  config.params["linear_solver"] = "gmres"
-  config.params["preconditioner"] = "amg"
+  config.params["linear_solver"] = "default"
+  config.params["preconditioner"] = "default"
   info_green("Approximate CFL number (assuming a velocity of 2): " +str(2*config.params["dt"]/config.mesh.hmin())) 
 
 
