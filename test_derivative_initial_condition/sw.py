@@ -6,8 +6,9 @@ import configuration
 import shallow_water_model as sw_model
 import function_spaces
 import numpy
+from initial_conditions import SinusoidalInitialCondition
 from turbines import *
-from functionals import DefaultFunctional, build_turbine_cache
+from functionals import DefaultFunctional
 from dolfin import *
 from dolfin_adjoint import *
 
@@ -37,16 +38,9 @@ config.params["functional_turbine_scaling"] = 1.0
 # Setup the model and run it so that the annotation exists.
 W = function_spaces.p1dgp2(config.mesh)
 state = Function(W, name="Current_state")
-state.interpolate(config.get_sin_initial_condition()())
+state.interpolate(SinusoidalInitialCondition(config)())
 
-# Extract the first dimension of the velocity function space 
-U = W.split()[0].sub(0)
-U = U.collapse() # Recompute the DOF map
-tf = Function(U)
-tf.interpolate(Turbines(config.params))
-
-turbine_cache = build_turbine_cache(config.params, U)
-functional = DefaultFunctional(config.params, turbine_cache) 
+functional = DefaultFunctional(W, config.params) 
 sw_model.sw_solve(W, config, state, time_functional=functional)
 
 # Check the replay
@@ -54,7 +48,7 @@ info("Replaying the forward model")
 replay_dolfin()
 
 # Run the adjoint model 
-J = TimeFunctional(functional.Jt(state), static_variables = [turbine_cache["turbine_field"]], dt=config.params["dt"])
+J = TimeFunctional(functional.Jt(state), static_variables = [functional.turbine_cache["turbine_field"]], dt=config.params["dt"])
 dJdm = compute_gradient(J, InitialConditionParameter("Current_state"))
 
 # And finally check the computed gradient with the taylor test
@@ -62,7 +56,7 @@ def J(state):
   j, djdm = sw_model.sw_solve(W, config, state, time_functional=functional, annotate=False)
   return j
 
-state.interpolate(config.get_sin_initial_condition()())
+state.interpolate(SinusoidalInitialCondition(config)())
 minconv = test_initial_condition_adjoint(J, state, dJdm, seed=0.0001)
 if minconv < 1.9:
   exit_code = 1

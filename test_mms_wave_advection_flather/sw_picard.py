@@ -1,18 +1,18 @@
 import sys
 import configuration 
-import shallow_water_model as sw_model
 import function_spaces
+import shallow_water_model as sw_model
+from initial_conditions import SinusoidalInitialCondition
 from dolfin import *
-from dolfin_adjoint import *
 from math import log
 
-set_log_level(30)
-myid = MPI.process_number()
+set_log_level(PROGRESS)
+parameters["std_out_all_processes"] = False;
 
 def error(config):
   W = function_spaces.p1dgp2(config.mesh)
-  state=Function(W)
-  state.interpolate(config.get_sin_initial_condition()())
+  state = Function(W)
+  state.interpolate(SinusoidalInitialCondition(config)())
   u_exact = "eta0*sqrt(g*depth) * cos(k*x[0]-sqrt(g*depth)*k*t)" # The analytical veclocity of the shallow water equations has been multiplied by depth to account for the change of variable (\tilde u = depth u) in this code.
   du_exact = "(- eta0*sqrt(g*depth) * sin(k*x[0]-sqrt(g*depth)*k*t) * k)"
   eta_exact = "eta0*cos(k*x[0]-sqrt(g*depth)*k*t)"
@@ -53,12 +53,9 @@ conv = []
 for i in range(len(errors)-1):
   conv.append(abs(log(errors[i+1]/errors[i], 2)))
 
-if myid == 0:
-  print "Spatial order of convergence (expecting 2.0):", conv
+info("Spatial order of convergence (expecting 2.0): %s" % str(conv))
 if min(conv)<1.8:
-  if myid == 0:
-    print "Spatial convergence test failed for wave_flather"
+  info_red("Spatial convergence test failed for wave_flather")
   sys.exit(1)
 else:
-  if myid == 0:
-    print "Test passed"
+  info_green("Test passed")

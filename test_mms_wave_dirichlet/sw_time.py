@@ -2,17 +2,17 @@ import sys
 import configuration 
 import shallow_water_model as sw_model
 import function_spaces
+from initial_conditions import SinusoidalInitialCondition
 from dolfin import *
-from dolfin_adjoint import *
 from math import log
 
-set_log_level(30)
-myid = MPI.process_number()
+set_log_level(PROGRESS)
+parameters["std_out_all_processes"] = False;
 
 def error(config):
   W = function_spaces.p1dgp2(config.mesh)
   state = Function(W)
-  state.interpolate(config.InitialConditions())
+  state.interpolate(SinusoidalInitialCondition(config)())
 
   sw_model.sw_solve(W, config, state, annotate=False)
 
@@ -21,7 +21,7 @@ def error(config):
                              "eta0*cos(k*x[0]-sqrt(g*depth)*k*t)"), \
                              eta0=config.params["eta0"], g=config.params["g"], \
                              depth=config.params["depth"], t=config.params["current_time"], k=config.params["k"])
-  exactstate=Function(W)
+  exactstate = Function(W)
   exactstate.interpolate(analytic_sol)
   e = state-exactstate
   return sqrt(assemble(dot(e,e)*dx))
@@ -56,12 +56,9 @@ conv = []
 for i in range(len(errors)-1):
   conv.append(abs(log(errors[i+1]/errors[i], 2)))
 
-if myid == 0:
-  print "Temporal order of convergence (expecting 2.0):", conv
+info("Temporal order of convergence (expecting 2.0): %s" % str(conv))
 if min(conv)<1.8:
-  if myid == 0:
-    print "Temporal convergence test failed for wave_dirichlet"
+  info_red("Temporal convergence test failed for wave_dirichlet")
   sys.exit(1)
 else:
-  if myid == 0:
-    print "Test passed"
+  info_green("Test passed")

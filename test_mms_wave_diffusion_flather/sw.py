@@ -1,19 +1,18 @@
 import sys
 import configuration 
-import function_spaces
 import shallow_water_model as sw_model
+import function_spaces
+from initial_conditions import SinusoidalInitialCondition
 from dolfin import *
-from dolfin_adjoint import *
 from math import log
 
 set_log_level(PROGRESS)
 parameters["std_out_all_processes"] = False;
-info("Test")
 
 def error(config):
   W = function_spaces.p2p1(config.mesh)
   state = Function(W)
-  state.interpolate(config.get_sin_initial_condition()())
+  state.interpolate(SinusoidalInitialCondition(config)())
   u_exact = "eta0*sqrt(g*depth) * cos(k*x[0]-sqrt(g*depth)*k*t)" # The analytical veclocity of the shallow water equations has been multiplied by depth to account for the change of variable (\tilde u = depth u) in this code.
   ddu_exact = "(diffusion_coef * eta0*sqrt(g*depth) * cos(k*x[0]-sqrt(g*depth)*k*t) * k*k)"
   eta_exact = "eta0*cos(k*x[0]-sqrt(g*depth)*k*t)"
