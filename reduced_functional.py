@@ -89,12 +89,12 @@ class ReducedFunctional:
 
     def j(self, m, forward_only = False):
       j = self.j_and_dj_mem(m, forward_only)[0] * self.scaling_factor
-      info_green('Evaluating j(' + m.__repr__() + ') = ' + str(j))
+      info('Evaluating j(' + m.__repr__() + ') = ' + str(j))
       return j
 
     def dj(self, m):
       dj = self.j_and_dj_mem(m, forward_only = False)[1] * self.scaling_factor
-      info_green('Evaluating dj(' + m.__repr__() + ') = ' + str(dj))
+      info('Evaluating dj(' + m.__repr__() + ') = ' + str(dj))
       return dj
 
     def initial_control(self):
