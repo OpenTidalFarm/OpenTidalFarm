@@ -27,7 +27,9 @@ def default_config():
   config.params["newton_solver"] = False 
   config.params["picard_iterations"] = 20
   config.params["run_benchmark"] = False 
-  config.params['solver_exclude'] = ['cg', 'lu']
+  config.params['solver_exclude'] = ['cg']
+  config.params["linear_solver"] = "gmres"
+  config.params["preconditioner"] = "amg"
   info_green("Approximate CFL number (assuming a velocity of 2): " +str(2*config.params["dt"]/config.mesh.hmin())) 
 
 
