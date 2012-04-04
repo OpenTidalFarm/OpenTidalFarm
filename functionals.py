@@ -1,4 +1,4 @@
-from dolfin import info_green
+from dolfin import info
 from turbines import *
 
 class FunctionalPrototype(object):

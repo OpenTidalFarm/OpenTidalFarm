@@ -115,5 +115,13 @@ def output_files(basename):
     p_out = File(basename+"_p.pvd", "compressed")
 
     return u_out, p_out
-            
+
+def cpu0only(f):
+  ''' A decorator class that only evaluates on the first CPU in a parallel environment. '''
+  def decorator(self, *args, **kw):
+    myid = MPI.process_number()
+    if myid == 0:
+      f(self, *args, **kw)
+
+  return decorator
 
