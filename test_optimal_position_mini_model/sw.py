@@ -14,6 +14,7 @@ from animated_plot import *
 from utils import test_gradient_array
 from mini_model import mini_model_solve
 from reduced_functional import ReducedFunctional
+from initial_conditions import BumpInitialCondition
 from dolfin import *
 
 # An animated plot to visualise the development of the functional value
@@ -38,38 +39,8 @@ def default_config():
 
   return config
 
-class BumpInitialConditions(Expression):
-  '''This class implements a initial condition with a bump velocity profile.
-     With that we know that the optimal turbine location must be in the center of the domain. '''
-  def __init__(self, config):
-    self.params = config.params
-
-  def bump_function(self, x):
-    '''The velocity is initially a bump function (a smooth function with limited support):
-               /  e**-1/(1-x**2)   for |x| < 1
-      psi(x) = |  
-               \  0   otherwise
-      For more information see http://en.wikipedia.org/wiki/Bump_function
-    '''
-    bump = exp(-1.0/(1.0-x[0]**2)) 
-    bump *= exp(-1.0/(1.0-x[1]**2)) 
-    bump /= exp(-1)**2
-    return bump
-
-  def eval(self, values, X):
-    params = self.params
-    x_unit = 2*(params["basin_x"]-X[0])/params["basin_x"]-1.0
-    y_unit = 2*(params["basin_y"]-X[1])/params["basin_y"]-1.0
-
-    values[0] = self.bump_function([x_unit, y_unit]) 
-    values[1] = 0.
-    values[2] = 0.0 
-  def value_shape(self):
-    return (3,)
-
 config = default_config()
-initial_condition = BumpInitialConditions(config)
-model = ReducedFunctional(config, scaling_factor = 10**4, forward_model = mini_model_solve, initial_condition = initial_condition)
+model = ReducedFunctional(config, scaling_factor = 10**4, forward_model = mini_model_solve, initial_condition = BumpInitialCondition)
 m0 = model.initial_control()
 
 p = numpy.random.rand(len(m0))
