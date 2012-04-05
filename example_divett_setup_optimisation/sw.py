@@ -3,13 +3,14 @@
 import sys
 import configuration 
 import numpy
+from dirichlet_bc import DirichletBCSet
 import IPOptUtils
 import ipopt
 from helpers import test_gradient_array
 from animated_plot import *
 from reduced_functional import ReducedFunctional
 from dolfin import *
-from dolfin_adjoint import *
+set_log_level(PROGRESS)
 
 # An animated plot to visualise the development of the functional value
 plot = AnimatedPlot(xlabel='Iteration', ylabel='Functional value')
@@ -34,19 +35,18 @@ def default_config():
   config.params["diffusion_coef"] = 2.0
   config.params["newton_solver"] = False 
   config.params["picard_iterations"] = 20
-  config.params["run_benchmark"] = False 
-  config.params['solver_exclude'] = ['cg']
   config.params["linear_solver"] = "default"
   config.params["preconditioner"] = "default"
   config.params["controls"] = ["turbine_pos"]
   info_green("Approximate CFL number (assuming a velocity of 2): " +str(2*config.params["dt"]/config.mesh.hmin())) 
 
+  config.params["bctype"] = "strong_dirichlet"
+  bc = DirichletBCSet(config)
+  bc.add_analytic_u(config.left)
+  bc.add_analytic_u(config.right)
+  bc.add_noslip_u(config.sides)
+  config.params["strong_bc"] = bc
 
-  set_log_level(PROGRESS)
-  #dolfin.parameters['optimize'] = True
-  #dolfin.parameters['optimize_use_dofmap_cache'] = True
-  #dolfin.parameters['optimize_use_tensor_cache'] = True
-  #dolfin.parameters['form_compiler']['optimize'] = True
   dolfin.parameters['form_compiler']['cpp_optimize'] = True
   dolfin.parameters['form_compiler']['cpp_optimize_flags'] = '-O3'
 

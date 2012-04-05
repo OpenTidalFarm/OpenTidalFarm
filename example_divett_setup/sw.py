@@ -37,10 +37,6 @@ def default_config():
   bc.add_noslip_u(config.sides)
   config.params["strong_bc"] = bc
 
-  #dolfin.parameters['optimize'] = True
-  #dolfin.parameters['optimize_use_dofmap_cache'] = True
-  #dolfin.parameters['optimize_use_tensor_cache'] = True
-  #dolfin.parameters['form_compiler']['optimize'] = True
   dolfin.parameters['form_compiler']['cpp_optimize'] = True
   dolfin.parameters['form_compiler']['cpp_optimize_flags'] = '-O3'
 
