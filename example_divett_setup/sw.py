@@ -24,7 +24,7 @@ def default_config():
   config.params["include_advection"] = True 
   config.params["include_diffusion"] = True 
   config.params["diffusion_coef"] = 2.0
-  config.params["newton_solver"] = False 
+  config.params["newton_solver"] = True 
   config.params["picard_iterations"] = 20
   config.params["linear_solver"] = "default"
   config.params["preconditioner"] = "default"

@@ -3,17 +3,22 @@ import memoize
 import shallow_water_model as sw_model
 import initial_conditions
 import helpers 
+from animated_plot import AnimatedPlot
 from functionals import DefaultFunctional
 from dolfin import *
 from turbines import *
 
 class ReducedFunctional:
 
-    def __init__(self, config, scaling_factor = 1.0, forward_model = sw_model.sw_solve, initial_condition = initial_conditions.SinusoidalInitialCondition):
+    def __init__(self, config, scaling_factor = 1.0, forward_model = sw_model.sw_solve, initial_condition = initial_conditions.SinusoidalInitialCondition, plot = False):
+        ''' If plot is True, the functional values will be automatically saved in a plot '''
         # Hide the configuration since changes would break the memoize algorithm. 
         self.__config__ = config
         self.scaling_factor = scaling_factor
+        self.plot = plot
         self.count = 0
+        if plot:
+           self.plotter = AnimatedPlot(xlabel = "Iteration", ylabel = "Functional value")
 
         def j_and_dj(m, forward_only):
             ''' This function solves the forward and adjoint problem and returns the functional value and its gradient for the parameter choice m. 
@@ -87,6 +92,9 @@ class ReducedFunctional:
     def j(self, m, forward_only = False):
         ''' This memoised function returns the functional value for the parameter choice m. '''
         j = self.j_and_dj_mem(m, forward_only)[0] * self.scaling_factor
+        if self.plot:
+            self.plotter.addPoint(j)
+            self.plotter.savefig("functional_plot.png")
         info('Evaluating j(' + m.__repr__() + ') = ' + str(j))
         return j
 

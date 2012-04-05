@@ -33,7 +33,7 @@ def default_config():
   config.params["include_advection"] = True 
   config.params["include_diffusion"] = True 
   config.params["diffusion_coef"] = 2.0
-  config.params["newton_solver"] = False 
+  config.params["newton_solver"] = True 
   config.params["picard_iterations"] = 20
   config.params["linear_solver"] = "default"
   config.params["preconditioner"] = "default"
@@ -71,7 +71,7 @@ def default_config():
   return config
 
 config = default_config()
-model = ReducedFunctional(config, scaling_factor = 10**-4)
+model = ReducedFunctional(config, scaling_factor = 10**-4, plot = True)
 m0 = model.initial_control()
 
 p = numpy.random.rand(len(m0))
@@ -104,7 +104,7 @@ nlp.addOption('check_derivatives_for_naninf', 'yes')
 nlp.addOption('obj_scaling_factor', -1.0)
 # Use an approximate Hessian since we do not have second order information.
 nlp.addOption('hessian_approximation', 'limited-memory')
-nlp.addOption('max_iter', 12)
+nlp.addOption('max_iter', 20)
 
 m, sinfo = nlp.solve(m0)
 info(sinfo['status_msg'])

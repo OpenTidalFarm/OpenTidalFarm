@@ -41,7 +41,7 @@ def default_config():
   return config
 
 config = default_config()
-model = ReducedFunctional(config, scaling_factor = 10**4, forward_model = mini_model_solve, initial_condition = BumpInitialCondition)
+model = ReducedFunctional(config, scaling_factor = 10**4, forward_model = mini_model_solve, initial_condition = BumpInitialCondition, plot = True)
 m0 = model.initial_control()
 
 p = numpy.random.rand(len(m0))
