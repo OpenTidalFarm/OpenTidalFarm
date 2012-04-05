@@ -2,8 +2,10 @@
 
 import configuration 
 import numpy
+from dirichlet_bc import DirichletBCSet
 from reduced_functional import ReducedFunctional
 from dolfin import *
+set_log_level(PROGRESS)
 
 def default_config():
   # We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
@@ -24,14 +26,17 @@ def default_config():
   config.params["diffusion_coef"] = 2.0
   config.params["newton_solver"] = False 
   config.params["picard_iterations"] = 20
-  config.params["run_benchmark"] = False 
-  config.params['solver_exclude'] = ['cg']
   config.params["linear_solver"] = "default"
   config.params["preconditioner"] = "default"
   info_green("Approximate CFL number (assuming a velocity of 2): " +str(2*config.params["dt"]/config.mesh.hmin())) 
 
+  config.params["bctype"] = "strong_dirichlet"
+  bc = DirichletBCSet(config)
+  bc.add_analytic_u(config.left)
+  bc.add_analytic_u(config.right)
+  bc.add_noslip_u(config.sides)
+  config.params["strong_bc"] = bc
 
-  set_log_level(PROGRESS)
   #dolfin.parameters['optimize'] = True
   #dolfin.parameters['optimize_use_dofmap_cache'] = True
   #dolfin.parameters['optimize_use_tensor_cache'] = True
