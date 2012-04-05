@@ -17,7 +17,7 @@ def test_gradient_array(J, dJ, x, seed=0.01, perturbation_direction=None):
   info("Running Taylor remainder convergence analysis to check the gradient ... ")
 
   # First run the problem unperturbed
-  j_direct = J(x)
+  j_direct = J(x, forward_only = True)
 
   # Randomise the perturbation direction:
   if perturbation_direction is None:

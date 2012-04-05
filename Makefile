@@ -1,6 +1,8 @@
 tests:
 	@echo "=================== Running wave_dirichlet test ==================="
 	cd test_mms_wave_dirichlet; make
+	@echo "=================== Running strong wave_dirichlet test ==================="
+	cd test_mms_wave_strong_dirichlet; make
 	@echo "=================== Running wave_flather test ==================="
 	cd test_mms_wave_flather; make
 	@echo "=================== Running wave_flather advection test ==================="
@@ -9,12 +11,12 @@ tests:
 	cd test_mms_wave_friction_flather; make
 	@echo "=================== Running wave_flather diffusion test ==================="
 	cd test_mms_wave_diffusion_flather; make
-	@echo "=================== Running turbine function derivative test ==================="
-	cd test_derivative_turbine_function; make
-	@echo "=================== Running initial condition derivative test ==================="
-	cd test_derivative_initial_condition; make
-	@echo "=================== Running friction derivative test ==================="
-	cd test_derivative_friction; make
+	@echo "=================== Running test_partial_derivative_turbine test ==================="
+	cd test_partial_derivative_turbine; make
+	@echo "=================== Running friction gradient test ==================="
+	cd test_gradient_friction; make
+	@echo "=================== Running position gradient test with strong boundary conditions ==================="
+	cd test_gradient_pos_strong_dirichlet; make
 	@echo "=================== Running functional convergence test ==================="
 	cd test_functional_convergence; make
 	@echo "=================== Running optimal friction mini model test ==================="
