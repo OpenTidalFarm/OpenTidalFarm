@@ -4,13 +4,13 @@ import helpers
 from dolfin import *
 from dolfin_adjoint import *
 
-def construct_mini_model(W, params, turbine_field):
-    (v, q)=TestFunctions(W)
-    (u, h)=TrialFunctions(W)
+def construct_mini_model(config, turbine_field):
+    (v, q) = TestFunctions(config.function_space)
+    (u, h) = TrialFunctions(config.function_space)
 
     # Mass matrix
-    M=inner(v,u)*dx
-    M+=inner(q,h)*dx
+    M = inner(v,u)*dx
+    M += inner(q,h)*dx
 
     A = (1.0+turbine_field)*inner(v,u)*dx
     A += inner(q,h)*dx
@@ -43,6 +43,6 @@ def mini_model(A, M, state, params, time_functional=None, annotate=True):
       djdm += 0.5*params["dt"]*numpy.array([assemble(f) for f in time_functional.dJtdm(state)])
       return j, djdm
 
-def mini_model_solve(W, config, state, turbine_field=None, time_functional=None, annotate=True, linear_solver="default", preconditioner="default", u_source = None):
-    A, M = construct_mini_model(W, config.params, turbine_field)
+def mini_model_solve(config, state, turbine_field=None, time_functional=None, annotate=True, linear_solver="default", preconditioner="default", u_source = None):
+    A, M = construct_mini_model(config, turbine_field)
     return mini_model(A, M, state, params = config.params, time_functional = time_functional)

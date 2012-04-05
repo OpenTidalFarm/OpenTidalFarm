@@ -48,7 +48,7 @@ class ReducedFunctional:
 
             # Solve the shallow water system
             functional = DefaultFunctional(config.function_space, config.params)
-            j, djdm = forward_model(config.function_space, config, state, time_functional=functional, turbine_field = tf)
+            j, djdm = forward_model(config, state, time_functional=functional, turbine_field = tf)
 
             # And the adjoint system to compute the gradient if it was asked for
             if forward_only:

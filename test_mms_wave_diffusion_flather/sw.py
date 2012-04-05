@@ -23,7 +23,7 @@ def error(config):
                        k=config.params["k"], friction = config.params["friction"], \
                        diffusion_coef=config.params["diffusion_coef"])
 
-  sw_model.sw_solve(config.function_space, config, state, annotate=False, u_source = source)
+  sw_model.sw_solve(config, state, annotate=False, u_source = source)
 
   analytic_sol = Expression((u_exact, \
                              "0", \

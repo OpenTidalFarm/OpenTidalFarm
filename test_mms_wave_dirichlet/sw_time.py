@@ -13,7 +13,7 @@ def error(config):
   state = Function(config.function_space)
   state.interpolate(SinusoidalInitialCondition(config)())
 
-  sw_model.sw_solve(config.function_space, config, state, annotate=False)
+  sw_model.sw_solve(config, state, annotate=False)
 
   analytic_sol = Expression(("eta0*sqrt(g*depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", \
                              "0", \

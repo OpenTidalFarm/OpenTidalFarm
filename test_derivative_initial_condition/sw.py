@@ -40,7 +40,7 @@ state = Function(config.function_space, name="Current_state")
 state.interpolate(SinusoidalInitialCondition(config)())
 
 functional = DefaultFunctional(config.function_space, config.params) 
-sw_model.sw_solve(config.function_space, config, state, time_functional=functional)
+sw_model.sw_solve(config, state, time_functional=functional)
 
 # Check the replay
 info("Replaying the forward model")
@@ -52,7 +52,7 @@ dJdm = compute_gradient(J, InitialConditionParameter("Current_state"))
 
 # And finally check the computed gradient with the taylor test
 def J(state):
-  j, djdm = sw_model.sw_solve(config.function_space, config, state, time_functional=functional, annotate=False)
+  j, djdm = sw_model.sw_solve(config, state, time_functional=functional, annotate=False)
   return j
 
 state.interpolate(SinusoidalInitialCondition(config)())

@@ -5,7 +5,7 @@ import sys
 from dolfin import *
 from dolfin_adjoint import *
 
-def sw_solve(W, config, state, turbine_field=None, time_functional=None, annotate=True, u_source = None):
+def sw_solve(config, state, turbine_field=None, time_functional=None, annotate=True, u_source = None):
     '''Solve the shallow water equations with the parameters specified in params.
        Options for linear_solver and preconditioner are: 
         linear_solver: lu, cholesky, cg, gmres, bicgstab, minres, tfqmr, richardson
@@ -51,17 +51,17 @@ def sw_solve(W, config, state, turbine_field=None, time_functional=None, annotat
     info("Expected Reynolds number is roughly (assumes velocity is 2): %s" % str(reynolds))
 
     # Define test functions
-    (v, q) = TestFunctions(W)
+    (v, q) = TestFunctions(config.function_space)
 
     # Define functions
-    state_new = Function(W, name="New_state")  # solution of the next timestep 
-    state_nl = Function(W, name="Best_guess_state")  # the last computed state of the next timestep, used for the picard iteration
+    state_new = Function(config.function_space, name="New_state")  # solution of the next timestep 
+    state_nl = Function(config.function_space, name="Best_guess_state")  # the last computed state of the next timestep, used for the picard iteration
 
     # Split mixed functions
     if is_nonlinear and newton_solver:
       u, h = split(state_new) 
     else:
-      (u, h) = TrialFunctions(W) 
+      (u, h) = TrialFunctions(config.function_space) 
     u0, h0 = split(state)
     u_nl, h_nl = split(state_nl)
 
@@ -79,7 +79,7 @@ def sw_solve(W, config, state, turbine_field=None, time_functional=None, annotat
       u_mid_nl = (1.0-theta)*u0 + theta*u_nl
 
     # The normal direction
-    n = FacetNormal(W.mesh())
+    n = FacetNormal(config.function_space.mesh())
 
     # Mass matrix
     M = inner(v, u) * dx
@@ -155,7 +155,7 @@ def sw_solve(W, config, state, turbine_field=None, time_functional=None, annotat
 
     if include_diffusion:
       # Check that we are not using a DG velocity function space, as the facet integrals are not implemented.
-      if "Discontinuous" in str(W.split()[0]):
+      if "Discontinuous" in str(config.function_space.split()[0]):
         raise NotImplementedError, "The diffusion term for discontinuous elements is not implemented yet."
       D_mid = diffusion_coef*inner(grad(u_mid), grad(v))*dx
 
