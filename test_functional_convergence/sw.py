@@ -8,7 +8,7 @@ import helpers
 import finite_elements
 import numpy
 from mini_model import *
-from functionals import DefaultFunctional, build_turbine_cache
+from functionals import DefaultFunctional
 from turbines import *
 from dolfin import *
 from dolfin_adjoint import *
@@ -72,10 +72,8 @@ def run_model(nx, ny, turbine_model, turbine_pos):
     print "L2 Norm of turbine function: ", tf_norm 
   helpers.save_to_file_scalar(tf, turbine_model+"_"+str(nx)+"x"+str(ny)+"_turbine_pos="+str(turbine_pos))
 
-  A, M = construct_mini_model(config.function_space, config.params, tf)
-  turbine_cache = build_turbine_cache(config.params, U)
-  functional = DefaultFunctional(config.params, turbine_cache)
-  j, djdm = mini_model(A, M, state, config.params, functional)
+  functional = DefaultFunctional(config.function_space, config.params)
+  j, djdm = mini_model_solve(config, state, tf, functional)
   return j
 
 def refine_res(nx, ny, level=0.66):

@@ -36,7 +36,7 @@ def error(config):
   return sqrt(assemble(dot(e,e)*dx))
 
 def test(refinment_level):
-  config = configuration.DefaultConfiguration(nx=16*2**refinment_level, ny=2**refinment_level, finite_element = finite_elements.p1dgp2) 
+  config = configuration.DefaultConfiguration(nx=16*2**refinment_level, ny=2**refinment_level) 
   config.params["finish_time"] = pi/(sqrt(config.params["g"]*config.params["depth"])*config.params["k"])/20
   config.params["dt"] = config.params["finish_time"]/60
   config.params["dump_period"] = 100000
