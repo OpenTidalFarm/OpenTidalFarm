@@ -37,7 +37,9 @@ def default_config():
   config.params["newton_solver"] = False 
   config.params["picard_iterations"] = 20
   config.params["run_benchmark"] = False 
-  config.params['solver_exclude'] = ['cg', 'lu']
+  config.params['solver_exclude'] = ['cg']
+  config.params["linear_solver"] = "default"
+  config.params["preconditioner"] = "default"
   config.params["controls"] = ["turbine_pos"]
   info_green("Approximate CFL number (assuming a velocity of 2): " +str(2*config.params["dt"]/config.mesh.hmin())) 
 
@@ -74,11 +76,11 @@ config = default_config()
 model = ReducedFunctional(config, scaling_factor = 10**-4)
 m0 = model.initial_control()
 
-#p = numpy.random.rand(len(m0))
-#minconv = test_gradient_array(model.j, model.dj, m0, seed=0.00001, perturbation_direction=p)
-#if minconv < 1.98:
-#  print "The gradient taylor remainder test failed."
-#  sys.exit(1)
+p = numpy.random.rand(len(m0))
+minconv = test_gradient_array(model.j, model.dj, m0, seed=0.1, perturbation_direction=p)
+if minconv < 1.98:
+  info_red("The gradient taylor remainder test failed.")
+  sys.exit(1)
 
 g = lambda m: []
 dg = lambda m: []
