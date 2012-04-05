@@ -108,6 +108,27 @@ def sw_solve(W, config, state, turbine_field=None, time_functional=None, annotat
 
       # The contributions of the Flather boundary condition on the right hand side
       Ct_mid += sqrt(g*depth)*inner(h_mid, q)*ds(2)
+
+    elif params["bctype"] == 'strong_dirichlet_u':
+        ufl = Expression(("eta0*sqrt(g*depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0"), eta0=params["eta0"], g=g, depth=depth, t=t, k=params["k"])
+        strong_bc_left = DirichletBC(W.sub(0), ufl, "on_boundary")
+        #strong_bc_right = DirichletBC(W.sub(0), ufl, config.right)
+
+        strong_bc = [strong_bc_left]#, strong_bc_right]
+        bc_contr = -dot(u, n) * q * ds(1)
+        bc_contr -= dot(u, n) * q * ds(2)
+        # bc_contr -= dot(u_mid, n) * q * ds(3)
+
+    elif params["bctype"] == 'strong_dirichlet_eta':
+        # Setting strong dirichlet BC for the pressure
+        ufl = Expression(("eta0*cos(k*x[0]-sqrt(g*depth)*k*t)"), eta0=params["eta0"], g=g, depth=depth, t=t, k=params["k"])
+        strong_bc_left = DirichletBC(W.sub(1), ufl, config.left)
+        strong_bc_right = DirichletBC(W.sub(1), ufl, config.right)
+
+        strong_bc = [strong_bc_left, strong_bc_right]
+        bc_contr = -dot(0.0*u, n) * q * ds(1)
+        bc_contr -= dot(u, n) * q * ds(2)
+
     else:
       info_red("Unknown boundary condition type")
       sys.exit(1)
@@ -154,13 +175,13 @@ def sw_solve(W, config, state, turbine_field=None, time_functional=None, annotat
     G_mid = C_mid + Ct_mid + R_mid 
     # Add the advection term
     if include_advection:
-      G_mid += Ad_mid
+        G_mid += Ad_mid
     # Add the diffusion term
     if include_diffusion:
-      G_mid += D_mid
+        G_mid += D_mid
     # Add the source term
     if u_source:
-      G_mid -= inner(u_source, v)*dx 
+        G_mid -= inner(u_source, v)*dx 
     F = M - M0 + dt * G_mid - dt * bc_contr
 
     # Preassemble the lhs if possible
@@ -170,6 +191,8 @@ def sw_solve(W, config, state, turbine_field=None, time_functional=None, annotat
         # Precompute the LU factorisation 
         if use_lu_solver:
           info("Computing the LU factorisation for later use ...")
+          if params["bctype"] in ['strong_dirichlet_eta', 'strong_dirichlet_u']:
+              raise NotImplementedError, "Strong boundary condition and reusing LU factorisation is currently not implemented"
           lu_solver = LUSolver(lhs_preass)
           lu_solver.parameters["reuse_factorization"] = True
 
@@ -203,14 +226,20 @@ def sw_solve(W, config, state, turbine_field=None, time_functional=None, annotat
           solver_parameters["newton_solver"] = {}
           solver_parameters["newton_solver"]["convergence_criterion"] = "incremental"
           solver_parameters["newton_solver"]["relative_tolerance"] = 1e-16
-          solver_benchmark.solve(F == 0, state_new, solver_parameters = solver_parameters, annotate=annotate, benchmark = run_benchmark, solve = solve, solver_exclude = solver_exclude)
+          if params["bctype"] in ['strong_dirichlet_eta', 'strong_dirichlet_u']:
+              solver_benchmark.solve(F == 0, state_new, bcs = strong_bc, solver_parameters = solver_parameters, annotate=annotate, benchmark = run_benchmark, solve = solve, solver_exclude = solver_exclude)
+          else:
+              solver_benchmark.solve(F == 0, state_new, solver_parameters = solver_parameters, annotate=annotate, benchmark = run_benchmark, solve = solve, solver_exclude = solver_exclude)
 
         # Solve non-linear system with a Picard iteration
         elif is_nonlinear:
           # Solve the problem using a picard iteration
           iter_counter = 0
           while True:
-            solver_benchmark.solve(dolfin.lhs(F) == dolfin.rhs(F), state_new, solver_parameters = solver_parameters, annotate=annotate, benchmark = run_benchmark, solve = solve, solver_exclude = solver_exclude)
+            if params["bctype"] in ['strong_dirichlet_eta', 'strong_dirichlet_u']:
+                solver_benchmark.solve(dolfin.lhs(F) == dolfin.rhs(F), state_new, bcs = strong_bc, solver_parameters = solver_parameters, annotate=annotate, benchmark = run_benchmark, solve = solve, solver_exclude = solver_exclude)
+            else:
+                solver_benchmark.solve(dolfin.lhs(F) == dolfin.rhs(F), state_new, solver_parameters = solver_parameters, annotate=annotate, benchmark = run_benchmark, solve = solve, solver_exclude = solver_exclude)
             iter_counter += 1
             if iter_counter > 0:
               relative_diff = abs(assemble( inner(state_new-state_nl, state_new-state_nl) * dx ))/norm(state_new)
@@ -227,12 +256,15 @@ def sw_solve(W, config, state, turbine_field=None, time_functional=None, annotat
         # Solve linear system with preassembled matrices 
         else:
             rhs_preass = assemble(dolfin.rhs(F))
+            # Apply dirichlet boundary conditions
+            if params["bctype"] in ['strong_dirichlet_eta', 'strong_dirichlet_u']:
+                [bc.apply(lhs_preass, rhs_preass) for bc in strong_bc]
             if use_lu_solver:
-              info("Using a LU solver to solve the linear system.")
-              lu_solver.solve(state.vector(), rhs_preass, annotate=annotate)
+                info("Using a LU solver to solve the linear system.")
+                lu_solver.solve(state.vector(), rhs_preass, annotate=annotate)
             else:
-              state_tmp = Function(state.function_space(), name="TempState")
-              solver_benchmark.solve(lhs_preass, state_new.vector(), rhs_preass, solver_parameters["linear_solver"], solver_parameters["preconditioner"], annotate=annotate, benchmark = run_benchmark, solve = solve, solver_exclude = solver_exclude)
+                state_tmp = Function(state.function_space(), name="TempState")
+                solver_benchmark.solve(lhs_preass, state_new.vector(), rhs_preass, solver_parameters["linear_solver"], solver_parameters["preconditioner"], annotate=annotate, benchmark = run_benchmark, solve = solve, solver_exclude = solver_exclude)
 
         # After the timestep solve, update state
         state.assign(state_new)

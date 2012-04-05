@@ -11,7 +11,6 @@ class Parameters(dict):
 
         self.required={
             "verbose" : "output verbosity",
-            "depth" : "water depth",
             "dt" : "timestep",
             "theta" : "the implicitness for the time discretisation",
             "start_time" : "start time",
@@ -23,7 +22,7 @@ class Parameters(dict):
             'include_advection': "advection term on",
             'include_diffusion': "diffusion term on",
             'diffusion_coef': "diffusion coefficient",
-            'depth' : "water depth in rest",
+            'depth' : "water depth at rest",
             'g' : "graviation",
             'k' : "",
             'dump_period' : "dump period",
@@ -144,3 +143,5 @@ class DefaultConfiguration:
     self.params = params
     self.mesh = mesh
     self.ds = ds
+    self.left = left
+    self.right = right
