@@ -1,6 +1,7 @@
 import sys
 import configuration 
 import shallow_water_model as sw_model
+import finite_elements
 from initial_conditions import SinusoidalInitialCondition
 from dolfin import *
 from math import log
@@ -9,8 +10,7 @@ set_log_level(PROGRESS)
 parameters["std_out_all_processes"] = False;
 
 def error(config):
-  W = config.params["element_type"](config.mesh)
-  state = Function(W)
+  state = Function(config.function_space)
   state.interpolate(SinusoidalInitialCondition(config)())
   u_exact = "eta0*sqrt(g*depth) * cos(k*x[0]-sqrt(g*depth)*k*t)" # The analytical veclocity of the shallow water equations has been multiplied by depth to account for the change of variable (\tilde u = depth u) in this code.
   du_exact = "(- eta0*sqrt(g*depth) * sin(k*x[0]-sqrt(g*depth)*k*t) * k)"
@@ -21,20 +21,20 @@ def error(config):
                        eta0=config.params["eta0"], g=config.params["g"], \
                        depth=config.params["depth"], t=config.params["current_time"], k=config.params["k"], friction = config.params["friction"])
 
-  sw_model.sw_solve(W, config, state, annotate=False, u_source = source)
+  sw_model.sw_solve(config.function_space, config, state, annotate=False, u_source = source)
 
   analytic_sol = Expression((u_exact, \
                              "0", \
                              eta_exact), \
                              eta0=config.params["eta0"], g=config.params["g"], \
                              depth=config.params["depth"], t=config.params["current_time"], k=config.params["k"])
-  exactstate = Function(W)
+  exactstate = Function(config.function_space)
   exactstate.interpolate(analytic_sol)
   e = state - exactstate
   return sqrt(assemble(dot(e,e)*dx))
 
 def test(refinment_level):
-  config = configuration.DefaultConfiguration(nx=2*2**refinment_level, ny=2*2**refinment_level) 
+  config = configuration.DefaultConfiguration(nx=2*2**refinment_level, ny=2*2**refinment_level, finite_element = finite_elements.p1dgp2) 
   config.params["finish_time"] = pi/(sqrt(config.params["g"]*config.params["depth"])*config.params["k"])/10
   config.params["dt"] = config.params["finish_time"]/150
   config.params["dump_period"] = 100000

@@ -32,14 +32,12 @@ class ReducedFunctional:
 
             debugging["record_all"] = not forward_only
 
-            W = config.params['element_type'](config.mesh)
-
             # Get initial conditions
-            state = Function(W, name="Current_state")
+            state = Function(config.function_space, name="Current_state")
             state.interpolate(initial_condition(config)())
 
             # Set the control values
-            U = W.split()[0].sub(0) # Extract the first component of the velocity function space 
+            U = config.function_space.split()[0].sub(0) # Extract the first component of the velocity function space 
             U = U.collapse() # Recompute the DOF map
             tf = Function(U, name = "friction") 
             tfd = Function(U, name = "friction_derivative") 
@@ -49,8 +47,8 @@ class ReducedFunctional:
             helpers.save_to_file_scalar(tf, "turbines_t=." + str(self.count) + ".x")
 
             # Solve the shallow water system
-            functional = DefaultFunctional(W, config.params)
-            j, djdm = forward_model(W, config, state, time_functional=functional, turbine_field = tf)
+            functional = DefaultFunctional(config.function_space, config.params)
+            j, djdm = forward_model(config.function_space, config, state, time_functional=functional, turbine_field = tf)
 
             # And the adjoint system to compute the gradient if it was asked for
             if forward_only:

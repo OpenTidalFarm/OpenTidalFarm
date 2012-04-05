@@ -5,7 +5,7 @@ import sys
 import configuration 
 import shallow_water_model as sw_model
 import helpers
-import function_spaces
+import finite_elements
 import numpy
 from mini_model import *
 from functionals import DefaultFunctional, build_turbine_cache
@@ -25,7 +25,7 @@ def run_model(nx, ny, turbine_model, turbine_pos):
      and returns the power output'''
 
   # Model specific settings
-  config = configuration.DefaultConfiguration(nx, ny)
+  config = configuration.DefaultConfiguration(nx, ny, finite_element = finite_elements.p1dgp2)
   period = 1.24*60*60 # Wave period
   config.params["dt"] = 1.0
   config.params["dump_period"]=100000
@@ -38,9 +38,7 @@ def run_model(nx, ny, turbine_model, turbine_pos):
   config.params["turbine_y"] = 200
   config.params["functional_turbine_scaling"] = 0.5
 
-  W = function_spaces.p1dgp2(config.mesh)
-
-  state=Function(W)
+  state=Function(config.function_space)
   state.interpolate(Constant((2.0, 0.0, 0.0)))
 
   # Option 2: Interpolate the turbine field onto a high order function space and then project it to the computational function space 
@@ -62,7 +60,7 @@ def run_model(nx, ny, turbine_model, turbine_pos):
   #tf = project(tfh, U)
 
   # Option 4: Interpolate the turbine expression to the computation function space
-  U = W.split()[0].sub(0)
+  U = config.function_space.split()[0].sub(0)
   U = U.collapse() # Recompute the DOF map
   tf = Function(U)
   config.params["turbine_model"] = turbine_model
@@ -74,7 +72,7 @@ def run_model(nx, ny, turbine_model, turbine_pos):
     print "L2 Norm of turbine function: ", tf_norm 
   helpers.save_to_file_scalar(tf, turbine_model+"_"+str(nx)+"x"+str(ny)+"_turbine_pos="+str(turbine_pos))
 
-  A, M = construct_mini_model(W, config.params, tf)
+  A, M = construct_mini_model(config.function_space, config.params, tf)
   turbine_cache = build_turbine_cache(config.params, U)
   functional = DefaultFunctional(config.params, turbine_cache)
   j, djdm = mini_model(A, M, state, config.params, functional)

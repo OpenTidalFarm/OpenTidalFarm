@@ -12,7 +12,7 @@ from dolfin import *
 
 def default_config():
   # We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
-  config = configuration.DefaultConfiguration(nx=600, ny=200)
+  config = configuration.DefaultConfiguration(nx=600, ny=200, finite_element = finite_elements.p1dgp2)
   period = 1.24*60*60 # Wave period
   config.params["k"] = 2*pi/(period*sqrt(config.params["g"]*config.params["depth"]))
   config.params["finish_time"] = 2./4*period
@@ -43,11 +43,10 @@ def default_config():
 
 config = default_config()
 
-W = function_spaces.p1dgp2(config.mesh)
-state=Function(W)
+state=Function(config.function_space)
 
 # Set the control values
-U = W.split()[0].sub(0) # Extract the first component of the velocity function space 
+U = config.function_space.split()[0].sub(0) # Extract the first component of the velocity function space 
 U = U.collapse() # Recompute the DOF map
 tf = Function(U) # The turbine function
 

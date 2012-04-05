@@ -59,15 +59,12 @@ def save_to_file_scalar(function, basename):
     out_file << function 
 
 class StateWriter:
-    def __init__(self, params):
-        self.u_out, self.p_out = self.output_files(params["element_type"].func_name)
+    def __init__(self, config):
+        self.u_out, self.p_out = self.output_files(config.finite_element.func_name)
+        self.M_u_out, self.v_out, self.u_out_state = self.u_output_projector(config.function_space)
+        self.M_p_out, self.q_out, self.p_out_state = self.p_output_projector(config.function_space)
 
     def write(self, state):
-        W = state.function_space()
-        if not hasattr(self, "m_u_out"):
-            self.M_u_out, self.v_out, self.u_out_state = self.u_output_projector(W)
-            self.M_p_out, self.q_out, self.p_out_state = self.p_output_projector(W)
-
         rhs = assemble(inner(self.v_out, state.split()[0])*dx)
         solve(self.M_u_out, self.u_out_state.vector(), rhs, "cg", "sor", annotate=False) 
         rhs = assemble(inner(self.q_out, state.split()[1])*dx)

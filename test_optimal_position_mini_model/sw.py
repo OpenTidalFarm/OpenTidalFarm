@@ -10,6 +10,7 @@ import configuration
 import numpy
 import ipopt 
 import IPOptUtils
+import finite_elements
 from animated_plot import *
 from helpers import test_gradient_array
 from mini_model import mini_model_solve
@@ -23,7 +24,7 @@ plot = AnimatedPlot(xlabel='Iteration', ylabel='Functional value')
 def default_config():
   # We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
   numpy.random.seed(21) 
-  config = configuration.DefaultConfiguration(nx=40, ny=20)
+  config = configuration.DefaultConfiguration(nx=40, ny=20, finite_element = finite_elements.p1dgp2)
   config.params["verbose"] = 0
 
   # dt is used in the functional only, so we set it here to 0.8
