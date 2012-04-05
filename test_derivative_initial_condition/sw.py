@@ -4,7 +4,7 @@
 import sys
 import configuration 
 import shallow_water_model as sw_model
-import function_spaces
+import finite_elements
 import numpy
 from initial_conditions import SinusoidalInitialCondition
 from turbines import *
@@ -16,7 +16,7 @@ set_log_level(PROGRESS)
 myid = MPI.process_number()
 debugging["record_all"] = True
 
-config = configuration.DefaultConfiguration(nx=10, ny=2) 
+config = configuration.DefaultConfiguration(nx=10, ny=2, finite_element = finite_elements.p1dgp2) 
 period = 1.24*60*60 # Wave period
 config.params["k"]=2*pi/(period*sqrt(config.params["g"]*config.params["depth"]))
 config.params["start_time"]=0
@@ -36,12 +36,11 @@ config.params["turbine_model"] = 'ConstantTurbine'
 config.params["functional_turbine_scaling"] = 1.0
 
 # Setup the model and run it so that the annotation exists.
-W = function_spaces.p1dgp2(config.mesh)
-state = Function(W, name="Current_state")
+state = Function(config.function_space, name="Current_state")
 state.interpolate(SinusoidalInitialCondition(config)())
 
-functional = DefaultFunctional(W, config.params) 
-sw_model.sw_solve(W, config, state, time_functional=functional)
+functional = DefaultFunctional(config.function_space, config.params) 
+sw_model.sw_solve(config.function_space, config, state, time_functional=functional)
 
 # Check the replay
 info("Replaying the forward model")
@@ -53,7 +52,7 @@ dJdm = compute_gradient(J, InitialConditionParameter("Current_state"))
 
 # And finally check the computed gradient with the taylor test
 def J(state):
-  j, djdm = sw_model.sw_solve(W, config, state, time_functional=functional, annotate=False)
+  j, djdm = sw_model.sw_solve(config.function_space, config, state, time_functional=functional, annotate=False)
   return j
 
 state.interpolate(SinusoidalInitialCondition(config)())

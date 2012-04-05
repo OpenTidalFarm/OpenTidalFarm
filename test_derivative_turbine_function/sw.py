@@ -6,7 +6,7 @@
 import sys
 import configuration 
 import numpy
-import function_spaces
+import finite_elements
 from dolfin import *
 from helpers import test_gradient_array
 from reduced_functional import ReducedFunctional 
@@ -16,7 +16,7 @@ set_log_level(PROGRESS)
 
 def default_config():
   numpy.random.seed(21) 
-  config = configuration.DefaultConfiguration(nx=40, ny=20)
+  config = configuration.DefaultConfiguration(nx=40, ny=20, finite_element = finite_elements.p1dgp2)
   config.params["dump_period"] = 1000
   config.params["verbose"] = 0
 
@@ -35,15 +35,12 @@ def j_and_dj(m):
   mp = m[len(config.params["turbine_friction"]):]
   config.params["turbine_pos"] = numpy.reshape(mp, (-1, 2))
 
-
-  W = function_spaces.p1dgp2(config.mesh)
-
   # Get initial conditions
-  state=Function(W, name = "current_state")
+  state=Function(config.function_space, name = "current_state")
   state.interpolate(SinusoidalInitialCondition(config)())
 
   # Set the control values
-  U = W.split()[0].sub(0) # Extract the first component of the velocity function space 
+  U = config.function_space.split()[0].sub(0) # Extract the first component of the velocity function space 
   U = U.collapse() # Recompute the DOF map
   tf = Function(U, name = "turbine") # The turbine function
   tfd = Function(U, name = "turbine_derivative") # The derivative turbine function

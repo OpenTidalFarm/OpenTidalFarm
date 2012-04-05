@@ -1,4 +1,4 @@
-import function_spaces
+import finite_elements
 from dolfin import * 
 from math import exp, sqrt, pi
 
@@ -11,19 +11,18 @@ class Parameters(dict):
 
         self.required={
             "verbose" : "output verbosity",
-            "depth" : "water depth",
             "dt" : "timestep",
             "theta" : "the implicitness for the time discretisation",
             "start_time" : "start time",
             "current_time" : "current time",
             "finish_time" : "finish time",
             "dump_period" : "dump period in timesteps",
-            "element_type" : "build the function space",
             'bctype'  : "type of boundary condition to be applied",
+            'strong_bc'  : "list of strong dirichlet boundary conditions to be applied",
             'include_advection': "advection term on",
             'include_diffusion': "diffusion term on",
             'diffusion_coef': "diffusion coefficient",
-            'depth' : "water depth in rest",
+            'depth' : "water depth at rest",
             'g' : "graviation",
             'k' : "",
             'dump_period' : "dump period",
@@ -59,12 +58,12 @@ class Parameters(dict):
             raise KeyError, "Configuration has too many parameters: " + str(diff)
 
 class DefaultConfiguration:
-  def __init__(self, nx=20, ny=3, mesh_file=None):
+  def __init__(self, nx=20, ny=3, mesh_file=None, finite_element = finite_elements.p2p1):
     params = Parameters({
         'verbose'  : 1,
-        'element_type'  : function_spaces.p1dgp2,
         'theta' : 0.6,
         'bctype'  : 'flather',
+        'strong_bc' : None,
         'include_advection': False,
         'include_diffusion': False,
         'diffusion_coef': 0.0,
@@ -127,6 +126,10 @@ class DefaultConfiguration:
         mesh = generate_mesh(nx, ny)
     else:
         mesh = dolfin.Mesh(mesh_file)
+
+    # Initialize function space
+    function_space = finite_element(mesh) 
+
     # Initialize sub-domain instances
     left = Left()
     right = Right()
@@ -144,3 +147,8 @@ class DefaultConfiguration:
     self.params = params
     self.mesh = mesh
     self.ds = ds
+    self.left = left
+    self.right = right
+    self.sides = sides
+    self.function_space = function_space
+    self.finite_element = finite_element

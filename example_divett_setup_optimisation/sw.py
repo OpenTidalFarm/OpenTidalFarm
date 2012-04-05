@@ -2,7 +2,6 @@
 
 import sys
 import configuration 
-import function_spaces
 import numpy
 import IPOptUtils
 import ipopt
@@ -26,7 +25,6 @@ def default_config():
   config.params["verbose"] = 0
 
   # Start at rest state
-  config.params["element_type"] = function_spaces.p2p1
   config.params["start_time"] = period/4
   config.params["dt"] = period/50
   config.params["finish_time"] = 5.*period/4 

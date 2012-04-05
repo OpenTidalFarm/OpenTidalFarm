@@ -22,33 +22,18 @@ def mini_model(A, M, state, params, time_functional=None, annotate=True):
        The solution is a x-velocity of old_state/(turbine_friction + 1) and a zero pressure value y-velocity.
     '''
     
-    u_out, p_out = helpers.output_files(params["element_type"].func_name)
-    M_u_out, v_out, u_out_state = helpers.u_output_projector(state.function_space())
-    M_p_out, q_out, p_out_state = helpers.p_output_projector(state.function_space())
-
     if time_functional is not None:
       fac = 0.0
       j = fac*0.5*params["dt"]*assemble(time_functional.Jt(state)) 
       djdm = fac*0.5*params["dt"]*numpy.array([assemble(f) for f in time_functional.dJtdm(state)])
 
-    tmpstate=Function(state.function_space(), name="tmp_state")
+    tmpstate = Function(state.function_space(), name="tmp_state")
     rhs = action(M, state)
     # Solve the mini model 
     solver_parameters = {"linear_solver": "cg", "preconditioner": "sor"}
-    solve(A==rhs, tmpstate, solver_parameters=solver_parameters, annotate = annotate)
+    solve(A == rhs, tmpstate, solver_parameters=solver_parameters, annotate = annotate)
 
     state.assign(tmpstate, annotate=annotate)
-
-    # Project the solution to P1 for visualisation.
-    rhs_p = assemble(inner(v_out,state.split()[0])*dx)
-    solve(M_u_out, u_out_state.vector(), rhs_p, "cg", "sor", annotate=False) 
-
-    # Project the solution to P1 for visualisation.
-    rhs_p = assemble(inner(q_out,state.split()[1])*dx)
-    solve(M_p_out, p_out_state.vector(), rhs_p, "cg", "sor", annotate=False) 
-    
-    u_out << u_out_state
-    p_out << p_out_state
 
     # Bump timestep to shut up libadjoint.
     adj_inc_timestep()

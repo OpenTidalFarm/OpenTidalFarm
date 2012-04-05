@@ -39,6 +39,8 @@ def sw_solve(W, config, state, turbine_field=None, time_functional=None, annotat
     solver_exclude = params["solver_exclude"]
     linear_solver = params["linear_solver"]
     preconditioner = params["preconditioner"]
+    bctype = params["bctype"]
+    strong_bc = params["strong_bc"]
     is_nonlinear = (include_advection or quadratic_friction)
 
     # Print out an estimation of the Reynolds number 
@@ -89,7 +91,7 @@ def sw_solve(W, config, state, turbine_field=None, time_functional=None, annotat
     Ct_mid = -inner(u_mid, grad(q))*dx
     #+inner(avg(u_mid),jump(q,n))*dS # This term is only needed for dg element pairs
 
-    if params["bctype"] == 'dirichlet':
+    if bctype == 'dirichlet':
       # The dirichlet boundary condition on the left hand side 
       ufl = Expression(("eta0*sqrt(g*depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0", "0"), eta0=params["eta0"], g=g, depth=depth, t=t, k=params["k"])
       bc_contr = -dot(ufl, n) * q * ds(1)
@@ -100,7 +102,7 @@ def sw_solve(W, config, state, turbine_field=None, time_functional=None, annotat
       # We enforce a no-normal flow on the sides by removing the surface integral. 
       # bc_contr -= dot(u_mid, n) * q * ds(3)
 
-    elif params["bctype"] == 'flather':
+    elif bctype == 'flather':
       # The Flather boundary condition on the left hand side 
       ufl = Expression(("2*eta0*sqrt(g*depth)*cos(-sqrt(g*depth)*k*t)", "0", "0"), eta0=params["eta0"], g=g, depth=depth, t=t, k=params["k"])
       bc_contr = -dot(ufl, n) * q * ds(1)
@@ -108,9 +110,16 @@ def sw_solve(W, config, state, turbine_field=None, time_functional=None, annotat
 
       # The contributions of the Flather boundary condition on the right hand side
       Ct_mid += sqrt(g*depth)*inner(h_mid, q)*ds(2)
+
+    elif bctype == 'strong_dirichlet':
+        # Do not replace anything in the surface integrals as the strong Dirichlet Boundary condition will do that
+        bc_contr = -dot(u_mid, n) * q * ds(1)
+        bc_contr -= dot(u_mid, n) * q * ds(2)
+        bc_contr -= dot(u_mid, n) * q * ds(3)
+
     else:
-      info_red("Unknown boundary condition type")
-      sys.exit(1)
+        info_red("Unknown boundary condition type: %s" % bctype)
+        sys.exit(1)
 
     # Pressure gradient operator
     C_mid = (g * depth) * inner(v, grad(h_mid)) * dx
@@ -154,13 +163,13 @@ def sw_solve(W, config, state, turbine_field=None, time_functional=None, annotat
     G_mid = C_mid + Ct_mid + R_mid 
     # Add the advection term
     if include_advection:
-      G_mid += Ad_mid
+        G_mid += Ad_mid
     # Add the diffusion term
     if include_diffusion:
-      G_mid += D_mid
+        G_mid += D_mid
     # Add the source term
     if u_source:
-      G_mid -= inner(u_source, v)*dx 
+        G_mid -= inner(u_source, v)*dx 
     F = M - M0 + dt * G_mid - dt * bc_contr
 
     # Preassemble the lhs if possible
@@ -170,6 +179,8 @@ def sw_solve(W, config, state, turbine_field=None, time_functional=None, annotat
         # Precompute the LU factorisation 
         if use_lu_solver:
           info("Computing the LU factorisation for later use ...")
+          if bctype == 'strong_dirichlet':
+              raise NotImplementedError, "Strong boundary condition and reusing LU factorisation is currently not implemented"
           lu_solver = LUSolver(lhs_preass)
           lu_solver.parameters["reuse_factorization"] = True
 
@@ -177,7 +188,7 @@ def sw_solve(W, config, state, turbine_field=None, time_functional=None, annotat
 
     ############################### Perform the simulation ###########################
 
-    writer = helpers.StateWriter(params)
+    writer = helpers.StateWriter(config)
     writer.write(state)
     
     step = 0    
@@ -191,11 +202,15 @@ def sw_solve(W, config, state, turbine_field=None, time_functional=None, annotat
         t += dt
         params["current_time"] = t
 
-        ufl.t=t-(1.0-theta)*dt # Update time for the Boundary condition expression
+        # Update bc's 
+        if bctype == "strong_dirichlet":
+            strong_bc.update_time(t)
+        else:
+            ufl.t=t-(1.0-theta)*dt         
+        # Update source term
         if u_source:
-          u_source.t = t-(1.0-theta)*dt  # Update time for the source term
+            u_source.t = t-(1.0-theta)*dt          
         step+=1
-
         
         # Solve non-linear system with a Newton sovler
         if is_nonlinear and newton_solver:
@@ -203,14 +218,20 @@ def sw_solve(W, config, state, turbine_field=None, time_functional=None, annotat
           solver_parameters["newton_solver"] = {}
           solver_parameters["newton_solver"]["convergence_criterion"] = "incremental"
           solver_parameters["newton_solver"]["relative_tolerance"] = 1e-16
-          solver_benchmark.solve(F == 0, state_new, solver_parameters = solver_parameters, annotate=annotate, benchmark = run_benchmark, solve = solve, solver_exclude = solver_exclude)
+          if bctype == 'strong_dirichlet':
+              solver_benchmark.solve(F == 0, state_new, bcs = strong_bc.bcs, solver_parameters = solver_parameters, annotate=annotate, benchmark = run_benchmark, solve = solve, solver_exclude = solver_exclude)
+          else:
+              solver_benchmark.solve(F == 0, state_new, solver_parameters = solver_parameters, annotate=annotate, benchmark = run_benchmark, solve = solve, solver_exclude = solver_exclude)
 
         # Solve non-linear system with a Picard iteration
         elif is_nonlinear:
           # Solve the problem using a picard iteration
           iter_counter = 0
           while True:
-            solver_benchmark.solve(dolfin.lhs(F) == dolfin.rhs(F), state_new, solver_parameters = solver_parameters, annotate=annotate, benchmark = run_benchmark, solve = solve, solver_exclude = solver_exclude)
+            if bctype == 'strong_dirichlet':
+                solver_benchmark.solve(dolfin.lhs(F) == dolfin.rhs(F), state_new, bcs = strong_bc.bcs, solver_parameters = solver_parameters, annotate=annotate, benchmark = run_benchmark, solve = solve, solver_exclude = solver_exclude)
+            else:
+                solver_benchmark.solve(dolfin.lhs(F) == dolfin.rhs(F), state_new, solver_parameters = solver_parameters, annotate=annotate, benchmark = run_benchmark, solve = solve, solver_exclude = solver_exclude)
             iter_counter += 1
             if iter_counter > 0:
               relative_diff = abs(assemble( inner(state_new-state_nl, state_new-state_nl) * dx ))/norm(state_new)
@@ -227,12 +248,15 @@ def sw_solve(W, config, state, turbine_field=None, time_functional=None, annotat
         # Solve linear system with preassembled matrices 
         else:
             rhs_preass = assemble(dolfin.rhs(F))
+            # Apply dirichlet boundary conditions
+            if bctype == 'strong_dirichlet':
+                [bc.apply(lhs_preass, rhs_preass) for bc in strong_bc.bcs]
             if use_lu_solver:
-              info("Using a LU solver to solve the linear system.")
-              lu_solver.solve(state.vector(), rhs_preass, annotate=annotate)
+                info("Using a LU solver to solve the linear system.")
+                lu_solver.solve(state.vector(), rhs_preass, annotate=annotate)
             else:
-              state_tmp = Function(state.function_space(), name="TempState")
-              solver_benchmark.solve(lhs_preass, state_new.vector(), rhs_preass, solver_parameters["linear_solver"], solver_parameters["preconditioner"], annotate=annotate, benchmark = run_benchmark, solve = solve, solver_exclude = solver_exclude)
+                state_tmp = Function(state.function_space(), name="TempState")
+                solver_benchmark.solve(lhs_preass, state_new.vector(), rhs_preass, solver_parameters["linear_solver"], solver_parameters["preconditioner"], annotate=annotate, benchmark = run_benchmark, solve = solve, solver_exclude = solver_exclude)
 
         # After the timestep solve, update state
         state.assign(state_new)

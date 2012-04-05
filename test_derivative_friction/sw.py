@@ -4,6 +4,7 @@
 import sys
 import configuration 
 import numpy
+import finite_elements
 from helpers import test_gradient_array
 from reduced_functional import *
 set_log_level(PROGRESS)
@@ -12,7 +13,7 @@ set_log_level(PROGRESS)
 numpy.random.seed(21) 
 
 # Create the model configuration
-config = configuration.DefaultConfiguration(nx=30, ny=15)
+config = configuration.DefaultConfiguration(nx=30, ny=15, finite_element = finite_elements.p1dgp2)
 period = 1.24*60*60 # Wave period
 config.params["k"] = 2*pi/(period*sqrt(config.params["g"]*config.params["depth"]))
 # Start at rest state
