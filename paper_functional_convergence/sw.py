@@ -10,7 +10,7 @@ from helpers import test_gradient_array
 from animated_plot import *
 from reduced_functional import ReducedFunctional
 from dolfin import *
-set_log_level(PROGRESS)
+#set_log_level(PROGRESS)
 
 # An animated plot to visualise the development of the functional value
 plot = AnimatedPlot(xlabel='Iteration', ylabel='Functional value')
@@ -29,6 +29,7 @@ def default_config():
   config.params["start_time"] = period/4
   config.params["dt"] = period/50
   config.params["finish_time"] = 3.*period/4 
+  config.params["finish_time"] = config.params["start_time"] + config.params["dt"]
   config.params["theta"] = 0.6
   config.params["include_advection"] = True 
   config.params["include_diffusion"] = True 
@@ -70,3 +71,6 @@ model = ReducedFunctional(config, scaling_factor = 10**-4, plot = True)
 m0 = model.initial_control()
 print "Functional value: ", model.j(m0)
 print "Derivative value: ", model.dj(m0)
+from IPython.Shell import IPShellEmbed
+ipshell = IPShellEmbed()
+ipshell()
