@@ -91,7 +91,7 @@ class ReducedFunctional:
 
     def j(self, m, forward_only = False):
         ''' This memoised function returns the functional value for the parameter choice m. '''
-        j = self.j_and_dj_mem(m, forward_only)[0] * self.scaling_factor
+        j = self.j_and_dj_mem(m, forward_only = forward_only)[0] * self.scaling_factor
         if self.plot:
             self.plotter.addPoint(j)
             self.plotter.savefig("functional_plot.png")
