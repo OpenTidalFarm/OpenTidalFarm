@@ -24,7 +24,7 @@ class Parameters(dict):
             'diffusion_coef': "diffusion coefficient",
             'depth' : "water depth at rest",
             'g' : "graviation",
-            'k' : "",
+            'k' : "wave length",
             'dump_period' : "dump period",
             'eta0' : "deviantion of the water depth in rest",
             'basin_x' : "length of the basin",
