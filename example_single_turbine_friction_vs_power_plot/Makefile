@@ -3,5 +3,4 @@ run: clean
 clean:
 	rm -f *vtu
 	rm -f *pvd
-
-
+	rm -f example_single_turbine_friction_vs_power_plot.pdf
