@@ -58,7 +58,7 @@ class Parameters(dict):
             raise KeyError, "Configuration has too many parameters: " + str(diff)
 
 class DefaultConfiguration:
-  def __init__(self, nx=20, ny=3, mesh_file=None, finite_element = finite_elements.p2p1):
+  def __init__(self, nx=20, ny=3, basin_x = 3000., basin_y = 1000., mesh_file=None, finite_element = finite_elements.p2p1):
     params = Parameters({
         'verbose'  : 1,
         'theta' : 0.6,
@@ -71,8 +71,8 @@ class DefaultConfiguration:
         'g' : 9.81,
         'dump_period' : 1,
         'eta0' : 2, 
-        'basin_x' : 3000.,
-        'basin_y' : 1000.,
+        'basin_x' : basin_x,
+        'basin_y' : basin_y,
         'quadratic_friction' : False, 
         'friction' : 0.0, 
         'turbine_pos' : [],
