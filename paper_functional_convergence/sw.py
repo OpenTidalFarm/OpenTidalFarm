@@ -25,32 +25,21 @@ if len(sys.argv) == 3 and sys.argv[1] == '--fine':
     nx *= 2
     ny *= 2
 
-def default_config():
-  # We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
-  numpy.random.seed(21) 
-  config = configuration.PaperConfiguration(nx = nx, ny = ny, basin_x = basin_x, basin_y = basin_y) 
-  config.params["dump_period"] = 1
-  config.params["verbose"] = 0
+# We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
+numpy.random.seed(21) 
+# Force the basin size to 200x66 independent of nx and ny
+config = configuration.PaperConfiguration(nx = nx, ny = ny, basin_x = basin_x, basin_y = basin_y) 
 
-  config.params["finish_time"] = 3.*period/4 
+bc = DirichletBCSet(config)
+bc.add_analytic_u(config.left)
+bc.add_analytic_u(config.right)
+bc.add_periodic_sides()
+config.params["strong_bc"] = bc
 
-  bc = DirichletBCSet(config)
-  bc.add_analytic_u(config.left)
-  bc.add_analytic_u(config.right)
-  bc.add_periodic_sides()
-  config.params["strong_bc"] = bc
+config.params["turbine_pos"] = [[config.params["basin_x"]/2, turbine_y_pos]] 
+config.params["turbine_friction"] = 0.25*numpy.ones(len(config.params["turbine_pos"]))
+info_blue("Deployed " + str(len(config.params["turbine_pos"])) + " turbines.")
 
-  # The turbine position is the control variable 
-  config.params["turbine_pos"] = [[config.params["basin_x"]/2, turbine_y_pos]] 
-  info_blue("Deployed " + str(len(config.params["turbine_pos"])) + " turbines.")
-
-  # Choosing a friction coefficient of > 0.02 ensures that overlapping turbines will lead to
-  # less power output.
-  config.params["turbine_friction"] = 0.2*numpy.ones(len(config.params["turbine_pos"]))
-
-  return config
-
-config = default_config()
 model = ReducedFunctional(config, scaling_factor = 10**-4, plot = True)
 m0 = model.initial_control()
 print "Functional value for m0 = ", m0, ": ", model.j(m0)
