@@ -1,4 +1,5 @@
 import finite_elements
+from dirichlet_bc import DirichletBCSet
 from dolfin import * 
 from math import exp, sqrt, pi
 
@@ -57,8 +58,8 @@ class Parameters(dict):
         if len(diff) > 0:
             raise KeyError, "Configuration has too many parameters: " + str(diff)
 
-class DefaultConfiguration:
-  def __init__(self, nx=20, ny=3, basin_x = 3000., basin_y = 1000., mesh_file=None, finite_element = finite_elements.p2p1):
+class DefaultConfiguration(object):
+  def __init__(self, nx=20, ny=3, basin_x = 3000, basin_y = 1000, mesh_file=None, finite_element = finite_elements.p2p1):
     params = Parameters({
         'verbose'  : 1,
         'theta' : 0.6,
@@ -71,8 +72,8 @@ class DefaultConfiguration:
         'g' : 9.81,
         'dump_period' : 1,
         'eta0' : 2, 
-        'basin_x' : basin_x,
-        'basin_y' : basin_y,
+        'basin_x' : float(basin_x),
+        'basin_y' : float(basin_y),
         'quadratic_friction' : False, 
         'friction' : 0.0, 
         'turbine_pos' : [],
@@ -152,3 +153,53 @@ class DefaultConfiguration:
     self.sides = sides
     self.function_space = function_space
     self.finite_element = finite_element
+
+class PaperConfiguration(DefaultConfiguration):
+  def __init__(self, nx = 20, ny = 3, basin_x = None, basin_y = None, mesh_file = None, finite_element = finite_elements.p2p1):
+    if not basin_x:
+      basin_x = float(nx * 2) # Use a 2m element size by default
+    if not basin_y:
+      basin_y = float(ny * 2)
+
+    info_green("The computation domain has a size of %f. x %f. with an element size of %f. x %f."% (basin_x, basin_y, basin_x/nx, basin_y/ny))
+    super(PaperConfiguration, self).__init__(nx, ny, basin_x, basin_y, mesh_file, finite_element)
+
+    # Model settings
+    self.params['include_advection'] = True
+    self.params['include_diffusion'] = True
+    self.params['diffusion_coef'] = 2.0
+    self.params['quadratic_friction'] = True
+    self.params['newton_solver'] = True 
+    self.params['friction'] = 0.0025
+
+    # Turbine settings
+    self.params['turbine_pos'] = []
+    self.params['turbine_friction'] = []
+    self.params['turbine_x'] = 20. 
+    self.params['turbine_y'] = 20. 
+    self.params['functional_turbine_scaling'] = 0.5
+    self.params['controls'] = ['turbine_pos']
+    self.params['turbine_model'] = 'BumpTurbine'
+
+    # Timing settings
+    self.period = 1.24*60*60 
+    self.params["k"] = 2*pi/(self.period*sqrt(self.params["g"]*self.params["depth"]))
+    self.params['theta'] = 0.6
+    self.params["start_time"] = 1./4*self.period
+    self.params["dt"] = self.period/200
+    self.params["finish_time"] = 3./4*self.period
+    info("Wave period (in h): %f" % (self.period/60/60) )
+    info("Approximate CFL number (assuming a velocity of 2): " +str(2*self.params["dt"]/self.mesh.hmin()))
+
+    # Configure the boundary conditions
+    self.params['bctype'] = 'dirichlet',
+    self.params['strong_bc'] = True,
+    self.params["bctype"] = "strong_dirichlet"
+    bc = DirichletBCSet(self)
+    bc.add_analytic_u(self.left)
+    bc.add_analytic_u(self.right)
+    self.params["strong_bc"] = bc
+
+    # Finally set some optimistion flags 
+    dolfin.parameters['form_compiler']['cpp_optimize'] = True
+    dolfin.parameters['form_compiler']['cpp_optimize_flags'] = '-O3'
