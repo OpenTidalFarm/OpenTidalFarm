@@ -77,5 +77,5 @@ def default_config():
 config = default_config()
 model = ReducedFunctional(config, scaling_factor = 10**-4, plot = True)
 m0 = model.initial_control()
-print "Functional value: ", model.j(m0)
-print "Derivative value: ", model.dj(m0)
+print "Functional value for m0 = ", m0, ": ", model.j(m0)
+print "Derivative value for m0 = ", m0, ": ", model.dj(m0)
