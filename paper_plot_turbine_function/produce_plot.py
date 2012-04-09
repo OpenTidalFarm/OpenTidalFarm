@@ -9,15 +9,15 @@ fig = plt.figure()
 ax = Axes3D(fig)
 
 # create supporting points in polar coordinates
-r = np.linspace(-1.2, 1.2, 50)
-p = np.linspace(-1.2, 1.2, 50)
+r = np.linspace(0, 20, 50)
+p = np.linspace(0, 20, 50)
 X,Y = np.meshgrid(r,p)
 
-Z1 = 1. - X**2
+Z1 = 1. - ((X-10)/10)**2
 Z1 = np.maximum(Z1, 1e-12)
 Z1 = np.exp(-1./Z1)
 
-Z2 = 1. - Y**2
+Z2 = 1. - ((Y-10)/10)**2
 Z2 = np.maximum(Z2, 1e-12)
 Z2 = np.exp(-1./Z2)
 Z = Z1 * Z2
