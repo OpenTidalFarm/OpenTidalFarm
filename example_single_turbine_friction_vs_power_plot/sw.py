@@ -21,7 +21,7 @@ config.params['finish_time'] = 1.5/4*config.period
 # Set up the model
 model = ReducedFunctional(config)
 m0 = model.initial_control()
-m_list = [m0*i for i in numpy.linspace(.5, 2., 8)]
+m_list = [m0*i for i in numpy.linspace(.1, 1., 10)]
 info_green('Testing friction coefficients: ' + str(m_list))
 
 # We already know that a zero friction leads to a zero power 
