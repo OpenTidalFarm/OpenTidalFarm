@@ -1,5 +1,5 @@
 run: clean
-	time mpirun -n 4 python sw.py
+	time python sw.py > ouput.txt
 clean:
 	rm -f functional_plot.png
 	rm -f *vtu

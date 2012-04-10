@@ -17,7 +17,7 @@ plot = AnimatedPlot(xlabel='Iteration', ylabel='Functional value')
 
 # We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
 numpy.random.seed(21) 
-config = configuration.PaperConfiguration(nx=100, ny=33)
+config = configuration.ConstantInflowPeriodicSidesPaperConfiguration(nx=100, ny=33)
 
 # The turbine position is the control variable 
 config.params["turbine_pos"] = [] 

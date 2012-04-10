@@ -215,5 +215,6 @@ class ConstantInflowPeriodicSidesPaperConfiguration(PaperConfiguration):
     bc.add_constant_flow(self.left)
     bc.add_periodic_sides()
     self.params['strong_bc'] = bc
-    self.parmas["initial_condition"] = ConstantFlowInitialCondition 
+    self.params["initial_condition"] = ConstantFlowInitialCondition 
+    self.params['finish_time'] = self.params['start_time'] + 5*self.params['dt']
 
