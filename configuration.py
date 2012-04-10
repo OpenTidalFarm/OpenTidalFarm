@@ -211,7 +211,6 @@ class ConstantInflowPeriodicSidesPaperConfiguration(PaperConfiguration):
 
     bc = DirichletBCSet(self)
     bc.add_constant_flow(self.left)
-    bc.add_constant_flow(self.right)
     bc.add_periodic_sides()
     self.params['strong_bc'] = bc
 
