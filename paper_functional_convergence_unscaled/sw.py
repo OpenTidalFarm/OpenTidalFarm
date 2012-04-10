@@ -43,5 +43,4 @@ info_blue("Deployed " + str(len(config.params["turbine_pos"])) + " turbines.")
 
 model = ReducedFunctional(config, scaling_factor = 10**-4, plot = True)
 m0 = model.initial_control()
-print "Functional value for m0 = ", m0, ": ", model.j(m0)
-print "Derivative value for m0 = ", m0, ": ", model.dj(m0)
+print "Functional value for m0 = ", m0, ": ", model.j(m0, forward_only = True)
