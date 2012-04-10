@@ -1,7 +1,6 @@
 import numpy
 import memoize
 import shallow_water_model as sw_model
-import initial_conditions
 import helpers 
 from animated_plot import AnimatedPlot
 from functionals import DefaultFunctional
@@ -10,7 +9,7 @@ from turbines import *
 
 class ReducedFunctional:
 
-    def __init__(self, config, scaling_factor = 1.0, forward_model = sw_model.sw_solve, initial_condition = initial_conditions.SinusoidalInitialCondition, plot = False):
+    def __init__(self, config, scaling_factor = 1.0, forward_model = sw_model.sw_solve, plot = False):
         ''' If plot is True, the functional values will be automatically saved in a plot '''
         # Hide the configuration since changes would break the memoize algorithm. 
         self.__config__ = config
@@ -39,7 +38,7 @@ class ReducedFunctional:
 
             # Get initial conditions
             state = Function(config.function_space, name="Current_state")
-            state.interpolate(initial_condition(config)())
+            state.interpolate(config.params['initial_condition'](config)())
 
             # Set the control values
             U = config.function_space.split()[0].sub(0) # Extract the first component of the velocity function space 

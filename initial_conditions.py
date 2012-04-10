@@ -52,3 +52,14 @@ def BumpInitialCondition(config):
         return (3,)
 
     return BumpExpr
+
+def ConstantFlowInitialCondition(config):
+    class ConstantFlow(Expression):
+      def eval(self, values, X):
+        values[0] = 2.*config.params["depth"]
+        values[1] = 0.
+        values[2] = 0. 
+      def value_shape(self):
+        return (3,)
+
+    return ConstantFlow 

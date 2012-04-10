@@ -2,6 +2,7 @@ import finite_elements
 from dirichlet_bc import DirichletBCSet
 from dolfin import * 
 from math import exp, sqrt, pi
+from initial_conditions import *
 
 class Parameters(dict):
     '''Parameter dictionary. This subclasses dict so defaults can be set.'''
@@ -20,6 +21,7 @@ class Parameters(dict):
             'dump_period' : 'dump period in timesteps',
             'bctype'  : 'type of boundary condition to be applied',
             'strong_bc'  : 'list of strong dirichlet boundary conditions to be applied',
+            'initial_condition'  : 'initial condition function',
             'include_advection': 'advection term on',
             'include_diffusion': 'diffusion term on',
             'diffusion_coef': 'diffusion coefficient',
@@ -63,6 +65,7 @@ class DefaultConfiguration(object):
     params = Parameters({
         'verbose'  : 1,
         'theta' : 0.6,
+        'initial_condition' : SinusoidalInitialCondition, 
         'bctype'  : 'flather',
         'strong_bc' : None,
         'include_advection': False,
@@ -193,7 +196,6 @@ class PaperConfiguration(DefaultConfiguration):
 
     # Configure the boundary conditions
     self.params['bctype'] = 'dirichlet',
-    self.params['strong_bc'] = True,
     self.params['bctype'] = 'strong_dirichlet'
     bc = DirichletBCSet(self)
     bc.add_analytic_u(self.left)
@@ -213,4 +215,5 @@ class ConstantInflowPeriodicSidesPaperConfiguration(PaperConfiguration):
     bc.add_constant_flow(self.left)
     bc.add_periodic_sides()
     self.params['strong_bc'] = bc
+    self.parmas["initial_condition"] = ConstantFlowInitialCondition 
 

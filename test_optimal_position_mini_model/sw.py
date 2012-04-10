@@ -37,11 +37,12 @@ def default_config():
   config.params["turbine_y"] = 800
   config.params["controls"] = ['turbine_pos']
   config.params["functional_turbine_scaling"] = 1.0
+  config.params["initial_condition"] = BumpInitialCondition
 
   return config
 
 config = default_config()
-model = ReducedFunctional(config, scaling_factor = 10**4, forward_model = mini_model_solve, initial_condition = BumpInitialCondition, plot = True)
+model = ReducedFunctional(config, scaling_factor = 10**4, forward_model = mini_model_solve, plot = True)
 m0 = model.initial_control()
 
 p = numpy.random.rand(len(m0))
