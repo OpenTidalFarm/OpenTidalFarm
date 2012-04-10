@@ -1,5 +1,3 @@
-''' This example optimises the position of three turbines using the hallow water model. '''
-
 import configuration 
 import numpy
 from dirichlet_bc import DirichletBCSet
@@ -7,60 +5,22 @@ from reduced_functional import ReducedFunctional
 from dolfin import *
 set_log_level(PROGRESS)
 
-def default_config():
-  # We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
-  config = configuration.DefaultConfiguration(nx=100, ny=33)
-  period = 1.24*60*60 # Wave period
-  config.params["k"] = 2*pi/(period*sqrt(config.params["g"]*config.params["depth"]))
-  info("Wave period (in h): %f" % (period/60/60) )
-  config.params["dump_period"] = 1
-  config.params["verbose"] = 0
+config = configuration.ConstantInflowPeriodicSidesPaperConfiguration(nx = 100, ny = 33, basin_x = 200, basin_y = 66)
 
-  # Start at rest state
-  config.params["start_time"] = period/4
-  config.params["dt"] = period/50
-  config.params["finish_time"] = 5.*period/4 
-  config.params["theta"] = 0.6
-  config.params["include_advection"] = True 
-  config.params["include_diffusion"] = True 
-  config.params["diffusion_coef"] = 2.0
-  config.params["newton_solver"] = True 
-  config.params["picard_iterations"] = 20
-  config.params["linear_solver"] = "default"
-  config.params["preconditioner"] = "default"
-  info_green("Approximate CFL number (assuming a velocity of 2): " +str(2*config.params["dt"]/config.mesh.hmin())) 
-
-  config.params["bctype"] = "strong_dirichlet"
-  bc = DirichletBCSet(config)
-  bc.add_analytic_u(config.left)
-  bc.add_analytic_u(config.right)
-  bc.add_noslip_u(config.sides)
-  config.params["strong_bc"] = bc
-
-  dolfin.parameters['form_compiler']['cpp_optimize'] = True
-  dolfin.parameters['form_compiler']['cpp_optimize_flags'] = '-O3'
-
-  # Turbine settings
-  config.params["quadratic_friction"] = True
-  config.params["friction"] = 0.0025
-  # The turbine position is the control variable 
-  config.params["turbine_pos"] = [] 
-  border_x = 500
-  border_y = 300
-  for x_r in numpy.linspace(0.+border_x, config.params["basin_x"]-border_x, 3):
+# The turbine position is the control variable 
+#config.params["turbine_pos"] = [[100, 33]] 
+border_x = 80.
+border_y = 20.
+for x_r in numpy.linspace(0.+border_x, config.params["basin_x"]-border_x, 2):
     for y_r in numpy.linspace(0.+border_y, config.params["basin_y"]-border_y, 2):
       config.params["turbine_pos"].append((float(x_r), float(y_r)))
+      
 
-  info_blue("Deployed " + str(len(config.params["turbine_pos"])) + " turbines.")
-  # Choosing a friction coefficient of > 0.02 ensures that overlapping turbines will lead to
-  # less power output.
-  config.params["turbine_friction"] = 0.2*numpy.ones(len(config.params["turbine_pos"]))
-  config.params["turbine_x"] = 200
-  config.params["turbine_y"] = 200
+info_blue("Deployed " + str(len(config.params["turbine_pos"])) + " turbines.")
+# Choosing a friction coefficient of > 0.25 ensures that overlapping turbines will lead to
+# less power output.
+config.params["turbine_friction"] = numpy.ones(len(config.params["turbine_pos"]))
 
-  return config
-
-config = default_config()
 model = ReducedFunctional(config)
 
 m0 = model.initial_control()
