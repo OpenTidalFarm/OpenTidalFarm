@@ -204,3 +204,14 @@ class PaperConfiguration(DefaultConfiguration):
     # Finally set some optimistion flags 
     dolfin.parameters['form_compiler']['cpp_optimize'] = True
     dolfin.parameters['form_compiler']['cpp_optimize_flags'] = '-O3'
+
+class ConstantInflowPeriodicSidesPaperConfiguration(PaperConfiguration):
+  def __init__(self, nx = 20, ny = 3, basin_x = None, basin_y = None, mesh_file = None, finite_element = finite_elements.p2p1):
+    super(ConstantInflowPeriodicSidesPaperConfiguration, self).__init__(nx, ny, basin_x, basin_y, mesh_file, finite_element)
+
+    bc = DirichletBCSet(self)
+    bc.add_constant_flow(self.left)
+    bc.add_constant_flow(self.right)
+    bc.add_periodic_sides()
+    self.params['strong_bc'] = bc
+

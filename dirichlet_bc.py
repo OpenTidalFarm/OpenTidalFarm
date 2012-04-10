@@ -16,6 +16,10 @@ class DirichletBCSet:
     def add_analytic_u(self, sub_domain):
         self.bcs.append(DirichletBC(self.config.function_space.sub(0), self.analytic_u, sub_domain))
 
+    def add_constant_flow(self, sub_domain):
+        inflow = Expression(("2.0 * depth", "0"), depth = self.config.params["depth"])
+        self.bcs.append(DirichletBC(self.config.function_space.sub(0), inflow, sub_domain))
+
     def add_analytic_eta(self, sub_domain):
         self.bcs.append(DirichletBC(self.config.function_space.sub(1), self.analytic_eta, sub_domain))
 
