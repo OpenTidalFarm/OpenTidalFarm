@@ -219,6 +219,6 @@ class ConstantInflowPeriodicSidesPaperConfiguration(PaperConfiguration):
     self.params['strong_bc'] = bc
 
     self.params['start_time'] = 1.e-19
-    self.params['dt'] = self.period/50
+    self.params['dt'] = self.period/25
     self.params['finish_time'] = self.period
 
