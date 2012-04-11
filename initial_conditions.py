@@ -55,11 +55,18 @@ def BumpInitialCondition(config):
 
 def ConstantFlowInitialCondition(config):
     class ConstantFlow(Expression):
-      def eval(self, values, X):
-        values[0] = 2.*config.params["depth"]
-        values[1] = 0.
-        values[2] = 0. 
-      def value_shape(self):
-        return (3,)
+        def __init__(self):
+            self.start_time = config.params["start_time"]
+            self.depth = config.params["depth"]
+            self.k = config.params["k"]
+            self.g = config.params["g"]
+            self.eta0 = config.params["eta0"]
+
+        def eval(self, values, X):
+            values[0] = self.eta0 * sqrt(self.g * self.depth) * min(1., 4 * self.start_time * self.k * sqrt(self.g * self.depth) / pi)
+            values[1] = 0.
+            values[2] = 0. 
+        def value_shape(self):
+            return (3,)
 
     return ConstantFlow 

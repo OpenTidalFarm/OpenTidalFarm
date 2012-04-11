@@ -211,10 +211,14 @@ class ConstantInflowPeriodicSidesPaperConfiguration(PaperConfiguration):
   def __init__(self, nx = 20, ny = 3, basin_x = None, basin_y = None, mesh_file = None, finite_element = finite_elements.p2p1):
     super(ConstantInflowPeriodicSidesPaperConfiguration, self).__init__(nx, ny, basin_x, basin_y, mesh_file, finite_element)
 
+    self.params["initial_condition"] = ConstantFlowInitialCondition 
+
     bc = DirichletBCSet(self)
     bc.add_constant_flow(self.left)
     bc.add_periodic_sides()
     self.params['strong_bc'] = bc
-    self.params["initial_condition"] = ConstantFlowInitialCondition 
-    self.params['finish_time'] = self.params['start_time'] + 5*self.params['dt']
+
+    self.params['start_time'] = 1.e-19
+    self.params['dt'] = self.period/50
+    self.params['finish_time'] = self.period
 

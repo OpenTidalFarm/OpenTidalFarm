@@ -1,24 +1,45 @@
 from dolfin import *
+
+def ConstantFlowBoundaryCondition(config):
+    class ConstantFlow(Expression):
+        def __init__(self):
+            self.t = config.params["start_time"]
+            self.depth = config.params["depth"]
+            self.k = config.params["k"]
+            self.g = config.params["g"]
+            self.eta0 = config.params["eta0"]
+
+        def eval(self, values, X):
+            values[0] = self.eta0 * sqrt(self.g * self.depth) * min(1., 4 * self.t * self.k * sqrt(self.g * self.depth) / pi)
+            values[1] = 0.
+        def value_shape(self):
+            return (2,)
+
+    return ConstantFlow 
+
 class DirichletBCSet:
 
     def __init__(self, config):
         params = config.params
         self.config = config
+
         self.analytic_u = Expression(("eta0*sqrt(g*depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0"), eta0 = params["eta0"], g = params["g"], depth = params["depth"], t = params["current_time"], k = params["k"])
         self.analytic_eta = Expression("eta0*cos(k*x[0]-sqrt(g*depth)*k*t)", eta0 = params["eta0"], g = params["g"], depth = params["depth"], t = params["current_time"], k = params["k"])
+        self.constant_inflow = ConstantFlowBoundaryCondition(self.config)()
+
         self.bcs = []
 
     def update_time(self, t):
         ''' Update the time values for all boundary conditions '''
         self.analytic_eta.t = t
         self.analytic_u.t = t
+        self.constant_inflow.t = t
 
     def add_analytic_u(self, sub_domain):
         self.bcs.append(DirichletBC(self.config.function_space.sub(0), self.analytic_u, sub_domain))
 
     def add_constant_flow(self, sub_domain):
-        inflow = Expression(("2.0 * depth", "0"), depth = self.config.params["depth"])
-        self.bcs.append(DirichletBC(self.config.function_space.sub(0), inflow, sub_domain))
+        self.bcs.append(DirichletBC(self.config.function_space.sub(0), self.constant_inflow, sub_domain))
 
     def add_analytic_eta(self, sub_domain):
         self.bcs.append(DirichletBC(self.config.function_space.sub(1), self.analytic_eta, sub_domain))
