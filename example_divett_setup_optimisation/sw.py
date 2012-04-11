@@ -10,7 +10,7 @@ from helpers import test_gradient_array
 from animated_plot import *
 from reduced_functional import ReducedFunctional
 from dolfin import *
-set_log_level(PROGRESS)
+set_log_level(ERROR)
 
 # An animated plot to visualise the development of the functional value
 plot = AnimatedPlot(xlabel='Iteration', ylabel='Functional value')
@@ -32,7 +32,7 @@ info_blue("Deployed " + str(len(config.params["turbine_pos"])) + " turbines.")
 # less power output.
 config.params["turbine_friction"] = numpy.ones(len(config.params["turbine_pos"]))
 
-model = ReducedFunctional(config, scaling_factor = 10**-4, plot = True)
+model = ReducedFunctional(config, scaling_factor = 10**-6, plot = True)
 m0 = model.initial_control()
 
 #p = numpy.random.rand(len(m0))
