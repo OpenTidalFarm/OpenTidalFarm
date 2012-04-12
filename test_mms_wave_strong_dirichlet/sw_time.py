@@ -14,7 +14,7 @@ def error(config):
   state = Function(config.function_space)
   state.interpolate(SinusoidalInitialCondition(config)())
 
-  sw_model.sw_solve(config.function_space, config, state, annotate=False)
+  sw_model.sw_solve(config, state, annotate=False)
 
   analytic_sol = Expression(("eta0*sqrt(g*depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", \
                              "0", \
@@ -39,17 +39,6 @@ def test(refinment_level):
     bc.add_analytic_u(config.sides)
     config.params["strong_bc"] = bc
 
-    class InitialConditions(Expression):
-      def __init__(self):
-          pass
-      def eval(self, values, X):
-          values[0]=config.params['eta0']*sqrt(config.params['g']*config.params['depth'])*cos(config.params["k"]*X[0])
-          values[1]=0.
-          values[2]=config.params['eta0']*cos(config.params["k"]*X[0])
-      def value_shape(self):
-          return (3,)
-
-    config.InitialConditions = InitialConditions
     return error(config)
 
 errors = []
