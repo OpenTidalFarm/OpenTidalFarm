@@ -174,7 +174,7 @@ class PaperConfiguration(DefaultConfiguration):
     self.params['quadratic_friction'] = True
     self.params['newton_solver'] = True 
     self.params['friction'] = 0.0025
-    self.params['eta0'] = 2 * sqrt(params["depth"]/params["g"]) # This will give a inflow velocity of 2m/s
+    self.params['eta0'] = 2 * sqrt(self.params["depth"]/self.params["g"]) # This will give a inflow velocity of 2m/s
 
     # Turbine settings
     self.params['turbine_pos'] = []
