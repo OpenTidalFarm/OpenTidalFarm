@@ -99,7 +99,7 @@ class DefaultConfiguration(object):
 
     params['dt'] = params['finish_time']/4000.
     params['k'] = pi/params['basin_x']
-    params['eta0'] = 2 * sqrt(params["depth"]/params["g"])
+    params['eta0'] = 2 
 
     # Print log messages only from the root process in parallel
     # (See http://fenicsproject.org/documentation/dolfin/dev/python/demo/pde/navier-stokes/python/documentation.html)
@@ -174,6 +174,7 @@ class PaperConfiguration(DefaultConfiguration):
     self.params['quadratic_friction'] = True
     self.params['newton_solver'] = True 
     self.params['friction'] = 0.0025
+    self.params['eta0'] = 2 * sqrt(params["depth"]/params["g"]) # This will give a inflow velocity of 2m/s
 
     # Turbine settings
     self.params['turbine_pos'] = []
