@@ -94,13 +94,13 @@ class ReducedFunctional:
         if self.plot:
             self.plotter.addPoint(j)
             self.plotter.savefig("functional_plot.png")
-        info('Evaluating j(' + m.__repr__() + ') = ' + str(j))
+        info_green('Evaluating j(' + m.__repr__() + ') = ' + str(j))
         return j
 
     def dj(self, m):
         ''' This memoised function returns the gradient of the functional for the parameter choice m. '''
         dj = self.j_and_dj_mem(m, forward_only = False)[1] * self.scaling_factor
-        info('Evaluating dj(' + m.__repr__() + ') = ' + str(dj))
+        info_green('Evaluating dj(' + m.__repr__() + ') = ' + str(dj))
         return dj
 
     def initial_control(self):
