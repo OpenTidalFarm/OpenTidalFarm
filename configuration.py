@@ -74,7 +74,6 @@ class DefaultConfiguration(object):
         'depth' : 50.,
         'g' : 9.81,
         'dump_period' : 1,
-        'eta0' : 2, 
         'basin_x' : float(basin_x),
         'basin_y' : float(basin_y),
         'quadratic_friction' : False, 
@@ -100,6 +99,7 @@ class DefaultConfiguration(object):
 
     params['dt'] = params['finish_time']/4000.
     params['k'] = pi/params['basin_x']
+    params['eta0'] = 2 * sqrt(params["depth"]/params["g"])
 
     # Print log messages only from the root process in parallel
     # (See http://fenicsproject.org/documentation/dolfin/dev/python/demo/pde/navier-stokes/python/documentation.html)
