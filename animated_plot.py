@@ -24,7 +24,7 @@ class AnimatedPlot:
     line = self.line
 
     datay.append(value) 
-    pylab.axis([0, len(datay), 0, 1.1*max(datay)])
+    pylab.axis([0, len(datay), min(0, 1.1*min(datay)), max(0, 1.1*max(datay))])
     line.set_xdata(range(len(datay)))  # update the data
     line.set_ydata(datay)
     pylab.draw() # draw the points again
