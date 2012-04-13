@@ -43,8 +43,8 @@ def test(refinment_level):
     return error(config)
 
 errors = []
-tests = 6
-for refinment_level in range(3, tests):
+tests = 7
+for refinment_level in range(2, tests):
   errors.append(test(refinment_level))
 # Compute the order of convergence 
 conv = [] 
@@ -63,8 +63,9 @@ def plot(hs, errors, file_name):
     pylab.ylabel("Model error")
     pylab.savefig(file_name)
 
-hs = [1./h**2 for h in range(1, len(errors) + 1)]
-plot(hs, errors, "convergence.pdf")
+hs = [1./2**h for h in range(len(errors))]
+
+plot(hs, errors, "spatial_convergence.pdf")
 
 info("Spatial order of convergence (expecting 2.0): %s" % str(conv))
 if min(conv)<1.8:
