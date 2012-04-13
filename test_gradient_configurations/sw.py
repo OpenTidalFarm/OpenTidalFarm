@@ -36,7 +36,7 @@ for c in [DefaultConfiguration, PaperConfiguration, ConstantInflowPeriodicSidesP
     m0 = model.initial_control()
 
     p = numpy.random.rand(len(m0))
-    minconv = test_gradient_array(model.j, model.dj, m0, seed = 0.1, perturbation_direction = p)
+    minconv = test_gradient_array(model.j, model.dj, m0, seed = 0.1, perturbation_direction = p, plot_file = "convergence_" + c.__name__ + ".pdf")
     if minconv < 1.9:
         info_red("The gradient taylor remainder test failed.")
         sys.exit(1)

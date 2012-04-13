@@ -2,8 +2,9 @@ import random
 from dolfin import * 
 from dolfin_adjoint import convergence_order
 from numpy import array, dot
+import pylab 
 
-def test_gradient_array(J, dJ, x, seed=0.01, perturbation_direction=None):
+def test_gradient_array(J, dJ, x, seed = 0.01, perturbation_direction = None, plot_file = None):
   '''Checks the correctness of the derivative dJ.
      x must be an array that specifies at which point in the parameter space
      the gradient is to be checked. The functions J(x) and dJ(x) must return 
@@ -50,6 +51,17 @@ def test_gradient_array(J, dJ, x, seed=0.01, perturbation_direction=None):
 
   info("Absolute functional evaluation differences with adjoint: %s" % str(with_gradient))
   info("Convergence orders for Taylor remainder with adjoint information (should all be 2): %s" % str(convergence_order(with_gradient)))
+
+  if plot_file:
+      first_order = [x for x in perturbation_sizes]
+      second_order = [x**2 for x in perturbation_sizes]
+
+      pylab.figure()
+      pylab.loglog(perturbation_sizes, first_order, 'b--', perturbation_sizes, second_order, 'g--', perturbation_sizes, no_gradient, 'bo-', perturbation_sizes, with_gradient, 'go-') 
+      pylab.legend(('First order convergence', 'Second order convergence', 'Taylor remainder without gradient', 'Taylor remainder with gradient'), 'lower right', shadow=True, fancybox=True)
+      pylab.xlabel("Perturbation size")
+      pylab.ylabel("Taylor remainder")
+      pylab.savefig(plot_file)
 
   return min(convergence_order(with_gradient))
 
