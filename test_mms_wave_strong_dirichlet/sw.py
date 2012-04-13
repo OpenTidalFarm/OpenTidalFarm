@@ -6,6 +6,8 @@ from dirichlet_bc import DirichletBCSet
 from initial_conditions import SinusoidalInitialCondition
 from dolfin import *
 from math import log
+from helpers import cpu0only
+import pylab
 
 set_log_level(PROGRESS)
 parameters["std_out_all_processes"] = False;
@@ -48,6 +50,21 @@ for refinment_level in range(3, tests):
 conv = [] 
 for i in range(len(errors)-1):
   conv.append(abs(log(errors[i+1]/errors[i], 2)))
+
+# Plot the results
+@cpu0only
+def plot(hs, errors, file_name):
+    scaling_factor = 2 * errors[-1]/(hs[-1]**2)
+    second_order = [scaling_factor*h**2 for h in hs]
+    pylab.figure()
+    pylab.loglog(hs, second_order, 'g--', hs, errors, 'go-')
+    pylab.legend(('Second order convergence', 'L2 norm of error'), 'lower right', shadow=True, fancybox=True)
+    pylab.xlabel("Relative element size")
+    pylab.ylabel("Model error")
+    pylab.savefig(file_name)
+
+hs = [1./h**2 for h in range(1, len(errors) + 1)]
+plot(hs, errors, "convergence.pdf")
 
 info("Spatial order of convergence (expecting 2.0): %s" % str(conv))
 if min(conv)<1.8:
