@@ -11,6 +11,7 @@ from animated_plot import *
 from reduced_functional import ReducedFunctional
 from dolfin import *
 set_log_level(PROGRESS)
+numpy.random.seed(21)
 
 for c in [ConstantInflowPeriodicSidesPaperConfiguration]:
     info_green("Testing configration " + c.__name__)
