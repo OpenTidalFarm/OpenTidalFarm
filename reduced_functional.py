@@ -107,9 +107,9 @@ class ReducedFunctional:
     def dj_with_check(self, m, seed = 0.1, tol = 1.9):
         ''' This function checks the correctness and returns the gradient of the functional for the parameter choice m. '''
 
-        info_red("Checking derivatie at point m = " + str(m))
+        info_red("Checking derivative at m = " + str(m))
         p = numpy.random.rand(len(m))
-        minconv = test_gradient_array(self.j, self.dj, m, seed = seed, perturbation_direction = p)
+        minconv = helpers.test_gradient_array(self.j, self.dj, m, seed = seed, perturbation_direction = p)
         if minconv < tol:
             info_red("The gradient taylor remainder test failed.")
 
