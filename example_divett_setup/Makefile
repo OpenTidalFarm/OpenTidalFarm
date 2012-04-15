@@ -1,5 +1,5 @@
 run: clean
-	time python sw.py > output.txt
+	time mpirun -n 8 python sw.py 
 clean:
 	rm -f *vtu
 	rm -f *pvd

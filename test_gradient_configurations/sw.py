@@ -10,9 +10,9 @@ from helpers import test_gradient_array
 from animated_plot import *
 from reduced_functional import ReducedFunctional
 from dolfin import *
-set_log_level(ERROR)
+set_log_level(PROGRESS)
 
-for c in [DefaultConfiguration, PaperConfiguration, ConstantInflowPeriodicSidesPaperConfiguration]:
+for c in [ConstantInflowPeriodicSidesPaperConfiguration]:
     info_green("Testing configration " + c.__name__)
     config = c(nx = 15, ny = 15)
     config.params['finish_time'] = config.params["start_time"] + config.params["dt"]

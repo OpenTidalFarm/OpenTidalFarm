@@ -5,7 +5,7 @@ from reduced_functional import ReducedFunctional
 from dolfin import *
 set_log_level(PROGRESS)
 
-config = configuration.ConstantInflowPeriodicSidesPaperConfiguration(nx = 100, ny = 33)
+config = configuration.ConstantInflowPeriodicSidesPaperConfiguration(nx = 50, ny = 33)
 
 # The turbine position is the control variable 
 config.params["turbine_pos"] = [] 
@@ -23,8 +23,10 @@ config.params["turbine_friction"] = numpy.ones(len(config.params["turbine_pos"])
 model = ReducedFunctional(config)
 
 m0 = model.initial_control()
-j0 = model.j(m0, forward_only = True)
+j0 = model.j(m0)
+dj0 = model.dj(m0)
 info("Power outcome: %f" % (j0, ))
+info("Power gradient:" + str(dj0))
 info("Timing summary:")
 timer = Timer("NULL")
 timer.stop()

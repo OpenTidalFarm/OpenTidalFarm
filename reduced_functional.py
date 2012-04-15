@@ -101,7 +101,19 @@ class ReducedFunctional:
         ''' This memoised function returns the gradient of the functional for the parameter choice m. '''
         dj = self.j_and_dj_mem(m, forward_only = False)[1] * self.scaling_factor
         info_green('Evaluating dj(' + m.__repr__() + ') = ' + str(dj))
+
         return dj
+
+    def dj_with_check(self, m, seed = 0.1, tol = 1.9):
+        ''' This function checks the correctness and returns the gradient of the functional for the parameter choice m. '''
+
+        info_red("Checking derivatie at point m = " + str(m))
+        p = numpy.random.rand(len(m))
+        minconv = test_gradient_array(self.j, self.dj, m, seed = seed, perturbation_direction = p)
+        if minconv < tol:
+            info_red("The gradient taylor remainder test failed.")
+
+        return self.dj(m)
 
     def initial_control(self):
         ''' This function returns the control variable array that derives from the initial configuration. '''
