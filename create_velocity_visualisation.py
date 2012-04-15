@@ -4,9 +4,10 @@ paraview.simple._DisableFirstRenderCameraReset()
 
 RenderView1 = CreateRenderView()
 RenderView1.LightSpecularColor = [1.0, 1.0, 1.0]
+RenderView1.InteractionMode = '3D'
 RenderView1.UseTexturedBackground = 0
 RenderView1.UseLight = 1
-RenderView1.CameraPosition = [100.0, 33.0, 192.6731942788689]
+RenderView1.CameraPosition = [100.0, 33.0, 200]
 RenderView1.FillLightKFRatio = 3.0
 RenderView1.Background2 = [0.0, 0.0, 0.16470588235294117]
 RenderView1.FillLightAzimuth = -10.0
@@ -16,10 +17,10 @@ RenderView1.HeadPose = [1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0
 RenderView1.KeyLightAzimuth = 10.0
 RenderView1.StencilCapable = 1
 RenderView1.LightIntensity = 1.0
-RenderView1.CameraFocalPoint = [100.0, 33.0, -214.19145842584328]
+RenderView1.CameraFocalPoint = [100.0, 33.0, -6.812856554559699]
 RenderView1.ImageReductionFactor = 2
 RenderView1.CameraViewAngle = 30.0
-RenderView1.CameraParallelScale = 105.30432089900205
+RenderView1.CameraParallelScale = 10.30432089900205
 RenderView1.EyeAngle = 2.0
 RenderView1.HeadLightKHRatio = 3.0
 RenderView1.StereoRender = 0
@@ -57,7 +58,7 @@ RenderView1.FillLightWarmth = 0.4
 RenderView1.AlphaBitPlanes = 1
 RenderView1.LightSwitch = 0
 RenderView1.OrientationAxesVisibility = 0
-RenderView1.CameraClippingRange = [190.7464623360802, 195.5632921930519]
+RenderView1.CameraClippingRange = [181.16258161187127, 185.73739427883774]
 RenderView1.BackLightElevation = 0.0
 RenderView1.ViewTime = 1.0
 RenderView1.OrientationAxesOutlineColor = [1.0, 1.0, 1.0]
@@ -66,8 +67,9 @@ RenderView1.CollectGeometryThreshold = 100.0
 RenderView1.UseGradientBackground = 0
 RenderView1.KeyLightWarmth = 0.6
 RenderView1.OrientationAxesLabelColor = [1.0, 1.0, 1.0]
+RenderView1.ViewSize = [2000, 1000] #[width, height]
 
-p2p1_u00000 = XMLPartitionedUnstructuredGridReader( guiName="p2p1_u00000*", PointArrayStatus=['u'], CellArrayStatus=['connectivity', 'offsets', 'types'], FileName=['/data/sf1409/src/sw_turbine_optimisation_poster/example_divett_setup_single_turbine/p2p1_u000000.pvtu', '/data/sf1409/src/sw_turbine_optimisation_poster/example_divett_setup_single_turbine/p2p1_u000001.pvtu'] )
+p2p1_u00000 = XMLPartitionedUnstructuredGridReader( guiName="p2p1_u00000*", PointArrayStatus=['u'], CellArrayStatus=['connectivity', 'offsets', 'types'], FileName=['/data/sf1409/src/sw_turbine_optimisation_poster/example_divett_setup_single_turbine/p2p1_u000000.pvtu', 'p2p1_u000001.pvtu'] )
 
 a3_u_PiecewiseFunction = CreatePiecewiseFunction( Points=[0.0, 0.0, 1.0, 1.0] )
 
@@ -182,3 +184,4 @@ DataRepresentation1.SelectionCellLabelBold = 0
 DataRepresentation1.Orient = 0
 
 Render()
+WriteImage("velocity_visualisation.jpg")

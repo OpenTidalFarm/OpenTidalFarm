@@ -7,7 +7,7 @@ RenderView1.LightSpecularColor = [1.0, 1.0, 1.0]
 RenderView1.InteractionMode = '3D'
 RenderView1.UseTexturedBackground = 0
 RenderView1.UseLight = 1
-RenderView1.CameraPosition = [100.0, 33.0, 182.99250667865786]
+RenderView1.CameraPosition = [100.0, 33.0, 200]
 RenderView1.FillLightKFRatio = 3.0
 RenderView1.Background2 = [0.0, 0.0, 0.16470588235294117]
 RenderView1.FillLightAzimuth = -10.0
@@ -20,7 +20,7 @@ RenderView1.LightIntensity = 1.0
 RenderView1.CameraFocalPoint = [100.0, 33.0, -6.812856554559699]
 RenderView1.ImageReductionFactor = 2
 RenderView1.CameraViewAngle = 30.0
-RenderView1.CameraParallelScale = 105.30432089900205
+RenderView1.CameraParallelScale = 10.30432089900205
 RenderView1.EyeAngle = 2.0
 RenderView1.HeadLightKHRatio = 3.0
 RenderView1.StereoRender = 0
@@ -67,8 +67,9 @@ RenderView1.CollectGeometryThreshold = 100.0
 RenderView1.UseGradientBackground = 0
 RenderView1.KeyLightWarmth = 0.6
 RenderView1.OrientationAxesLabelColor = [1.0, 1.0, 1.0]
+RenderView1.ViewSize = [2000, 1000] #[width, height]
 
-turbines_t_1_x000000_pvtu = XMLPartitionedUnstructuredGridReader( guiName="turbines_t=.1.x000000.pvtu", PointArrayStatus=['u'], CellArrayStatus=['connectivity', 'offsets', 'types'], FileName=['/data/sf1409/src/sw_turbine_optimisation_poster/example_divett_setup_single_turbine/turbines_t=.1.x000000.pvtu'] )
+turbines_t_1_x000000_pvtu = XMLPartitionedUnstructuredGridReader( guiName="turbines_t=.1.x000000.pvtu", PointArrayStatus=['u'], CellArrayStatus=['connectivity', 'offsets', 'types'], FileName=['turbines_t=.1.x000000.pvtu'] )
 
 a1_u_PiecewiseFunction = CreatePiecewiseFunction( Points=[0.0, 0.0, 1.0, 1.0] )
 
@@ -183,3 +184,4 @@ DataRepresentation1.SelectionCellLabelBold = 0
 DataRepresentation1.Orient = 0
 
 Render()
+WriteImage("turbine_visualisation.jpg")
