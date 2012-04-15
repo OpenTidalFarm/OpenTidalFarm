@@ -91,19 +91,19 @@ class ReducedFunctional:
 
     def j(self, m, forward_only = False):
         ''' This memoised function returns the functional value for the parameter choice m. '''
-        j = self.j_and_dj_mem(m, forward_only = forward_only)[0] * self.scaling_factor
+        j = self.j_and_dj_mem(m, forward_only = forward_only)[0] 
         if self.plot:
             self.plotter.addPoint(j)
             self.plotter.savefig("functional_plot.png")
         info_green('Evaluating j(' + m.__repr__() + ') = ' + str(j))
-        return j
+        return j * self.scaling_factor
 
     def dj(self, m):
         ''' This memoised function returns the gradient of the functional for the parameter choice m. '''
-        dj = self.j_and_dj_mem(m, forward_only = False)[1] * self.scaling_factor
+        dj = self.j_and_dj_mem(m, forward_only = False)[1] 
         info_green('Evaluating dj(' + m.__repr__() + ') = ' + str(dj))
 
-        return dj
+        return dj * self.scaling_factor
 
     def dj_with_check(self, m, seed = 0.1, tol = 1.8):
         ''' This function checks the correctness and returns the gradient of the functional for the parameter choice m. '''
