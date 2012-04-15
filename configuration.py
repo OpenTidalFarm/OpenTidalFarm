@@ -215,6 +215,7 @@ class ConstantInflowPeriodicSidesPaperConfiguration(PaperConfiguration):
     self.params["initial_condition"] = ConstantFlowInitialCondition 
     self.params["newton_solver"] = False
     self.params["picard_iterations"] = 2
+    self.params['theta'] = 1.0
 
     bc = DirichletBCSet(self)
     bc.add_constant_flow(self.left)
@@ -222,6 +223,6 @@ class ConstantInflowPeriodicSidesPaperConfiguration(PaperConfiguration):
     self.params['strong_bc'] = bc
 
     self.params['start_time'] = 0.0
-    self.params['dt'] = 2 
+    self.params['dt'] = self.period
     self.params['finish_time'] = self.params['start_time'] + self.params['dt'] 
 

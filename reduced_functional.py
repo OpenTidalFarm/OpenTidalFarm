@@ -2,6 +2,7 @@ import numpy
 import memoize
 import shallow_water_model as sw_model
 import helpers 
+import sys
 from animated_plot import AnimatedPlot
 from functionals import DefaultFunctional
 from dolfin import *
@@ -104,7 +105,7 @@ class ReducedFunctional:
 
         return dj
 
-    def dj_with_check(self, m, seed = 0.1, tol = 1.9):
+    def dj_with_check(self, m, seed = 0.1, tol = 1.8):
         ''' This function checks the correctness and returns the gradient of the functional for the parameter choice m. '''
 
         info_red("Checking derivative at m = " + str(m))
@@ -112,6 +113,9 @@ class ReducedFunctional:
         minconv = helpers.test_gradient_array(self.j, self.dj, m, seed = seed, perturbation_direction = p)
         if minconv < tol:
             info_red("The gradient taylor remainder test failed.")
+            sys.exit(1)
+        else:
+            info_green("The gradient taylor remainder test passed.")
 
         return self.dj(m)
 

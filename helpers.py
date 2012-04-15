@@ -41,16 +41,16 @@ def test_gradient_array(J, dJ, x, seed = 0.01, perturbation_direction = None, pl
   no_gradient = [abs(perturbed_j - j_direct) for perturbed_j in functional_values]
 
   dj = dJ(x)
-  info("Absolute functional evaluation differences: %s" % str(no_gradient))
-  info("Convergence orders for Taylor remainder without adjoint information (should all be 1): %s" % str(convergence_order(no_gradient)))
+  info_green("Absolute functional evaluation differences: %s" % str(no_gradient))
+  info_green("Convergence orders for Taylor remainder without adjoint information (should all be 1): %s" % str(convergence_order(no_gradient)))
 
   with_gradient = []
   for i in range(len(perturbations)):
       remainder = abs(functional_values[i] - j_direct - dot(perturbations[i], dj))
       with_gradient.append(remainder)
 
-  info("Absolute functional evaluation differences with adjoint: %s" % str(with_gradient))
-  info("Convergence orders for Taylor remainder with adjoint information (should all be 2): %s" % str(convergence_order(with_gradient)))
+  info_green("Absolute functional evaluation differences with adjoint: %s" % str(with_gradient))
+  info_green("Convergence orders for Taylor remainder with adjoint information (should all be 2): %s" % str(convergence_order(with_gradient)))
 
   if plot_file:
       first_order = [x for x in perturbation_sizes]
