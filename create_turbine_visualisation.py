@@ -1,3 +1,6 @@
+import os
+import re
+
 try: paraview.simple
 except: from paraview.simple import *
 paraview.simple._DisableFirstRenderCameraReset()
@@ -60,7 +63,7 @@ RenderView1.LightSwitch = 0
 RenderView1.OrientationAxesVisibility = 0
 RenderView1.CameraClippingRange = [181.16258161187127, 185.73739427883774]
 RenderView1.BackLightElevation = 0.0
-RenderView1.ViewTime = 1.0
+RenderView1.ViewTime = 0.0
 RenderView1.OrientationAxesOutlineColor = [1.0, 1.0, 1.0]
 RenderView1.LODThreshold = 5.0
 RenderView1.CollectGeometryThreshold = 100.0
@@ -69,7 +72,17 @@ RenderView1.KeyLightWarmth = 0.6
 RenderView1.OrientationAxesLabelColor = [1.0, 1.0, 1.0]
 RenderView1.ViewSize = [2000, 1000] #[width, height]
 
-turbines_t_1_x000000_pvtu = XMLPartitionedUnstructuredGridReader( guiName="turbines_t=.1.x000000.pvtu", PointArrayStatus=['u'], CellArrayStatus=['connectivity', 'offsets', 'types'], FileName=['turbines_t=.1.x000000.pvtu'] )
+def sort_nicely(l): 
+   convert = lambda text: int(text) if text.isdigit() else text 
+   alphanum_key = lambda key: [ convert(c) for c in re.split('([0-9]+)', key) ] 
+   l.sort( key=alphanum_key ) 
+
+files = os.listdir('.')
+pvtus = [pvtu for pvtu in files if re.match("turbines_t=.*.pvtu", pvtu)]
+sort_nicely(pvtus)
+print pvtus
+
+turbines_t_ = XMLPartitionedUnstructuredGridReader( guiName="turbines_t=.*", PointArrayStatus=['u'], CellArrayStatus=['connectivity', 'offsets', 'types'], FileName=pvtus)
 
 a1_u_PiecewiseFunction = CreatePiecewiseFunction( Points=[0.0, 0.0, 1.0, 1.0] )
 
@@ -183,5 +196,12 @@ DataRepresentation1.SelectionPointSize = 5.0
 DataRepresentation1.SelectionCellLabelBold = 0
 DataRepresentation1.Orient = 0
 
+RenderView1.ViewTime = turbines_t_.TimestepValues[0]
+print "Setting timelevel to " + str(turbines_t_.TimestepValues[0])
 Render()
-WriteImage("turbine_visualisation.jpg")
+WriteImage("turbine_visualisation_initial.jpg")
+
+RenderView1.ViewTime = turbines_t_.TimestepValues[-1]
+print "Setting timelevel to " + str(turbines_t_.TimestepValues[-1])
+Render()
+WriteImage("turbine_visualisation_final.jpg")
