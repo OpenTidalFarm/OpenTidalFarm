@@ -78,8 +78,9 @@ def sort_nicely(l):
    l.sort( key=alphanum_key ) 
 
 files = os.listdir('.')
-pvtus = [pvtu for pvtu in files if re.match("turbines_t=.*.pvtu", pvtu)]
+pvtus = [pvtu for pvtu in files if re.match("turbines_t=.*\.p?vtu", pvtu)]
 sort_nicely(pvtus)
+pvtus = [pvtus[0], pvtus[-1]]
 print pvtus
 
 turbines_t_ = XMLPartitionedUnstructuredGridReader( guiName="turbines_t=.*", PointArrayStatus=['u'], CellArrayStatus=['connectivity', 'offsets', 'types'], FileName=pvtus)
