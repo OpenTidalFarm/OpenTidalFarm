@@ -83,22 +83,22 @@ def sw_solve(config, state, turbine_field=None, time_functional=None, annotate=T
 
     # Mass matrix
 
-    M = 0.5*inner(v, u) * dx
-    M += 0.5*inner(q, h) * dx
-    M0 = 0.5*inner(v, u0) * dx
-    M0 += 0.5*inner(q, h0) * dx
+    M = 1./depth*inner(v, u) * dx
+    M += inner(q, h) * dx
+    M0 = 1./depth*inner(v, u0) * dx
+    M0 += inner(q, h0) * dx
 
     # Divergence term.
-    Ct_mid = -0.5*inner(u_mid, grad(q))*dx
+    Ct_mid = -inner(u_mid, grad(q))*dx
     #+inner(avg(u_mid),jump(q,n))*dS # This term is only needed for dg element pairs
 
     if bctype == 'dirichlet':
       # The dirichlet boundary condition on the left hand side 
       ufl = Expression(("eta0*sqrt(g*depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0", "0"), eta0=params["eta0"], g=g, depth=depth, t=t, k=params["k"])
-      bc_contr = -0.5* dot(ufl, n) * q * ds(1)
+      bc_contr = -dot(ufl, n) * q * ds(1)
 
       # The dirichlet boundary condition on the right hand side
-      bc_contr -= 0.5* dot(ufl, n) * q * ds(2)
+      bc_contr -= dot(ufl, n) * q * ds(2)
 
       # We enforce a no-normal flow on the sides by removing the surface integral. 
       # bc_contr -= dot(u_mid, n) * q * ds(3)
@@ -123,7 +123,7 @@ def sw_solve(config, state, turbine_field=None, time_functional=None, annotate=T
         sys.exit(1)
 
     # Pressure gradient operator
-    C_mid = 0.5*(g * depth) * inner(v, grad(h_mid)) * dx
+    C_mid = 1./depth*(g * depth) * inner(v, grad(h_mid)) * dx
     #+inner(avg(v),jump(h_mid,n))*dS # This term is only needed for dg element pairs
 
     # Bottom friction
