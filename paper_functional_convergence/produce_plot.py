@@ -50,7 +50,7 @@ Z = numpy.vectorize(functional_value)(X + offset_x, Y + offset_y)
 # Interpolation: bicupic or nearest
 imshow(Z, interpolation='bicubic', cmap=cm.jet, origin='lower', extent=[0, 2, 0, 2])
 cbar = colorbar()
-cbar.set_label("Relative change in the power output")
+cbar.set_label("Relative change in the power output (%)")
 axis([0.,2.,0.,2.])
 
 xlabel("Offset x direction to reference position")
