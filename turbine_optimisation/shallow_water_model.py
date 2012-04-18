@@ -149,10 +149,10 @@ def sw_solve(config, state, turbine_field=None, time_functional=None, annotate=T
     # Advection term 
     # With a newton solver we can simply use a quadratic form
     if include_advection and newton_solver:
-      Ad_mid = 1/depth * inner(grad(u_mid)*u_mid, v)*dx
+      Ad_mid = inner(grad(u_mid)*u_mid, v)*dx
     # With a picard iteration we need to linearise using the best guess
     if include_advection and not newton_solver:
-      Ad_mid = 1/depth * inner(grad(u_mid)*u_mid_nl, v)*dx
+      Ad_mid = inner(grad(u_mid)*u_mid_nl, v)*dx
 
     if include_diffusion:
       # Check that we are not using a DG velocity function space, as the facet integrals are not implemented.
