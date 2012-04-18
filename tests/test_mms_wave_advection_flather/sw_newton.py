@@ -4,11 +4,10 @@ import shallow_water_model as sw_model
 import finite_elements
 from initial_conditions import SinusoidalInitialCondition
 from dolfin import *
-from dolfin_adjoint import *
 from math import log
 
-set_log_level(30)
-myid = MPI.process_number()
+set_log_level(PROGRESS)
+parameters["std_out_all_processes"] = False;
 
 def error(config):
   state = Function(config.function_space)
@@ -53,13 +52,10 @@ conv = []
 for i in range(len(errors)-1):
   conv.append(abs(log(errors[i+1]/errors[i], 2)))
 
-if myid == 0:
-  info_green("Errors: %s.", str(errors))
-  info_green("Spatial order of convergence (expecting 2.0): %s.", str(conv))
+info_green("Errors: %s.", str(errors))
+info_green("Spatial order of convergence (expecting 2.0): %s.", str(conv))
 if min(conv)<1.8:
-  if myid == 0:
-    info_red("Spatial convergence test failed for wave_flather")
+  info_red("Spatial convergence test failed for wave_flather")
   sys.exit(1)
 else:
-  if myid == 0:
-    info_green("Test passed")
+  info_green("Test passed")
