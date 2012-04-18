@@ -33,8 +33,8 @@ def error(config):
   e = state - exactstate
   return sqrt(assemble(dot(e,e)*dx))
 
-def test(refinment_level):
-  config = configuration.DefaultConfiguration(nx=2*2**refinment_level, ny=2*2**refinment_level, finite_element = finite_elements.p1dgp2) 
+def test(refinement_level):
+  config = configuration.DefaultConfiguration(nx=2*2**refinement_level, ny=2*2**refinement_level, finite_element = finite_elements.p1dgp2) 
   config.params["finish_time"] = pi/(sqrt(config.params["g"]*config.params["depth"])*config.params["k"])/10
   config.params["dt"] = config.params["finish_time"]/150
   config.params["dump_period"] = 100000
@@ -45,8 +45,8 @@ def test(refinment_level):
 
 errors = []
 tests = 4
-for refinment_level in range(1, tests):
-  errors.append(test(refinment_level))
+for refinement_level in range(1, tests):
+  errors.append(test(refinement_level))
 # Compute the order of convergence 
 conv = [] 
 for i in range(len(errors)-1):
