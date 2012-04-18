@@ -105,8 +105,8 @@ def sw_solve(config, state, turbine_field=None, time_functional=None, annotate=T
 
     elif bctype == 'flather':
       # The Flather boundary condition on the left hand side 
-      ufl = Expression(("2*eta0*sqrt(g*depth)*cos(-sqrt(g*depth)*k*t)", "0", "0"), eta0=params["eta0"], g=g, depth=depth, t=t, k=params["k"])
-      bc_contr = -dot(ufl, n) * q * ds(1)
+      ufl = Expression(("2*eta0*sqrt(g/depth)*cos(-sqrt(g*depth)*k*t)", "0", "0"), eta0=params["eta0"], g=g, depth=depth, t=t, k=params["k"])
+      bc_contr = - depth * dot(ufl, n) * q * ds(1)
       Ct_mid += sqrt(g*depth)*inner(h_mid, q)*ds(1)
 
       # The contributions of the Flather boundary condition on the right hand side
