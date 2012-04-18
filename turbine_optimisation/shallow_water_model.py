@@ -83,13 +83,13 @@ def sw_solve(config, state, turbine_field=None, time_functional=None, annotate=T
 
     # Mass matrix
 
-    M = 1./depth*inner(v, u) * dx
+    M = 1./depth*inner(v, depth*u) * dx
     M += inner(q, h) * dx
-    M0 = 1./depth*inner(v, u0) * dx
+    M0 = 1./depth*inner(v, depth*u0) * dx
     M0 += inner(q, h0) * dx
 
     # Divergence term.
-    Ct_mid = -inner(u_mid, grad(q))*dx
+    Ct_mid = -inner(depth*u_mid, grad(q))*dx
     #+inner(avg(u_mid),jump(q,n))*dS # This term is only needed for dg element pairs
 
     if bctype == 'dirichlet':
