@@ -23,7 +23,7 @@ class DirichletBCSet:
         params = config.params
         self.config = config
 
-        self.analytic_u = Expression(("eta0*sqrt(g*depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0"), eta0 = params["eta0"], g = params["g"], depth = params["depth"], t = params["current_time"], k = params["k"])
+        self.analytic_u = Expression(("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0"), eta0 = params["eta0"], g = params["g"], depth = params["depth"], t = params["current_time"], k = params["k"])
         self.analytic_eta = Expression("eta0*cos(k*x[0]-sqrt(g*depth)*k*t)", eta0 = params["eta0"], g = params["g"], depth = params["depth"], t = params["current_time"], k = params["k"])
         self.constant_inflow = ConstantFlowBoundaryCondition(self.config)()
 
