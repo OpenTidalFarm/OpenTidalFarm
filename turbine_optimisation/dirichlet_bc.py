@@ -10,7 +10,7 @@ def ConstantFlowBoundaryCondition(config):
             self.eta0 = config.params["eta0"]
 
         def eval(self, values, X):
-            values[0] = self.eta0 * sqrt(self.g * self.depth) 
+            values[0] = self.eta0 * sqrt(self.g / self.depth) 
             values[1] = 0.
         def value_shape(self):
             return (2,)
