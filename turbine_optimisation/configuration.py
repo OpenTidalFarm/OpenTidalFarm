@@ -60,7 +60,7 @@ class Parameters(dict):
             raise KeyError, 'Configuration has too many parameters: ' + str(diff)
 
 class DefaultConfiguration(object):
-  def __init__(self, nx=20, ny=3, basin_x = 3000, basin_y = 1000, mesh_file=None, finite_element = finite_elements.p2p1):
+  def __init__(self, nx=20, ny=3, basin_x = 3000, basin_y = 1000, finite_element = finite_elements.p2p1):
     self.domain = RectangularDomain(basin_x, basin_y, nx, ny)
     params = Parameters({
         'verbose'  : 1,
@@ -119,7 +119,7 @@ class PaperConfiguration(DefaultConfiguration):
     if not basin_y:
       basin_y = float(ny * 2)
 
-    super(PaperConfiguration, self).__init__(nx, ny, basin_x, basin_y, mesh_file, finite_element)
+    super(PaperConfiguration, self).__init__(nx, ny, basin_x, basin_y, finite_element)
 
     # Model settings
     self.params['include_advection'] = True
@@ -163,8 +163,8 @@ class PaperConfiguration(DefaultConfiguration):
     dolfin.parameters['form_compiler']['cpp_optimize_flags'] = '-O3'
 
 class ConstantInflowPeriodicSidesPaperConfiguration(PaperConfiguration):
-  def __init__(self, nx = 20, ny = 3, basin_x = None, basin_y = None, mesh_file = None, finite_element = finite_elements.p2p1):
-    super(ConstantInflowPeriodicSidesPaperConfiguration, self).__init__(nx, ny, basin_x, basin_y, mesh_file, finite_element)
+  def __init__(self, nx = 20, ny = 3, basin_x = None, basin_y = None, finite_element = finite_elements.p2p1):
+    super(ConstantInflowPeriodicSidesPaperConfiguration, self).__init__(nx, ny, basin_x, basin_y, finite_element)
 
     self.params["initial_condition"] = ConstantFlowInitialCondition 
     self.params["newton_solver"] = False
