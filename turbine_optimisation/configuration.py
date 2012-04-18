@@ -3,6 +3,7 @@ from dirichlet_bc import DirichletBCSet
 from dolfin import * 
 from math import exp, sqrt, pi
 from initial_conditions import *
+from domains import *
 
 class Parameters(dict):
     '''Parameter dictionary. This subclasses dict so defaults can be set.'''
@@ -27,11 +28,9 @@ class Parameters(dict):
             'diffusion_coef': 'diffusion coefficient',
             'depth' : 'water depth at rest',
             'g' : 'graviation',
-            'k' : 'wave length',
+            'k' : 'wave length paramter. If you want a wave lenght of l, then set k to 2*pi/l.',
             'dump_period' : 'dump period',
             'eta0' : 'deviantion of the water depth in rest',
-            'basin_x' : 'length of the basin',
-            'basin_y' : 'width of the basin',
             'quadratic_friction' : 'quadratic friction',
             'friction' : 'friction term on',
             'turbine_pos' : 'list of turbine positions',
@@ -62,6 +61,7 @@ class Parameters(dict):
 
 class DefaultConfiguration(object):
   def __init__(self, nx=20, ny=3, basin_x = 3000, basin_y = 1000, mesh_file=None, finite_element = finite_elements.p2p1):
+    self.domain = RectangularDomain(basin_x, basin_y, nx, ny)
     params = Parameters({
         'verbose'  : 1,
         'theta' : 0.6,
@@ -75,8 +75,6 @@ class DefaultConfiguration(object):
         'g' : 9.81,
         'dump_period' : 1,
         'eta0' : 2, 
-        'basin_x' : float(basin_x),
-        'basin_y' : float(basin_y),
         'quadratic_friction' : False, 
         'friction' : 0.0, 
         'turbine_pos' : [],
@@ -99,72 +97,28 @@ class DefaultConfiguration(object):
         })
 
     params['dt'] = params['finish_time']/4000.
-    params['k'] = pi/params['basin_x']
 
     # Print log messages only from the root process in parallel
     # (See http://fenicsproject.org/documentation/dolfin/dev/python/demo/pde/navier-stokes/python/documentation.html)
     parameters['std_out_all_processes'] = False;
 
-    def generate_mesh(nx, ny):
-      ''' Generates a rectangular mesh for the divett test
-          nx = Number of cells in x direction
-          ny = Number of cells in y direction  '''
-      mesh = Rectangle(0, 0, params['basin_x'], params['basin_y'], nx, ny)
-      mesh.order()
-      mesh.init()
-      return mesh
-
-    class Left(SubDomain):
-          def inside(self, x, on_boundary):
-               return on_boundary and near(x[0], 0.0)
-
-    class Right(SubDomain):
-          def inside(self, x, on_boundary):
-               return on_boundary and near(x[0], params['basin_x'])
-
-    class Sides(SubDomain):
-          def inside(self, x, on_boundary):
-               return on_boundary and (near(x[1], 0.0) or near(x[1], params['basin_y']))
-
-    if mesh_file == None:
-        mesh = generate_mesh(nx, ny)
-    else:
-        mesh = dolfin.Mesh(mesh_file)
+    params['k'] = pi/self.domain.basin_x
 
     # Initialize function space
-    function_space = finite_element(mesh) 
-
-    # Initialize sub-domain instances
-    left = Left()
-    right = Right()
-    sides = Sides()
-
-    # Initialize mesh function for boundary domains
-    boundaries = FacetFunction('uint', mesh)
-    boundaries.set_all(0)
-    left.mark(boundaries, 1)
-    right.mark(boundaries, 2)
-    sides.mark(boundaries, 3)
-    ds = Measure('ds')[boundaries]
+    self.finite_element = finite_element
+    self.function_space = finite_element(self.domain.mesh) 
 
     # Store the result as class variables
     self.params = params
-    self.mesh = mesh
-    self.ds = ds
-    self.left = left
-    self.right = right
-    self.sides = sides
-    self.function_space = function_space
-    self.finite_element = finite_element
 
 class PaperConfiguration(DefaultConfiguration):
-  def __init__(self, nx = 20, ny = 3, basin_x = None, basin_y = None, mesh_file = None, finite_element = finite_elements.p2p1):
+  def __init__(self, nx = 20, ny = 3, basin_x = None, basin_y = None, finite_element = finite_elements.p2p1):
+    # If no mesh file is given, we compute the domain size from the number of elements(nx and ny) with a 2m element size
     if not basin_x:
       basin_x = float(nx * 2) # Use a 2m element size by default
     if not basin_y:
       basin_y = float(ny * 2)
 
-    info_green('The computation domain has a size of %f. x %f. with an element size of %f. x %f.'% (basin_x, basin_y, basin_x/nx, basin_y/ny))
     super(PaperConfiguration, self).__init__(nx, ny, basin_x, basin_y, mesh_file, finite_element)
 
     # Model settings
@@ -199,9 +153,9 @@ class PaperConfiguration(DefaultConfiguration):
     self.params['bctype'] = 'dirichlet',
     self.params['bctype'] = 'strong_dirichlet'
     bc = DirichletBCSet(self)
-    bc.add_analytic_u(self.left)
-    bc.add_analytic_u(self.right)
-    bc.add_noslip_u(self.sides)
+    bc.add_analytic_u(self.domain.left)
+    bc.add_analytic_u(self.domain.right)
+    bc.add_noslip_u(self.domain.sides)
     self.params['strong_bc'] = bc
 
     # Finally set some optimistion flags 
@@ -218,8 +172,8 @@ class ConstantInflowPeriodicSidesPaperConfiguration(PaperConfiguration):
     self.params['theta'] = 1.0
 
     bc = DirichletBCSet(self)
-    bc.add_constant_flow(self.left)
-    bc.add_noslip_u(self.sides)
+    bc.add_constant_flow(self.domain.left)
+    bc.add_noslip_u(self.domain.sides)
     self.params['strong_bc'] = bc
 
     self.params['start_time'] = 0.0
