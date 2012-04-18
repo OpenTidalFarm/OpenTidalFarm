@@ -15,7 +15,7 @@ def error(config):
 
   sw_model.sw_solve(config, state, annotate=False)
 
-  analytic_sol = Expression(("1./depth*eta0*sqrt(g*depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", \
+  analytic_sol = Expression(("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", \
                              "0", \
                              "eta0*cos(k*x[0]-sqrt(g*depth)*k*t)"), \
                              eta0=config.params["eta0"], g=config.params["g"], \
@@ -26,7 +26,7 @@ def error(config):
   return sqrt(assemble(dot(e,e)*dx))
 
 def test(refinment_level):
-  config = configuration.DefaultConfiguration(nx=2*2**refinment_level, ny=2, finite_element = finite_elements.p1dgp2) 
+  config = configuration.DefaultConfiguration(nx=2*2**refinment_level, ny=4, finite_element = finite_elements.p1dgp2) 
   config.params["finish_time"] = pi/(sqrt(config.params["g"]*config.params["depth"])*config.params["k"])/10
   config.params["dt"] = config.params["finish_time"]/100
   config.params["dump_period"] = 100000

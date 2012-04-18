@@ -15,7 +15,7 @@ def SinusoidalInitialCondition(config):
             depth = params['depth']
             start_time = params["start_time"]
 
-            values[0] = 1./depth * eta0 * sqrt(g * depth) * cos(k * X[0] - sqrt(g * depth) * k * start_time)
+            values[0] = eta0 * sqrt(g / depth) * cos(k * X[0] - sqrt(g * depth) * k * start_time)
             values[1] = 0.
             values[2] = eta0 * cos(k * X[0] - sqrt(g * depth) * k * start_time)
         def value_shape(self):
