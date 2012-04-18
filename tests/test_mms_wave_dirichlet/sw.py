@@ -6,7 +6,7 @@ from initial_conditions import SinusoidalInitialCondition
 from dolfin import *
 from math import log
 
-set_log_level(PROGRESS)
+set_log_level(ERROR)
 parameters["std_out_all_processes"] = False;
 
 def error(config):
@@ -26,7 +26,7 @@ def error(config):
   return sqrt(assemble(dot(e,e)*dx))
 
 def test(refinment_level):
-  config = configuration.DefaultConfiguration(nx=2*2**refinment_level, ny=4, finite_element = finite_elements.p1dgp2) 
+  config = configuration.DefaultConfiguration(nx=2*2**refinment_level, ny=2, finite_element = finite_elements.p1dgp2) 
   config.params["finish_time"] = pi/(sqrt(config.params["g"]*config.params["depth"])*config.params["k"])/10
   config.params["dt"] = config.params["finish_time"]/100
   config.params["dump_period"] = 100000
@@ -35,7 +35,7 @@ def test(refinment_level):
   return error(config)
 
 errors = []
-tests = 6
+tests = 5
 for refinment_level in range(1, tests):
   errors.append(test(refinment_level))
 # Compute the order of convergence 
@@ -43,7 +43,8 @@ conv = []
 for i in range(len(errors)-1):
   conv.append(abs(log(errors[i+1]/errors[i], 2)))
 
-info("Spatial order of convergence (expecting 2.0): %s" % str(conv))
+info_green("Absolute error values: %s" % str(errors))
+info_green("Spatial order of convergence (expecting 2.0): %s" % str(conv))
 if min(conv)<1.8:
   info_red("Spatial convergence test failed for wave_dirichlet")
   sys.exit(1)
