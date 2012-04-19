@@ -1,5 +1,4 @@
-''' This example optimises the position of three turbines using the hallow water model. '''
-
+''' This example optimises in an L shaped domain. '''
 import configuration 
 import numpy
 from dirichlet_bc import DirichletBCSet
@@ -8,15 +7,21 @@ import ipopt
 from helpers import test_gradient_array
 from animated_plot import *
 from reduced_functional import ReducedFunctional
+from domains import LShapeDomain
 from dolfin import *
 set_log_level(ERROR)
 
-# An animated plot to visualise the development of the functional value
-plot = AnimatedPlot(xlabel='Iteration', ylabel='Functional value')
-
 # We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
 numpy.random.seed(21) 
-config = configuration.ConstantInflowPeriodicSidesPaperConfiguration(nx=100, ny=33)
+config = configuration.ConstantInflowPeriodicSidesPaperConfiguration()
+
+L_len = 200
+config.set_domain( LShapeDomain("mesh.xml", L_len) )
+# We also need to reapply the bc
+bc = DirichletBCSet(config)
+bc.add_constant_flow(config.domain.left)
+bc.add_noslip_u(config.domain.sides)
+config.params['strong_bc'] = bc
 
 # The turbine position is the control variable 
 config.params["turbine_pos"] = [[60, 38], [80, 28], [100, 38], [120, 28], [140, 38]] 
@@ -38,14 +43,9 @@ f.objective= model.j
 #f.gradient= model.dj_with_check 
 f.gradient= model.dj
 
-# Get the upper and lower bounds for the turbine positions
-lb, ub = IPOptUtils.position_constraints(config.params)
-
 nlp = ipopt.problem(len(m0), 
                     0, 
-                    f, 
-                    numpy.array(lb),
-                    numpy.array(ub))
+                    f) 
 nlp.addOption('mu_strategy', 'adaptive')
 nlp.addOption('tol', 1e-9)
 nlp.addOption('print_level', 5)
