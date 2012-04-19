@@ -18,7 +18,6 @@ from dolfin_adjoint import *
 #parameters["form_compiler"]["quadrature_degree"] = 10
 
 set_log_level(PROGRESS)
-myid = MPI.process_number()
 
 def run_model(nx, ny, turbine_model, turbine_pos):
   '''This routine runs the forward model with the specified resolution and turbine type/positions 
@@ -68,8 +67,7 @@ def run_model(nx, ny, turbine_model, turbine_pos):
 
   # Output some diagnostics about the resulting turbine field
   tf_norm = norm(tf, "L2")
-  if myid == 0:
-    print "L2 Norm of turbine function: ", tf_norm 
+  info("L2 Norm of turbine function: " + str(tf_norm))
   helpers.save_to_file_scalar(tf, turbine_model+"_"+str(nx)+"x"+str(ny)+"_turbine_pos="+str(turbine_pos))
 
   functional = DefaultFunctional(config.function_space, config.params)
@@ -86,8 +84,7 @@ turbine_pos = [[1500., 500.]]
 nx_orig = 60
 ny_orig = 20
 
-if myid == 0:
-  print "Turbine size: 200x200"
+info_green("Turbine size: 200x200")
 
 # The types of turbines to be tested and their tolerances
 #turbine_types = {"RectangleTurbine": RectangleTurbines, "GaussianTurbine": GaussianTurbines}
@@ -100,12 +97,11 @@ for turbine_type in turbine_types:
 
 # Run the forward model for different resolutions and with (un)perturbed turbine positions
 for shift in [False, True]:
-  if shift and myid ==0:
-    print "\nShifting turbines half an element to the top right..."
+  if shift:
+    info("\nShifting turbines half an element to the top right...")
 
   for model in turbine_types:
-    if myid == 0:
-      print '\n', model 
+    info('\n' + str(model))
     nx, ny = (nx_orig, ny_orig)
 
     for level in range(3):
@@ -117,8 +113,7 @@ for shift in [False, True]:
 
       j = run_model(nx, ny, model, turbine_pos_shift)
       results[model][shift].append(j)
-      if myid == 0:
-        print "%i x %i \t\t| J = %.4g " % (nx, ny, j)
+      info("%i x %i \t\t| J = %.4g " % (nx, ny, j))
 
       nx, ny = refine_res(nx, ny)
 
@@ -127,13 +122,11 @@ for t in turbine_types:
   for shift in [True, False]:
     r = results[t][shift]
     relative_change = [(r[i+1]-r[i]) / min(r[i+1], r[i]) for i in range(len(r)-1)]
-    if myid == 0:
-      print "Relative change for ", t, " and shifted ", shift, " is due to mesh refinement: ", relative_change 
+    info("Relative change for " + str(t) + " and shifted " + str(shift) + " is due to mesh refinement: " + str(relative_change))
 
     # Test that the relative change of the highest resolution run is smaller than the allowed tolerance
     if abs(relative_change[-1]) > turbine_types_tol_ref[t]:
-      if myid == 0:
-        print "Relative change exceeds tolerance"
+      info_red("Relative change exceeds tolerance")
       sys.exit(1)
 
 # Calculate the relative changes due to turbine movement 
@@ -141,11 +134,10 @@ for t in turbine_types:
   r = results[t][False]
   rs = results[t][True]
   relative_change = [(r[i]-rs[i]) / min(r[i], rs[i]) for i in range(len(r))]
-  if myid == 0:
-    print "Relative change for ", t, " due to shifting is: ", relative_change 
+  info("Relative change for " + str(t) + " due to shifting is: ", str(relative_change))
 
   # Test that the relative change of the highest resolution run is smaller than the allowed tolerance
   if abs(relative_change[-1]) > turbine_types_tol_mov[t]:
-    if myid == 0:
-      print "Relative change exceeds tolerance"
+    info_red("Relative change exceeds tolerance")
     sys.exit(1)
+info_green("Test passed")    
