@@ -61,7 +61,11 @@ class Parameters(dict):
 
 class DefaultConfiguration(object):
   def __init__(self, nx=20, ny=3, basin_x = 3000, basin_y = 1000, finite_element = finite_elements.p2p1):
-    self.domain = RectangularDomain(basin_x, basin_y, nx, ny)
+
+    # Initialize function space and the domain
+    self.finite_element = finite_element
+    self.set_domain( RectangularDomain(basin_x, basin_y, nx, ny), warning = False )
+
     params = Parameters({
         'verbose'  : 1,
         'theta' : 0.6,
@@ -104,12 +108,14 @@ class DefaultConfiguration(object):
 
     params['k'] = pi/self.domain.basin_x
 
-    # Initialize function space
-    self.finite_element = finite_element
-    self.function_space = finite_element(self.domain.mesh) 
-
     # Store the result as class variables
     self.params = params
+
+  def set_domain(self, domain, warning = True):
+      if warning:
+           info_red("If you are overwriting the domain, make sure that you reapply the boundary conditions as well")
+      self.domain = domain
+      self.function_space = self.finite_element(self.domain.mesh)
 
 class PaperConfiguration(DefaultConfiguration):
   def __init__(self, nx = 20, ny = 3, basin_x = None, basin_y = None, finite_element = finite_elements.p2p1):
@@ -147,7 +153,7 @@ class PaperConfiguration(DefaultConfiguration):
     self.params['dt'] = self.period/50
     self.params['finish_time'] = 3./4*self.period
     info('Wave period (in h): %f' % (self.period/60/60) )
-    info('Approximate CFL number (assuming a velocity of 2): ' +str(2*self.params['dt']/self.mesh.hmin()))
+    info('Approximate CFL number (assuming a velocity of 2): ' +str(2*self.params['dt']/self.domain.mesh.hmin()))
 
     # Configure the boundary conditions
     self.params['bctype'] = 'dirichlet',
