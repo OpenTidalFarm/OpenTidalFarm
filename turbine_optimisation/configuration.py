@@ -158,7 +158,7 @@ class DefaultConfiguration(object):
     self.function_space = function_space
     self.finite_element = finite_element
 
-  def set_turbine_pos(self, positions, friction = 0.25):
+  def set_turbine_pos(self, positions, friction = 1.0):
       ''' Sets the turbine position and a equal friction parameter. '''
       self.params['turbine_pos'] = positions
       self.params['turbine_friction'] = friction * numpy.ones(len(positions))

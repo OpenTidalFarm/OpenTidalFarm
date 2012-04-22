@@ -41,9 +41,8 @@ def default_config():
 
   # Turbine settings
   config.params["friction"] = 0.0025
-  config.params["turbine_pos"] = [[1500., 500.]]
-  # The turbine friction is the control variable 
-  config.params["turbine_friction"] = numpy.ones(len(config.params["turbine_pos"]))
+  turbine_pos = [[1500., 500.]]
+  config.set_turbine_pos(turbine_pos)
   config.params["turbine_x"] = 600
   config.params["turbine_y"] = 600
   config.params["controls"] = ["turbine_friction"]

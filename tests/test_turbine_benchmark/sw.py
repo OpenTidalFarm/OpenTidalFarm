@@ -6,6 +6,7 @@ import sys
 import configuration 
 import numpy
 import cProfile
+import finite_elements
 from functionals import DefaultFunctional
 from turbines import *
 from dolfin import *
@@ -26,16 +27,15 @@ def default_config():
   # Turbine settings
   config.params["friction"] = 0.0025
   # The turbine position is the control variable 
-  config.params["turbine_pos"] = [] 
+  turbine_pos = [] 
   border = 100
   for x_r in numpy.linspace(0.+border, config.params["basin_x"]-border, 30):
     for y_r in numpy.linspace(0.+border, config.params["basin_y"]-border, 10):
-      config.params["turbine_pos"].append((float(x_r), float(y_r)))
+      turbine_pos.append((float(x_r), float(y_r)))
 
-  info_blue("Deployed " + str(len(config.params["turbine_pos"])) + " turbines.")
-  # Choosing a friction coefficient of 1.0 ensures that overlapping turbines will lead to
-  # less power output.
-  config.params["turbine_friction"] = numpy.ones(len(config.params["turbine_pos"]))
+  config.set_turbine_pos(turbine_pos)
+  info_blue("Deployed " + str(len(turbine_pos)) + " turbines.")
+
   config.params["turbine_x"] = 190 # We overlap the turbines on purpose
   config.params["turbine_y"] = 20
 
