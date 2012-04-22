@@ -20,12 +20,10 @@ numpy.random.seed(21)
 config = configuration.ConstantInflowPeriodicSidesPaperConfiguration(nx=100, ny=33)
 
 # The turbine position is the control variable 
-config.params["turbine_pos"] = [[30, 38], [50, 28], [70, 38], [90, 28], [110, 38], [130, 28], [150, 38], [170, 28]] 
+turbine_pos = [[30, 38], [50, 28], [70, 38], [90, 28], [110, 38], [130, 28], [150, 38], [170, 28]] 
 
-info_blue("Deployed " + str(len(config.params["turbine_pos"])) + " turbines.")
-# Choosing a friction coefficient of > 0.25 ensures that overlapping turbines will lead to
-# less power output.
-config.params["turbine_friction"] = numpy.ones(len(config.params["turbine_pos"]))
+config.set_turbine_pos(turbine_pos)
+info_blue("Deployed " + str(len(turbine_pos)) + " turbines.")
 
 model = ReducedFunctional(config, scaling_factor = -10**-6, plot = True)
 m0 = model.initial_control()

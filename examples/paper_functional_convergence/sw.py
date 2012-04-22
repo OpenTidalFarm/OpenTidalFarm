@@ -30,9 +30,9 @@ numpy.random.seed(21)
 # Force the basin size to 200x66 independent of nx and ny
 config = ConstantInflowPeriodicSidesPaperConfiguration(nx = nx, ny = ny, basin_x = basin_x, basin_y = basin_y) 
 
-config.params["turbine_pos"] = [[turbine_x_pos, turbine_y_pos]] 
-config.params["turbine_friction"] = 0.25*numpy.ones(len(config.params["turbine_pos"]))
-info_blue("Deployed " + str(len(config.params["turbine_pos"])) + " turbines at positions " + str(config.params["turbine_pos"]) + " .")
+turbine_pos = [[turbine_x_pos, turbine_y_pos]] 
+config.set_turbine_pos(turbine_pos)
+info_blue("Deployed " + str(len(turbine_pos)) + " turbines at positions " + str(turbine_pos) + " .")
 
 model = ReducedFunctional(config, scaling_factor = 10**-6)
 m0 = model.initial_control()
