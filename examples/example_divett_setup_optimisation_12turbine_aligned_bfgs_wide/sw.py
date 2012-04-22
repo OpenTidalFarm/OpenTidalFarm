@@ -29,9 +29,6 @@ for x_r in numpy.linspace(0.+border_x, config.params["basin_x"]-border_x, 6):
 
 config.set_turbine_pos(turbine_pos)
 info_blue("Deployed " + str(len(turbine_pos)) + " turbines.")
-# Choosing a friction coefficient of > 0.25 ensures that overlapping turbines will lead to
-# less power output.
-config.params["turbine_friction"] = numpy.ones(len(config.params["turbine_pos"]))
 
 model = ReducedFunctional(config, scaling_factor = -10**-2, plot = True)
 m0 = model.initial_control()
