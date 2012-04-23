@@ -5,7 +5,7 @@
  - control: turbine friction, initially zero
  - the functional is \int C * f * ||u||**3 where C is a constant
  - in order to avoid the global maximum +oo, the friction coefficient is limited to 0 <= f <= 1.0 
- - the plot in 'example_single_turbine_friction_vs_power_plot' suggestes that the optimal friction coefficient is at about 0.04413 
+ - the plot in 'example_single_turbine_friction_vs_power_plot' suggestes that the optimal friction coefficient is at about 0.251 
  '''
 
 import sys
@@ -19,41 +19,19 @@ from dolfin_adjoint import *
 from reduced_functional import ReducedFunctional
 set_log_level(PROGRESS)
 
-def default_config():
-  # We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
-  numpy.random.seed(21) 
-  config = configuration.DefaultConfiguration(nx=20, ny=10)
-  period = 1.24*60*60 # Wave period
-  config.params["k"] = 2*pi/(period*sqrt(config.params["g"]*config.params["depth"]))
-  # Start at rest state
-  config.params["start_time"] = period/4 
-  config.params["finish_time"] = period/2
-  config.params["dt"] = config.params["finish_time"]/10
-  info_green("Wave period (in h): %f" % (period/60/60, ))
-  config.params["dump_period"] = 1
-  config.params["verbose"] = 0
-  # We need a implicit scheme to avoid oscillations in the turbine areas.
-  config.params["theta"] = 1.0
+# We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
+numpy.random.seed(21) 
+config = configuration.PaperConfiguration(nx = 40, ny = 20)
+config.params['dump_period'] = 1
 
-  config.params["include_advection"] = True 
-  config.params["include_diffusion"] = True 
-  config.params["diffusion_coef"] = 20.0
+# Turbine settings
+config.params['turbine_pos'] = [[config.params['basin_x']/2, config.params['basin_y']/2]]
+config.params['turbine_friction'] = numpy.ones(len(config.params['turbine_pos']))
+config.params['controls'] = ['turbine_friction']
+config.params['finish_time'] = 1.5/4*config.period
 
-  # Turbine settings
-  config.params["friction"] = 0.0025
-  turbine_pos = [[1500., 500.]]
-  config.set_turbine_pos(turbine_pos)
-  config.params["turbine_x"] = 600
-  config.params["turbine_y"] = 600
-  config.params["controls"] = ["turbine_friction"]
-  # Solver options
-  config.params["quadratic_friction"] = True
-  config.params["picard_iterations"] = 4
-
-  return config
-
-config = default_config()
-model = ReducedFunctional(config, scaling_factor = 10**-9)
+# Set up the model
+model = ReducedFunctional(config)
 m0 = model.initial_control()
 
 p = numpy.random.rand(len(m0))
@@ -96,8 +74,8 @@ info("Solution of the primal variables: m=%s\n" % repr(m))
 info("Solution of the dual variables: lambda=%s\n" % repr(sinfo['mult_g']))
 info("Objective=%s\n" % repr(sinfo['obj_val']))
 
-if sinfo['status'] != 0 or abs(m-0.04413) > 0.0005: 
-  info_red("The optimisation algorithm did not find the correct solution: Expected m = 0.04413, but got m = " + str(m) + ".")
+if sinfo['status'] != 0 or abs(m-0.251) > 0.05: 
+  info_red("The optimisation algorithm did not find the correct solution: Expected m = 0.251, but got m = " + str(m) + ".")
   sys.exit(1) 
 else:
   info_green("Test passed")
