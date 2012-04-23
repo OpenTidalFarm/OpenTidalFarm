@@ -17,8 +17,6 @@ tests:
 	cd test_gradient_friction; make
 	@echo "=================== Running position gradient test with strong boundary conditions ==================="
 	cd test_gradient_pos_strong_dirichlet; make
-	@echo "=================== Running functional convergence test ==================="
-	cd test_functional_convergence; make
 	@echo "=================== Running optimal friction mini model test ==================="
 	cd test_optimal_friction_mini_model; make
 	@echo "=================== Running optimal position mini model test ==================="

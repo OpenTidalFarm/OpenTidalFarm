@@ -82,30 +82,31 @@ def sw_solve(config, state, turbine_field=None, time_functional=None, annotate=T
     n = FacetNormal(config.function_space.mesh())
 
     # Mass matrix
+
     M = inner(v, u) * dx
     M += inner(q, h) * dx
     M0 = inner(v, u0) * dx
     M0 += inner(q, h0) * dx
 
     # Divergence term.
-    Ct_mid = -inner(u_mid, grad(q))*dx
+    Ct_mid = -depth * inner(u_mid, grad(q))*dx
     #+inner(avg(u_mid),jump(q,n))*dS # This term is only needed for dg element pairs
 
     if bctype == 'dirichlet':
       # The dirichlet boundary condition on the left hand side 
-      ufl = Expression(("eta0*sqrt(g*depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0", "0"), eta0=params["eta0"], g=g, depth=depth, t=t, k=params["k"])
-      bc_contr = -dot(ufl, n) * q * ds(1)
+      ufl = Expression(("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0", "0"), eta0=params["eta0"], g=g, depth=depth, t=t, k=params["k"])
+      bc_contr = - depth * dot(ufl, n) * q * ds(1)
 
       # The dirichlet boundary condition on the right hand side
-      bc_contr -= dot(ufl, n) * q * ds(2)
+      bc_contr -= depth * dot(ufl, n) * q * ds(2)
 
       # We enforce a no-normal flow on the sides by removing the surface integral. 
       # bc_contr -= dot(u_mid, n) * q * ds(3)
 
     elif bctype == 'flather':
       # The Flather boundary condition on the left hand side 
-      ufl = Expression(("2*eta0*sqrt(g*depth)*cos(-sqrt(g*depth)*k*t)", "0", "0"), eta0=params["eta0"], g=g, depth=depth, t=t, k=params["k"])
-      bc_contr = -dot(ufl, n) * q * ds(1)
+      ufl = Expression(("2*eta0*sqrt(g/depth)*cos(-sqrt(g*depth)*k*t)", "0", "0"), eta0=params["eta0"], g=g, depth=depth, t=t, k=params["k"])
+      bc_contr = - depth * dot(ufl, n) * q * ds(1)
       Ct_mid += sqrt(g*depth)*inner(h_mid, q)*ds(1)
 
       # The contributions of the Flather boundary condition on the right hand side
@@ -113,16 +114,16 @@ def sw_solve(config, state, turbine_field=None, time_functional=None, annotate=T
 
     elif bctype == 'strong_dirichlet':
         # Do not replace anything in the surface integrals as the strong Dirichlet Boundary condition will do that
-        bc_contr = -dot(u_mid, n) * q * ds(1)
-        bc_contr -= dot(u_mid, n) * q * ds(2)
-        bc_contr -= dot(u_mid, n) * q * ds(3)
+        bc_contr = -depth * dot(u_mid, n) * q * ds(1)
+        bc_contr -= depth * dot(u_mid, n) * q * ds(2)
+        bc_contr -= depth * dot(u_mid, n) * q * ds(3)
 
     else:
         info_red("Unknown boundary condition type: %s" % bctype)
         sys.exit(1)
 
     # Pressure gradient operator
-    C_mid = (g * depth) * inner(v, grad(h_mid)) * dx
+    C_mid = g * inner(v, grad(h_mid)) * dx
     #+inner(avg(v),jump(h_mid,n))*dS # This term is only needed for dg element pairs
 
     # Bottom friction
@@ -137,10 +138,10 @@ def sw_solve(config, state, turbine_field=None, time_functional=None, annotate=T
     # Friction term
     # With a newton solver we can simply use a non-linear form
     if quadratic_friction and newton_solver:
-      R_mid = g * friction**2 / (depth**(4./3)) * dot(u_mid, u_mid)**0.5 * inner(u_mid, v) * dx 
+      R_mid = g * friction**2 / (depth**(1./3)) * dot(u_mid, u_mid)**0.5 * inner(u_mid, v) * dx 
     # With a picard iteration we need to linearise using the best guess
     elif quadratic_friction and not newton_solver:
-      R_mid = g * friction**2 / (depth**(4./3)) * dot(u_mid_nl, u_mid_nl)**0.5 * inner(u_mid, v) * dx 
+      R_mid = g * friction**2 / (depth**(1./3)) * dot(u_mid_nl, u_mid_nl)**0.5 * inner(u_mid, v) * dx 
     # Use a linear drag
     else:
       R_mid = g * friction**2 / (depth**(1./3)) * inner(u_mid, v) * dx 
@@ -148,10 +149,10 @@ def sw_solve(config, state, turbine_field=None, time_functional=None, annotate=T
     # Advection term 
     # With a newton solver we can simply use a quadratic form
     if include_advection and newton_solver:
-      Ad_mid = 1/depth * inner(grad(u_mid)*u_mid, v)*dx
+      Ad_mid = inner(grad(u_mid)*u_mid, v)*dx
     # With a picard iteration we need to linearise using the best guess
     if include_advection and not newton_solver:
-      Ad_mid = 1/depth * inner(grad(u_mid)*u_mid_nl, v)*dx
+      Ad_mid = inner(grad(u_mid)*u_mid_nl, v)*dx
 
     if include_diffusion:
       # Check that we are not using a DG velocity function space, as the facet integrals are not implemented.

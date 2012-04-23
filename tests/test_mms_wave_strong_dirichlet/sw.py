@@ -9,7 +9,7 @@ from math import log
 from helpers import cpu0only
 import pylab
 
-set_log_level(PROGRESS)
+set_log_level(ERROR)
 parameters["std_out_all_processes"] = False;
 
 def error(config):
@@ -18,7 +18,7 @@ def error(config):
 
   sw_model.sw_solve(config, state, annotate=False)
 
-  analytic_sol = Expression(("eta0*sqrt(g*depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", \
+  analytic_sol = Expression(("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", \
                              "0", \
                              "eta0*cos(k*x[0]-sqrt(g*depth)*k*t)"), \
                              eta0=config.params["eta0"], g=config.params["g"], \
@@ -67,7 +67,8 @@ hs = [1./2**h for h in range(len(errors))]
 
 plot(hs, errors, "spatial_convergence.pdf")
 
-info("Spatial order of convergence (expecting 2.0): %s" % str(conv))
+info_green("Absolute error values: %s" % str(errors))
+info_green("Spatial order of convergence (expecting 2.0): %s" % str(conv))
 if min(conv)<1.8:
   info_red("Spatial convergence test failed for wave_dirichlet")
   sys.exit(1)

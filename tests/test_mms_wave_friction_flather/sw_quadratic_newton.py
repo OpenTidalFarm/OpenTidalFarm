@@ -6,17 +6,17 @@ from initial_conditions import SinusoidalInitialCondition
 from dolfin import *
 from math import log
 
-set_log_level(PROGRESS)
+set_log_level(ERROR)
 parameters["std_out_all_processes"] = False;
 
 def error(config):
   state = Function(config.function_space)
   state.interpolate(SinusoidalInitialCondition(config)())
-  u_exact = "eta0*sqrt(g*depth) * cos(k*x[0]-sqrt(g*depth)*k*t)" # The analytical veclocity of the shallow water equations has been multiplied by depth to account for the change of variable (\tilde u = depth u) in this code.
-  du_exact = "(- eta0*sqrt(g*depth) * sin(k*x[0]-sqrt(g*depth)*k*t) * k)"
+  u_exact = "eta0*sqrt(g/depth) * cos(k*x[0]-sqrt(g*depth)*k*t)" 
+  du_exact = "(- eta0*sqrt(g/depth) * sin(k*x[0]-sqrt(g*depth)*k*t) * k)"
   eta_exact = "eta0*cos(k*x[0]-sqrt(g*depth)*k*t)"
   # The source term
-  source = Expression(("friction*friction*g/(pow(depth, (4.0/3.0))) * " + u_exact + "*pow(pow(" + u_exact + ", 2), 0.5)",  
+  source = Expression(("friction*friction*g/(pow(depth, (1.0/3.0))) * " + u_exact + "*pow(pow(" + u_exact + ", 2), 0.5)",  
                        "0.0"), \
                        eta0=config.params["eta0"], g=config.params["g"], \
                        depth=config.params["depth"], t=config.params["current_time"], k=config.params["k"], friction = config.params["friction"])

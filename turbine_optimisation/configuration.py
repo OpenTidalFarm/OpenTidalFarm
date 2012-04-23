@@ -1,4 +1,5 @@
 import finite_elements
+import numpy
 from dirichlet_bc import DirichletBCSet
 from dolfin import * 
 from math import exp, sqrt, pi
@@ -117,6 +118,11 @@ class DefaultConfiguration(object):
       self.domain = domain
       self.function_space = self.finite_element(self.domain.mesh)
 
+  def set_turbine_pos(self, positions, friction = 1.0):
+      ''' Sets the turbine position and a equal friction parameter. '''
+      self.params['turbine_pos'] = positions
+      self.params['turbine_friction'] = friction * numpy.ones(len(positions))
+
 class PaperConfiguration(DefaultConfiguration):
   def __init__(self, nx = 20, ny = 3, basin_x = None, basin_y = None, finite_element = finite_elements.p2p1):
     # If no mesh file is given, we compute the domain size from the number of elements(nx and ny) with a 2m element size
@@ -168,6 +174,10 @@ class PaperConfiguration(DefaultConfiguration):
     dolfin.parameters['form_compiler']['cpp_optimize'] = True
     dolfin.parameters['form_compiler']['cpp_optimize_flags'] = '-O3'
 
+  def set_turbine_pos(self, position, friction = 0.25):
+      ''' Sets the turbine position and a equal friction parameter. '''
+      super(PaperConfiguration, self).set_turbine_pos(position, friction)
+
 class ConstantInflowPeriodicSidesPaperConfiguration(PaperConfiguration):
   def __init__(self, nx = 20, ny = 3, basin_x = None, basin_y = None, finite_element = finite_elements.p2p1):
     super(ConstantInflowPeriodicSidesPaperConfiguration, self).__init__(nx, ny, basin_x, basin_y, finite_element)
@@ -185,4 +195,8 @@ class ConstantInflowPeriodicSidesPaperConfiguration(PaperConfiguration):
     self.params['start_time'] = 0.0
     self.params['dt'] = self.period
     self.params['finish_time'] = self.params['start_time'] + self.params['dt'] 
+
+  def set_turbine_pos(self, position, friction = 0.25):
+      ''' Sets the turbine position and a equal friction parameter. '''
+      super(PaperConfiguration, self).set_turbine_pos(position, friction)
 

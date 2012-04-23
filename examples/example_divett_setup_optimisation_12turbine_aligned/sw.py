@@ -3,13 +3,13 @@
 import sys
 import configuration 
 import numpy
-import IPOptUtils
 from dirichlet_bc import DirichletBCSet
+import IPOptUtils
+import ipopt
 from helpers import test_gradient_array
 from animated_plot import *
 from reduced_functional import ReducedFunctional
 from dolfin import *
-from openopt import NLP
 set_log_level(ERROR)
 
 # An animated plot to visualise the development of the functional value
@@ -36,10 +36,34 @@ m0 = model.initial_control()
 g = lambda m: []
 dg = lambda m: []
 
+f = IPOptUtils.IPOptFunction()
+# Overwrite the functional and gradient function with our implementation
+f.objective= model.j 
+#f.gradient= model.dj_with_check 
+f.gradient= model.dj
+
 # Get the upper and lower bounds for the turbine positions
 lb, ub = IPOptUtils.position_constraints(config.params)
 
-p = NLP(f = model.j, df = model.dj, x0 = m0, lb = lb, ub = ub, iprint = 2, maxTime = 60*60*24*365)
-p.goal = 'max' 
-r = p.solve('stogo')
-print r.xf
+nlp = ipopt.problem(len(m0), 
+                    0, 
+                    f, 
+                    numpy.array(lb),
+                    numpy.array(ub))
+nlp.addOption('mu_strategy', 'adaptive')
+nlp.addOption('tol', 1e-9)
+nlp.addOption('print_level', 5)
+nlp.addOption('check_derivatives_for_naninf', 'yes')
+# A -1.0 scaling factor transforms the min problem to a max problem.
+nlp.addOption('obj_scaling_factor', -1.0)
+# Use an approximate Hessian since we do not have second order information.
+nlp.addOption('hessian_approximation', 'limited-memory')
+nlp.addOption('max_iter', 50)
+
+m, sinfo = nlp.solve(m0)
+info(sinfo['status_msg'])
+info("Solution of the primal variables: m=%s" % repr(m))
+info("Solution of the dual variables: lambda=%s" % repr(sinfo['mult_g']))
+info("Objective=%s" % repr(sinfo['obj_val']))
+
+list_timings()
