@@ -29,7 +29,7 @@ def default_config():
 
   return config
 
-def j_and_dj(m):
+def j_and_dj(m, forward_only = None):
   # Change the control variables to the config parameters
   config.params["turbine_friction"] = m[:len(config.params["turbine_friction"])]
   mp = m[len(config.params["turbine_friction"]):]
@@ -51,23 +51,27 @@ def j_and_dj(m):
   # The functional of interest is simply the l2 norm of the turbine field
   j = v.inner(v)  
 
-  dj = []
-  # Compute the derivatives with respect to the turbine friction
-  for n in range(len(config.params["turbine_friction"])):
-    tfd.interpolate(Turbines(config.params, derivative_index_selector=n, derivative_var_selector='turbine_friction'))
-    dj.append( 2 * v.inner(tfd.vector()) )
+  if not forward_only:
+      dj = []
+      # Compute the derivatives with respect to the turbine friction
+      for n in range(len(config.params["turbine_friction"])):
+        tfd.interpolate(Turbines(config.params, derivative_index_selector=n, derivative_var_selector='turbine_friction'))
+        dj.append( 2 * v.inner(tfd.vector()) )
 
-  # Compute the derivatives with respect to the turbine position
-  for n in range(len(config.params["turbine_pos"])):
-    for var in ('turbine_pos_x', 'turbine_pos_y'):
-      tfd.interpolate(Turbines(config.params, derivative_index_selector=n, derivative_var_selector=var))
-      dj.append( 2 * v.inner(tfd.vector()) )
-  dj = numpy.array(dj)  
-  
-  return j, dj 
+      # Compute the derivatives with respect to the turbine position
+      for n in range(len(config.params["turbine_pos"])):
+        for var in ('turbine_pos_x', 'turbine_pos_y'):
+          tfd.interpolate(Turbines(config.params, derivative_index_selector=n, derivative_var_selector=var))
+          dj.append( 2 * v.inner(tfd.vector()) )
+      dj = numpy.array(dj)  
+      
+      return j, dj 
+  else:
+      return j, None 
 
-j = lambda m: j_and_dj(m)[0]
-dj = lambda m: j_and_dj(m)[1]
+
+j = lambda m, forward_only = False: j_and_dj(m, forward_only)[0]
+dj = lambda m: j_and_dj(m, forward_only = False)[1]
 
 # run the taylor remainder test 
 config = default_config()
@@ -83,4 +87,6 @@ for turbine_model, s in {'GaussianTurbine': {'seed': 100.0, 'tol': 1.9}, 'BumpTu
   minconv = test_gradient_array(j, dj, m0, s['seed'], perturbation_direction=p)
 
   if minconv < s['tol']:
+    info_red("The turbine test failed")
     sys.exit(1)
+info_green("Test passed")    
