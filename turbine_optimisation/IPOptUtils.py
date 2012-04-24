@@ -23,13 +23,13 @@ class  IPOptFunction(object):
     ''' The Jacobian of the constraint functions evaluated at x. '''
     return (numpy.array([]), numpy.array([]))
 
-def position_constraints(params, spacing_sides = 0):
+def position_constraints(params, spacing_sides = 0, spacing_left = 0, spacing_right = 0):
   ''' This function returns the constraints to ensure that the turbine positions remain inside the domain. '''
   n = len(params["turbine_pos"])
   lc = []
-  lb_x = params["turbine_x"]/2 
+  lb_x = params["turbine_x"]/2 + spacing_left 
   lb_y = params["turbine_y"]/2 + spacing_sides
-  ub_x = params["basin_x"] - params["turbine_x"]/2 
+  ub_x = params["basin_x"] - params["turbine_x"]/2 + spacing_right
   ub_y = params["basin_y"] - params["turbine_y"]/2 - spacing_sides
   
   # The control variable is ordered as [t1_x, t1_y, t2_x, t2_y, t3_x, ...]
