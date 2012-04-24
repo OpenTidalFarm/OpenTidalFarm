@@ -240,3 +240,6 @@ class ConstantInflowPeriodicSidesPaperConfiguration(PaperConfiguration):
       ''' Sets the turbine position and a equal friction parameter. '''
       super(PaperConfiguration, self).set_turbine_pos(position, friction)
 
+class WideConstantInflowPeriodicSidesPaperConfiguration(ConstantInflowPeriodicSidesPaperConfiguration):
+  def __init__(self, nx = 100, ny = 66, basin_x = None, basin_y = None, mesh_file = None, finite_element = finite_elements.p2p1):
+    super(WideConstantInflowPeriodicSidesPaperConfiguration, self).__init__(nx, ny, basin_x, basin_y, mesh_file, finite_element)
