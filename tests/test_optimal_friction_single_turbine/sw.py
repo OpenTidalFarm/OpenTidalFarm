@@ -17,7 +17,7 @@ from dolfin import *
 from helpers import test_gradient_array 
 from dolfin_adjoint import *
 from reduced_functional import ReducedFunctional
-set_log_level(PROGRESS)
+set_log_level(ERROR)
 
 # We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
 numpy.random.seed(21) 
@@ -25,8 +25,7 @@ config = configuration.PaperConfiguration(nx = 40, ny = 20)
 config.params['dump_period'] = 1
 
 # Turbine settings
-config.params['turbine_pos'] = [[config.params['basin_x']/2, config.params['basin_y']/2]]
-config.params['turbine_friction'] = numpy.ones(len(config.params['turbine_pos']))
+config.set_turbine_pos([[config.params['basin_x']/2, config.params['basin_y']/2]])
 config.params['controls'] = ['turbine_friction']
 config.params['finish_time'] = 1.5/4*config.period
 
