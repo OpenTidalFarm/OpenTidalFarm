@@ -7,16 +7,14 @@ set_log_level(PROGRESS)
 
 # We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
 numpy.random.seed(21) 
-config = configuration.ConstantInflowPeriodicSidesPaperConfiguration(nx=100, ny=33)
+config = configuration.ConstantInflowPeriodicSidesPaperConfiguration()
 
 # The turbine position is the control variable 
 turbine_pos = [[100, 33]] 
-
 config.set_turbine_pos(turbine_pos)
 info_blue("Deployed " + str(len(turbine_pos)) + " turbines.")
 
 model = ReducedFunctional(config)
-
 m0 = model.initial_control()
 j0 = model.j(m0)
 dj0 = model.dj(m0)
