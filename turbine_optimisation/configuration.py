@@ -165,9 +165,9 @@ class PaperConfiguration(DefaultConfiguration):
     self.params['bctype'] = 'dirichlet',
     self.params['bctype'] = 'strong_dirichlet'
     bc = DirichletBCSet(self)
-    bc.add_analytic_u(self.domain.left)
-    bc.add_analytic_u(self.domain.right)
-    bc.add_noslip_u(self.domain.sides)
+    bc.add_analytic_u(1)
+    bc.add_analytic_u(2)
+    bc.add_noslip_u(3)
     self.params['strong_bc'] = bc
 
     # Finally set some optimistion flags 
@@ -188,8 +188,8 @@ class ConstantInflowPeriodicSidesPaperConfiguration(PaperConfiguration):
     self.params['theta'] = 1.0
 
     bc = DirichletBCSet(self)
-    bc.add_constant_flow(self.domain.left)
-    bc.add_noslip_u(self.domain.sides)
+    bc.add_constant_flow(1)
+    bc.add_noslip_u(2)
     self.params['strong_bc'] = bc
 
     self.params['start_time'] = 0.0

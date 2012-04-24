@@ -3,7 +3,7 @@ import configuration
 import numpy
 from dirichlet_bc import DirichletBCSet
 from reduced_functional import ReducedFunctional
-from domains import LShapeDomain
+from domains import GMeshDomain 
 from dolfin import *
 set_log_level(PROGRESS)
 
@@ -11,15 +11,15 @@ set_log_level(PROGRESS)
 numpy.random.seed(21) 
 config = configuration.ConstantInflowPeriodicSidesPaperConfiguration()
 
-L_len = 50
-config.set_domain( LShapeDomain("mesh.xml", L_len) )
+config.set_domain( GMeshDomain("mesh.xml") )
 # We also need to reapply the bc
 bc = DirichletBCSet(config)
 bc.add_constant_flow(1)
 bc.add_noslip_u(3)
 config.params['strong_bc'] = bc
 
-# Place some 
+# Place some turbines 
+L_len = 50
 config.params["turbine_pos"] = [[L_len/4, L_len/4]] 
 
 info_blue("Deployed " + str(len(config.params["turbine_pos"])) + " turbines.")

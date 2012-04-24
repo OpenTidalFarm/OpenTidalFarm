@@ -35,17 +35,17 @@ class DirichletBCSet:
         self.analytic_u.t = t
         self.constant_inflow.t = t
 
-    def add_analytic_u(self, sub_domain):
-        self.bcs.append(DirichletBC(self.config.function_space.sub(0), self.analytic_u, sub_domain))
+    def add_analytic_u(self, label):
+        self.bcs.append(DirichletBC(self.config.function_space.sub(0), self.analytic_u, self.config.domain.boundaries, label))
 
-    def add_constant_flow(self, sub_domain):
-        self.bcs.append(DirichletBC(self.config.function_space.sub(0), self.constant_inflow, sub_domain))
+    def add_constant_flow(self, label):
+        self.bcs.append(DirichletBC(self.config.function_space.sub(0), self.constant_inflow, self.config.domain.boundaries, label))
 
-    def add_analytic_eta(self, sub_domain):
-        self.bcs.append(DirichletBC(self.config.function_space.sub(1), self.analytic_eta, sub_domain))
+    def add_analytic_eta(self, label):
+        self.bcs.append(DirichletBC(self.config.function_space.sub(1), self.analytic_eta, self.config.domain.boundaries, label))
 
-    def add_noslip_u(self, sub_domain):
-        self.bcs.append(DirichletBC(self.config.function_space.sub(0), Constant(("0.0", "0.0")), sub_domain))
+    def add_noslip_u(self, label):
+        self.bcs.append(DirichletBC(self.config.function_space.sub(0), Constant(("0.0", "0.0")), self.config.domain.boundaries, label))
 
     def add_periodic_sides(self):
         config = self.config
