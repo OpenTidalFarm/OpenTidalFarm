@@ -20,7 +20,7 @@ for x_r in numpy.linspace(0.+border_x, config.params["basin_x"]-border_x, 2):
 config.set_turbine_pos(turbine_pos)
 info_blue("Deployed " + str(len(turbine_pos)) + " turbines.")
 
-model = ReducedFunctional(config, scaling_factor = 10**-6)
+model = ReducedFunctional(config)
 m0 = model.initial_control()
 j0 = model.j(m0)
 dj0 = model.dj(m0)
