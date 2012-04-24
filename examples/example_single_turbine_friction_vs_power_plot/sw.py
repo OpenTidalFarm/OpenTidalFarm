@@ -9,19 +9,16 @@ from reduced_functional import ReducedFunctional
 
 # We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
 numpy.random.seed(21) 
-config = configuration.PaperConfiguration(nx = 40, ny = 20)
-config.params['dump_period'] = 1
+config = configuration.ConstantInflowPeriodicSidesPaperConfiguration()
 
 # Turbine settings
-config.params['turbine_pos'] = [[config.params['basin_x']/2, config.params['basin_y']/2]]
-config.params['turbine_friction'] = numpy.ones(len(config.params['turbine_pos']))
+config.set_turbine_pos([[config.params['basin_x']/2, config.params['basin_y']/2]])
 config.params['controls'] = ['turbine_friction']
-config.params['finish_time'] = 1.5/4*config.period
 
 # Set up the model
 model = ReducedFunctional(config)
 m0 = model.initial_control()
-m_list = [m0*i for i in numpy.linspace(.1, 1., 10)]
+m_list = [numpy.ones(len(m0))*i for i in numpy.linspace(.1, 0.5, 20)]
 info_green('Testing friction coefficients: ' + str(m_list))
 
 # We already know that a zero friction leads to a zero power 

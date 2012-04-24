@@ -219,7 +219,7 @@ class PaperConfiguration(DefaultConfiguration):
       super(PaperConfiguration, self).set_turbine_pos(position, friction)
 
 class ConstantInflowPeriodicSidesPaperConfiguration(PaperConfiguration):
-  def __init__(self, nx = 20, ny = 3, basin_x = None, basin_y = None, mesh_file = None, finite_element = finite_elements.p2p1):
+  def __init__(self, nx = 100, ny = 33, basin_x = None, basin_y = None, mesh_file = None, finite_element = finite_elements.p2p1):
     super(ConstantInflowPeriodicSidesPaperConfiguration, self).__init__(nx, ny, basin_x, basin_y, mesh_file, finite_element)
 
     self.params["initial_condition"] = ConstantFlowInitialCondition 
