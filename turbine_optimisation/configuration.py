@@ -196,7 +196,7 @@ class ConstantInflowPeriodicSidesPaperConfiguration(PaperConfiguration):
     self.params['dt'] = self.period
     self.params['finish_time'] = self.params['start_time'] + self.params['dt'] 
 
-  def set_turbine_pos(self, position, friction = 0.25):
+  def set_turbine_pos(self, position, friction = 1.):
       ''' Sets the turbine position and a equal friction parameter. '''
       super(PaperConfiguration, self).set_turbine_pos(position, friction)
 
