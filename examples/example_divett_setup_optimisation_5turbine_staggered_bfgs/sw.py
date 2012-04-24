@@ -6,14 +6,11 @@ import numpy
 import IPOptUtils
 from dirichlet_bc import DirichletBCSet
 from helpers import test_gradient_array
-from animated_plot import *
 from reduced_functional import ReducedFunctional
 from dolfin import *
 from scipy.optimize import fmin_l_bfgs_b
 set_log_level(ERROR)
 
-# An animated plot to visualise the development of the functional value
-plot = AnimatedPlot(xlabel='Iteration', ylabel='Functional value')
 
 # We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
 numpy.random.seed(21) 
