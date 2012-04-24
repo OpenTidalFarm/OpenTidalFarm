@@ -39,9 +39,9 @@ def default_config():
   # Boundary condition settings
   config.params["bctype"] = "strong_dirichlet"
   bc = DirichletBCSet(config)
-  bc.add_analytic_u(config.domain.left)
-  bc.add_analytic_u(config.domain.right)
-  bc.add_analytic_u(config.domain.sides)
+  bc.add_analytic_u(1)
+  bc.add_analytic_u(2)
+  bc.add_analytic_u(3)
   config.params["strong_bc"] = bc
 
   # Turbine settings

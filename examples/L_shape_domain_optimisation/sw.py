@@ -19,8 +19,8 @@ L_len = 200
 config.set_domain( LShapeDomain("mesh.xml", L_len) )
 # We also need to reapply the bc
 bc = DirichletBCSet(config)
-bc.add_constant_flow(config.domain.left)
-bc.add_noslip_u(config.domain.sides)
+bc.add_constant_flow(1)
+bc.add_noslip_u(3)
 config.params['strong_bc'] = bc
 
 # The turbine position is the control variable 
@@ -31,7 +31,7 @@ info_blue("Deployed " + str(len(config.params["turbine_pos"])) + " turbines.")
 # less power output.
 config.params["turbine_friction"] = numpy.ones(len(config.params["turbine_pos"]))
 
-model = ReducedFunctional(config, scaling_factor = 10**-6, plot = True)
+model = ReducedFunctional(config, scaling_factor = 10**1, plot = True)
 m0 = model.initial_control()
 
 g = lambda m: []
