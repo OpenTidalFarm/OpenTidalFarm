@@ -37,3 +37,36 @@ def position_constraints(params, spacing_sides = 0, spacing_left = 0, spacing_ri
   ub = n * [ub_x, ub_y]
   return lb, ub 
 
+def get_minimum_distance_constraint_func(config, min_distance = 40):
+    if config.params['controls'] != ['turbine_pos']:
+        raise NotImplementedError, "Inequality contraints are currently only supported if turbine_pos are the only controls"
+
+    def l2norm(x):
+        return sum([v**2 for v in x])
+
+    def f_ieqcons(m):
+        ieqcons = []
+        for i in range(len(m)/2):                                                                           
+            for j in range(len(m)/2):                                                                       
+                if i == j:
+                    continue
+                ieqcons.append(l2norm( [m[2*i]-m[2*j], m[2*i+1]-m[2*j+1]] ) - min_distance**2)              
+        return numpy.array(ieqcons)
+
+    def fprime_ieqcons(m):
+        ieqcons = []
+        for i in range(len(m)/2):
+            for j in range(len(m)/2):
+                if i == j:
+                    continue
+                prime_ieqcons = numpy.zeros(len(m))
+
+                prime_ieqcons[2*i] = 2*(m[2*i]-m[2*j])
+                prime_ieqcons[2*j] = -2*(m[2*i]-m[2*j])
+                prime_ieqcons[2*i+1] = 2*(m[2*i+1]-m[2*j+1])
+                prime_ieqcons[2*j+1] = -2*(m[2*i+1]-m[2*j+1])
+
+                ieqcons.append(prime_ieqcons)
+        return numpy.array(ieqcons)
+
+    return f_ieqcons, fprime_ieqcons 
