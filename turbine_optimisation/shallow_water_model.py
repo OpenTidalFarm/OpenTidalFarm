@@ -287,12 +287,12 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
                 if steady_state or functional_final_time_only:
                     quad = 1.0
                 elif t >= params["finish_time"]:
-                    quad = 0.5
+                    quad = 0.5 * dt
                 else:
-                    quad = 1.0
-                j += dt * quad * assemble(functional.Jt(state)) 
+                    quad = 1.0 * dt 
+                j += quad * assemble(functional.Jt(state)) 
                 djtdm = numpy.array([assemble(f) for f in functional.dJtdm(state)])
-                djdm += dt * quad * djtdm
+                djdm += quad * djtdm
 
         # Increase the adjoint timestep
         adj_inc_timestep()

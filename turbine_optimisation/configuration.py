@@ -203,7 +203,7 @@ class PaperConfiguration(DefaultConfiguration):
     self.params['dt'] = self.period/50
     self.params['finish_time'] = 3./4*self.period
     info('Wave period (in h): %f' % (self.period/60/60) )
-    info('Approximate CFL number (assuming a velocity of 2): ' +str(2*self.params['dt']/self.mesh.hmin()))
+    info('Approximate CFL number (assuming a velocity of 2): ' + str(2*self.params['dt']/self.mesh.hmin()))
 
     # Configure the boundary conditions
     self.params['bctype'] = 'dirichlet',
@@ -230,7 +230,7 @@ class ConstantInflowPeriodicSidesPaperConfiguration(PaperConfiguration):
     self.params["newton_solver"] = False
     self.params["picard_iterations"] = 2
     self.params['theta'] = 1.0
-    self.params['functional_final_time_only'] = False
+    self.params['functional_final_time_only'] = True
 
     bc = DirichletBCSet(self)
     bc.add_constant_flow(self.left)

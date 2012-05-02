@@ -13,10 +13,10 @@ from dolfin import *
 set_log_level(PROGRESS)
 numpy.random.seed(21)
 
-for c in [ConstantInflowPeriodicSidesPaperConfiguration]:
-    info_green("Testing configration " + c.__name__)
+for c in [DefaultConfiguration, PaperConfiguration, ConstantInflowPeriodicSidesPaperConfiguration]:
+    info_green("Testing configuration " + c.__name__)
     config = c(nx = 15, ny = 15)
-    config.params['finish_time'] = config.params["start_time"] + config.params["dt"]
+    config.params['finish_time'] = config.params["start_time"] + 2*config.params["dt"]
 
     # The turbine position is the control variable 
     turbine_pos = [] 
