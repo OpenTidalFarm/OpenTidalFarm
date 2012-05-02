@@ -10,7 +10,7 @@ def ConstantFlowBoundaryCondition(config):
             self.eta0 = config.params["eta0"]
 
         def eval(self, values, X):
-            values[0] = self.eta0 * sqrt(self.g / self.depth) 
+            values[0] = - self.eta0 * sqrt(self.g / self.depth) 
             values[1] = 0.
         def value_shape(self):
             return (2,)
@@ -35,21 +35,21 @@ class DirichletBCSet:
         self.analytic_u.t = t
         self.constant_inflow.t = t
 
-    def add_analytic_u(self, sub_domain):
+    def add_analytic_u(self, label):
         if self.config.params['steady_state']:
             raise ValueError, 'Can not apply a time dependent boundary condition for a steady state simulation.'
-        self.bcs.append(DirichletBC(self.config.function_space.sub(0), self.analytic_u, sub_domain))
+        self.bcs.append(DirichletBC(self.config.function_space.sub(0), self.analytic_u, self.config.domain.boundaries, label))
 
-    def add_constant_flow(self, sub_domain):
-        self.bcs.append(DirichletBC(self.config.function_space.sub(0), self.constant_inflow, sub_domain))
+    def add_constant_flow(self, label):
+        self.bcs.append(DirichletBC(self.config.function_space.sub(0), self.constant_inflow, self.config.domain.boundaries, label))
 
-    def add_analytic_eta(self, sub_domain):
+    def add_analytic_eta(self, label):
         if self.config.params['steady_state']:
             raise ValueError, 'Can not apply a time dependent boundary condition for a steady state simulation.'
-        self.bcs.append(DirichletBC(self.config.function_space.sub(1), self.analytic_eta, sub_domain))
+        self.bcs.append(DirichletBC(self.config.function_space.sub(1), self.analytic_eta, self.config.domain.boundaries, label))
 
-    def add_noslip_u(self, sub_domain):
-        self.bcs.append(DirichletBC(self.config.function_space.sub(0), Constant(("0.0", "0.0")), sub_domain))
+    def add_noslip_u(self, label):
+        self.bcs.append(DirichletBC(self.config.function_space.sub(0), Constant(("0.0", "0.0")), self.config.domain.boundaries, label))
 
     def add_periodic_sides(self):
         config = self.config

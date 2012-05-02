@@ -15,7 +15,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
     ############################### Setting up the equations ###########################
 
     # Define variables for all used parameters
-    ds = config.ds
+    ds = config.domain.ds
     params = config.params
 
     # To begin with, check if the provided parameters are valid

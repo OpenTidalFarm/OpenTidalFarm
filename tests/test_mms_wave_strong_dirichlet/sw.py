@@ -35,9 +35,9 @@ def test(refinment_level):
     config.params["dump_period"] = 100000
     config.params["bctype"] = "strong_dirichlet"
     bc = DirichletBCSet(config)
-    bc.add_analytic_u(config.left)
-    bc.add_analytic_u(config.right)
-    bc.add_analytic_u(config.sides)
+    bc.add_analytic_u(1)
+    bc.add_analytic_u(2)
+    bc.add_analytic_u(3)
     config.params["strong_bc"] = bc
 
     return error(config)
