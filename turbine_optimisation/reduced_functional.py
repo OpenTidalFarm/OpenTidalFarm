@@ -35,7 +35,7 @@ class ReducedFunctional:
                 mp = m[shift:]
                 config.params["turbine_pos"] = numpy.reshape(mp, (-1, 2))
 
-            debugging["record_all"] = not forward_only
+            parameters["adjoint"]["record_all"] = not forward_only
 
             # Get initial conditions
             state = Function(config.function_space, name="Current_state")
@@ -53,13 +53,17 @@ class ReducedFunctional:
 
             # Solve the shallow water system
             functional = DefaultFunctional(config.function_space, config.params)
-            j, djdm = forward_model(config, state, time_functional=functional, turbine_field = tf)
+            j, djdm = forward_model(config, state, functional=functional, turbine_field = tf)
+            adj_html("forward.html", "forward")
 
             # And the adjoint system to compute the gradient if it was asked for
             if forward_only:
                 dj = None
             else:
-                J = TimeFunctional(functional.Jt(state), static_variables = [functional.turbine_cache["turbine_field"]], dt = config.params["dt"])
+                if config.params['steady_state'] or config.params["functional_final_time_only"]:
+                    J = FinalFunctional(functional.Jt(state))
+                else:
+                    J = TimeFunctional(functional.Jt(state), static_variables = [functional.turbine_cache["turbine_field"]], dt = config.params["dt"])
                 djdudm = compute_gradient(J, InitialConditionParameter("friction"))
 
                 # Let J be the functional, m the parameter and u the solution of the PDE equation F(u) = 0.

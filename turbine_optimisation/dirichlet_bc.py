@@ -36,12 +36,16 @@ class DirichletBCSet:
         self.constant_inflow.t = t
 
     def add_analytic_u(self, sub_domain):
+        if self.config.params['steady_state']:
+            raise ValueError, 'Can not apply a time dependent boundary condition for a steady state simulation.'
         self.bcs.append(DirichletBC(self.config.function_space.sub(0), self.analytic_u, sub_domain))
 
     def add_constant_flow(self, sub_domain):
         self.bcs.append(DirichletBC(self.config.function_space.sub(0), self.constant_inflow, sub_domain))
 
     def add_analytic_eta(self, sub_domain):
+        if self.config.params['steady_state']:
+            raise ValueError, 'Can not apply a time dependent boundary condition for a steady state simulation.'
         self.bcs.append(DirichletBC(self.config.function_space.sub(1), self.analytic_eta, sub_domain))
 
     def add_noslip_u(self, sub_domain):

@@ -5,7 +5,7 @@ import sys
 from dolfin import *
 from dolfin_adjoint import *
 
-def sw_solve(config, state, turbine_field=None, time_functional=None, annotate=True, u_source = None):
+def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, u_source = None):
     '''Solve the shallow water equations with the parameters specified in params.
        Options for linear_solver and preconditioner are: 
         linear_solver: lu, cholesky, cg, gmres, bicgstab, minres, tfqmr, richardson
@@ -41,6 +41,8 @@ def sw_solve(config, state, turbine_field=None, time_functional=None, annotate=T
     preconditioner = params["preconditioner"]
     bctype = params["bctype"]
     strong_bc = params["strong_bc"]
+    steady_state = params["steady_state"]
+    functional_final_time_only = params["functional_final_time_only"]
     is_nonlinear = (include_advection or quadratic_friction)
 
     # Print out an estimation of the Reynolds number 
@@ -49,6 +51,11 @@ def sw_solve(config, state, turbine_field=None, time_functional=None, annotate=T
     else:
       reynolds = "oo"
     info("Expected Reynolds number is roughly (assumes velocity is 2): %s" % str(reynolds))
+
+    # Take care of the steady state case
+    if steady_state:
+        dt = 1.
+        theta = 1.
 
     # Define test functions
     (v, q) = TestFunctions(config.function_space)
@@ -93,6 +100,8 @@ def sw_solve(config, state, turbine_field=None, time_functional=None, annotate=T
     #+inner(avg(u_mid),jump(q,n))*dS # This term is only needed for dg element pairs
 
     if bctype == 'dirichlet':
+      if steady_state:
+          raise ValueError, "Can not use a time dependent boundary condition for a steady state simulation"
       # The dirichlet boundary condition on the left hand side 
       ufl = Expression(("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0", "0"), eta0=params["eta0"], g=g, depth=depth, t=t, k=params["k"])
       bc_contr = - depth * dot(ufl, n) * q * ds(1)
@@ -104,6 +113,8 @@ def sw_solve(config, state, turbine_field=None, time_functional=None, annotate=T
       # bc_contr -= dot(u_mid, n) * q * ds(3)
 
     elif bctype == 'flather':
+      if steady_state:
+          raise ValueError, "Can not use a time dependent boundary condition for a steady state simulation"
       # The Flather boundary condition on the left hand side 
       ufl = Expression(("2*eta0*sqrt(g/depth)*cos(-sqrt(g*depth)*k*t)", "0", "0"), eta0=params["eta0"], g=g, depth=depth, t=t, k=params["k"])
       bc_contr = - depth * dot(ufl, n) * q * ds(1)
@@ -171,7 +182,9 @@ def sw_solve(config, state, turbine_field=None, time_functional=None, annotate=T
     # Add the source term
     if u_source:
         G_mid -= inner(u_source, v)*dx 
-    F = M - M0 + dt * G_mid - dt * bc_contr
+    F = dt * G_mid - dt * bc_contr
+    if not steady_state:
+        F += M - M0 
 
     # Preassemble the lhs if possible
     use_lu_solver = (linear_solver == "lu") 
@@ -194,10 +207,14 @@ def sw_solve(config, state, turbine_field=None, time_functional=None, annotate=T
     
     step = 0    
 
-    if time_functional is not None:
-      quad = 0.5
-      j =  dt * quad * assemble(time_functional.Jt(state)) 
-      djdm = dt * quad * numpy.array([assemble(f) for f in time_functional.dJtdm(state)])
+    if functional is not None:
+        if steady_state or functional_final_time_only:
+            j = 0.
+            djdm = 0.
+        else:
+            quad = 0.5
+            j =  dt * quad * assemble(functional.Jt(state)) 
+            djdm = dt * quad * numpy.array([assemble(f) for f in functional.dJtdm(state)])
 
     while (t < params["finish_time"]):
         t += dt
@@ -265,18 +282,23 @@ def sw_solve(config, state, turbine_field=None, time_functional=None, annotate=T
         if step%params["dump_period"] == 0:
             writer.write(state)
 
-        if time_functional is not None:
-          if t >= params["finish_time"]:
-            quad = 0.5
-          else:
-            quad = 1.0
-          j += dt * quad * assemble(time_functional.Jt(state)) 
-          djtdm = numpy.array([assemble(f) for f in time_functional.dJtdm(state)])
-          djdm += dt * quad * djtdm
+        if functional is not None:
+            if not (functional_final_time_only and t < params["finish_time"]):
+                if steady_state or functional_final_time_only:
+                    quad = 1.0
+                elif t >= params["finish_time"]:
+                    quad = 0.5
+                else:
+                    quad = 1.0
+                j += dt * quad * assemble(functional.Jt(state)) 
+                djtdm = numpy.array([assemble(f) for f in functional.dJtdm(state)])
+                djdm += dt * quad * djtdm
 
         # Increase the adjoint timestep
         adj_inc_timestep()
+        if steady_state:
+            break
 
-    if time_functional is not None:
-      return j, djdm # return the state at the final time
+    if functional is not None:
+      return j, djdm 
 

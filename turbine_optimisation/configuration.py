@@ -19,6 +19,8 @@ class Parameters(dict):
             'start_time' : 'start time',
             'current_time' : 'current time',
             'finish_time' : 'finish time',
+            'steady_state' : 'steady state simulation',
+            'functional_final_time_only' : 'if the functional should be evaluated at the final time only (used if the time stepping is used to converge to a steady state)',
             'dump_period' : 'dump period in timesteps',
             'bctype'  : 'type of boundary condition to be applied',
             'strong_bc'  : 'list of strong dirichlet boundary conditions to be applied',
@@ -66,6 +68,8 @@ class DefaultConfiguration(object):
     params = Parameters({
         'verbose'  : 1,
         'theta' : 0.6,
+        'steady_state' : False,
+        'functional_final_time_only' : False,
         'initial_condition' : SinusoidalInitialCondition, 
         'bctype'  : 'flather',
         'strong_bc' : None,
@@ -226,6 +230,7 @@ class ConstantInflowPeriodicSidesPaperConfiguration(PaperConfiguration):
     self.params["newton_solver"] = False
     self.params["picard_iterations"] = 2
     self.params['theta'] = 1.0
+    self.params['functional_final_time_only'] = False
 
     bc = DirichletBCSet(self)
     bc.add_constant_flow(self.left)

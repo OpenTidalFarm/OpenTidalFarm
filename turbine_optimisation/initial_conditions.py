@@ -3,6 +3,8 @@ from dolfin import *
 
 def SinusoidalInitialCondition(config):
     params = config.params
+    if params['steady_state']:
+        raise ValueError, 'Can not apply the time dependent sinusoidal initial condition for a steady state simulation.'
 
     class SinusoidalExpr(Expression):
         '''This class implements the Expression class for the shallow water initial condition.'''
