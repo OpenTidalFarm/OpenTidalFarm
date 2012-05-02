@@ -48,7 +48,7 @@ def get_minimum_distance_constraint_func(config, min_distance = 40):
         ieqcons = []
         for i in range(len(m)/2):                                                                           
             for j in range(len(m)/2):                                                                       
-                if i == j:
+                if i <= j:
                     continue
                 ieqcons.append(l2norm( [m[2*i]-m[2*j], m[2*i+1]-m[2*j+1]] ) - min_distance**2)              
         return numpy.array(ieqcons)
@@ -57,7 +57,7 @@ def get_minimum_distance_constraint_func(config, min_distance = 40):
         ieqcons = []
         for i in range(len(m)/2):
             for j in range(len(m)/2):
-                if i == j:
+                if i <= j:
                     continue
                 prime_ieqcons = numpy.zeros(len(m))
 
