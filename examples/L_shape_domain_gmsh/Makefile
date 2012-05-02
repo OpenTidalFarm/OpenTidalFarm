@@ -7,5 +7,9 @@ clean:
 	rm -f *vtu
 	rm -f *pvd
 	rm -f output.txt
+	rm -f *.html
+	rm -f *.xml
+	rm -f *.xml.bak
+	rm -f *.msh
 
 
