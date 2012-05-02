@@ -67,29 +67,31 @@ class DefaultFunctional(FunctionalPrototype):
         U = W.split()[0].sub(0) # extract the first component of the velocity function space 
         U = U.collapse() # recompute the dof map
 
-        # Precompute the interpolation of the friction function
+        # Precompute the interpolation of the friction function of all turbines
         turbines = Turbines(params)
-        tf = Function(U)
+        tf = Function(U, name = "functional_turbine_friction")
         tf.interpolate(turbines)
         turbine_cache["turbine_field"] = tf
 
-        # Precompute the derivatives with respect to the friction
+        # Precompute the derivatives with respect to the friction magnitude of each turbine
+        # TODO: Only needed if turbine_friction is a control:
+        # if "turbine_friction" in params["controls"]:
         turbine_cache["turbine_derivative_friction"] = []
         for n in range(len(params["turbine_friction"])):
-            tf = Function(U)
             turbines = Turbines(params, derivative_index_selector=n, derivative_var_selector='turbine_friction')
-            tf = Function(U)
+            tf = Function(U, name =  "functional_turbine_friction_derivative_with_respect_friction_magnitude_of_turbine_" + str(n))
             tf.interpolate(turbines)
             turbine_cache["turbine_derivative_friction"].append(tf)
 
         # Precompute the derivatives with respect to the turbine position
+        # TODO: Only needed if turbine_pos is a control:
+        # if "turbine_pos" in params["controls"]:
         turbine_cache["turbine_derivative_pos"] = []
         for n in range(len(params["turbine_pos"])):
             turbine_cache["turbine_derivative_pos"].append({})
             for var in ('turbine_pos_x', 'turbine_pos_y'):
-                tf = Function(U)
                 turbines = Turbines(params, derivative_index_selector=n, derivative_var_selector=var)
-                tf = Function(U)
+                tf = Function(U, name = "functional_turbine_friction_derivative_with_respect_position_of_turbine_" + str(n))
                 tf.interpolate(turbines)
                 turbine_cache["turbine_derivative_pos"][-1][var] = tf
 
