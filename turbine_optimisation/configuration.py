@@ -25,6 +25,7 @@ class Parameters(dict):
             'dump_period' : 'dump period in timesteps',
             'bctype'  : 'type of boundary condition to be applied',
             'strong_bc'  : 'list of strong dirichlet boundary conditions to be applied',
+            'free_slip_on_sides' : 'apply free slip boundary conditions on the sides (id=3)',
             'initial_condition'  : 'initial condition function',
             'include_advection': 'advection term on',
             'include_diffusion': 'diffusion term on',
@@ -77,6 +78,7 @@ class DefaultConfiguration(object):
         'initial_condition' : SinusoidalInitialCondition, 
         'bctype'  : 'flather',
         'strong_bc' : None,
+        'free_slip_on_sides' : False,
         'include_advection': False,
         'include_diffusion': False,
         'diffusion_coef': 0.0,
@@ -206,5 +208,17 @@ class ConstantInflowPeriodicSidesPaperConfiguration(PaperConfiguration):
       super(PaperConfiguration, self).set_turbine_pos(position, friction)
 
 class WideConstantInflowPeriodicSidesPaperConfiguration(ConstantInflowPeriodicSidesPaperConfiguration):
-  def __init__(self, nx = 100, ny = 66, basin_x = None, basin_y = None, mesh_file = None, finite_element = finite_elements.p2p1):
-    super(WideConstantInflowPeriodicSidesPaperConfiguration, self).__init__(nx, ny, basin_x, basin_y, mesh_file, finite_element)
+  def __init__(self, nx = 100, ny = 66, basin_x = None, basin_y = None, finite_element = finite_elements.p2p1):
+    super(WideConstantInflowPeriodicSidesPaperConfiguration, self).__init__(nx, ny, basin_x, basin_y, finite_element)
+
+class ScenarioConfiguration(ConstantInflowPeriodicSidesPaperConfiguration):
+  def __init__(self, mesh_file, inflow_direction, finite_element = finite_elements.p2p1):
+    super(ScenarioConfiguration, self).__init__(nx = 100, ny = 33, basin_x = None, basin_y = None, finite_element = finite_element)
+    self.set_domain( GMeshDomain(mesh_file) )
+    # We need to reapply the bc
+    bc = DirichletBCSet(self)
+    bc.add_constant_flow(1, inflow_direction)
+    bc.add_zero_eta(2)
+    bc.add_noslip_u(3)
+    self.params['strong_bc'] = bc
+    #self.params['free_slip_on_sides'] = True

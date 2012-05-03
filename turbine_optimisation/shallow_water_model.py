@@ -41,6 +41,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
     preconditioner = params["preconditioner"]
     bctype = params["bctype"]
     strong_bc = params["strong_bc"]
+    free_slip_on_sides = params["free_slip_on_sides"]
     steady_state = params["steady_state"]
     functional_final_time_only = params["functional_final_time_only"]
     is_nonlinear = (include_advection or quadratic_friction)
@@ -127,7 +128,8 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
         # Do not replace anything in the surface integrals as the strong Dirichlet Boundary condition will do that
         bc_contr = -depth * dot(u_mid, n) * q * ds(1)
         bc_contr -= depth * dot(u_mid, n) * q * ds(2)
-        bc_contr -= depth * dot(u_mid, n) * q * ds(3)
+        if not free_slip_on_sides:
+            bc_contr -= depth * dot(u_mid, n) * q * ds(3)
 
     else:
         info_red("Unknown boundary condition type: %s" % bctype)
