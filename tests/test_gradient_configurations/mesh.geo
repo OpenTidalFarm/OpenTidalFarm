@@ -30,5 +30,5 @@ Line Loop(12) = {1, 4, -2, -3};
 Plane Surface(13) = {11, 12};
 Physical Surface(14) = {13, 5};
 Physical Line(1) = {6};
-Physical Line(3) = {7, 8, 10};
-Physical Line(2) = {9};
+Physical Line(2) = {7, 8, 10};
+Physical Line(3) = {9};

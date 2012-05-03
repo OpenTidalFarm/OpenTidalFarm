@@ -219,6 +219,5 @@ class ScenarioConfiguration(ConstantInflowPeriodicSidesPaperConfiguration):
     bc = DirichletBCSet(self)
     bc.add_constant_flow(1, inflow_direction)
     bc.add_zero_eta(2)
-    bc.add_noslip_u(3)
     self.params['strong_bc'] = bc
-    #self.params['free_slip_on_sides'] = True
+    self.params['free_slip_on_sides'] = True
