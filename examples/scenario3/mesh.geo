@@ -5,8 +5,7 @@ land_site_delta = 100;
 site_x = 150;
 site_y = 100;
 basin_y = land_y + basin_x - land_x;
-//element_size = 1;
-element_size = 10;
+element_size = 1;
 element_size_coarse = 10;
 
 Point(1) = {0, 0, 0, element_size_coarse};

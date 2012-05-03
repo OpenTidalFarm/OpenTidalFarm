@@ -21,28 +21,21 @@ site_x = 150
 site_y = 100
 site_x_start = basin_x - land_x
 site_y_start = land_y + land_site_delta 
-config.params['turbine_x'] = config.params['turbine_y'] = 50. 
 
 turbine_pos = []
-for x_r in numpy.linspace(site_x_start, site_x_start + site_x, 2):
-    for y_r in numpy.linspace(site_y_start, site_y_start + site_y, 2):
+for x_r in numpy.linspace(site_x_start + config.params["turbine_x"], site_x_start + site_x - config.params["turbine_y"], 3):
+    for y_r in numpy.linspace(site_y_start + config.params["turbine_x"], site_y_start + site_y - config.params["turbine_y"], 3):
         turbine_pos.append((float(x_r), float(y_r)))
 config.set_turbine_pos(turbine_pos)
 
 info_blue("Deployed " + str(len(config.params["turbine_pos"])) + " turbines.")
 
-model = ReducedFunctional(config, scaling_factor = -10**-6)
+model = ReducedFunctional(config, scaling_factor = -10**5)
 m0 = model.initial_control()
 j0 = model.j(m0)
 dj0 = model.dj(m0)
-info("Power outcome: %f" % (j0, ))
-info("Power gradient:" + str(dj0))
-info("Timing summary:")
-timer = Timer("NULL")
-timer.stop()
 print "Getting the adjoints a second time:"
 j0 = model.j(m0)
 dj0 = model.dj(m0)
 
-list_timings()
 
