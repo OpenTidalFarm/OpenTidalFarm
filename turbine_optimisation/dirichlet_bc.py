@@ -1,6 +1,7 @@
 from dolfin import *
 
-def ConstantFlowBoundaryCondition(config):
+def ConstantFlowBoundaryCondition(config, direction):
+    ''' Specifies a constant flow in direction "direction". '''
     class ConstantFlow(Expression):
         def __init__(self):
             self.t = config.params["start_time"]
@@ -9,9 +10,12 @@ def ConstantFlowBoundaryCondition(config):
             self.g = config.params["g"]
             self.eta0 = config.params["eta0"]
 
+        def l2norm(self, x):
+            return sqrt(x[0]**2 + x[1]**2)
+
         def eval(self, values, X):
-            values[0] = - self.eta0 * sqrt(self.g / self.depth) 
-            values[1] = 0.
+            values[0] = direction[0]/self.l2norm(direction) * self.eta0 * sqrt(self.g / self.depth) 
+            values[1] = direction[1]/self.l2norm(direction) * self.eta0 * sqrt(self.g / self.depth) 
         def value_shape(self):
             return (2,)
 
@@ -25,7 +29,7 @@ class DirichletBCSet:
 
         self.analytic_u = Expression(("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0"), eta0 = params["eta0"], g = params["g"], depth = params["depth"], t = params["current_time"], k = params["k"])
         self.analytic_eta = Expression("eta0*cos(k*x[0]-sqrt(g*depth)*k*t)", eta0 = params["eta0"], g = params["g"], depth = params["depth"], t = params["current_time"], k = params["k"])
-        self.constant_inflow = ConstantFlowBoundaryCondition(self.config)()
+        self.constant_inflow_bcs = []
 
         self.bcs = []
 
@@ -33,15 +37,17 @@ class DirichletBCSet:
         ''' Update the time values for all boundary conditions '''
         self.analytic_eta.t = t
         self.analytic_u.t = t
-        self.constant_inflow.t = t
+        for bc in self.constant_inflow_bcs:
+            bc.t = t
 
     def add_analytic_u(self, label):
         if self.config.params['steady_state']:
             raise ValueError, 'Can not apply a time dependent boundary condition for a steady state simulation.'
         self.bcs.append(DirichletBC(self.config.function_space.sub(0), self.analytic_u, self.config.domain.boundaries, label))
 
-    def add_constant_flow(self, label):
-        self.bcs.append(DirichletBC(self.config.function_space.sub(0), self.constant_inflow, self.config.domain.boundaries, label))
+    def add_constant_flow(self, label, direction = [-1, 0]):
+        self.constant_inflow_bcs.append(ConstantFlowBoundaryCondition(self.config, direction)())
+        self.bcs.append(DirichletBC(self.config.function_space.sub(0), self.constant_inflow_bcs[-1], self.config.domain.boundaries, label))
 
     def add_analytic_eta(self, label):
         if self.config.params['steady_state']:
@@ -67,3 +73,5 @@ class DirichletBCSet:
         pbc = PeriodicBoundary()
         self.bcs.append(PeriodicBC(config.function_space, pbc))
 
+    def add_zero_eta(self, label):
+        self.bcs.append(DirichletBC(self.config.function_space.sub(1), Constant("0.0"), self.config.domain.boundaries, label))
