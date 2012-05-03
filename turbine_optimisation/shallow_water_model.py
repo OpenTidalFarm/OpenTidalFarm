@@ -56,6 +56,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
     # Take care of the steady state case
     if steady_state:
         dt = 1.
+        params["finish_time"] = params["start_time"] + dt/2
         theta = 1.
 
     # Define test functions
@@ -298,8 +299,6 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
 
         # Increase the adjoint timestep
         adj_inc_timestep()
-        if steady_state:
-            break
 
     if functional is not None:
       return j, djdm 
