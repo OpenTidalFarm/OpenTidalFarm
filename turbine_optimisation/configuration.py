@@ -221,3 +221,5 @@ class ScenarioConfiguration(ConstantInflowPeriodicSidesPaperConfiguration):
     bc.add_zero_eta(2)
     self.params['strong_bc'] = bc
     self.params['free_slip_on_sides'] = True
+    self.params['steady_state'] = True
+    #self.params["newton_solver"] = True 
