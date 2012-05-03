@@ -9,7 +9,7 @@ set_log_level(PROGRESS)
 
 # We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
 numpy.random.seed(21) 
-config = configuration.ScenarioConfiguration("mesh.xml", inflow_direction = [1,1])
+config = configuration.ScenarioConfiguration("mesh.xml", inflow_direction = [0,1])
 
 # Place some turbines 
 basin_x = 1200
