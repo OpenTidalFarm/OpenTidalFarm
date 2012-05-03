@@ -1,6 +1,6 @@
 import random
 from dolfin import * 
-from dolfin_adjoint import convergence_order
+from dolfin_adjoint import *
 from numpy import array, dot
 import pylab 
 
