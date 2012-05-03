@@ -16,11 +16,11 @@ class ReducedFunctional:
         self.__config__ = config
         self.scaling_factor = scaling_factor
         self.plot = plot
-        self.count = 0
         # Caching variables that store for which controls the last forward run was performed
         self.last_m = None
         self.last_djdm = None
         self.last_state = None
+        self.turbine_file = File("turbines.pvd", "compressed")
 
         if plot:
            self.plotter = AnimatedPlot(xlabel = "Iteration", ylabel = "Functional value")
@@ -28,7 +28,6 @@ class ReducedFunctional:
         def run_forward_model(m):
             ''' This function solves the forward and adjoint problem and returns the functional value and its gradient for the parameter choice m. ''' 
             adj_reset()
-            self.count += 1
 
             # Change the control variables to the config parameters
             shift = 0
@@ -53,7 +52,7 @@ class ReducedFunctional:
 
             # Set up the turbine field 
             tf.interpolate(Turbines(config.params))
-            helpers.save_to_file_scalar(tf, "turbines_t=." + str(self.count) + ".x")
+            self.turbine_file << tf
 
             # Solve the shallow water system
             functional = DefaultFunctional(config.function_space, config.params)

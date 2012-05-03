@@ -44,8 +44,8 @@ def BumpInitialCondition(config):
         return bump
 
       def eval(self, values, X):
-        x_unit = 2*(params["basin_x"]-X[0])/params["basin_x"]-1.0
-        y_unit = 2*(params["basin_y"]-X[1])/params["basin_y"]-1.0
+        x_unit = 2*(config.domain.basin_x-X[0])/config.domain.basin_x-1.0
+        y_unit = 2*(config.domain.basin_y-X[1])/config.domain.basin_y-1.0
 
         values[0] = self.bump_function([x_unit, y_unit]) 
         values[1] = 0.
