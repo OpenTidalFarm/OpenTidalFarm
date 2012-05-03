@@ -111,7 +111,7 @@ class DefaultConfiguration(object):
 
     # Print log messages only from the root process in parallel
     # (See http://fenicsproject.org/documentation/dolfin/dev/python/demo/pde/navier-stokes/python/documentation.html)
-    parameters['std_out_all_processes'] = False;
+    parameters['std_out_all_processes'] = False
 
     params['k'] = pi/self.domain.basin_x
 

@@ -13,14 +13,13 @@ from dolfin import *
 set_log_level(PROGRESS)
 numpy.random.seed(21)
 
-#for c in [DefaultConfiguration, PaperConfiguration, ConstantInflowPeriodicSidesPaperConfiguration, ScenarioConfiguration]:
-for c in [ScenarioConfiguration]:
+for c in [DefaultConfiguration, PaperConfiguration, ConstantInflowPeriodicSidesPaperConfiguration, ScenarioConfiguration]:
     info_green("Testing configuration " + c.__name__)
     if c == ScenarioConfiguration:
         config = c("mesh.xml", inflow_direction = [1, 1])
     else:
         config = c(nx = 15, ny = 15)
-    config.params['finish_time'] = config.params["start_time"] + 1*config.params["dt"]
+    config.params['finish_time'] = config.params["start_time"] + 2*config.params["dt"]
 
     # Deploy some turbines 
     turbine_pos = [] 
@@ -36,19 +35,19 @@ for c in [ScenarioConfiguration]:
         site_y_start = land_y + land_site_delta 
         config.params['turbine_x'] = 50. 
         config.params['turbine_y'] = 50. 
-        seed = 0.1
+        seed = 1.0
 
         for x_r in numpy.linspace(site_x_start, site_x_start + site_x, 2):
             for y_r in numpy.linspace(site_y_start, site_y_start + site_y, 2):
               turbine_pos.append((float(x_r), float(y_r)))
 
     else:
-        border_x = config.params["basin_x"]/10
-        border_y = config.params["basin_y"]/10
+        border_x = config.domain.basin_x/10
+        border_y = config.domain.basin_y/10
         seed = 0.1
 
-        for x_r in numpy.linspace(0.+border_x, config.params["basin_x"]-border_x, 2):
-            for y_r in numpy.linspace(0.+border_y, config.params["basin_y"]-border_y, 2):
+        for x_r in numpy.linspace(0.+border_x, config.domain.basin_x-border_x, 2):
+            for y_r in numpy.linspace(0.+border_y, config.domain.basin_y-border_y, 2):
               turbine_pos.append((float(x_r), float(y_r)))
 
     config.set_turbine_pos(turbine_pos)
@@ -60,7 +59,7 @@ for c in [ScenarioConfiguration]:
     p = numpy.random.rand(len(m0))
     minconv = test_gradient_array(model.j, model.dj, m0, seed = seed, perturbation_direction = p, plot_file = "convergence_" + c.__name__ + ".pdf")
     if minconv < 1.9:
-        info_red("The gradient taylor remainder test failed.")
+        info_red("The gradient taylor remainder test failed for the " + c.__name__ + " configuration.")
         sys.exit(1)
     else:
         info_green("The gradient taylor remainder test passed.")
