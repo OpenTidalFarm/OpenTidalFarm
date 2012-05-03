@@ -10,10 +10,10 @@ from helpers import test_gradient_array
 from animated_plot import *
 from reduced_functional import ReducedFunctional
 from dolfin import *
-set_log_level(PROGRESS)
+set_log_level(ERROR)
 numpy.random.seed(21)
 
-for c in [DefaultConfiguration, PaperConfiguration, ConstantInflowPeriodicSidesPaperConfiguration, ScenarioConfiguration]:
+for c in [DefaultConfiguration, PaperConfiguration]: #, ConstantInflowPeriodicSidesPaperConfiguration, ScenarioConfiguration]:
     info_green("Testing configuration " + c.__name__)
     if c == ScenarioConfiguration:
         config = c("mesh.xml", inflow_direction = [1, 1])

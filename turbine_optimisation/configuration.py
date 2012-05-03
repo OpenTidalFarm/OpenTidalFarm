@@ -214,7 +214,7 @@ class WideConstantInflowPeriodicSidesPaperConfiguration(ConstantInflowPeriodicSi
 class ScenarioConfiguration(ConstantInflowPeriodicSidesPaperConfiguration):
   def __init__(self, mesh_file, inflow_direction, finite_element = finite_elements.p2p1):
     super(ScenarioConfiguration, self).__init__(nx = 100, ny = 33, basin_x = None, basin_y = None, finite_element = finite_element)
-    self.set_domain( GMeshDomain(mesh_file) )
+    self.set_domain( GMeshDomain(mesh_file), warning = False)
     # We need to reapply the bc
     bc = DirichletBCSet(self)
     bc.add_constant_flow(1, inflow_direction)
