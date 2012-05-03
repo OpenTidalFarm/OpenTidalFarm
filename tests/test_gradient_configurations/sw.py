@@ -13,7 +13,7 @@ from dolfin import *
 set_log_level(ERROR)
 numpy.random.seed(21)
 
-for c in [DefaultConfiguration, PaperConfiguration]: #, ConstantInflowPeriodicSidesPaperConfiguration, ScenarioConfiguration]:
+for c in [DefaultConfiguration, PaperConfiguration, ConstantInflowPeriodicSidesPaperConfiguration, ScenarioConfiguration]:
     info_green("Testing configuration " + c.__name__)
     if c == ScenarioConfiguration:
         config = c("mesh.xml", inflow_direction = [1, 1])
@@ -35,7 +35,7 @@ for c in [DefaultConfiguration, PaperConfiguration]: #, ConstantInflowPeriodicSi
         site_y_start = land_y + land_site_delta 
         config.params['turbine_x'] = 50. 
         config.params['turbine_y'] = 50. 
-        seed = 1.0
+        seed = 0.1
 
         for x_r in numpy.linspace(site_x_start, site_x_start + site_x, 2):
             for y_r in numpy.linspace(site_y_start, site_y_start + site_y, 2):
