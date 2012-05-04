@@ -185,41 +185,51 @@ class PaperConfiguration(DefaultConfiguration):
       super(PaperConfiguration, self).set_turbine_pos(position, friction)
 
 class ConstantInflowPeriodicSidesPaperConfiguration(PaperConfiguration):
-  def __init__(self, nx = 20, ny = 3, basin_x = None, basin_y = None, finite_element = finite_elements.p2p1):
-    super(ConstantInflowPeriodicSidesPaperConfiguration, self).__init__(nx, ny, basin_x, basin_y, finite_element)
+    def __init__(self, nx = 20, ny = 3, basin_x = None, basin_y = None, finite_element = finite_elements.p2p1):
+        super(ConstantInflowPeriodicSidesPaperConfiguration, self).__init__(nx, ny, basin_x, basin_y, finite_element)
+        self.set_site_dimensions(0, self.domain.basin_x, 0, self.domain.basin_y)
 
-    self.params["initial_condition"] = ConstantFlowInitialCondition 
-    self.params["newton_solver"] = False
-    self.params["picard_iterations"] = 2
-    self.params['theta'] = 1.0
-    self.params['functional_final_time_only'] = True
+        self.params["initial_condition"] = ConstantFlowInitialCondition 
+        self.params["newton_solver"] = False
+        self.params["picard_iterations"] = 2
+        self.params['theta'] = 1.0
+        self.params['functional_final_time_only'] = True
 
-    bc = DirichletBCSet(self)
-    bc.add_constant_flow(1)
-    bc.add_noslip_u(2)
-    self.params['strong_bc'] = bc
+        bc = DirichletBCSet(self)
+        bc.add_constant_flow(1)
+        bc.add_noslip_u(2)
+        self.params['strong_bc'] = bc
 
-    self.params['start_time'] = 0.0
-    self.params['dt'] = self.period
-    self.params['finish_time'] = self.params['start_time'] + self.params['dt'] 
+        self.params['start_time'] = 0.0
+        self.params['dt'] = self.period
+        self.params['finish_time'] = self.params['start_time'] + self.params['dt'] 
 
-  def set_turbine_pos(self, position, friction = 1.):
-      ''' Sets the turbine position and a equal friction parameter. '''
-      super(PaperConfiguration, self).set_turbine_pos(position, friction)
+    def set_site_dimensions(self, site_x_start, site_x_end, site_y_start, site_y_end):
+        if not site_x_start < site_x_end or not site_y_start < site_y_end:
+            raise ValueError, "Site must have a positive area"
+        self.domain.site_x_start = site_x_start
+        self.domain.site_y_start = site_y_start
+        self.domain.site_x_end = site_x_end
+        self.domain.site_y_end = site_y_end
+
+    def set_turbine_pos(self, position, friction = 1.):
+        ''' Sets the turbine position and a equal friction parameter. '''
+        super(PaperConfiguration, self).set_turbine_pos(position, friction)
 
 class WideConstantInflowPeriodicSidesPaperConfiguration(ConstantInflowPeriodicSidesPaperConfiguration):
-  def __init__(self, nx = 100, ny = 66, basin_x = None, basin_y = None, finite_element = finite_elements.p2p1):
-    super(WideConstantInflowPeriodicSidesPaperConfiguration, self).__init__(nx, ny, basin_x, basin_y, finite_element)
+    def __init__(self, nx = 100, ny = 66, basin_x = None, basin_y = None, finite_element = finite_elements.p2p1):
+        super(WideConstantInflowPeriodicSidesPaperConfiguration, self).__init__(nx, ny, basin_x, basin_y, finite_element)
 
 class ScenarioConfiguration(ConstantInflowPeriodicSidesPaperConfiguration):
-  def __init__(self, mesh_file, inflow_direction, finite_element = finite_elements.p2p1):
-    super(ScenarioConfiguration, self).__init__(nx = 100, ny = 33, basin_x = None, basin_y = None, finite_element = finite_element)
-    self.set_domain( GMeshDomain(mesh_file), warning = False)
-    # We need to reapply the bc
-    bc = DirichletBCSet(self)
-    bc.add_constant_flow(1, inflow_direction)
-    bc.add_zero_eta(2)
-    self.params['strong_bc'] = bc
-    self.params['free_slip_on_sides'] = True
-    self.params['steady_state'] = True
-    #self.params["newton_solver"] = True 
+    def __init__(self, mesh_file, inflow_direction, finite_element = finite_elements.p2p1):
+        super(ScenarioConfiguration, self).__init__(nx = 100, ny = 33, basin_x = None, basin_y = None, finite_element = finite_element)
+        self.set_domain( GMeshDomain(mesh_file), warning = False)
+        # We need to reapply the bc
+        bc = DirichletBCSet(self)
+        bc.add_constant_flow(1, inflow_direction)
+        bc.add_zero_eta(2)
+        self.params['strong_bc'] = bc
+        self.params['free_slip_on_sides'] = True
+        self.params['steady_state'] = True
+        #self.params["newton_solver"] = True 
+

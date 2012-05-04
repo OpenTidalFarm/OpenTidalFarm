@@ -18,8 +18,8 @@ config = configuration.ConstantInflowPeriodicSidesPaperConfiguration(nx=100, ny=
 
 # The turbine position is the control variable 
 turbine_pos = [[60, 38], [80, 28], [100, 38], [120, 28], [140, 38]] 
-
 config.set_turbine_pos(turbine_pos)
+
 info_blue("Deployed " + str(len(turbine_pos)) + " turbines.")
 
 model = ReducedFunctional(config, scaling_factor = -10**-6, plot = True)

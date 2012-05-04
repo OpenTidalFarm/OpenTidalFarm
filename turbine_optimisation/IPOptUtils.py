@@ -1,4 +1,5 @@
 import numpy
+from dolfin import info_blue
 
 # The wrapper class of the objective/constaint functions that as required by the ipopt package
 class  IPOptFunction(object):
@@ -22,19 +23,28 @@ class  IPOptFunction(object):
     ''' The Jacobian of the constraint functions evaluated at x. '''
     return (numpy.array([]), numpy.array([]))
 
-def position_constraints(config, site_x_start = 0, site_x_end = None, site_y_start = 0, site_y_end = None):
+def deploy_turbines(config, nx, ny):
+    ''' Generates an array of initial turbine positions with nx x ny turbines homonginuosly distributed over the site with the specified dimensions. '''
+    turbine_pos = []
+    for x_r in numpy.linspace(config.domain.site_x_start + 0.5*config.params["turbine_x"], config.domain.site_x_end - 0.5*config.params["turbine_y"], nx):
+        for y_r in numpy.linspace(config.domain.site_y_start + 0.5*config.params["turbine_x"], config.domain.site_y_end - 0.5*config.params["turbine_y"], ny):
+            turbine_pos.append((float(x_r), float(y_r)))
+    config.set_turbine_pos(turbine_pos)
+    info_blue("Deployed " + str(len(turbine_pos)) + " turbines.")
+    return turbine_pos
+
+def position_constraints(config):
     ''' This function returns the constraints to ensure that the turbine positions remain inside the domain plus an optional spacing. '''
-    if not site_x_end:
-        site_x_end = config.domain.basin_x 
-    if not site_y_end:
-        site_y_end = config.domain.basin_y 
 
     n = len(config.params["turbine_pos"])
     lc = []
-    lb_x = site_x_start + config.params["turbine_x"]/2 
-    lb_y = site_y_start + config.params["turbine_y"]/2 
-    ub_x = site_x_end - config.params["turbine_x"]/2 
-    ub_y = site_y_end - config.params["turbine_y"]/2 
+    lb_x = config.domain.site_x_start + config.params["turbine_x"]/2 
+    lb_y = config.domain.site_y_start + config.params["turbine_y"]/2 
+    ub_x = config.domain.site_x_end - config.params["turbine_x"]/2 
+    ub_y = config.domain.site_y_end - config.params["turbine_y"]/2 
+
+    if not lb_x < ub_x or not lb_y < ub_y:
+        raise ValueError, "Lower bound is larger than upper bound. Is your domain large enough?"
   
     # The control variable is ordered as [t1_x, t1_y, t2_x, t2_y, t3_x, ...]
     lb = n * [lb_x, lb_y]
