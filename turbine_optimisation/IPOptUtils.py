@@ -37,9 +37,12 @@ def position_constraints(params, spacing_sides = 0, spacing_left = 0, spacing_ri
   ub = n * [ub_x, ub_y]
   return lb, ub 
 
-def get_minimum_distance_constraint_func(config, min_distance = 40):
+def get_minimum_distance_constraint_func(config, min_distance = None):
     if config.params['controls'] != ['turbine_pos']:
         raise NotImplementedError, "Inequality contraints are currently only supported if turbine_pos are the only controls"
+
+    if not min_distance:
+        min_distance = 2*max(config.params["turbine_x"], config.params["turbine_y"])
 
     def l2norm(x):
         return sum([v**2 for v in x])
