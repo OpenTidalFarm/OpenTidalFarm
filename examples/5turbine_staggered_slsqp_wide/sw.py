@@ -30,7 +30,7 @@ g = lambda m: []
 dg = lambda m: []
 
 # Get the upper and lower bounds for the turbine positions
-lb, ub = IPOptUtils.position_constraints(config.params, spacing_sides = 66./2, spacing_left = 50.)
+lb, ub = IPOptUtils.position_constraints(config, spacing_sides = 66./2, spacing_left = 50.)
 print "lb", lb
 print "ub", ub
 bounds = [(lb[i], ub[i]) for i in range(len(lb))]

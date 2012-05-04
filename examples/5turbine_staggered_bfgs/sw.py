@@ -29,6 +29,6 @@ g = lambda m: []
 dg = lambda m: []
 
 # Get the upper and lower bounds for the turbine positions
-lb, ub = IPOptUtils.position_constraints(config.params)
+lb, ub = IPOptUtils.position_constraints(config)
 bounds = [(lb[i], ub[i]) for i in range(len(lb))]
 fmin_l_bfgs_b(model.j, m0, fprime = model.dj, bounds = bounds)

@@ -1,5 +1,4 @@
 import numpy
-import memoize
 
 # The wrapper class of the objective/constaint functions that as required by the ipopt package
 class  IPOptFunction(object):
@@ -23,19 +22,24 @@ class  IPOptFunction(object):
     ''' The Jacobian of the constraint functions evaluated at x. '''
     return (numpy.array([]), numpy.array([]))
 
-def position_constraints(params, spacing_sides = 0, spacing_left = 0, spacing_right = 0):
-  ''' This function returns the constraints to ensure that the turbine positions remain inside the domain. '''
-  n = len(params["turbine_pos"])
-  lc = []
-  lb_x = params["turbine_x"]/2 + spacing_left 
-  lb_y = params["turbine_y"]/2 + spacing_sides
-  ub_x = params["basin_x"] - params["turbine_x"]/2 + spacing_right
-  ub_y = params["basin_y"] - params["turbine_y"]/2 - spacing_sides
+def position_constraints(config, site_x_start = 0, site_x_end = None, site_y_start = 0, site_y_end = None):
+    ''' This function returns the constraints to ensure that the turbine positions remain inside the domain plus an optional spacing. '''
+    if not site_x_end:
+        site_x_end = config.domain.basin_x 
+    if not site_y_end:
+        site_y_end = config.domain.basin_y 
+
+    n = len(config.params["turbine_pos"])
+    lc = []
+    lb_x = site_x_start + config.params["turbine_x"]/2 
+    lb_y = site_y_start + config.params["turbine_y"]/2 
+    ub_x = site_x_end - config.params["turbine_x"]/2 
+    ub_y = site_y_end - config.params["turbine_y"]/2 
   
-  # The control variable is ordered as [t1_x, t1_y, t2_x, t2_y, t3_x, ...]
-  lb = n * [lb_x, lb_y]
-  ub = n * [ub_x, ub_y]
-  return lb, ub 
+    # The control variable is ordered as [t1_x, t1_y, t2_x, t2_y, t3_x, ...]
+    lb = n * [lb_x, lb_y]
+    ub = n * [ub_x, ub_y]
+    return lb, ub 
 
 def get_minimum_distance_constraint_func(config, min_distance = None):
     if config.params['controls'] != ['turbine_pos']:
