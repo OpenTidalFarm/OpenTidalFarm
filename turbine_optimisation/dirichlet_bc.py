@@ -46,7 +46,7 @@ class DirichletBCSet:
             raise ValueError, 'Can not apply a time dependent boundary condition for a steady state simulation.'
         self.bcs.append(DirichletBC(self.config.function_space.sub(0), self.analytic_u, self.config.domain.boundaries, label))
 
-    def add_constant_flow(self, label, direction = [-1, 0]):
+    def add_constant_flow(self, label, direction = [1, 0]):
         self.constant_inflow_bcs.append(ConstantFlowBoundaryCondition(self.config, direction)())
         self.bcs.append(DirichletBC(self.config.function_space.sub(0), self.constant_inflow_bcs[-1], self.config.domain.boundaries, label))
 
