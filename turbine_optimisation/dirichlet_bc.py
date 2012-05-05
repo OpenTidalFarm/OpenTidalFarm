@@ -1,4 +1,5 @@
 from dolfin import *
+from helpers import info, info_green, info_red, info_blue
 
 def ConstantFlowBoundaryCondition(config, direction):
     ''' Specifies a constant flow in direction "direction". '''

@@ -5,6 +5,7 @@ from dolfin import *
 from math import exp, sqrt, pi
 from initial_conditions import *
 from domains import *
+from helpers import info, info_green, info_red, info_blue
 
 class Parameters(dict):
     '''Parameter dictionary. This subclasses dict so defaults can be set.'''

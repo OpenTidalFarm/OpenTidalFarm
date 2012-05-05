@@ -1,5 +1,6 @@
 import numpy
 from dolfin import info_blue
+from helpers import info, info_green, info_red, info_blue
 
 # The wrapper class of the objective/constaint functions that as required by the ipopt package
 class  IPOptFunction(object):

@@ -1,5 +1,6 @@
 from dolfin import info
 from turbines import *
+from helpers import info, info_green, info_red, info_blue
 
 class FunctionalPrototype(object):
     ''' This prototype class should be overloaded for an actual functional implementation.  '''

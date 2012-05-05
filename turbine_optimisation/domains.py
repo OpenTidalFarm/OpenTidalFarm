@@ -1,4 +1,5 @@
 from dolfin import *
+from helpers import info, info_green, info_red, info_blue
 class RectangularDomain:
     def __init__(self, basin_x, basin_y, nx, ny):
         self.basin_x = basin_x
@@ -87,7 +88,6 @@ class GMeshDomain:
         ''' filename must be a valid gmesh file. '''
 
         self.mesh = Mesh(filename)
-
         info_green('The computation domain an element size ranging from %f - %f.'% (MPI.min(self.mesh.hmin()), MPI.max(self.mesh.hmax())))
 
         self.boundaries = MeshFunction('uint', self.mesh, filename[0:-4] + "_facet_region.xml")

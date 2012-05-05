@@ -8,9 +8,9 @@ from functionals import DefaultFunctional
 from dolfin import *
 from turbines import *
 from numpy.linalg import norm
+from helpers import info, info_green, info_red, info_blue
 
 class ReducedFunctional:
-
     def __init__(self, config, scaling_factor = 1.0, forward_model = sw_model.sw_solve, plot = False):
         ''' If plot is True, the functional values will be automatically saved in a plot.
             scaling_factor is ignored if automatic_scaling is active. '''

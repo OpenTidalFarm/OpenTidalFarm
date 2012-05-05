@@ -4,6 +4,7 @@ import math
 from dolfin import *
 from dolfin_adjoint import *
 from math import log
+from helpers import info, info_green, info_red, info_blue
 
 class Turbines(Expression):
     print_warning = True

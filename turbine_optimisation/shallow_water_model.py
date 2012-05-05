@@ -4,6 +4,7 @@ import numpy
 import sys
 from dolfin import *
 from dolfin_adjoint import *
+from helpers import info, info_green, info_red, info_blue
 
 def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, u_source = None):
     '''Solve the shallow water equations with the parameters specified in params.

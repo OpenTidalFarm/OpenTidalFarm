@@ -1,5 +1,6 @@
 from math import exp
 from dolfin import *
+from helpers import info, info_green, info_red, info_blue
 
 def SinusoidalInitialCondition(config):
     params = config.params
