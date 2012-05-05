@@ -108,7 +108,7 @@ class DefaultConfiguration(object):
         'current_time': 0.,
         'finish_time': 100.,
         'automatic_scaling': False,
-        'automatic_scaling_multiplier': 2
+        'automatic_scaling_multiplier': 1
         })
 
     params['dt'] = params['finish_time']/4000.

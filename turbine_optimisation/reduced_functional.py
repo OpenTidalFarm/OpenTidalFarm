@@ -16,7 +16,10 @@ class ReducedFunctional:
             scaling_factor is ignored if automatic_scaling is active. '''
         # Hide the configuration since changes would break the memoize algorithm. 
         self.__config__ = config
-        self.scaling_factor = scaling_factor
+        if self.__config__.params['automatic_scaling']:
+            self.scaling_factor = None 
+        else:
+            self.scaling_factor = scaling_factor
         self.plot = plot
         # Caching variables that store for which controls the last forward run was performed
         self.last_m = None
@@ -122,15 +125,10 @@ class ReducedFunctional:
         info_green('Evaluating j(' + m.__repr__() + ') = ' + str(j))
         info_blue('Runtime: ' + str(timer.value())  + " s")
 
-        if self.__config__.params['automatic_scaling']:
-            # We need to run the adjoint model in order the find out how big the scaling factor should be.
-             dj = self.dj(m)
-             djl2 = norm(dj)
-             if djl2 == 0:
-                 raise ValueError, "Automatic scaling failed: The gradient at the parameter point is zero"
-             else:
-                 self.scaling_factor = self.__config__.params['automatic_scaling_multiplier'] * max(self.__config__.params['turbine_x'], self.__config__.params['turbine_y']) / djl2
-                 info("The automatic scaling factor was set to " + str(self.scaling_factor) + ".")
+        if self.__config__.params['automatic_scaling'] and not self.scaling_factor:
+            # Computing dj will set the automatic scaling factor. 
+            info_blue("Computing derivative to determine scaling factor")
+            dj = self.dj(m)
 
         info_green('Scaled j(' + m.__repr__() + ') = ' + str(self.scaling_factor * j))
         return j * self.scaling_factor
@@ -141,6 +139,19 @@ class ReducedFunctional:
         timer.start()
         dj = self.run_adjoint_model_mem(m)
         timer.stop()
+
+        if self.__config__.params['automatic_scaling'] and not self.scaling_factor:
+            if self.__config__.params['controls'] == ['turbine_pos']:
+                raise NotImplementedError, "Automatic scaling works currently only if the turbine positions are the only parameters"
+
+            # We need to run the adjoint model in order the find out how big the scaling factor should be.
+            djl2 = max(dj)
+            if djl2 == 0:
+                raise ValueError, "Automatic scaling failed: The gradient at the parameter point is zero"
+            else:
+                self.scaling_factor = self.__config__.params['automatic_scaling_multiplier'] * max(self.__config__.params['turbine_x'], self.__config__.params['turbine_y']) / djl2
+                info_blue("The automatic scaling factor was set to " + str(self.scaling_factor) + ".")
+
         info_green('Evaluating dj(' + m.__repr__() + ') = ' + str(dj)) 
         info_blue('Runtime: ' + str(timer.value())  + " s")
         info_green('Scaled dj(' + m.__repr__() + ') = ' + str(self.scaling_factor * dj))
