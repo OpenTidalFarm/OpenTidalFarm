@@ -259,10 +259,10 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
               relative_diff = abs(assemble( inner(state_new-state_nl, state_new-state_nl) * dx ))/norm(state_new)
 
               if relative_diff < picard_relative_tolerance:
-                dolfin.info("Picard iteration converged after " + str(iter_counter) + " iterations.")
+                info("Picard iteration converged after " + str(iter_counter) + " iterations.")
                 break
               elif iter_counter >= picard_iterations:
-                dolfin.info_red("Picard iteration reached maximum number of iterations (" + str(picard_iterations) + ") with a relative difference of " + str(relative_diff) + ".")
+                info_red("Picard iteration reached maximum number of iterations (" + str(picard_iterations) + ") with a relative difference of " + str(relative_diff) + ".")
                 break
 
             state_nl.assign(state_new)
