@@ -150,7 +150,7 @@ class ReducedFunctional:
             if djl2 == 0:
                 raise ValueError, "Automatic scaling failed: The gradient at the parameter point is zero"
             else:
-                self.automatic_scaling_factor = self.__config__.params['automatic_scaling_multiplier'] * max(self.__config__.params['turbine_x'], self.__config__.params['turbine_y']) / djl2 / self.scaling_factor
+                self.automatic_scaling_factor = abs(self.__config__.params['automatic_scaling_multiplier'] * max(self.__config__.params['turbine_x'], self.__config__.params['turbine_y']) / djl2 / self.scaling_factor)
                 info_blue("The automatic scaling factor was set to " + str(self.automatic_scaling_factor * self.scaling_factor) + ".")
 
         info_green('Evaluating dj(' + m.__repr__() + ') = ' + str(dj)) 

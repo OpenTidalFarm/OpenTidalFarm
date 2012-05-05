@@ -199,6 +199,7 @@ class ConstantInflowPeriodicSidesPaperConfiguration(PaperConfiguration):
         self.params["picard_iterations"] = 2
         self.params['theta'] = 1.0
         self.params['functional_final_time_only'] = True
+        self.params['automatic_scaling'] = True
 
         bc = DirichletBCSet(self)
         bc.add_constant_flow(1)
@@ -236,6 +237,5 @@ class ScenarioConfiguration(ConstantInflowPeriodicSidesPaperConfiguration):
         self.params['strong_bc'] = bc
         self.params['free_slip_on_sides'] = True
         self.params['steady_state'] = True
-        self.params['automatic_scaling'] = True
         #self.params["newton_solver"] = True 
 
