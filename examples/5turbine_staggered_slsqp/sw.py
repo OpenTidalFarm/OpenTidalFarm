@@ -11,7 +11,6 @@ from scipy.optimize import fmin_slsqp
 from helpers import info, info_green, info_red, info_blue
 set_log_level(ERROR)
 
-parameters["std_out_all_processes"] = False
 
 # We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
 numpy.random.seed(21) 
@@ -19,11 +18,10 @@ config = configuration.ConstantInflowPeriodicSidesPaperConfiguration(nx=100, ny=
 
 # The turbine position is the control variable 
 turbine_pos = [[60, 38], [80, 28], [100, 38], [120, 28], [140, 38]] 
-
 config.set_turbine_pos(turbine_pos)
 info_blue("Deployed " + str(len(turbine_pos)) + " turbines.")
 
-model = ReducedFunctional(config, scaling_factor = -10**-1, plot = True)
+model = ReducedFunctional(config, scaling_factor = -1, plot = True)
 m0 = model.initial_control()
 
 # Get the upper and lower bounds for the turbine positions
