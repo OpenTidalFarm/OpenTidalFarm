@@ -25,7 +25,7 @@ config = configuration.PaperConfiguration(nx = 40, ny = 20)
 config.params['dump_period'] = 1
 
 # Turbine settings
-config.set_turbine_pos([[config.params['basin_x']/2, config.params['basin_y']/2]])
+config.set_turbine_pos([[0.5*config.domain.basin_x, 0.5*config.domain.basin_y]])
 config.params['controls'] = ['turbine_friction']
 config.params['finish_time'] = 1.5/4*config.period
 
