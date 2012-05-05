@@ -21,7 +21,7 @@ config = configuration.ScenarioConfiguration("mesh.xml", inflow_direction = [0,1
 config.set_site_dimensions(site_x_start, site_x_start + site_x, site_y_start, site_y_start + site_y)
 
 # Place some turbines 
-IPOptUtils.deploy_turbines(config, nx = 3, ny = 3) 
+IPOptUtils.deploy_turbines(config, nx = 6, ny = 4)
 
 model = ReducedFunctional(config, scaling_factor = -1, plot = True)
 m0 = model.initial_control()
