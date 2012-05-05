@@ -1,33 +1,32 @@
-''' This example solves the forward model in an L shaped domain. '''
 import configuration 
 import numpy
-from dirichlet_bc import DirichletBCSet
+import IPOptUtils
 from reduced_functional import ReducedFunctional
-from domains import GMeshDomain 
 from dolfin import *
-set_log_level(PROGRESS)
+from scipy.optimize import fmin_slsqp
+from helpers import info, info_green, info_red, info_blue
+set_log_level(ERROR)
 
 # We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
 numpy.random.seed(21) 
-config = configuration.ConstantInflowPeriodicSidesPaperConfiguration()
 
-config.set_domain( GMeshDomain("mesh.xml") )
-# We also need to reapply the bc
-bc = DirichletBCSet(config)
-bc.add_constant_flow(1)
-bc.add_noslip_u(3)
-config.params['strong_bc'] = bc
+# Some domain information extracted from the geo file
+basin_x = 1200
+basin_y = 1000
+land_x = 600
+land_y = 300
+land_site_delta = 100
+site_x = 150
+site_y = 100
+site_x_start = basin_x - land_x
+site_y_start = land_y + land_site_delta 
+config = configuration.ScenarioConfiguration("mesh.xml", inflow_direction = [0,1])
+config.set_site_dimensions(site_x_start, site_x_start + site_x, site_y_start, site_y_start + site_y)
 
 # Place some turbines 
-L_len = 50
-config.params["turbine_pos"] = [[L_len/4, L_len/4]] 
+IPOptUtils.deploy_turbines(config, nx = 3, ny = 3) 
 
-info_blue("Deployed " + str(len(config.params["turbine_pos"])) + " turbines.")
-# Choosing a friction coefficient of > 0.25 ensures that overlapping turbines will lead to
-# less power output.
-config.params["turbine_friction"] = numpy.ones(len(config.params["turbine_pos"]))
-
-model = ReducedFunctional(config, scaling_factor = -10**-6)
+model = ReducedFunctional(config, scaling_factor = -10**1, plot = True)
 m0 = model.initial_control()
 j0 = model.j(m0)
 dj0 = model.dj(m0)
@@ -36,6 +35,3 @@ info("Power gradient:" + str(dj0))
 info("Timing summary:")
 timer = Timer("NULL")
 timer.stop()
-
-list_timings()
-

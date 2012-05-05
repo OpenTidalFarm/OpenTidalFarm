@@ -36,4 +36,4 @@ info_blue("Deployed " + str(len(turbine_pos)) + " turbines at positions " + str(
 
 model = ReducedFunctional(config, scaling_factor = 10**-6)
 m0 = model.initial_control()
-print "Functional value for m0 = ", m0, ": ", model.j(m0, forward_only = True)
+print "Functional value for m0 = ", m0, ": ", model.j(m0)
