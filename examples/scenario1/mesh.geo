@@ -1,7 +1,7 @@
-basin_x = 600;
-basin_y = 300;
-site_x = 300;
-site_y = 150;
+basin_x = 640;
+basin_y = 320;
+site_x = 320;
+site_y = 160;
 n = 50;
 element_size = 1;
 element_size_coarse = 10;

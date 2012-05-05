@@ -2,7 +2,6 @@ import configuration
 import numpy
 import IPOptUtils
 from reduced_functional import ReducedFunctional
-from domains import GMeshDomain 
 from dolfin import *
 from scipy.optimize import fmin_slsqp
 set_log_level(ERROR)
@@ -11,17 +10,17 @@ set_log_level(ERROR)
 numpy.random.seed(21) 
 
 # Some domain information extracted from the geo file
-basin_x = 600.
-basin_y = 300.
-site_x = 300.
-site_y = 150.
+basin_x = 640.
+basin_y = 320.
+site_x = 320.
+site_y = 160.
 site_x_start = (basin_x - site_x)/2 
 site_y_start = (basin_y - site_y)/2 
-config = configuration.ScenarioConfiguration("mesh.xml", inflow_direction = [1,0])
+config = configuration.ScenarioConfiguration("mesh.xml", inflow_direction = [1, 0])
 config.set_site_dimensions(site_x_start, site_x_start + site_x, site_y_start, site_y_start + site_y)
 
 # Place some turbines 
-IPOptUtils.deploy_turbines(config, nx = 6, ny = 4)
+IPOptUtils.deploy_turbines(config, nx = 8, ny = 4)
 
 model = ReducedFunctional(config, scaling_factor = -1, plot = True)
 m0 = model.initial_control()
