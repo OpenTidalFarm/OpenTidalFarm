@@ -57,7 +57,7 @@ def get_minimum_distance_constraint_func(config, min_distance = None):
         raise NotImplementedError, "Inequality contraints are currently only supported if turbine_pos are the only controls"
 
     if not min_distance:
-        min_distance = 2*max(config.params["turbine_x"], config.params["turbine_y"])
+        min_distance = 1.5*max(config.params["turbine_x"], config.params["turbine_y"])
 
     def l2norm(x):
         return sum([v**2 for v in x])
