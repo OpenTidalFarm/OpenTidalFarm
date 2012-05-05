@@ -34,7 +34,6 @@ dg = lambda m: []
 # Get the upper and lower bounds for the turbine positions
 lb, ub = IPOptUtils.position_constraints(config) 
 bounds = [(lb[i], ub[i]) for i in range(len(lb))]
-print "Bounds: ", bounds
 
 f_ieqcons, fprime_ieqcons = IPOptUtils.get_minimum_distance_constraint_func(config)
 

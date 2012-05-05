@@ -50,7 +50,9 @@ class Parameters(dict):
             'picard_relative_tolerance': 'relative tolerance for the picard iteration',
             'picard_iterations': 'maximum number of picard iterations',
             'run_benchmark': 'benchmark to compare different solver/preconditioner combinations', 
-            'solver_exclude': 'solvers/preconditioners to be excluded from the benchmark'
+            'solver_exclude': 'solvers/preconditioners to be excluded from the benchmark',
+            'automatic_scaling': 'activates the initial automatic scaling of the functional',
+            'automatic_scaling_multiplier': 'defines the multiplier that determines the initial gradient length (= multiplier * turbine size)'
             }
 
     def check(self):
@@ -104,7 +106,9 @@ class DefaultConfiguration(object):
         'solver_exclude': ['cg'],
         'start_time': 0.,
         'current_time': 0.,
-        'finish_time': 100.
+        'finish_time': 100.,
+        'automatic_scaling': False,
+        'automatic_scaling_multiplier': 2
         })
 
     params['dt'] = params['finish_time']/4000.
@@ -231,5 +235,6 @@ class ScenarioConfiguration(ConstantInflowPeriodicSidesPaperConfiguration):
         self.params['strong_bc'] = bc
         self.params['free_slip_on_sides'] = True
         self.params['steady_state'] = True
+        self.params['automatic_scaling'] = True
         #self.params["newton_solver"] = True 
 
