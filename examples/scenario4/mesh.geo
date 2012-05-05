@@ -34,3 +34,4 @@ Plane Surface(17) = {10, 11, 16};
 Physical Line(2) = {7};
 Physical Line(1) = {9};
 Physical Line(3) = {8, 6, 14, 15};
+Physical Surface(18) = {17, 5};
