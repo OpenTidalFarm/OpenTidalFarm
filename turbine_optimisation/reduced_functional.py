@@ -7,11 +7,13 @@ from animated_plot import AnimatedPlot
 from functionals import DefaultFunctional
 from dolfin import *
 from turbines import *
+from numpy.linalg import norm
 
 class ReducedFunctional:
 
     def __init__(self, config, scaling_factor = 1.0, forward_model = sw_model.sw_solve, plot = False):
-        ''' If plot is True, the functional values will be automatically saved in a plot '''
+        ''' If plot is True, the functional values will be automatically saved in a plot.
+            scaling_factor is ignored if automatic_scaling is active. '''
         # Hide the configuration since changes would break the memoize algorithm. 
         self.__config__ = config
         self.scaling_factor = scaling_factor
@@ -119,6 +121,17 @@ class ReducedFunctional:
             self.plotter.savefig("functional_plot.png")
         info_green('Evaluating j(' + m.__repr__() + ') = ' + str(j))
         info_blue('Runtime: ' + str(timer.value())  + " s")
+
+        if self.__config__.params['automatic_scaling']:
+            # We need to run the adjoint model in order the find out how big the scaling factor should be.
+             dj = self.dj(m)
+             djl2 = norm(dj)
+             if djl2 == 0:
+                 raise ValueError, "Automatic scaling failed: The gradient at the parameter point is zero"
+             else:
+                 self.scaling_factor = self.__config__.params['automatic_scaling_multiplier'] * max(self.__config__.params['turbine_x'], self.__config__.params['turbine_y']) / djl2
+                 info("The automatic scaling factor was set to " + str(self.scaling_factor) + ".")
+
         info_green('Scaled j(' + m.__repr__() + ') = ' + str(self.scaling_factor * j))
         return j * self.scaling_factor
 
