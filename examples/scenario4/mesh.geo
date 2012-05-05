@@ -22,14 +22,15 @@ Line(8) = {4, 3};
 Line(9) = {3, 1};
 Line Loop(10) = {9, 6, 7, 8};
 Line Loop(11) = {3, 2, -4, -1};
-Plane Surface(12) = {10, 11};
-Physical Surface(13) = {12, 5};
-Physical Line(2) = {7};
-Physical Line(1) = {9};
-Physical Line(3) = {8, 6};
 
-Point(9) = {basin_x/2, basin_y/2, 0, 1.0};
-Point(10) = {basin_x/2, basin_y/2-rad, 0, 1.0};
-Point(11) = {basin_x/2, basin_y/2+rad, 0, 1.0};
+Point(9) = {basin_x/2, basin_y/2, 0, element_size_coarse};
+Point(10) = {basin_x/2, basin_y/2-rad, 0, element_size_coarse};
+Point(11) = {basin_x/2, basin_y/2+rad, 0, element_size_coarse};
 Circle(14) = {11, 9, 10};
 Circle(15) = {10, 9, 11};
+Line Loop(16) = {14, 15};
+Plane Surface(17) = {10, 11, 16};
+
+Physical Line(2) = {7};
+Physical Line(1) = {9};
+Physical Line(3) = {8, 6, 14, 15};
