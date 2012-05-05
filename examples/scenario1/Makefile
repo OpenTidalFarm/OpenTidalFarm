@@ -1,5 +1,5 @@
-run: clean mesh
-	time mpirun -n 4 python sw.py 
+run: clean 
+	time mpirun -n 7 python sw.py 
 
 mesh:	
 	gmsh -2 mesh.geo
@@ -11,8 +11,9 @@ clean:
 	rm -f *pvd
 	rm -f output.txt
 	rm -f *.html
+
+clean_mesh:
 	rm -f *.xml
 	rm -f *.xml.bak
 	rm -f *.msh
-
 

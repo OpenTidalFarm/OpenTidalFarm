@@ -11,15 +11,12 @@ set_log_level(ERROR)
 numpy.random.seed(21) 
 
 # Some domain information extracted from the geo file
-basin_x = 1200
-basin_y = 1000
-land_x = 600
-land_y = 300
-land_site_delta = 100
-site_x = 150
-site_y = 100
-site_x_start = basin_x - land_x
-site_y_start = land_y + land_site_delta 
+basin_x = 600.
+basin_y = 300.
+site_x = 300.
+site_y = 150.
+site_x_start = (basin_x - site_x)/2 
+site_y_start = (basin_y - site_y)/2 
 config = configuration.ScenarioConfiguration("mesh.xml", inflow_direction = [0,1])
 config.set_site_dimensions(site_x_start, site_x_start + site_x, site_y_start, site_y_start + site_y)
 
