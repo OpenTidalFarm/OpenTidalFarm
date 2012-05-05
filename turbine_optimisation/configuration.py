@@ -202,7 +202,7 @@ class ConstantInflowPeriodicSidesPaperConfiguration(PaperConfiguration):
 
         bc = DirichletBCSet(self)
         bc.add_constant_flow(1)
-        bc.add_noslip_u(2)
+        bc.add_noslip_u(3)
         self.params['strong_bc'] = bc
 
         self.params['start_time'] = 0.0
