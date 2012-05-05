@@ -123,10 +123,11 @@ class ReducedFunctional:
         info_green('Evaluating j(' + m.__repr__() + ') = ' + str(j))
         info_blue('Runtime: ' + str(timer.value())  + " s")
 
-        if self.__config__.params['automatic_scaling'] and not self.automatic_scaling_factor:
-            # Computing dj will set the automatic scaling factor. 
-            info_blue("Computing derivative to determine the automatic scaling factor")
-            dj = self.dj(m)
+        if self.__config__.params['automatic_scaling']:
+            if not self.automatic_scaling_factor:
+                # Computing dj will set the automatic scaling factor. 
+                info_blue("Computing derivative to determine the automatic scaling factor")
+                dj = self.dj(m)
             info_green('Scaled j(' + m.__repr__() + ') = ' + str(self.automatic_scaling_factor * self.scaling_factor * j))
             return j * self.scaling_factor * self.automatic_scaling_factor
         else:
@@ -140,17 +141,17 @@ class ReducedFunctional:
         dj = self.run_adjoint_model_mem(m)
         timer.stop()
 
+        # Compute the scaling factor if never done before
         if self.__config__.params['automatic_scaling'] and not self.automatic_scaling_factor:
             if not self.__config__.params['controls'] == ['turbine_pos']:
                 raise NotImplementedError, "Automatic scaling works currently only if the turbine positions are the only parameters"
 
-            # We need to run the adjoint model in order the find out how big the scaling factor should be.
-            djl2 = abs(max(dj))
+            djl2 = max(abs(dj))
             if djl2 == 0:
                 raise ValueError, "Automatic scaling failed: The gradient at the parameter point is zero"
             else:
                 self.automatic_scaling_factor = self.__config__.params['automatic_scaling_multiplier'] * max(self.__config__.params['turbine_x'], self.__config__.params['turbine_y']) / djl2 / self.scaling_factor
-                info_blue("The automatic scaling factor was set to " + str(self.automatic_scaling_factor) + ".")
+                info_blue("The automatic scaling factor was set to " + str(self.automatic_scaling_factor * self.scaling_factor) + ".")
 
         info_green('Evaluating dj(' + m.__repr__() + ') = ' + str(dj)) 
         info_blue('Runtime: ' + str(timer.value())  + " s")

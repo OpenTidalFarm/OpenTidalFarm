@@ -25,11 +25,8 @@ config.set_site_dimensions(site_x_start, site_x_start + site_x, site_y_start, si
 # Place some turbines 
 IPOptUtils.deploy_turbines(config, nx = 3, ny = 3) 
 
-model = ReducedFunctional(config, scaling_factor = -10**1, plot = True)
+model = ReducedFunctional(config, scaling_factor = -1, plot = True)
 m0 = model.initial_control()
-
-g = lambda m: []
-dg = lambda m: []
 
 # Get the upper and lower bounds for the turbine positions
 lb, ub = IPOptUtils.position_constraints(config) 
