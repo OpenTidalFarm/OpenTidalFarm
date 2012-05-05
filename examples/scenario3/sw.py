@@ -11,19 +11,19 @@ numpy.random.seed(21)
 
 # Some domain information extracted from the geo file
 basin_x = 1600
-basin_y = land_y + basin_x - land_x 
 land_x = 640
 land_y = 320
 land_site_delta = 100
 site_x = 320
 site_y = 160
+
 site_x_start = basin_x - land_x
 site_y_start = land_y + land_site_delta 
 config = configuration.ScenarioConfiguration("mesh.xml", inflow_direction = [0,1])
 config.set_site_dimensions(site_x_start, site_x_start + site_x, site_y_start, site_y_start + site_y)
 
 # Place some turbines 
-IPOptUtils.deploy_turbines(config, nx = 3, ny = 3) 
+IPOptUtils.deploy_turbines(config, nx = 8, ny = 4) 
 
 model = ReducedFunctional(config, scaling_factor = -1, plot = True)
 m0 = model.initial_control()
