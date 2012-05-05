@@ -16,10 +16,8 @@ class ReducedFunctional:
             scaling_factor is ignored if automatic_scaling is active. '''
         # Hide the configuration since changes would break the memoize algorithm. 
         self.__config__ = config
-        if self.__config__.params['automatic_scaling']:
-            self.scaling_factor = None 
-        else:
-            self.scaling_factor = scaling_factor
+        self.scaling_factor = scaling_factor
+        self.automatic_scaling_factor = None
         self.plot = plot
         # Caching variables that store for which controls the last forward run was performed
         self.last_m = None
@@ -125,13 +123,15 @@ class ReducedFunctional:
         info_green('Evaluating j(' + m.__repr__() + ') = ' + str(j))
         info_blue('Runtime: ' + str(timer.value())  + " s")
 
-        if self.__config__.params['automatic_scaling'] and not self.scaling_factor:
+        if self.__config__.params['automatic_scaling'] and not self.automatic_scaling_factor:
             # Computing dj will set the automatic scaling factor. 
-            info_blue("Computing derivative to determine scaling factor")
+            info_blue("Computing derivative to determine the automatic scaling factor")
             dj = self.dj(m)
-
-        info_green('Scaled j(' + m.__repr__() + ') = ' + str(self.scaling_factor * j))
-        return j * self.scaling_factor
+            info_green('Scaled j(' + m.__repr__() + ') = ' + str(self.automatic_scaling_factor * self.scaling_factor * j))
+            return j * self.scaling_factor * self.automatic_scaling_factor
+        else:
+            info_green('Scaled j(' + m.__repr__() + ') = ' + str(self.scaling_factor * j))
+            return j * self.scaling_factor
 
     def dj(self, m):
         ''' This memoised function returns the gradient of the functional for the parameter choice m. '''
@@ -140,23 +140,26 @@ class ReducedFunctional:
         dj = self.run_adjoint_model_mem(m)
         timer.stop()
 
-        if self.__config__.params['automatic_scaling'] and not self.scaling_factor:
-            if self.__config__.params['controls'] == ['turbine_pos']:
+        if self.__config__.params['automatic_scaling'] and not self.automatic_scaling_factor:
+            if not self.__config__.params['controls'] == ['turbine_pos']:
                 raise NotImplementedError, "Automatic scaling works currently only if the turbine positions are the only parameters"
 
             # We need to run the adjoint model in order the find out how big the scaling factor should be.
-            djl2 = max(dj)
+            djl2 = abs(max(dj))
             if djl2 == 0:
                 raise ValueError, "Automatic scaling failed: The gradient at the parameter point is zero"
             else:
-                self.scaling_factor = self.__config__.params['automatic_scaling_multiplier'] * max(self.__config__.params['turbine_x'], self.__config__.params['turbine_y']) / djl2
-                info_blue("The automatic scaling factor was set to " + str(self.scaling_factor) + ".")
+                self.automatic_scaling_factor = self.__config__.params['automatic_scaling_multiplier'] * max(self.__config__.params['turbine_x'], self.__config__.params['turbine_y']) / djl2 / self.scaling_factor
+                info_blue("The automatic scaling factor was set to " + str(self.automatic_scaling_factor) + ".")
 
         info_green('Evaluating dj(' + m.__repr__() + ') = ' + str(dj)) 
         info_blue('Runtime: ' + str(timer.value())  + " s")
-        info_green('Scaled dj(' + m.__repr__() + ') = ' + str(self.scaling_factor * dj))
-
-        return dj * self.scaling_factor
+        if self.__config__.params['automatic_scaling']:
+            info_green('Scaled dj(' + m.__repr__() + ') = ' + str(self.automatic_scaling_factor * self.scaling_factor * dj))
+            return dj * self.scaling_factor * self.automatic_scaling_factor
+        else:
+            info_green('Scaled dj(' + m.__repr__() + ') = ' + str(self.scaling_factor * dj))
+            return dj * self.scaling_factor
 
     def dj_with_check(self, m, seed = 0.1, tol = 1.8):
         ''' This function checks the correctness and returns the gradient of the functional for the parameter choice m. '''
