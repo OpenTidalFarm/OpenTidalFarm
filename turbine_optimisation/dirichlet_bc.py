@@ -68,7 +68,7 @@ class DirichletBCSet:
                 return bool(x[1] < DOLFIN_EPS and x[1] > -DOLFIN_EPS and on_boundary)
 
             def map(self, x, y):
-                y[1] = x[1] - config.params["basin_y"] 
+                y[1] = x[1] - config.domain.basin_y 
                 y[0] = x[0]
 
         pbc = PeriodicBoundary()
