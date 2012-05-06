@@ -12,7 +12,7 @@ config.params['automatic_scaling'] = False
 # Place some turbines 
 basin_x = 640
 basin_y = 320
-turbine_pos = [[basin_x/2, basin_y/2]] 
+turbine_pos = [[basin_x/3, basin_y/2]] 
 config.set_turbine_pos(turbine_pos)
 
 
