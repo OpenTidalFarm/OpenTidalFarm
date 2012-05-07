@@ -151,7 +151,8 @@ class PaperConfiguration(DefaultConfiguration):
     self.params['quadratic_friction'] = True
     self.params['newton_solver'] = True 
     self.params['friction'] = 0.0025
-    self.params['eta0'] = 2. / sqrt(self.params["g"]/self.params["depth"]) # This will give a inflow velocity of 2m/s
+    # Without the 1e-10, the adjoint model hangs! Why? No idea!
+    self.params['eta0'] = (2.0+1e-10)/sqrt(self.params["g"]/self.params["depth"]) # This will give a inflow velocity of 2m/s
 
     # Turbine settings
     self.params['turbine_pos'] = []
