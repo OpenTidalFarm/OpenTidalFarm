@@ -40,10 +40,6 @@ if minconv < 1.98:
   info_red("The gradient taylor remainder test failed.")
   sys.exit(1)
 
-# If this option does not produce any ipopt outputs, delete the ipopt.opt file
-g = lambda m: []
-dg = lambda m: []
-
 f = IPOptUtils.IPOptFunction()
 # Overwrite the functional and gradient function with our implementation
 f.objective= model.j 
