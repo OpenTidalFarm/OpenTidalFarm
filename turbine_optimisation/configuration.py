@@ -147,11 +147,11 @@ class PaperConfiguration(DefaultConfiguration):
     # Model settings
     self.params['include_advection'] = True
     self.params['include_diffusion'] = True
-    self.params['diffusion_coef'] = 2.0
+    self.params['diffusion_coef'] = 0.5
     self.params['quadratic_friction'] = True
     self.params['newton_solver'] = True 
     self.params['friction'] = 0.0025
-    #self.params['eta0'] = 2. / sqrt(self.params["g"]/self.params["depth"]) # This will give a inflow velocity of 2m/s
+    self.params['eta0'] = 2. / sqrt(self.params["g"]/self.params["depth"]) # This will give a inflow velocity of 2m/s
 
     # Turbine settings
     self.params['turbine_pos'] = []
@@ -229,6 +229,7 @@ class WideConstantInflowPeriodicSidesPaperConfiguration(ConstantInflowPeriodicSi
 class ScenarioConfiguration(ConstantInflowPeriodicSidesPaperConfiguration):
     def __init__(self, mesh_file, inflow_direction, finite_element = finite_elements.p2p1):
         super(ScenarioConfiguration, self).__init__(nx = 100, ny = 33, basin_x = None, basin_y = None, finite_element = finite_element)
+        self.params['functional_turbine_scaling'] = 1.0
         self.set_domain( GMeshDomain(mesh_file), warning = False)
         # We need to reapply the bc
         bc = DirichletBCSet(self)
@@ -237,19 +238,9 @@ class ScenarioConfiguration(ConstantInflowPeriodicSidesPaperConfiguration):
         self.params['strong_bc'] = bc
         self.params['free_slip_on_sides'] = True
         self.params['steady_state'] = True
+        self.params["picard_iterations"] = 4
         #self.params["newton_solver"] = True 
 
-class PeriodicScenarioConfiguration(ScenarioConfiguration):
-    def __init__(self, mesh_file, basin_y, inflow_direction, finite_element = finite_elements.p2p1):
-        super(PeriodicScenarioConfiguration, self).__init__(nx = 100, ny = 33, basin_x = None, basin_y = None, finite_element = finite_element)
-        self.set_domain( GMeshDomain(mesh_file), warning = False)
-        # Periodic bc's need to know the y extension of the domain
-        self.set_domain.basin_y = basin_y 
-        # We need to reapply the bc
-        bc = DirichletBCSet(self)
-        bc.add_constant_flow(1, inflow_direction)
-        bc.add_zero_eta(2)
-        bc.add_periodic_sides(3)
-        self.params['strong_bc'] = bc
-        self.params['steady_state'] = True
-        #self.params["newton_solver"] = True 
+    def set_turbine_pos(self, position, friction = 0.163684210526):
+        ''' Sets the turbine position and a equal friction parameter. '''
+        super(ScenarioConfiguration, self).set_turbine_pos(position, friction)
