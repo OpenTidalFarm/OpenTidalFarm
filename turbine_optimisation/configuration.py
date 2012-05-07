@@ -238,7 +238,7 @@ class ScenarioConfiguration(ConstantInflowPeriodicSidesPaperConfiguration):
         self.params['strong_bc'] = bc
         self.params['free_slip_on_sides'] = True
         self.params['steady_state'] = True
-        self.params["picard_iterations"] = 4
+        self.params["picard_iterations"] = 2
         #self.params["newton_solver"] = True 
 
     def set_turbine_pos(self, position, friction = 0.163684210526):

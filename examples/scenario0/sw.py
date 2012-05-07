@@ -3,7 +3,7 @@ import numpy
 from reduced_functional import ReducedFunctional
 from dolfin import *
 from helpers import info, info_green, info_red, info_blue
-set_log_level(ERROR)
+set_log_level(DEBUG)
 
 basin_x = 640.
 basin_y = 320.
@@ -13,11 +13,10 @@ config = configuration.ScenarioConfiguration("mesh.xml", inflow_direction = [1, 
 # Switch of the automatic scaling, since we will not solve an optimisation problem
 config.params['automatic_scaling'] = False
 
-# Place some turbines 
+# Place one turbine 
 offset = 0.0
 turbine_pos = [[basin_x/3 + offset, basin_y/2 + offset]] 
 config.set_turbine_pos(turbine_pos)
-
 
 model = ReducedFunctional(config)
 m = model.initial_control()

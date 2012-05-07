@@ -13,8 +13,7 @@ from dolfin import *
 set_log_level(ERROR)
 numpy.random.seed(21)
 
-#for c in [DefaultConfiguration, PaperConfiguration, ConstantInflowPeriodicSidesPaperConfiguration, ScenarioConfiguration]:
-for c in [ScenarioConfiguration]:
+for c in [DefaultConfiguration, PaperConfiguration, ConstantInflowPeriodicSidesPaperConfiguration, ScenarioConfiguration]:
     info_green("Testing configuration " + c.__name__)
     if c == ScenarioConfiguration:
         config = c("mesh.xml", inflow_direction = [1, 1])
@@ -24,6 +23,10 @@ for c in [ScenarioConfiguration]:
 
     # Deploy some turbines 
     turbine_pos = [] 
+    if c == ScenarioConfiguration or ConstantInflowPeriodicSidesPaperConfiguration:
+        # The configuration does not converge for this (admittely unphysical) setup, so we help a little with some viscosity
+        config.params['diffusion_coef'] = 20.0
+
     if c == ScenarioConfiguration:
         basin_x = 1200
         basin_y = 1000
@@ -36,7 +39,7 @@ for c in [ScenarioConfiguration]:
         site_y_start = land_y + land_site_delta 
         config.params['turbine_x'] = 50. 
         config.params['turbine_y'] = 50. 
-        seed = 0.1
+        seed = 0.01
 
         for x_r in numpy.linspace(site_x_start, site_x_start + site_x, 2):
             for y_r in numpy.linspace(site_y_start, site_y_start + site_y, 2):
