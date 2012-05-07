@@ -28,7 +28,7 @@ class ReducedFunctional:
         if plot:
            self.plotter = AnimatedPlot(xlabel = "Iteration", ylabel = "Functional value")
 
-        def run_forward_model(m):
+        def run_forward_model(m, return_final_state = False):
             ''' This function solves the forward and adjoint problem and returns the functional value and its gradient for the parameter choice m. ''' 
             adj_reset()
 
@@ -62,7 +62,10 @@ class ReducedFunctional:
             j, self.last_djdm = forward_model(config, state, functional=functional, turbine_field = tf)
             self.last_state = state
 
-            return j 
+            if return_final_state:
+                return j, state
+            else:
+                return j 
 
         def run_adjoint_model(m):
             # If the last forward run was performed with the same parameters, then all recorded values by dolfin-adjoint are still valid for this adjoint run
