@@ -257,6 +257,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
             iter_counter += 1
             if iter_counter > 0:
               relative_diff = abs(assemble( inner(state_new-state_nl, state_new-state_nl) * dx ))/norm(state_new)
+              info_blue("Picard iteration " + str(iter_counter) + " relative difference: " + str(relative_diff))
 
               if relative_diff < picard_relative_tolerance:
                 info("Picard iteration converged after " + str(iter_counter) + " iterations.")
