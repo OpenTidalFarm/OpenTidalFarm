@@ -3,7 +3,7 @@ import numpy
 from reduced_functional import ReducedFunctional
 from dolfin import *
 from helpers import info, info_green, info_red, info_blue
-set_log_level(DEBUG)
+set_log_level(ERROR)
 
 basin_x = 640.
 basin_y = 320.

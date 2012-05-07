@@ -21,8 +21,8 @@ offset = 0.0
 turbine_pos = [[basin_x/3 + offset, basin_y/2 + offset]] 
 config.set_turbine_pos(turbine_pos)
 
-model = ReducedFunctional(config)
-m0 = model.initial_control()
+model = ReducedFunctional(config, scaling_factor = 0.01)
+m0 = 0.16913721*numpy.ones(len(model.initial_control()))
 
 f = IPOptUtils.IPOptFunction()
 # Overwrite the functional and gradient function with our implementation
@@ -33,10 +33,10 @@ nlp = ipopt.problem(len(m0),
                     0, 
                     f, 
                     numpy.zeros(len(m0)), 
-                    # Set the maximum friction value to 1.0 to enforce the local minimum at 0.122
+                    # Set the maximum friction value to 1.0
                     1.0*numpy.ones(len(m0)))
 nlp.addOption('mu_strategy', 'adaptive')
-nlp.addOption('tol', 1e-4)
+nlp.addOption('tol', 1e-5)
 nlp.addOption('print_level', 5)
 nlp.addOption('check_derivatives_for_naninf', 'yes')
 nlp.addOption('obj_scaling_factor', -1.0)
