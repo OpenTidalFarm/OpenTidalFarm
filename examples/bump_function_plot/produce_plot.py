@@ -20,7 +20,7 @@ Z1 = np.exp(-1./Z1)
 Z2 = 1. - ((Y-10)/10)**2
 Z2 = np.maximum(Z2, 1e-12)
 Z2 = np.exp(-1./Z2)
-Z = Z1 * Z2
+Z = Z1 * Z2 * np.exp(2)
 
 ax.plot_surface(X, Y, Z, rstride=1, cstride=1, cmap=cm.jet)
 #ax.set_zlim3d(0, 1)
