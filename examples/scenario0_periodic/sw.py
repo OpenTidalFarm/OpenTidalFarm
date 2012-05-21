@@ -26,7 +26,7 @@ info_green("Power outcome: %f" % (j, ))
 # Compute the Lanchester-Betz limit.
 # The notation follows C. Garretta and P. Cummins, Limits to tidal current power
 try: 
-    u0 = state((1., basin_y/2))[0]
+    u0 = state((1., site_y/2))[0]
 except RuntimeError:
     u0 = -100000
     pass
