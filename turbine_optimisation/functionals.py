@@ -31,10 +31,11 @@ class DefaultFunctional(FunctionalPrototype):
         params["turbine_x"] *= params["functional_turbine_scaling"]
         params["turbine_y"] *= params["functional_turbine_scaling"] 
 
-    def __init__(self, W, params):
-        ''' Constructs a new DefaultFunctional. The turbine settings arederived from the settings params. '''
+    def __init__(self, W, config):
+        ''' Constructs a new DefaultFunctional. The turbine settings are derived from the settings params. '''
+        self.config = config
         # Create a copy of the parameters so that future changes will not affect the definition of this object.
-        self.params = configuration.Parameters(dict(params))
+        self.params = configuration.Parameters(dict(config.params))
         self.scale_turbine_size()
         self.turbine_cache = self.build_turbine_cache(W) 
 
@@ -65,12 +66,10 @@ class DefaultFunctional(FunctionalPrototype):
           to avoid the recomputation of the expensive interpolation of the turbine expression. '''
         params = self.params
         turbine_cache = {}
-        U = W.split()[0].sub(0) # extract the first component of the velocity function space 
-        U = U.collapse() # recompute the dof map
 
         # Precompute the interpolation of the friction function of all turbines
         turbines = Turbines(params)
-        tf = Function(U, name = "functional_turbine_friction")
+        tf = Function(self.config.turbine_function_space, name = "functional_turbine_friction") 
         tf.interpolate(turbines)
         turbine_cache["turbine_field"] = tf
 
@@ -79,10 +78,10 @@ class DefaultFunctional(FunctionalPrototype):
         # if "turbine_friction" in params["controls"]:
         turbine_cache["turbine_derivative_friction"] = []
         for n in range(len(params["turbine_friction"])):
-            turbines = Turbines(params, derivative_index_selector=n, derivative_var_selector='turbine_friction')
-            tf = Function(U, name =  "functional_turbine_friction_derivative_with_respect_friction_magnitude_of_turbine_" + str(n))
-            tf.interpolate(turbines)
-            turbine_cache["turbine_derivative_friction"].append(tf)
+            turbines = Turbines(params, derivative_index_selector = n, derivative_var_selector = 'turbine_friction')
+            tfd = Function(self.config.turbine_function_space, name = "functional_turbine_friction_derivative_with_respect_friction_magnitude_of_turbine_" + str(n)) 
+            tfd.interpolate(turbines)
+            turbine_cache["turbine_derivative_friction"].append(tfd)
 
         # Precompute the derivatives with respect to the turbine position
         # TODO: Only needed if turbine_pos is a control:
@@ -91,9 +90,9 @@ class DefaultFunctional(FunctionalPrototype):
         for n in range(len(params["turbine_pos"])):
             turbine_cache["turbine_derivative_pos"].append({})
             for var in ('turbine_pos_x', 'turbine_pos_y'):
-                turbines = Turbines(params, derivative_index_selector=n, derivative_var_selector=var)
-                tf = Function(U, name = "functional_turbine_friction_derivative_with_respect_position_of_turbine_" + str(n))
-                tf.interpolate(turbines)
-                turbine_cache["turbine_derivative_pos"][-1][var] = tf
+                turbines = Turbines(params, derivative_index_selector = n, derivative_var_selector = var)
+                tfd = Function(self.config.turbine_function_space, name = "functional_turbine_friction_derivative_with_respect_position_of_turbine_" + str(n))
+                tfd.interpolate(turbines)
+                turbine_cache["turbine_derivative_pos"][-1][var] = tfd
 
         return turbine_cache

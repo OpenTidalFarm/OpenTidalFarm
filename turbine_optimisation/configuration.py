@@ -128,6 +128,7 @@ class DefaultConfiguration(object):
            info_red("If you are overwriting the domain, make sure that you reapply the boundary conditions as well")
       self.domain = domain
       self.function_space = self.finite_element(self.domain.mesh)
+      self.turbine_function_space = FunctionSpace(self.domain.mesh, 'CG', 2) 
 
   def set_turbine_pos(self, positions, friction = 1.0):
       ''' Sets the turbine position and a equal friction parameter. '''
@@ -239,7 +240,7 @@ class ScenarioConfiguration(ConstantInflowPeriodicSidesPaperConfiguration):
         self.params['strong_bc'] = bc
         self.params['free_slip_on_sides'] = True
         self.params['steady_state'] = True
-        self.params["picard_iterations"] = 2
+        self.params["picard_iterations"] = 4
         self.params["newton_solver"] = False 
 
     def set_turbine_pos(self, position, friction = 0.17353373):

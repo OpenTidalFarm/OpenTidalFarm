@@ -48,17 +48,17 @@ class ReducedFunctional:
             state = Function(config.function_space, name="Current_state")
             state.interpolate(config.params['initial_condition'](config)())
 
-            # Set the control values
-            U = config.function_space.split()[0].sub(0) # Extract the first component of the velocity function space 
-            U = U.collapse() # Recompute the DOF map
-            tf = Function(U, name = "friction") 
-
             # Set up the turbine field 
+            tf = Function(self.__config__.turbine_function_space, name = "friction") 
             tf.interpolate(Turbines(config.params))
+            info_green("Turbine integral: %f ", assemble(tf*dx))
+            info_green("The correct integral should be: %f ",  25.2771) # computed with wolfram alpha using:
+            # int 0.17353373* (exp(-1.0/(1-(x/10)**2)) * exp(-1.0/(1-(y/10)**2)) * exp(2)) dx dy, x=-10..10, y=-10..10 
+            info_red("relative error: %f", (assemble(tf*dx)-25.2771)/25.2771)
             self.turbine_file << tf
 
             # Solve the shallow water system
-            functional = DefaultFunctional(config.function_space, config.params)
+            functional = DefaultFunctional(config.function_space, config)
             j, self.last_djdm = forward_model(config, state, functional=functional, turbine_field = tf)
             self.last_state = state
 
@@ -76,7 +76,7 @@ class ReducedFunctional:
             state = self.last_state
             djdm = self.last_djdm
 
-            functional = DefaultFunctional(config.function_space, config.params)
+            functional = DefaultFunctional(config.function_space, config)
             if config.params['steady_state'] or config.params["functional_final_time_only"]:
                 J = FinalFunctional(functional.Jt(state))
             else:
@@ -91,7 +91,7 @@ class ReducedFunctional:
             dj = [] 
             U = config.function_space.split()[0].sub(0) # Extract the first component of the velocity function space 
             U = U.collapse() # Recompute the DOF map
-            tfd = Function(U, name = "friction_derivative") 
+            tfd = Function(self.__config__.turbine_function_space, name = "friction_derivative") 
             if 'turbine_friction' in config.params["controls"]:
                 # Compute the derivatives with respect to the turbine friction
                 for n in range(len(config.params["turbine_friction"])):
