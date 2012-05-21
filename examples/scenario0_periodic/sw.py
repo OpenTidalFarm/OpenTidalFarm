@@ -5,17 +5,17 @@ from dolfin import *
 from helpers import info, info_green, info_red, info_blue
 set_log_level(ERROR)
 
-basin_x = 640.
-basin_y = 160.
+site_x = 100.
+site_y = 50.
 
 # We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
-config = configuration.PeriodicScenarioConfiguration(basin_y, "mesh.xml", inflow_direction = [1, 0])
+config = configuration.PeriodicScenarioConfiguration(site_y, "mesh.xml", inflow_direction = [1, 0])
 # Switch of the automatic scaling, since we will not solve an optimisation problem
 config.params['automatic_scaling'] = False
 
 # Place one turbine 
 offset = 0.5
-turbine_pos = [[basin_x/3 + offset, basin_y/2 + offset]] 
+turbine_pos = [[site_x/3 + offset, site_y/2 + offset]] 
 config.set_turbine_pos(turbine_pos)
 
 model = ReducedFunctional(config)
