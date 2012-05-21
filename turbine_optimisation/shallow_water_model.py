@@ -71,7 +71,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
     if is_nonlinear and newton_solver:
       u, h = split(state_new) 
     else:
-      (u, h) = TrialFunctions(config.function_space) 
+      u, h = TrialFunctions(config.function_space) 
     u0, h0 = split(state)
     u_nl, h_nl = split(state_nl)
 
