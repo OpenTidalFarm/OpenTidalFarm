@@ -128,7 +128,7 @@ class DefaultConfiguration(object):
            info_red("If you are overwriting the domain, make sure that you reapply the boundary conditions as well")
       self.domain = domain
       self.function_space = self.finite_element(self.domain.mesh)
-      self.turbine_function_space = FunctionSpace(self.domain.mesh, 'CG', 2) 
+      self.turbine_function_space = FunctionSpace(self.domain.mesh, 'CG', 4) 
 
   def set_turbine_pos(self, positions, friction = 1.0):
       ''' Sets the turbine position and a equal friction parameter. '''
@@ -246,3 +246,15 @@ class ScenarioConfiguration(ConstantInflowPeriodicSidesPaperConfiguration):
     def set_turbine_pos(self, position, friction = 0.17353373):
         ''' Sets the turbine position and a equal friction parameter. '''
         super(ScenarioConfiguration, self).set_turbine_pos(position, friction)
+
+class PeriodicScenarioConfiguration(ScenarioConfiguration):
+    def __init__(self, basin_y, mesh_file, inflow_direction, finite_element = finite_elements.p2p1):
+        super(PeriodicScenarioConfiguration, self).__init__(mesh_file, inflow_direction, finite_element)
+        self.domain.basin_y = basin_y
+        # We need to reapply the bc
+        bc = DirichletBCSet(self)
+        bc.add_constant_flow(1, inflow_direction)
+        bc.add_periodic_sides()
+        bc.add_zero_eta(2)
+        self.params['strong_bc'] = bc
+        self.params['free_slip_on_sides'] = False

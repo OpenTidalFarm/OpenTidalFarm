@@ -7,7 +7,6 @@ import configuration
 import numpy
 import cProfile
 import finite_elements
-from functionals import DefaultFunctional
 from turbines import *
 from dolfin import *
 
