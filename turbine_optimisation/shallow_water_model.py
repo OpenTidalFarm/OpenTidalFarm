@@ -256,7 +256,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
                 solver_benchmark.solve(dolfin.lhs(F) == dolfin.rhs(F), state_new, solver_parameters = solver_parameters, annotate=annotate, benchmark = run_benchmark, solve = solve, solver_exclude = solver_exclude)
             iter_counter += 1
             if iter_counter > 0:
-              relative_diff = abs(assemble( inner(state_new-state_nl, state_new-state_nl) * dx ))/norm(state_new)
+              relative_diff = abs(assemble( inner(state_new-state_nl, state_new-state_nl) * dx ))/assemble( inner(state_new, state_new) * dx )
               info_blue("Picard iteration " + str(iter_counter) + " relative difference: " + str(relative_diff))
 
               if relative_diff < picard_relative_tolerance:
