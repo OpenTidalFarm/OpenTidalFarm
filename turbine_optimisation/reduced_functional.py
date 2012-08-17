@@ -78,9 +78,9 @@ class ReducedFunctional:
 
             functional = DefaultFunctional(config.function_space, config)
             if config.params['steady_state'] or config.params["functional_final_time_only"]:
-                J = FinalFunctional(functional.Jt(state))
+                J = Functional(functional.Jt(state)*dt[FINISH_TIME])
             else:
-                J = TimeFunctional(functional.Jt(state), dt = config.params["dt"])
+                J = Functional(functional.Jt(state)*dt)
             djdudm = compute_gradient(J, InitialConditionParameter("friction"))
 
             # Let J be the functional, m the parameter and u the solution of the PDE equation F(u) = 0.

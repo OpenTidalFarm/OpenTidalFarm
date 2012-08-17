@@ -153,13 +153,13 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
     # Friction term
     # With a newton solver we can simply use a non-linear form
     if quadratic_friction and newton_solver:
-      R_mid = g * friction**2 / (depth**(1./3)) * dot(u_mid, u_mid)**0.5 * inner(u_mid, v) * dx 
+      R_mid = g * friction**2 / (depth**(2./3)) * dot(u_mid, u_mid)**0.5 * inner(u_mid, v) * dx 
     # With a picard iteration we need to linearise using the best guess
     elif quadratic_friction and not newton_solver:
-      R_mid = g * friction**2 / (depth**(1./3)) * dot(u_mid_nl, u_mid_nl)**0.5 * inner(u_mid, v) * dx 
+      R_mid = g * friction**2 / (depth**(2./3)) * dot(u_mid_nl, u_mid_nl)**0.5 * inner(u_mid, v) * dx 
     # Use a linear drag
     else:
-      R_mid = g * friction**2 / (depth**(1./3)) * inner(u_mid, v) * dx 
+      R_mid = g * friction**2 / (depth**(2./3)) * inner(u_mid, v) * dx 
 
     # Advection term 
     # With a newton solver we can simply use a quadratic form
@@ -220,6 +220,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
             j =  dt * quad * assemble(functional.Jt(state)) 
             djdm = dt * quad * numpy.array([assemble(f) for f in functional.dJtdm(state)])
 
+    adjointer.time.start(t)
     while (t < params["finish_time"]):
         t += dt
         params["current_time"] = t
@@ -300,7 +301,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
                 djdm += quad * djtdm
 
         # Increase the adjoint timestep
-        adj_inc_timestep()
+        adj_inc_timestep(time=t, finished = not t < params["finish_time"])
 
     if functional is not None:
       return j, djdm 
