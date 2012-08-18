@@ -28,8 +28,8 @@ def default_config():
   # The turbine position is the control variable 
   turbine_pos = [] 
   border = 100
-  for x_r in numpy.linspace(0.+border, config.params["basin_x"]-border, 30):
-    for y_r in numpy.linspace(0.+border, config.params["basin_y"]-border, 10):
+  for x_r in numpy.linspace(0.+border, config.domain.basin_x-border, 30):
+    for y_r in numpy.linspace(0.+border, config.domain.basin_y-border, 10):
       turbine_pos.append((float(x_r), float(y_r)))
 
   config.set_turbine_pos(turbine_pos)
@@ -57,3 +57,4 @@ print "norm(tf) = ", norm(tf)
 correct_norm = 605.429678289 
 if abs(norm(tf) - correct_norm) > 0.000000001:
   print "Warning: Wrong norm. Should be ", correct_norm 
+print "Note: this test should take round 11s"
