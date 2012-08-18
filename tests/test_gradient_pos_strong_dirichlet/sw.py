@@ -6,10 +6,10 @@ import IPOptUtils
 import ipopt
 from helpers import test_gradient_array
 from animated_plot import *
-from reduced_functional import ReducedFunctional
 from dirichlet_bc import DirichletBCSet
 from dolfin import *
 from dolfin_adjoint import *
+from reduced_functional import ReducedFunctional
 set_log_level(PROGRESS)
 
 def default_config():

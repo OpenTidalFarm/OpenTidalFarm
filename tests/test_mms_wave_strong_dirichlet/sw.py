@@ -5,6 +5,7 @@ import finite_elements
 from dirichlet_bc import DirichletBCSet
 from initial_conditions import SinusoidalInitialCondition
 from dolfin import *
+from dolfin_adjoint import *
 from math import log
 from helpers import cpu0only
 import pylab
@@ -16,6 +17,7 @@ def error(config):
   state = Function(config.function_space)
   state.interpolate(SinusoidalInitialCondition(config)())
 
+  adj_reset()
   sw_model.sw_solve(config, state, annotate=False)
 
   analytic_sol = Expression(("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", \

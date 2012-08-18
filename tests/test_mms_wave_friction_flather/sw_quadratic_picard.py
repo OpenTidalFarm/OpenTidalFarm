@@ -6,7 +6,7 @@ from initial_conditions import SinusoidalInitialCondition
 from dolfin import *
 from math import log
 
-set_log_level(ERROR)
+set_log_level(INFO)
 parameters["std_out_all_processes"] = False;
 
 def error(config):

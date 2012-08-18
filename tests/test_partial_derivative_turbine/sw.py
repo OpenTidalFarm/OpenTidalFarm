@@ -9,9 +9,9 @@ import numpy
 import finite_elements
 from dolfin import *
 from helpers import test_gradient_array
-from reduced_functional import ReducedFunctional 
 from turbines import *
 from initial_conditions import SinusoidalInitialCondition
+from reduced_functional import ReducedFunctional 
 set_log_level(PROGRESS)
 
 def default_config():
