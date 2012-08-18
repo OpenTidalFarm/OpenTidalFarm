@@ -27,6 +27,7 @@ def mini_model(A, M, state, params, functional=None, annotate=True):
       j = fac*0.5*params["dt"]*assemble(functional.Jt(state)) 
       djdm = fac*0.5*params["dt"]*numpy.array([assemble(f) for f in functional.dJtdm(state)])
 
+    adjointer.time.start(0.0)
     tmpstate = Function(state.function_space(), name="tmp_state")
     rhs = action(M, state)
     # Solve the mini model 
@@ -36,7 +37,7 @@ def mini_model(A, M, state, params, functional=None, annotate=True):
     state.assign(tmpstate, annotate=annotate)
 
     # Bump timestep to shut up libadjoint.
-    adj_inc_timestep()
+    adj_inc_timestep(time=params["dt"], finished = True)
 
     if functional is not None:
       j += 0.5*params["dt"]*assemble(functional.Jt(state)) 

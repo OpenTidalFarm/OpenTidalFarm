@@ -47,6 +47,8 @@ class ReducedFunctional:
             # Get initial conditions
             state = Function(config.function_space, name="Current_state")
             state.interpolate(config.params['initial_condition'](config)())
+            # Solve the dummy projection so that libadjoint annotates the initial Current_state
+            state_tmp = project(state, config.function_space)
 
             # Set up the turbine field 
             tf = Function(self.__config__.turbine_function_space, name = "friction") 
