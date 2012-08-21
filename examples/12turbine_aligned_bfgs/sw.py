@@ -23,8 +23,8 @@ config = configuration.ConstantInflowPeriodicSidesPaperConfiguration(nx=100, ny=
 turbine_pos = [] 
 border_x = 20.
 border_y = 20.
-for x_r in numpy.linspace(0.+border_x, config.params["basin_x"]-border_x, 6):
-    for y_r in numpy.linspace(0.+border_y, config.params["basin_y"]-border_y, 2):
+for x_r in numpy.linspace(0.+border_x, config.domain.basin_x-border_x, 6):
+    for y_r in numpy.linspace(0.+border_y, config.domain.basin_y-border_y, 2):
       turbine_pos.append((float(x_r), float(y_r)))
 
 config.set_turbine_pos(turbine_pos)
