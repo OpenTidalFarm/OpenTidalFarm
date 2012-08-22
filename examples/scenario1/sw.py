@@ -4,7 +4,7 @@ import IPOptUtils
 from reduced_functional import ReducedFunctional
 from dolfin import *
 from scipy.optimize import fmin_slsqp
-set_log_level(ERROR)
+set_log_level(INFO)
 
 # We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
 numpy.random.seed(21) 
