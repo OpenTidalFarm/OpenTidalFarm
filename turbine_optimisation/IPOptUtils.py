@@ -52,6 +52,18 @@ def position_constraints(config):
     ub = n * [ub_x, ub_y]
     return lb, ub 
 
+def friction_constraints(config, lb = 0.0, ub = None):
+    ''' This function returns the constraints to ensure that the turbine friction controls remain reasonable. '''
+
+    if ub != None and not lb < ub:
+        raise ValueError, "Lower bound is larger than upper bound."
+    
+    if ub == None:
+      ub = 10**12
+
+    n = len(config.params["turbine_pos"])
+    return n * [lb], n * [ub] 
+
 def get_minimum_distance_constraint_func(config, min_distance = None):
     if config.params['controls'] != ['turbine_pos']:
         raise NotImplementedError, "Inequality contraints are currently only supported if turbine_pos are the only controls"
