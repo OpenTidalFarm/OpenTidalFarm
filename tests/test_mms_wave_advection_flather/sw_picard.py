@@ -4,6 +4,7 @@ import finite_elements
 import shallow_water_model as sw_model
 from initial_conditions import SinusoidalInitialCondition
 from dolfin import *
+from dolfin_adjoint import *
 from math import log
 
 set_log_level(ERROR)
@@ -21,6 +22,7 @@ def error(config):
                              eta0=config.params["eta0"], g=config.params["g"], \
                              depth=config.params["depth"], t=config.params["current_time"], k=config.params["k"])
 
+  adj_reset()
   sw_model.sw_solve(config, state, annotate=False, u_source = source)
 
   analytic_sol = Expression((u_exact, \
