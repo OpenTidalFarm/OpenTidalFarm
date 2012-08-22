@@ -3,7 +3,6 @@ import sys
 import configuration 
 import numpy
 import IPOptUtils
-import ipopt
 from helpers import test_gradient_array
 from animated_plot import *
 from dirichlet_bc import DirichletBCSet
