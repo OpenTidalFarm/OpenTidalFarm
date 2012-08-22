@@ -148,10 +148,16 @@ class ReducedFunctional:
 
         # Compute the scaling factor if never done before
         if self.__config__.params['automatic_scaling'] and not self.automatic_scaling_factor:
-            if not self.__config__.params['controls'] == ['turbine_pos']:
-                raise NotImplementedError, "Automatic scaling works currently only if the turbine positions are the only parameters"
+            if not 'turbine_pos' in self.__config__.params['controls']:
+                raise NotImplementedError, "Automatic scaling only works if the turbine positions are control parameters"
 
-            djl2 = max(abs(dj))
+            if len(self.__config__.params['controls']) > 1:
+                assert(len(dj) % 3 == 0)
+                # Exclude the first third from the automatic scaling as it contains the friction coefficients
+                djl2 = max(abs(dj[len(dj)/3:]))
+            else:
+                djl2 = max(abs(dj))
+
             if djl2 == 0:
                 raise ValueError, "Automatic scaling failed: The gradient at the parameter point is zero"
             else:

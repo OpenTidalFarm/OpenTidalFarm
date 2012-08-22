@@ -65,8 +65,8 @@ def friction_constraints(config, lb = 0.0, ub = None):
     return n * [lb], n * [ub] 
 
 def get_minimum_distance_constraint_func(config, min_distance = None):
-    if config.params['controls'] != ['turbine_pos']:
-        raise NotImplementedError, "Inequality contraints are currently only supported if turbine_pos are the only controls"
+    if not 'turbine_pos' in config.params['controls']:
+        raise NotImplementedError, "Inequality contraints for the distance only make sense if the turbine positions are control variables."
 
     if not min_distance:
         min_distance = 1.5*max(config.params["turbine_x"], config.params["turbine_y"])
@@ -76,6 +76,11 @@ def get_minimum_distance_constraint_func(config, min_distance = None):
 
     def f_ieqcons(m):
         ieqcons = []
+        if len(config.params['controls']) == 2:
+        # If the controls consists of the the friction and the positions, then we need to first extract the position part
+          assert(len(m)%3 == 0)
+          m = m[len(m)/3:]
+
         for i in range(len(m)/2):                                                                           
             for j in range(len(m)/2):                                                                       
                 if i <= j:
@@ -85,16 +90,25 @@ def get_minimum_distance_constraint_func(config, min_distance = None):
 
     def fprime_ieqcons(m):
         ieqcons = []
+        if len(config.params['controls']) == 2:
+          # If the controls consists of the the friction and the positions, then we need to first extract the position part
+          assert(len(m)%3 == 0)
+          m = m[len(m)/3:]
+          mf_len = len(m)/2
+        else:
+          mf_len = 0
+
         for i in range(len(m)/2):
             for j in range(len(m)/2):
                 if i <= j:
                     continue
-                prime_ieqcons = numpy.zeros(len(m))
+                prime_ieqcons = numpy.zeros(mf_len + len(m))
 
-                prime_ieqcons[2*i] = 2*(m[2*i]-m[2*j])
-                prime_ieqcons[2*j] = -2*(m[2*i]-m[2*j])
-                prime_ieqcons[2*i+1] = 2*(m[2*i+1]-m[2*j+1])
-                prime_ieqcons[2*j+1] = -2*(m[2*i+1]-m[2*j+1])
+                # The control vector contains the friction coefficients first, so we need to shift here
+                prime_ieqcons[mf_len + 2*i] = 2*(m[2*i]-m[2*j])
+                prime_ieqcons[mf_len + 2*j] = -2*(m[2*i]-m[2*j])
+                prime_ieqcons[mf_len + 2*i+1] = 2*(m[2*i+1]-m[2*j+1])
+                prime_ieqcons[mf_len + 2*j+1] = -2*(m[2*i+1]-m[2*j+1])
 
                 ieqcons.append(prime_ieqcons)
         return numpy.array(ieqcons)

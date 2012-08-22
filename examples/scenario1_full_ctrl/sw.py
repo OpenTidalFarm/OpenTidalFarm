@@ -18,16 +18,18 @@ site_x_start = (basin_x - site_x)/2
 site_y_start = (basin_y - site_y)/2 
 config = configuration.ScenarioConfiguration("mesh.xml", inflow_direction = [1, 0])
 config.set_site_dimensions(site_x_start, site_x_start + site_x, site_y_start, site_y_start + site_y)
+config.params["controls"] = ["turbine_friction", "turbine_pos"]
 
 # Place some turbines 
-IPOptUtils.deploy_turbines(config, nx = 8, ny = 4)
+IPOptUtils.deploy_turbines(config, nx = 9, ny = 6)
 
 model = ReducedFunctional(config, scaling_factor = -1, plot = True)
 m0 = model.initial_control()
-
-# Get the upper and lower bounds for the turbine positions
+# Get the upper and lower bounds for the turbine positions and friction
+lb_f, ub_f = IPOptUtils.friction_constraints(config, lb = 0., ub = 2*config.turbine_friction)
 lb, ub = IPOptUtils.position_constraints(config) 
-bounds = [(lb[i], ub[i]) for i in range(len(lb))]
+# The first part of the control vector consists of the turbine friction values followed by their positions
+bounds = [(lb_f[i], ub_f[i]) for i in range(len(lb_f))] + [(lb[i], ub[i]) for i in range(len(lb))]
 
 f_ieqcons, fprime_ieqcons = IPOptUtils.get_minimum_distance_constraint_func(config)
 
