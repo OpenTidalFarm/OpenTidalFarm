@@ -53,10 +53,10 @@ class ReducedFunctional:
             # Set up the turbine field 
             tf = Function(self.__config__.turbine_function_space, name = "friction") 
             tf.interpolate(Turbines(config.params))
-            info_green("Turbine integral: %f ", assemble(tf*dx))
-            info_green("The correct integral should be: %f ",  25.2771) # computed with wolfram alpha using:
+            #info_green("Turbine integral: %f ", assemble(tf*dx))
+            #info_green("The correct integral should be: %f ",  25.2771) # computed with wolfram alpha using:
             # int 0.17353373* (exp(-1.0/(1-(x/10)**2)) * exp(-1.0/(1-(y/10)**2)) * exp(2)) dx dy, x=-10..10, y=-10..10 
-            info_red("relative error: %f", (assemble(tf*dx)-25.2771)/25.2771)
+            #info_red("relative error: %f", (assemble(tf*dx)-25.2771)/25.2771)
             self.turbine_file << tf
 
             # Solve the shallow water system
