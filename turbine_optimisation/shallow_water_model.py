@@ -46,7 +46,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
     steady_state = params["steady_state"]
     functional_final_time_only = params["functional_final_time_only"]
     is_nonlinear = (include_advection or quadratic_friction)
-
+    
     # Print out an estimation of the Reynolds number 
     if include_diffusion and diffusion_coef>0:
       reynolds = params["turbine_x"]*2./diffusion_coef

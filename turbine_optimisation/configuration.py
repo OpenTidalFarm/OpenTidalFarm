@@ -148,7 +148,7 @@ class PaperConfiguration(DefaultConfiguration):
     # Model settings
     self.params['include_advection'] = True
     self.params['include_diffusion'] = True
-    self.params['diffusion_coef'] = 0.5
+    self.params['diffusion_coef'] = 3.0
     self.params['quadratic_friction'] = True
     self.params['newton_solver'] = True 
     self.params['friction'] = 0.0025
@@ -186,6 +186,7 @@ class PaperConfiguration(DefaultConfiguration):
     # Finally set some optimistion flags 
     dolfin.parameters['form_compiler']['cpp_optimize'] = True
     dolfin.parameters['form_compiler']['cpp_optimize_flags'] = '-O3'
+    dolfin.parameters['form_compiler']['optimize'] = True
 
   def set_turbine_pos(self, position, friction = 0.25):
       ''' Sets the turbine position and a equal friction parameter. '''
@@ -229,7 +230,7 @@ class WideConstantInflowPeriodicSidesPaperConfiguration(ConstantInflowPeriodicSi
         super(WideConstantInflowPeriodicSidesPaperConfiguration, self).__init__(nx, ny, basin_x, basin_y, finite_element)
 
 class ScenarioConfiguration(ConstantInflowPeriodicSidesPaperConfiguration):
-    def __init__(self, mesh_file, inflow_direction, finite_element = finite_elements.p2p1):
+    def __init__(self, mesh_file, inflow_direction, finite_element = finite_elements.p2p1, turbine_friction = 21.07):
         super(ScenarioConfiguration, self).__init__(nx = 100, ny = 33, basin_x = None, basin_y = None, finite_element = finite_element)
         self.params['functional_turbine_scaling'] = 1.0
         self.set_domain( GMeshDomain(mesh_file), warning = False)
@@ -240,12 +241,12 @@ class ScenarioConfiguration(ConstantInflowPeriodicSidesPaperConfiguration):
         self.params['strong_bc'] = bc
         self.params['free_slip_on_sides'] = True
         self.params['steady_state'] = True
-        self.params["picard_iterations"] = 4
-        self.params["newton_solver"] = False 
+        self.params["newton_solver"] = True 
+        self.turbine_friction = turbine_friction
 
-    def set_turbine_pos(self, position, friction = 0.17353373):
+    def set_turbine_pos(self, position):
         ''' Sets the turbine position and a equal friction parameter. '''
-        super(ScenarioConfiguration, self).set_turbine_pos(position, friction)
+        super(ScenarioConfiguration, self).set_turbine_pos(position, self.turbine_friction)
 
 class PeriodicScenarioConfiguration(ScenarioConfiguration):
     def __init__(self, basin_y, mesh_file, inflow_direction, finite_element = finite_elements.p2p1):
