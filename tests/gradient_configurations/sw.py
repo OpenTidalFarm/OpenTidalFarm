@@ -28,6 +28,8 @@ for c in [DefaultConfiguration, PaperConfiguration, ConstantInflowPeriodicSidesP
         config.params['diffusion_coef'] = 20.0
 
     if c == ScenarioConfiguration:
+        # The configuration does not converge for this (admittely unphysical) setup, so we help a little with some viscosity
+        config.params['diffusion_coef'] = 40.0
         basin_x = 1200
         basin_y = 1000
         land_x = 600
