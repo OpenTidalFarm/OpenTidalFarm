@@ -18,7 +18,7 @@ class FunctionalPrototype(object):
 
 class DefaultFunctional(FunctionalPrototype):
     ''' Implements a simple functional of the form:
-          J(u, m) = dt * turbines(params) * 0.5 * (||u||**3)
+          J(u, m) = dt * turbines(params) * (||u||**3)
         where m controls the strength of each turbine.
     '''
     def scale_turbine_size(self):
@@ -40,7 +40,7 @@ class DefaultFunctional(FunctionalPrototype):
         self.turbine_cache = self.build_turbine_cache(W) 
 
     def expr(self, state, turbines):
-        return turbines*0.5*(dot(state[0], state[0]) + dot(state[1], state[1]))**1.5*dx
+        return turbines*(dot(state[0], state[0]) + dot(state[1], state[1]))**1.5*dx
 
     def Jt(self, state):
         return self.expr(state, self.turbine_cache['turbine_field']) 
