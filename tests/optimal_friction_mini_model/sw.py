@@ -14,13 +14,13 @@
 import sys
 import configuration 
 import numpy
-import ipopt 
 import IPOptUtils
 import finite_elements
 from helpers import test_gradient_array
 from mini_model import *
 from reduced_functional import ReducedFunctional
 from dolfin import *
+from scipy.optimize import fmin_slsqp
 set_log_level(PROGRESS)
 
 def default_config():
@@ -42,7 +42,7 @@ def default_config():
   return config
 
 config = default_config()
-model = ReducedFunctional(config, scaling_factor = 10**-5, forward_model = mini_model_solve)
+model = ReducedFunctional(config, scaling_factor = -10**-3, forward_model = mini_model_solve)
 m0 = model.initial_control()
 
 p = numpy.random.rand(len(m0))
@@ -55,32 +55,11 @@ if minconv < 1.99:
 g = lambda m: []
 dg = lambda m: []
 
-f = IPOptUtils.IPOptFunction()
-# Overwrite the functional and gradient function with our implementation
-f.objective = model.j 
-f.gradient = model.dj 
+lb_f, ub_f = IPOptUtils.friction_constraints(config, lb = 0., ub = 100.)
+bounds = [(lb_f[i], ub_f[i]) for i in range(len(lb_f))] + [(500, 500), (500, 500)] 
 
-nlp = ipopt.problem(len(m0), 
-                    0, 
-                    f, 
-                    numpy.zeros(len(m0)), 
-                    100*numpy.ones(len(m0)))
-nlp.addOption('mu_strategy', 'adaptive')
-nlp.addOption('tol', 1e-9)
-nlp.addOption('print_level', 5)
-nlp.addOption('check_derivatives_for_naninf', 'yes')
-# A -1.0 scaling factor transforms the min problem to a max problem.
-nlp.addOption('obj_scaling_factor', -1.0)
-# Use an approximate Hessian since we do not have second order information.
-nlp.addOption('hessian_approximation', 'limited-memory')
-nlp.addOption('max_iter', 7)
+m = fmin_slsqp(model.j, m0, fprime = model.dj, bounds = bounds, iprint = 2)
 
-m, sinfo = nlp.solve(m0)
-info(sinfo['status_msg'])
-info("Solution of the primal variables: m=%s\n" % repr(m))
-info("Solution of the dual variables: lambda=%s\n" % repr(sinfo['mult_g']))
-info("Objective=%s\n" % repr(sinfo['obj_val']))
-
-if sinfo['status'] != 0 or abs(m[0]-0.5) > 10**-10: 
+if abs(m[0]-0.5) > 10**-4: 
   info_red("The optimisation algorithm did not find the correct solution.")
   sys.exit(1) 
