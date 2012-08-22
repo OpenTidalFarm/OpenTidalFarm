@@ -8,7 +8,6 @@
 import sys
 import configuration 
 import numpy
-import ipopt 
 import IPOptUtils
 import finite_elements
 from animated_plot import *
@@ -17,6 +16,7 @@ from mini_model import mini_model_solve
 from reduced_functional import ReducedFunctional
 from initial_conditions import BumpInitialCondition
 from dolfin import *
+from scipy.optimize import fmin_slsqp
 
 # An animated plot to visualise the development of the functional value
 plot = AnimatedPlot(xlabel='Iteration', ylabel='Functional value')
@@ -42,7 +42,7 @@ def default_config():
   return config
 
 config = default_config()
-model = ReducedFunctional(config, scaling_factor = 10**4, forward_model = mini_model_solve, plot = True)
+model = ReducedFunctional(config, scaling_factor = -10**1, forward_model = mini_model_solve, plot = True)
 m0 = model.initial_control()
 
 p = numpy.random.rand(len(m0))
@@ -55,37 +55,15 @@ if minconv < 1.9:
 g = lambda m: []
 dg = lambda m: []
 
-f = IPOptUtils.IPOptFunction()
-# Overwrite the functional and gradient function with our implementation
-f.objective= model.j 
-f.gradient= model.dj 
+bounds = [(0, 3000), (0, 1000)] 
 
-nlp = ipopt.problem(len(m0), 
-                  0, 
-                  f, 
-                  numpy.zeros(len(m0)), 
-                  3000.*numpy.ones(len(m0)))
-nlp.addOption('mu_strategy', 'adaptive')
-nlp.addOption('tol', 1e-9)
-nlp.addOption('print_level', 5)
-nlp.addOption('check_derivatives_for_naninf', 'yes')
-# A -1.0 scaling factor transforms the min problem to a max problem.
-nlp.addOption('obj_scaling_factor', -1.0)
-# Use an approximate Hessian since we do not have second order information.
-nlp.addOption('hessian_approximation', 'limited-memory')
-nlp.addOption('max_iter', 25)
+m = fmin_slsqp(model.j, m0, fprime = model.dj, bounds = bounds, iprint = 2)
 
-m, sinfo = nlp.solve(m0)
-info(sinfo['status_msg'])
 info("Solution of the primal variables: m=" + repr(m) + "\n")
-info("Solution of the dual variables: lambda=" +  repr(sinfo['mult_g']) + "\n")
-info("Objective=" + repr(sinfo['obj_val']) + "\n")
 plot.savefig("plot_functional_value.png")
 
 exit_code = 1
-if sinfo['status'] != 0: 
-    info_red("The optimisation algorithm did not find a solution.")
-elif abs(m[0]-1500) > 40:
+if abs(m[0]-1500) > 40:
     info_red("The optimisation algorithm did not find the optimal x position: %f instead of 1500." % m[0])
 elif abs(m[1]-500) > 0.4:
     info_red("The optimisation algorithm did not find the optimal y position: %f instead of 500." %m[1])
