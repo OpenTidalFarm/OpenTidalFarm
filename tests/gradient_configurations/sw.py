@@ -5,7 +5,6 @@ from configuration import *
 import numpy
 from dirichlet_bc import DirichletBCSet
 import IPOptUtils
-import ipopt
 from helpers import test_gradient_array
 from animated_plot import *
 from reduced_functional import ReducedFunctional
