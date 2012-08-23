@@ -43,6 +43,7 @@ class Parameters(dict):
             'turbine_y' : 'turbine extension in the y direction',
             'turbine_friction' : 'turbine friction', 
             'functional_turbine_scaling' : 'scaling of the turbine dimensions in the functional, which often yields a better posted problem',
+            'rho' : 'the density of the fluid', 
             'controls' : 'the control variables',
             'turbine_model': 'turbine model',
             'newton_solver': 'newton solver instead of a picard iteration',
@@ -96,6 +97,7 @@ class DefaultConfiguration(object):
         'turbine_y' : 5., 
         'turbine_friction' : [],
         'functional_turbine_scaling' : 1.0,
+        'rho' : 1000., # Use the density of water: 1000kg/m^3
         'controls' : ['turbine_pos', 'turbine_friction'],
         'turbine_model': 'BumpTurbine',
         'newton_solver': False, 

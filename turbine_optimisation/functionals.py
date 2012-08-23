@@ -40,7 +40,7 @@ class DefaultFunctional(FunctionalPrototype):
         self.turbine_cache = self.build_turbine_cache(W) 
 
     def expr(self, state, turbines):
-        return turbines*(dot(state[0], state[0]) + dot(state[1], state[1]))**1.5*dx
+        return self.params['rho'] * turbines * (dot(state[0], state[0]) + dot(state[1], state[1]))**1.5*dx
 
     def Jt(self, state):
         return self.expr(state, self.turbine_cache['turbine_field']) 
