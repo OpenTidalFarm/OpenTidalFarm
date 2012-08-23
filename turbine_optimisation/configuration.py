@@ -231,7 +231,7 @@ class WideConstantInflowPeriodicSidesPaperConfiguration(ConstantInflowPeriodicSi
         super(WideConstantInflowPeriodicSidesPaperConfiguration, self).__init__(nx, ny, basin_x, basin_y, finite_element)
 
 class ScenarioConfiguration(ConstantInflowPeriodicSidesPaperConfiguration):
-    def __init__(self, mesh_file, inflow_direction, finite_element = finite_elements.p2p1, turbine_friction = 21.07):
+    def __init__(self, mesh_file, inflow_direction, finite_element = finite_elements.p2p1, turbine_friction = 21.):
         super(ScenarioConfiguration, self).__init__(nx = 100, ny = 33, basin_x = None, basin_y = None, finite_element = finite_element)
         self.set_domain( GMeshDomain(mesh_file), warning = False)
         # We need to reapply the bc
