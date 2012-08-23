@@ -1,5 +1,5 @@
 run: clean
-	unbuffer time python sw.py 
+	unbuffer time python sw.py > output.txt
 
 mesh:	
 	gmsh -2 mesh.geo

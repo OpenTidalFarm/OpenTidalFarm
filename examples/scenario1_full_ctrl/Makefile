@@ -1,5 +1,5 @@
 run: clean 
-	unbuffer time mpirun -n 7 python sw.py > output 
+	unbuffer time mpirun -n 7 python sw.py > output.txt
 
 mesh:	
 	gmsh -2 mesh.geo
