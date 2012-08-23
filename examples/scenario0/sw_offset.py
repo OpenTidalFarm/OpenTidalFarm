@@ -14,7 +14,7 @@ config = configuration.ScenarioConfiguration("mesh.xml", inflow_direction = [1, 
 config.params['automatic_scaling'] = False
 
 # Place one turbine 
-offset = 0.0
+offset = 0.5
 turbine_pos = [[basin_x/3 + offset, basin_y/2 + offset]] 
 config.set_turbine_pos(turbine_pos)
 
