@@ -25,7 +25,7 @@ config.params['controls'] = ['turbine_friction']
 
 model = ReducedFunctional(config, scaling_factor = 10**-6)
 m0 = model.initial_control()
-m_list = [numpy.ones(len(m0))*i for i in numpy.linspace(10, 60, 5)]
+m_list = [numpy.ones(len(m0))*i for i in numpy.linspace(0, 200, 100)]
 info_green('Testing friction coefficients: ' + str([x[0] for x in m_list]))
 
 # We already know that a zero friction leads to a zero power 
@@ -40,8 +40,6 @@ if MPI.process_number() == 0:
   plt.figure(1)
   plt.plot(f, P)
   info_green('The maximum functional value of ' + str(max(P)) + ' is achieved with a friction coefficient of ' + str(f[numpy.argmax(P)]) + '.')
-  plt.ylabel('Power output')
+  plt.ylabel('Power output [MW]')
   plt.xlabel('Turbine coefficient')
   plt.savefig('example_single_turbine_friction_vs_power_plot.pdf')
-  plt.show()
-  plt.hold()

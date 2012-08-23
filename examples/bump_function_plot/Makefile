@@ -1,2 +1,2 @@
 default:
-	python produce_plot.py
+	unbuffer python produce_plot.py
