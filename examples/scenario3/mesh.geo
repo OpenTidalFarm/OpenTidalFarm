@@ -6,7 +6,7 @@ site_x = 320;
 site_y = 160;
 basin_y = land_y + basin_x - land_x;
 small_circle_diameter = 100;
-element_size = 1;
+element_size = 2;
 element_size_coarse = 20;
 
 Point(1) = {0, 0, 0, element_size_coarse};

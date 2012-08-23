@@ -4,8 +4,8 @@ site_x = 320;
 site_y = 160;
 rad = 160;
 n = 50;
-element_size = 1;
-element_size_coarse = 10;
+element_size = 2;
+element_size_coarse = 20;
 
 Point(1) = {0, 0, 0, element_size_coarse};
 Point(2) = {basin_x, 0, 0, element_size_coarse};
