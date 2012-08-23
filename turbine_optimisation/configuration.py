@@ -226,10 +226,6 @@ class ConstantInflowPeriodicSidesPaperConfiguration(PaperConfiguration):
         ''' Sets the turbine position and a equal friction parameter. '''
         super(PaperConfiguration, self).set_turbine_pos(position, friction)
 
-class WideConstantInflowPeriodicSidesPaperConfiguration(ConstantInflowPeriodicSidesPaperConfiguration):
-    def __init__(self, nx = 100, ny = 66, basin_x = None, basin_y = None, finite_element = finite_elements.p2p1):
-        super(WideConstantInflowPeriodicSidesPaperConfiguration, self).__init__(nx, ny, basin_x, basin_y, finite_element)
-
 class ScenarioConfiguration(ConstantInflowPeriodicSidesPaperConfiguration):
     def __init__(self, mesh_file, inflow_direction, finite_element = finite_elements.p2p1, turbine_friction = 21.):
         super(ScenarioConfiguration, self).__init__(nx = 100, ny = 33, basin_x = None, basin_y = None, finite_element = finite_element)
@@ -248,14 +244,24 @@ class ScenarioConfiguration(ConstantInflowPeriodicSidesPaperConfiguration):
         ''' Sets the turbine position and a equal friction parameter. '''
         super(ScenarioConfiguration, self).set_turbine_pos(position, self.turbine_friction)
 
-class PeriodicScenarioConfiguration(ScenarioConfiguration):
-    def __init__(self, basin_y, mesh_file, inflow_direction, finite_element = finite_elements.p2p1):
-        super(PeriodicScenarioConfiguration, self).__init__(mesh_file, inflow_direction, finite_element)
-        self.domain.basin_y = basin_y
-        # We need to reapply the bc
+
+class SinusoidalScenarioConfiguration(ScenarioConfiguration):
+    def __init__(self, mesh_file, inflow_direction, finite_element = finite_elements.p2p1):
+        super(SinusoidalScenarioConfiguration, self).__init__(mesh_file, inflow_direction, finite_element)
+        self.params['steady_state'] = False
+
+        # Timing settings
+        self.period = 12.*60*60 
+        self.params['k'] = 2*pi/(self.period*sqrt(self.params['g']*self.params['depth']))
+        self.params['theta'] = 1.0
+        self.params['start_time'] = 1./4*self.period
+        self.params['dt'] = self.period/50
+        self.params['finish_time'] = 5./4*self.period
+        info('Wave period (in h): %f' % (self.period/60/60) )
+        info('Approximate CFL number (assuming a velocity of 2): ' + str(2*self.params['dt']/self.domain.mesh.hmin()))
+
         bc = DirichletBCSet(self)
-        bc.add_constant_flow(1, inflow_direction)
-        bc.add_periodic_sides()
-        bc.add_zero_eta(2)
+        bc.add_analytic_u(1)
+        bc.add_analytic_u(2)
+        bc.add_noslip_u(3)
         self.params['strong_bc'] = bc
-        self.params['free_slip_on_sides'] = False
