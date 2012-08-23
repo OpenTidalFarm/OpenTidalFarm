@@ -23,8 +23,6 @@ tests:
 	cd optimal_friction_mini_model; make
 	@echo "=================== Running optimal position mini model test ==================="
 	cd optimal_position_mini_model; make
-	@echo "=================== Running optimal friction for single turbine test ==================="
-	cd optimal_friction_single_turbine; make
 	@echo "=================== Running constraint derivatives test ==================="
 	cd constraint_derivatives; make
 	@echo "=================== All tests passed ===================" 
