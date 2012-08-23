@@ -18,10 +18,10 @@ offset = 0.0
 turbine_pos = [[basin_x/3 + offset, basin_y/2 + offset]] 
 config.set_turbine_pos(turbine_pos)
 
-model = ReducedFunctional(config)
+model = ReducedFunctional(config, scaling_factor = 10^-6)
 m = model.initial_control()
 j, state = model.run_forward_model_mem(m, return_final_state = True)
-info_green("Power outcome: %f" % (j, ))
+info_green("Extracted Power (MW): %f" % (j, ))
 
 # Compute the Lanchester-Betz limit.
 # The notation follows C. Garretta and P. Cummins, Limits to tidal current power
