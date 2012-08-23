@@ -42,7 +42,7 @@ class Parameters(dict):
             'turbine_x' : 'turbine extension in the x direction',
             'turbine_y' : 'turbine extension in the y direction',
             'turbine_friction' : 'turbine friction', 
-            'functional_turbine_scaling' : 'scaling of the turbine dimensions in the functional, which often gives a better posted problem',
+            'functional_turbine_scaling' : 'scaling of the turbine dimensions in the functional, which often yields a better posted problem',
             'controls' : 'the control variables',
             'turbine_model': 'turbine model',
             'newton_solver': 'newton solver instead of a picard iteration',
@@ -95,7 +95,7 @@ class DefaultConfiguration(object):
         'turbine_x' : 20., 
         'turbine_y' : 5., 
         'turbine_friction' : [],
-        'functional_turbine_scaling' : 0.5,
+        'functional_turbine_scaling' : 1.0,
         'controls' : ['turbine_pos', 'turbine_friction'],
         'turbine_model': 'BumpTurbine',
         'newton_solver': False, 
@@ -160,7 +160,6 @@ class PaperConfiguration(DefaultConfiguration):
     self.params['turbine_friction'] = []
     self.params['turbine_x'] = 20. 
     self.params['turbine_y'] = 20. 
-    self.params['functional_turbine_scaling'] = 0.5
     self.params['controls'] = ['turbine_pos']
     self.params['turbine_model'] = 'BumpTurbine'
 
@@ -232,7 +231,6 @@ class WideConstantInflowPeriodicSidesPaperConfiguration(ConstantInflowPeriodicSi
 class ScenarioConfiguration(ConstantInflowPeriodicSidesPaperConfiguration):
     def __init__(self, mesh_file, inflow_direction, finite_element = finite_elements.p2p1, turbine_friction = 21.07):
         super(ScenarioConfiguration, self).__init__(nx = 100, ny = 33, basin_x = None, basin_y = None, finite_element = finite_element)
-        self.params['functional_turbine_scaling'] = 1.0
         self.set_domain( GMeshDomain(mesh_file), warning = False)
         # We need to reapply the bc
         bc = DirichletBCSet(self)
