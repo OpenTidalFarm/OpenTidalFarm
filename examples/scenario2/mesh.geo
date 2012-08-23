@@ -1,8 +1,7 @@
-basin_x = 500;
-basin_y = 300;
-site_x = 450;
-site_y = 200;
-n = 50;
+basin_x = 640;
+basin_y = 320;
+site_x = 320;
+site_y = 160;
 element_size = 2;
 element_size_coarse = 20;
 
@@ -23,5 +22,6 @@ Line Loop(10) = {9, 6, 7, 8};
 Line Loop(11) = {3, 2, -4, -1};
 Plane Surface(12) = {10, 11};
 Physical Surface(13) = {12, 5};
+Physical Line(2) = {7};
 Physical Line(1) = {9};
 Physical Line(3) = {8, 6};
