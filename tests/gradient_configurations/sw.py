@@ -40,7 +40,6 @@ for c in [DefaultConfiguration, PaperConfiguration, ConstantInflowPeriodicSidesP
         site_y_start = land_y + land_site_delta 
         config.params['turbine_x'] = 50. 
         config.params['turbine_y'] = 50. 
-        seed = 0.01
 
         for x_r in numpy.linspace(site_x_start, site_x_start + site_x, 2):
             for y_r in numpy.linspace(site_y_start, site_y_start + site_y, 2):
@@ -49,7 +48,6 @@ for c in [DefaultConfiguration, PaperConfiguration, ConstantInflowPeriodicSidesP
     else:
         border_x = config.domain.basin_x/10
         border_y = config.domain.basin_y/10
-        seed = 0.1
 
         for x_r in numpy.linspace(0.+border_x, config.domain.basin_x-border_x, 2):
             for y_r in numpy.linspace(0.+border_y, config.domain.basin_y-border_y, 2):
@@ -62,6 +60,7 @@ for c in [DefaultConfiguration, PaperConfiguration, ConstantInflowPeriodicSidesP
     m0 = model.initial_control()
 
     p = numpy.random.rand(len(m0))
+    seed = 0.1
     minconv = test_gradient_array(model.j, model.dj, m0, seed = seed, perturbation_direction = p, plot_file = "convergence_" + c.__name__ + ".pdf")
     if minconv < 1.9:
         info_red("The gradient taylor remainder test failed for the " + c.__name__ + " configuration.")
