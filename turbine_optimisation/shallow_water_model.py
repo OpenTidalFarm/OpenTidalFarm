@@ -227,7 +227,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
 
         # Update bc's 
         if bctype == "strong_dirichlet":
-            strong_bc.update_time(t)
+            strong_bc.update_time(t-(1.0-theta)*dt)
         else:
             ufl.t=t-(1.0-theta)*dt         
         # Update source term
@@ -242,7 +242,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
           #solver_parameters["linear_solver"] = "superlu_dist"
           #solver_parameters["preconditioner"] = "ilu" # does not work in parallel
           #solver_parameters["preconditioner"] = "amg" 
-          solver_parameters["linear_solver"] = "mumps"
+          #solver_parameters["linear_solver"] = "mumps"
           solver_parameters["newton_solver"] = {}
           solver_parameters["newton_solver"]["convergence_criterion"] = "incremental"
           solver_parameters["newton_solver"]["relative_tolerance"] = 1e-16
