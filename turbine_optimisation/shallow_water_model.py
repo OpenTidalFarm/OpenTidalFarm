@@ -227,7 +227,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
 
         # Update bc's 
         if bctype == "strong_dirichlet":
-            strong_bc.update_time(t-(1.0-theta)*dt)
+            strong_bc.update_time(t)
         else:
             ufl.t=t-(1.0-theta)*dt         
         # Update source term
