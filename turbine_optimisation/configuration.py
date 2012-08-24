@@ -101,7 +101,7 @@ class DefaultConfiguration(object):
         'controls' : ['turbine_pos', 'turbine_friction'],
         'turbine_model': 'BumpTurbine',
         'newton_solver': False, 
-        'linear_solver' : 'default',
+        'linear_solver' : 'mumps',
         'preconditioner' : 'default',
         'picard_relative_tolerance': 1e-5, 
         'picard_iterations': 3, 
@@ -257,6 +257,7 @@ class SinusoidalScenarioConfiguration(ScenarioConfiguration):
         self.params['start_time'] = 1./4*self.period
         self.params['dt'] = self.period/50
         self.params['finish_time'] = 5./4*self.period
+        self.params['functional_final_time_only'] = True
         info('Wave period (in h): %f' % (self.period/60/60) )
         info('Approximate CFL number (assuming a velocity of 2): ' + str(2*self.params['dt']/self.domain.mesh.hmin()))
 
