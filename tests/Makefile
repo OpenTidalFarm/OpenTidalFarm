@@ -11,6 +11,8 @@ tests:
 	cd mms_wave_friction_flather; make
 	@echo "=================== Running wave_flather diffusion test ==================="
 	cd mms_wave_diffusion_flather; make
+	@echo "=================== Running scenario configuration mms test ==================="
+	cd mms_scenario; make
 	@echo "=================== Running partial_derivative_turbine test ==================="
 	cd partial_derivative_turbine; make
 	@echo "=================== Running friction gradient test ==================="
