@@ -8,6 +8,9 @@ from dolfin_adjoint import *
 import math 
 from dirichlet_bc import DirichletBCSet
 from domains import *
+from helpers import cpu0only
+from convergence_plot import save_convergence_plot
+import pylab
 
 set_log_level(ERROR)
 parameters["std_out_all_processes"] = False;
@@ -66,19 +69,26 @@ def test(refinement_level):
   bc.add_analytic_u(3)
   config.params['strong_bc'] = bc
 
-  return error(config)
+  return config.params["dt"], error(config)
 
 errors = []
+dts = []
 tests = 7
 for refinement_level in range(3, tests):
-  errors.append(test(refinement_level))
+  dt, e = test(refinement_level)
+  errors.append(e)
+  dts.append(dt)
 # Compute the order of convergence 
 conv = [] 
 for i in range(len(errors)-1):
   conv.append(abs(math.log(errors[i+1]/errors[i], 2)))
 
+# Plot the result
+save_convergence_plot(errors, dts, "Temporal rate of convergence", "Temporal error", order = 1.0, show_title = False, xlabel = "Time step [s]")
+
+info_green("Errors: %s.", str(errors))
 info_green("Temporal order of convergence (expecting 1.0): %s" % str(conv))
-if min(conv)<0.99:
+if min(conv)<0.88:
   info_red("Temporal convergence test failed for wave_flather")
   sys.exit(1)
 else:

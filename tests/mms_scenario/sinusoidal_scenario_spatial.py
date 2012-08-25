@@ -8,6 +8,9 @@ from dolfin_adjoint import *
 import math 
 from dirichlet_bc import DirichletBCSet
 from domains import *
+from helpers import cpu0only
+from convergence_plot import save_convergence_plot
+import pylab
 
 set_log_level(ERROR)
 parameters["std_out_all_processes"] = False;
@@ -66,32 +69,22 @@ def test(refinement_level):
   bc.add_analytic_u(3)
   config.params['strong_bc'] = bc
 
-  return error(config)
+  return config.domain.mesh.hmax(), error(config)
 
 errors = []
+element_sizes = []
 tests = 5
 for refinement_level in range(1, tests):
-  errors.append(test(refinement_level))
+  element_size, e = test(refinement_level)
+  errors.append(e)
+  element_sizes.append(element_size)
 # Compute the order of convergence 
 conv = [] 
 for i in range(len(errors)-1):
   conv.append(abs(math.log(errors[i+1]/errors[i], 2)))
 
 # Plot the results
-@cpu0only
-def plot(hs, errors, file_name):
-    scaling_factor = 2 * errors[-1]/(hs[-1]**2)
-    second_order = [scaling_factor*h**2 for h in hs]
-    pylab.figure()
-    pylab.loglog(hs, second_order, 'g--', hs, errors, 'go-')
-    pylab.legend(('Second order convergence', 'L2 norm of error'), 'lower right', shadow=True, fancybox=True)
-    pylab.xlabel("Relative element size")
-    pylab.ylabel("Model error")
-    pylab.savefig(file_name)
-
-hs = [1./2**h for h in range(len(errors))]
-
-plot(hs, errors, "spatial_convergence.pdf")
+save_convergence_plot(errors, element_sizes, "Spatial rate of convergence", "Spatial error", order = 2.0, show_title = False, xlabel = "Element size [m]")
 
 info_green("Errors: %s.", str(errors))
 info_green("Spatial order of convergence (expecting 2.0): %s.", str(conv))
