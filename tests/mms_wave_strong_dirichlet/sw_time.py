@@ -8,7 +8,7 @@ from dolfin import *
 from dolfin_adjoint import *
 from math import log
 
-set_log_level(PROGRESS)
+set_log_level(ERROR)
 parameters["std_out_all_processes"] = False;
 
 def error(config):
@@ -26,7 +26,9 @@ def error(config):
   exactstate = Function(config.function_space)
   exactstate.interpolate(analytic_sol)
   e = state - exactstate
-  return sqrt(assemble(dot(e,e)*dx))
+  enorm = sqrt(assemble(dot(e,e)*dx))
+  print enorm
+  return enorm 
 
 def test(refinment_level):
     config = configuration.DefaultConfiguration(nx=2**7, ny=2**4) 
