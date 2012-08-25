@@ -19,10 +19,10 @@ def error(config):
   # The source term
   source = Expression((ddu_exact, 
                        "0.0"), \
-                       eta0=config.params["eta0"], g=config.params["g"], \
-                       depth=config.params["depth"], t=config.params["current_time"], \
-                       k=config.params["k"], friction = config.params["friction"], \
-                       diffusion_coef=config.params["diffusion_coef"])
+                       eta0 = config.params["eta0"], g = config.params["g"], \
+                       depth = config.params["depth"], t = config.params["current_time"], \
+                       k = config.params["k"], \
+                       diffusion_coef = config.params["diffusion_coef"])
 
   adj_reset()
   sw_model.sw_solve(config, state, annotate=False, u_source = source)
