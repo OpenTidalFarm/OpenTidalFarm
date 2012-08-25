@@ -19,6 +19,8 @@ site_x_start = (basin_x - site_x)/2
 site_y_start = (basin_y/2-rad)/2-site_y/2 
 config = configuration.ScenarioConfiguration("mesh.xml", inflow_direction = [1, 0])
 config.set_site_dimensions(site_x_start, site_x_start + site_x, site_y_start, site_y_start + site_y)
+config.params["newton_solver"] = False 
+config.params["picard_iterations"] = 8 
 
 # Place some turbines 
 IPOptUtils.deploy_turbines(config, nx = 8, ny = 4)
