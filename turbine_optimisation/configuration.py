@@ -249,6 +249,7 @@ class SinusoidalScenarioConfiguration(ScenarioConfiguration):
     def __init__(self, mesh_file, inflow_direction, finite_element = finite_elements.p2p1):
         super(SinusoidalScenarioConfiguration, self).__init__(mesh_file, inflow_direction, finite_element)
         self.params['steady_state'] = False
+        self.params['functional_final_time_only'] = False
 
         # Timing settings
         self.period = 12.*60*60 
@@ -257,7 +258,6 @@ class SinusoidalScenarioConfiguration(ScenarioConfiguration):
         self.params['start_time'] = 1./4*self.period
         self.params['dt'] = self.period/50
         self.params['finish_time'] = 5./4*self.period
-        self.params['functional_final_time_only'] = True
         info('Wave period (in h): %f' % (self.period/60/60) )
         info('Approximate CFL number (assuming a velocity of 2): ' + str(2*self.params['dt']/self.domain.mesh.hmin()))
 
