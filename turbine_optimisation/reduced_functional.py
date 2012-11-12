@@ -192,7 +192,7 @@ class ReducedFunctional:
         config = self.__config__ 
         res = []
         if 'turbine_friction' in config.params["controls"]:
-            res += config.params['turbine_friction'].tolist()
+            res += list(config.params['turbine_friction'])
         if 'turbine_pos' in config.params["controls"]:
             res += numpy.reshape(config.params['turbine_pos'], -1).tolist()
         return numpy.array(res)
