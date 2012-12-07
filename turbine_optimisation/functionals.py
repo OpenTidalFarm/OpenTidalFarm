@@ -45,6 +45,10 @@ class DefaultFunctional(FunctionalPrototype):
     def Jt(self, state):
         return self.expr(state, self.turbine_cache['turbine_field']) 
 
+    def Jt_individual(self, state, i):
+        ''' Computes the power output of the i'th turbine. '''
+        return self.expr(state, self.turbine_cache['turbine_field_individual'][i]) 
+
     def dJtdm(self, state):
         djtdm = [] 
         params = self.params
@@ -72,6 +76,20 @@ class DefaultFunctional(FunctionalPrototype):
         tf = Function(self.config.turbine_function_space, name = "functional_turbine_friction") 
         tf.interpolate(turbines)
         turbine_cache["turbine_field"] = tf
+
+        # Precompute the interpolation of the friction function for each individual turbine
+        if params["print_individual_turbine_power"]:
+            info_green("Building individual turbine power friction functions for caching purposes...")
+	    turbine_cache["turbine_field_individual"] = [] 
+	    for i in range(len(params["turbine_friction"])):
+	        params_cpy = configuration.Parameters(params)
+	        params_cpy["turbine_pos"] = [params["turbine_pos"][i]]
+                params_cpy["turbine_friction"] = [params["turbine_friction"][i]]
+	        turbine = Turbines(params_cpy)
+	        tf = Function(self.config.turbine_function_space, name = "functional_turbine_friction") 
+	        tf.interpolate(turbine)
+	        turbine_cache["turbine_field_individual"].append(tf)
+            info_green("finished")
 
         # Precompute the derivatives with respect to the friction magnitude of each turbine
         # TODO: Only needed if turbine_friction is a control:

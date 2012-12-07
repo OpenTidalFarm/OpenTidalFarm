@@ -54,7 +54,8 @@ class Parameters(dict):
             'run_benchmark': 'benchmark to compare different solver/preconditioner combinations', 
             'solver_exclude': 'solvers/preconditioners to be excluded from the benchmark',
             'automatic_scaling': 'activates the initial automatic scaling of the functional',
-            'automatic_scaling_multiplier': 'defines the multiplier that determines the initial gradient length (= multiplier * turbine size)'
+            'automatic_scaling_multiplier': 'defines the multiplier that determines the initial gradient length (= multiplier * turbine size)',
+            'print_individual_turbine_power': 'print out the power output of each individual turbine'
             }
 
     def check(self):
@@ -111,7 +112,8 @@ class DefaultConfiguration(object):
         'current_time': 0.,
         'finish_time': 100.,
         'automatic_scaling': False,
-        'automatic_scaling_multiplier': 5
+        'automatic_scaling_multiplier': 5,
+   		'print_individual_turbine_power': False
         })
 
     params['dt'] = params['finish_time']/4000.
