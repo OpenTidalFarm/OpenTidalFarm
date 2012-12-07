@@ -3,7 +3,7 @@ import dolfin_adjoint
 from matplotlib import rc  
 import matplotlib.pyplot as plt
 
-def save_convergence_plot(errors, element_sizes, title, legend, order, offset = 0.8, show_title = True, xlabel = 'Element size [m]', ylabel = r"$L_2$ error"):
+def save_convergence_plot(errors, element_sizes, title, legend, order, offset = 0.8, show_title = True, xlabel = 'Element size [m]', ylabel = r"$\mathcal E$ error"):
     ''' Creates a convergence plot '''
     if MPI.process_number() != 0:
         return
@@ -31,7 +31,7 @@ def save_convergence_plot(errors, element_sizes, title, legend, order, offset = 
         order_str = str(order) + " order"
     plt.loglog(element_sizes, expected_errors, label = order_str, color = 'k')
 
-    plt.legend(loc='best')
+    plt.legend(loc=4)
     #plt.axis([min(element_sizes)*1.01, max(element_sizes)*1.01, min(errors)*1.01, max(errors)*1.01])
     plt.gcf().subplots_adjust(bottom=0.15)
     plt.xlabel(xlabel)
@@ -50,5 +50,5 @@ if __name__ == '__main__':
     dts = [1.8060945639429236, 0.9030472819714618, 0.4515236409857309, 0.22576182049286544]
     print "Error summary: ", errors
     print "Element sizes: ", dts
-    save_convergence_plot(errors, dts, "Temporal rate of convergence test", "Temporal error", order = 1.0, show_title = False, xlabel = "Time step [s]")
+    save_convergence_plot(errors, dts, "Temporal rate of convergence test", "Numerical error", order = 1.0, show_title = False, xlabel = "Time step [s]")
     print "Convergence orders: ", dolfin_adjoint.convergence_order(errors[0:1] + errors[2:])

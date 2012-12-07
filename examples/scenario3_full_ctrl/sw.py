@@ -36,4 +36,4 @@ bounds = [(lb_f[i], ub_f[i]) for i in range(len(lb_f))] + [(lb[i], ub[i]) for i 
 
 f_ieqcons, fprime_ieqcons = IPOptUtils.get_minimum_distance_constraint_func(config)
 
-fmin_slsqp(model.j, m0, fprime = model.dj, bounds = bounds, f_ieqcons = f_ieqcons, fprime_ieqcons = fprime_ieqcons, iprint = 2, iter = 200)
+fmin_slsqp(model.j, m0, fprime = model.dj_with_check, bounds = bounds, f_ieqcons = f_ieqcons, fprime_ieqcons = fprime_ieqcons, iprint = 2, iter = 5)
