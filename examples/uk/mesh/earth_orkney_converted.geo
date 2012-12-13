@@ -350,7 +350,7 @@ Field[2].NodesList = {305};
 Field[3] = Threshold;
 Field[3].IField = 2;
 Field[3].LcMin = element_size;
-Field[3].LcMax = 3000;
+Field[3].LcMax = 2000;
 Field[3].DistMin = 10;
 Field[3].DistMax = 30000;
 
