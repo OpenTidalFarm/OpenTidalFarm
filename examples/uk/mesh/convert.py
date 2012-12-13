@@ -44,7 +44,7 @@ def main():
                 sys.exit(1)
             lat, lon = Stereographic2LatLon(x, y)
             # Need some conversions
-            lat = -lat
+            lat = - lat # 
             lon = 180 -lon
             maxlat = max(maxlat, lat)
             maxlon = max(maxlon, lon)
