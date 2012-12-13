@@ -1,0 +1,14 @@
+To make the mesh you need to:
+
+1) Download gshhs from 
+http://rapidshare.com/files/2456623489/gshhs_f.b
+and place it into the mesh/ directory
+2) Open box.geo with gmsh, select Tools -> Plugins -> GSHHS.
+Then:
+* Change the InFileName to fshhs_f.b
+* Change iField to 2
+* Change WritePolarSphere to 0
+Click on Run
+3) Open the generated file earth.geo to see if the contours are correct.
+4) 
+
