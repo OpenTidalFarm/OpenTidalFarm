@@ -12,9 +12,14 @@ numpy.random.seed(21)
 # Some domain information extracted from the geo file
 site_x = 320.
 site_y = 160.
-site_x_start = 1.02957e+07 
-site_y_start = 6.52304e+06 - site_y 
-config = configuration.SinusoidalScenarioConfiguration("mesh/earth_orkney_converted.xml", inflow_direction = [1, 0])
+site_x_start = 1.03064e+07 
+site_y_start = 6.52293e+06 - site_y 
+
+inflow_x = 8400.
+inflow_y = -1390.
+inflow_norm = (inflow_x**2 + inflow_y**2)**0.5
+
+config = configuration.SinusoidalScenarioConfiguration("mesh/earth_orkney_converted.xml", inflow_direction = [inflow_x/inflow_norm, inflow_y/inflow_norm])
 config.set_site_dimensions(site_x_start, site_x_start + site_x, site_y_start, site_y_start + site_y)
 
 # Place some turbines 
