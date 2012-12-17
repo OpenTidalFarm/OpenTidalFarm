@@ -22,6 +22,5 @@ Line Loop(10) = {9, 6, 7, 8};
 Line Loop(11) = {3, 2, -4, -1};
 Plane Surface(12) = {10, 11};
 Physical Surface(13) = {12, 5};
-Physical Line(2) = {7};
 Physical Line(1) = {9};
-Physical Line(3) = {8, 6};
+Physical Line(3) = {8, 7, 6};
