@@ -1,0 +1,24 @@
+To make the mesh you need to:
+
+1) Download gshhs from 
+http://rapidshare.com/files/2456623489/gshhs_f.b
+and place it into the mesh/ directory
+2) Open box_orkney.geo with gmsh, select Tools -> Plugins -> GSHHS.
+Then:
+* Change the InFileName to fshhs_i.b
+* Change the OutFileName to earth_orkney.geo
+* Change iField to 2
+* Change WritePolarSphere to 0
+Click on Run
+3) Open the generated file earth.geo to see if the contours are correct.
+4) Convert the stereographic coordinates into a flat domain: 
+   >> python convert.py earth_orkney.geo 
+   Open earth_orkney_converted.geo and check that the results are good looking.
+5) Add the boundary box points and add physical ids
+6) Open up the .geo file and delete the last column (the mesh spacing value) of the newly added points
+7) Add a background field that specifies the mesh size:
+      Field[2] = MathEval;
+      Field[2].F = "1e+03";
+      Background Field = 2;
+
+
