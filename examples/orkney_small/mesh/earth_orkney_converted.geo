@@ -6817,21 +6817,18 @@ Field [ IFI + 0]  = Attractor;
 Field [ IFI + 0].NodesList  = { IP + 0 : IP + 6517 };
 Point(6519) = {1.03043e+07, 6.52864e+06, 0};
 Point(6520) = {1.03127e+07, 6.52725e+06, 0};
-Line(98) = {244, 6519};
-Line(99) = {6519, 6520};
-Line(100) = {6520, 192};
-Line Loop(101) = {99, 100, 1, 98};
+
 
 /* Define tidal turbine site */
-site_x = 320;
-site_y = 160;
-element_size = 2;
+site_x = 1000;
+site_y = 500;
+element_size = 20;
 site_x_start = 1.03068e+07; 
 site_y_start = 6.52246e+06; 
 
 Point(30000) = {site_x_start, site_y_start, 0, element_size};
 Extrude{site_x, 0, 0} { Point{30000}; Layers{site_x/element_size}; }
-Extrude{0, -site_y, 0} { Line{102}; Layers{site_y/element_size}; }
+Extrude{0, -site_y, 0} { Line{98}; Layers{site_y/element_size}; }
 
 Field[2] = Attractor;
 Point(31005) = {site_x_start + site_x/2, site_y_start - site_y/2, 0, element_size};
@@ -6841,16 +6838,21 @@ Field[3] = Threshold;
 Field[3].IField = 2;
 Field[3].LcMin = element_size;
 Field[3].LcMax = 2000;
-Field[3].DistMin = 10;
+Field[3].DistMin = 100;
 Field[3].DistMax = 30000;
 
 // Use minimum of all the fields as the background field
 Field[4] = Min;
 Field[4].FieldsList = {3};
 Background Field = 4;
-Line Loop(107) = {102, 105, -103, -104};
-Plane Surface(108) = {15, 101, 107};
-Physical Surface(109) = {108};
-Physical Line(1) = {98};
-Physical Line(2) = {100};
-Physical Line(3) = {99, 16, 1};
+
+Line(103) = {244, 6519};
+Line(104) = {6519, 6520};
+Line(105) = {6520, 192};
+Line Loop(106) = {104, 105, 1, 103};
+Line Loop(107) = {98, 101, -99, -100};
+Plane Surface(108) = {15, 106, 107};
+Physical Surface(109) = {108, 102};
+Physical Line(1) = {103};
+Physical Line(2) = {105};
+Physical Line(3) = {104, 16, 98, 1};
