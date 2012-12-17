@@ -6815,8 +6815,9 @@ BSpline ( IL + 96 ) = { IP + 6512 : IP + 6517, IP + 6512 };
 Line Loop ( ILL + 95 ) = { IL + 96 };
 Field [ IFI + 0]  = Attractor;
 Field [ IFI + 0].NodesList  = { IP + 0 : IP + 6517 };
-Point(6519) = {1.03043e+07, 6.52864e+06, 0};
-Point(6520) = {1.03127e+07, 6.52725e+06, 0};
+offset = 1100;
+Point(6519) = {1.03043e+07 + offset, 6.52864e+06, 0};
+Point(6520) = {1.03127e+07 + offset, 6.52725e+06, 0};
 
 
 /* Define tidal turbine site */
