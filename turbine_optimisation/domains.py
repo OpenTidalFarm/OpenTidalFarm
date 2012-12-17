@@ -38,7 +38,13 @@ class RectangularDomain:
       ''' Generates a rectangular mesh for the divett test
           nx = Number of cells in x direction
           ny = Number of cells in y direction  '''
-      mesh = Rectangle(0, 0, basin_x, basin_y, nx, ny)
+      # Check if we need to use the new dolfin style classes
+      if hasattr(dolfin, "RectangleMesh"):
+          print "Found dolfin version > 1.0x"
+          mesh = RectangleMesh(0, 0, basin_x, basin_y, nx, ny)
+      else:
+          mesh = Rectangle(0, 0, basin_x, basin_y, nx, ny)
+          
       mesh.order()
       mesh.init()
       return mesh
