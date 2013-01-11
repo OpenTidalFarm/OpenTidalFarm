@@ -5,7 +5,7 @@ from reduced_functional import ReducedFunctional
 from dolfin import *
 from scipy.optimize import fmin_slsqp
 from helpers import info, info_green, info_red, info_blue
-set_log_level(ERROR)
+set_log_level(PROGRESS)
 
 # We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
 numpy.random.seed(21) 
@@ -23,7 +23,7 @@ config.set_site_dimensions(site_x_start, site_x_start + site_x, site_y_start, si
 # Place some turbines 
 IPOptUtils.deploy_turbines(config, nx = 8, ny = 4)
 
-model = ReducedFunctional(config, scaling_factor = -1e-4, plot = True)
+model = ReducedFunctional(config, scaling_factor = -1, plot = True)
 m0 = model.initial_control()
 
 # Get the upper and lower bounds for the turbine positions
