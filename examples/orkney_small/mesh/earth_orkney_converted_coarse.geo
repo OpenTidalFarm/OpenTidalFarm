@@ -6823,7 +6823,7 @@ Point(6520) = {1.03127e+07 + offset, 6.52725e+06, 0};
 /* Define tidal turbine site */
 site_x = 1000;
 site_y = 500;
-element_size = 10;
+element_size = 40;
 site_x_start = 1.03068e+07; 
 site_y_start = 6.52246e+06; 
 
@@ -6839,8 +6839,8 @@ Field[3] = Threshold;
 Field[3].IField = 2;
 Field[3].LcMin = element_size;
 Field[3].LcMax = 2000;
-Field[3].DistMin = 100;
-Field[3].DistMax = 30000;
+Field[3].DistMin = 50;
+Field[3].DistMax = 10000;
 
 // Use minimum of all the fields as the background field
 Field[4] = Min;

@@ -35,14 +35,36 @@ for line in f:
     elif "," not in line:
 	m = re.match(r"\s+ ([0-9]+) \s+ ([0-9]+) \s+ ([0-9|\.|E\+\-]+) \s+ ([0-9|\.|E\+\-]+)", line)
         try:
-	    it.append(int(m.group(1)))
-	    last_it += 1
-	    func.append(float(m.group(3))*rescale)
-	    if last_it != it[-1]:
-		raise ValueError, "The iteration counter is out of sync??!"
+	    if len(it) == 0 or it[-1] != int(m.group(1)):
+		it.append(int(m.group(1)))
+		last_it += 1
+		func.append(float(m.group(3))*rescale)
+		if last_it != it[-1]:
+		    raise ValueError, "The iteration counter is out of sync??!"
         except Exception as e:
 	    pass
 f.close()
+
+finish_iteration = -1
+for i in range(len(it)):
+    print it[i], ": ", func[i],
+    if i > 1:
+	rel_change = (func[i]-func[i-1])/func[i]
+	print "\t(relative change: ", rel_change , ")"
+	if rel_change < 1e-6:
+	    finish_iteration = i+1
+	    break
+    else:
+	print ""
+
+if finish_iteration > -1:
+    print "Optimisation finised succesfully after %s iterations." % finish_iteration
+it = it[:finish_iteration]
+func = func[:finish_iteration]
+
+print "Power output of initial layout: ", func[0]
+print "Power output of initial layout: ", func[-1]
+print "Relative power increase: ", func[-1]/func[0]
 
 # The produce a nice plot
 filename = "iter_plot.pdf"
@@ -55,7 +77,7 @@ plt.plot(it, func, color = 'black')
 #plt.axis([0, times[-1], -2.5, 2.5])
 #plt.xticks(numpy.arange(0, times[-1]+1, 5))
 #plt.yticks(numpy.arange(14, basin_x_total/1000, 2))
-plt.ylabel(r"$J$ [MW]")
+plt.ylabel(r"$J$, scaled by $10^{-6}$")
 plt.xlabel(r"Iteration")
 plt.savefig(filename)
 plt.close()

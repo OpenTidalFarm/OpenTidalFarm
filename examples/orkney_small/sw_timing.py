@@ -3,7 +3,7 @@ import numpy
 import IPOptUtils
 from reduced_functional import ReducedFunctional
 from dolfin import *
-from scipy.optimize import fmin_slsqp
+from dolfin_adjoint import adj_html
 set_log_level(PROGRESS)
 
 # We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
@@ -34,9 +34,22 @@ config.params["turbine_friction"] = 0.5*numpy.array(config.params["turbine_frict
 model = ReducedFunctional(config, scaling_factor = -1, plot = True)
 m0 = model.initial_control()
 
-# Get the upper and lower bounds for the turbine positions
-lb, ub = IPOptUtils.position_constraints(config) 
-bounds = [(float(lb[i]), float(ub[i])) for i in range(len(lb))]
-f_ieqcons, fprime_ieqcons = IPOptUtils.get_minimum_distance_constraint_func(config)
+# Build the turbine cache 
+config.turbine_cache.update(config)
 
-fmin_slsqp(model.j, m0, fprime = model.dj, bounds = bounds, f_ieqcons = f_ieqcons, fprime_ieqcons = fprime_ieqcons, iprint = 2, iter = 200)
+time_forward = []
+time_adjoint = []
+for i in range(1):
+	print "Running forward model round ", i
+	t1 = Timer("Forward model")
+	model.run_forward_model_mem.fn(m0, write_state = False) 
+	time_forward.append(t1.stop())
+	print "Forward model runtime: ", time_forward[-1]
+
+	t2 = Timer("Adjoint model")
+	model.run_adjoint_model_mem.fn(m0) 
+	time_adjoint.append(t2.stop())
+	print "Adjoint model runtime: ", time_adjoint[-1]
+
+print "Smallest runtime for forward model: ", min(time_forward)
+print "Smallest runtime for adjoint model: ", min(time_adjoint)
