@@ -51,6 +51,6 @@ p_y[i+1] = 1.
 for p in (p_rand, p_f, p_x, p_y):
   print "Running derivative test in direction", p 
   minconv = test_gradient_array(model.j, model.dj, m0, seed=0.015, perturbation_direction=p)
-  if minconv < 1.98:
+  if minconv < 1.95:
     print "Oops, the minimum convergence rate was %f < 1.98!" % minconv
     sys.exit(1)

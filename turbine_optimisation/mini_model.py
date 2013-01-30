@@ -44,6 +44,6 @@ def mini_model(A, M, state, params, functional=None, annotate=True):
       djdm += 0.5*params["dt"]*numpy.array([assemble(f) for f in functional.dJtdm(state)])
       return j, djdm
 
-def mini_model_solve(config, state, turbine_field=None, functional=None, annotate=True, linear_solver="default", preconditioner="default", u_source = None):
+def mini_model_solve(config, state, turbine_field=None, functional=None, annotate=True, linear_solver="default", preconditioner="default", u_source = None, write_state = True):
     A, M = construct_mini_model(config, turbine_field)
     return mini_model(A, M, state, params = config.params, functional = functional)

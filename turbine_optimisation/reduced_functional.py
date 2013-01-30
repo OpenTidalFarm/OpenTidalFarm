@@ -28,7 +28,7 @@ class ReducedFunctional:
         if plot:
            self.plotter = AnimatedPlot(xlabel = "Iteration", ylabel = "Functional value")
 
-        def run_forward_model(m, return_final_state = False):
+        def run_forward_model(m, return_final_state = False, write_state = True):
             ''' This function solves the forward and adjoint problem and returns the functional value and its gradient for the parameter choice m. ''' 
             adj_reset()
 
@@ -61,7 +61,7 @@ class ReducedFunctional:
 
             # Solve the shallow water system
             functional = DefaultFunctional(config)
-            j, self.last_djdm = forward_model(config, state, functional=functional, turbine_field = tf)
+            j, self.last_djdm = forward_model(config, state, functional=functional, turbine_field = tf, write_state = write_state)
             self.last_state = state
 
             if return_final_state:
