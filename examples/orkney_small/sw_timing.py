@@ -45,6 +45,12 @@ for i in range(5):
 	time_forward.append(t1.stop())
 	print "Forward model runtime: ", time_forward[-1]
 
+	from dolfin_adjoint import replay_dolfin
+	print "Replaying model round ", i
+	t11 = Timer("Replay forward model")
+	replay_dolfin()
+	print "Replay model runtime: ", t11.stop() 
+
 	t2 = Timer("Adjoint model")
 	model.run_adjoint_model_mem.fn(m0) 
 	time_adjoint.append(t2.stop())
@@ -52,4 +58,4 @@ for i in range(5):
 
 print "Smallest runtime for forward model: ", min(time_forward)
 print "Smallest runtime for forward + adjoint model: ", min(time_forward) + min(time_adjoint)
-print "Ratio: ", 1.0 + min(time_adjoint) / (min(time_forward) + min(time_adjoint))
+print "Ratio: ", 1.0 + min(time_adjoint) / min(time_forward)
