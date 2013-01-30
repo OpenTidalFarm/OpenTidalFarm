@@ -51,13 +51,15 @@ class ReducedFunctional:
             state_tmp = project(state, config.function_space)
 
             # Set up the turbine field 
+            config.turbine_cache.update(config)
             tf = Function(self.__config__.turbine_function_space, name = "friction") 
-            tf.interpolate(Turbines(config.params))
+            tf.assign(config.turbine_cache.cache["turbine_field"])
             #info_green("Turbine integral: %f ", assemble(tf*dx))
             #info_green("The correct integral should be: %f ",  25.2771) # computed with wolfram alpha using:
             # int 0.17353373* (exp(-1.0/(1-(x/10)**2)) * exp(-1.0/(1-(y/10)**2)) * exp(2)) dx dy, x=-10..10, y=-10..10 
             #info_red("relative error: %f", (assemble(tf*dx)-25.2771)/25.2771)
-            self.turbine_file << tf
+            if write_state:
+                self.turbine_file << tf
 
             # Solve the shallow water system
             functional = DefaultFunctional(config)
@@ -96,6 +98,7 @@ class ReducedFunctional:
             if 'turbine_friction' in config.params["controls"]:
                 # Compute the derivatives with respect to the turbine friction
                 for n in range(len(config.params["turbine_friction"])):
+                    config.turbine_cache.update(config)
                     tfd = config.turbine_cache.cache["turbine_derivative_friction"][n]
                     dj.append( djdudm.vector().inner(tfd.vector()) )
 
@@ -103,6 +106,7 @@ class ReducedFunctional:
                 # Compute the derivatives with respect to the turbine position
                 for n in range(len(config.params["turbine_pos"])):
                     for var in ('turbine_pos_x', 'turbine_pos_y'):
+                        config.turbine_cache.update(config)
                         tfd = config.turbine_cache.cache["turbine_derivative_pos"][n][var]
                         dj.append( djdudm.vector().inner(tfd.vector()) )
             dj = numpy.array(dj)  

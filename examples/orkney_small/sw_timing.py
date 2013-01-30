@@ -51,4 +51,5 @@ for i in range(5):
 	print "Adjoint model runtime: ", time_adjoint[-1]
 
 print "Smallest runtime for forward model: ", min(time_forward)
-print "Smallest runtime for adjoint model: ", min(time_adjoint)
+print "Smallest runtime for forward + adjoint model: ", min(time_forward) + min(time_adjoint)
+print "Ratio: ", 1.0 + min(time_adjoint) / (min(time_forward) + min(time_adjoint))
