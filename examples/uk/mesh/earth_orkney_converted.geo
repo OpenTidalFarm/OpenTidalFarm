@@ -327,8 +327,8 @@ Line(24) = {249, 1};
 Line Loop(25) = {22, 23, 24, 1, 21};
 
 /* Define tidal turbine site */
-site_x = 640;
-site_y = 320;
+site_x = 320;
+site_y = 160;
 element_size = 2;
 site_x_start = 1.02957e+07;
 site_y_start = 6.52304e+06;

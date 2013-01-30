@@ -10,14 +10,11 @@ set_log_level(ERROR)
 numpy.random.seed(21) 
 
 # Some domain information extracted from the geo file
-basin_x = 1280.
-basin_y = 640.+320.
 site_x = 320.
 site_y = 160.
-rad = 160.
-site_x_start = (basin_x - site_x)/2 
-site_y_start = (basin_y/2-rad)/2-site_y/2 
-config = configuration.SinusoidalScenarioConfiguration("mesh/mesh.xml", inflow_direction = [1, 0])
+site_x_start = 1.02957e+07 
+site_y_start = 6.52304e+06 - site_y 
+config = configuration.SinusoidalScenarioConfiguration("mesh/earth_orkney_converted.xml", inflow_direction = [1, 0])
 config.set_site_dimensions(site_x_start, site_x_start + site_x, site_y_start, site_y_start + site_y)
 
 # Place some turbines 
@@ -28,8 +25,8 @@ m0 = model.initial_control()
 
 # Get the upper and lower bounds for the turbine positions
 lb, ub = IPOptUtils.position_constraints(config) 
-bounds = [(lb[i], ub[i]) for i in range(len(lb))]
+bounds = [(float(lb[i]), float(ub[i])) for i in range(len(lb))]
 
 f_ieqcons, fprime_ieqcons = IPOptUtils.get_minimum_distance_constraint_func(config)
 
-fmin_slsqp(model.j, m0, fprime = model.dj_with_check, bounds = bounds, f_ieqcons = f_ieqcons, fprime_ieqcons = fprime_ieqcons, iprint = 2, iter = 5)
+fmin_slsqp(model.j, m0, fprime = model.dj, bounds = bounds, f_ieqcons = f_ieqcons, fprime_ieqcons = fprime_ieqcons, iprint = 2, iter = 200)
