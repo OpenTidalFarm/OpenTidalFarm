@@ -3,7 +3,6 @@ import numpy
 import IPOptUtils
 from reduced_functional import ReducedFunctional
 from dolfin import *
-from dolfin_adjoint import adj_html
 set_log_level(PROGRESS)
 
 # We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
@@ -39,7 +38,7 @@ config.turbine_cache.update(config)
 
 time_forward = []
 time_adjoint = []
-for i in range(1):
+for i in range(5):
 	print "Running forward model round ", i
 	t1 = Timer("Forward model")
 	model.run_forward_model_mem.fn(m0, write_state = False) 
