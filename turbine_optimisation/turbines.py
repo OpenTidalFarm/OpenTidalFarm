@@ -120,3 +120,65 @@ class Turbines(Expression):
                 raise ValueError, "Invalid argument for the derivarive variable selector."
 
         values[0] = friction 
+
+
+class TurbineCache:
+    def __init__(self):
+        self.cache = {}
+        self.params = None
+
+    def update(self, config):
+        ''' Creates a list of all turbine function/derivative interpolations. This list is used as a cache 
+          to avoid the recomputation of the expensive interpolation of the turbine expression. '''
+        # If the parameters have not changed, then there is no need to do anything
+        if self.params != None:
+            if (self.params["turbine_friction"] == config.params["turbine_friction"]).all() and (self.params["turbine_pos"] == config.params["turbine_pos"]).all(): 
+                info_green("Skipping turbine cache update")
+                return 
+
+        info_green("Updating turbine cache")
+
+        # Store the new turbine paramaters
+        self.params = configuration.Parameters(config.params)
+        self.params["turbine_friction"] = numpy.copy(config.params["turbine_friction"])
+        self.params["turbine_pos"] = numpy.copy(config.params["turbine_pos"])
+
+        # Precompute the interpolation of the friction function of all turbines
+        turbines = Turbines(self.params)
+        tf = Function(config.turbine_function_space, name = "functional_turbine_friction") 
+        tf.interpolate(turbines)
+        self.cache["turbine_field"] = tf
+
+        # Precompute the interpolation of the friction function for each individual turbine
+        if self.params["print_individual_turbine_power"]:
+            info_green("Building individual turbine power friction functions for caching purposes...")
+            self.cache["turbine_field_individual"] = [] 
+            for i in range(len(self.params["turbine_friction"])):
+                params_cpy = configuration.Parameters(self.params)
+                params_cpy["turbine_pos"] = [self.params["turbine_pos"][i]]
+                params_cpy["turbine_friction"] = [self.params["turbine_friction"][i]]
+                turbine = Turbines(params_cpy)
+                tf = Function(config.turbine_function_space, name = "functional_turbine_friction") 
+                tf.interpolate(turbine)
+                self.cache["turbine_field_individual"].append(tf)
+                info_green("finished")
+
+        # Precompute the derivatives with respect to the friction magnitude of each turbine
+        if "turbine_friction" in self.params["controls"]:
+            self.cache["turbine_derivative_friction"] = []
+            for n in range(len(self.params["turbine_friction"])):
+                turbines = Turbines(self.params, derivative_index_selector = n, derivative_var_selector = 'turbine_friction')
+                tfd = Function(config.turbine_function_space, name = "functional_turbine_friction_derivative_with_respect_friction_magnitude_of_turbine_" + str(n)) 
+                tfd.interpolate(turbines)
+                self.cache["turbine_derivative_friction"].append(tfd)
+
+        # Precompute the derivatives with respect to the turbine position
+        if "turbine_pos" in self.params["controls"]:
+            self.cache["turbine_derivative_pos"] = []
+            for n in range(len(self.params["turbine_pos"])):
+                self.cache["turbine_derivative_pos"].append({})
+                for var in ('turbine_pos_x', 'turbine_pos_y'):
+                    turbines = Turbines(self.params, derivative_index_selector = n, derivative_var_selector = var)
+                    tfd = Function(config.turbine_function_space, name = "functional_turbine_friction_derivative_with_respect_position_of_turbine_" + str(n))
+                    tfd.interpolate(turbines)
+                    self.cache["turbine_derivative_pos"][-1][var] = tfd

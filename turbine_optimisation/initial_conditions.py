@@ -39,9 +39,12 @@ def BumpInitialCondition(config):
                    \  0   otherwise
           For more information see http://en.wikipedia.org/wiki/Bump_function
         '''
-        bump = exp(-1.0/(1.0-x[0]**2)) 
-        bump *= exp(-1.0/(1.0-x[1]**2)) 
-        bump /= exp(-1)**2
+        if x[0]**2 < 1 and x[1]**2 < 1:
+            bump = exp(-1.0/(1.0-x[0]**2)) 
+            bump *= exp(-1.0/(1.0-x[1]**2)) 
+            bump /= exp(-1)**2
+        else:
+            bump = 0.0
         return bump
 
       def eval(self, values, X):

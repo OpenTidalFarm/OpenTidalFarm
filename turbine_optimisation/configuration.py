@@ -1,6 +1,7 @@
 import finite_elements
 import numpy
 from dirichlet_bc import DirichletBCSet
+from turbines import TurbineCache
 from dolfin import * 
 from math import exp, sqrt, pi
 from initial_conditions import *
@@ -42,7 +43,6 @@ class Parameters(dict):
             'turbine_x' : 'turbine extension in the x direction',
             'turbine_y' : 'turbine extension in the y direction',
             'turbine_friction' : 'turbine friction', 
-            'functional_turbine_scaling' : 'scaling of the turbine dimensions in the functional, which often yields a better posted problem',
             'rho' : 'the density of the fluid', 
             'controls' : 'the control variables',
             'turbine_model': 'turbine model',
@@ -97,7 +97,6 @@ class DefaultConfiguration(object):
         'turbine_x' : 20., 
         'turbine_y' : 5., 
         'turbine_friction' : [],
-        'functional_turbine_scaling' : 1.0,
         'rho' : 1000., # Use the density of water: 1000kg/m^3
         'controls' : ['turbine_pos', 'turbine_friction'],
         'turbine_model': 'BumpTurbine',
@@ -126,6 +125,9 @@ class DefaultConfiguration(object):
 
     # Store the result as class variables
     self.params = params
+
+    # Create a chaching object for the interpolated turbine friction fields (as their computation is very expensive)
+    self.turbine_cache = TurbineCache()
 
   def set_domain(self, domain, warning = True):
       if warning:

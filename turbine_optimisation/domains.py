@@ -94,7 +94,7 @@ class GMeshDomain:
         ''' filename must be a valid gmesh file. '''
 
         self.mesh = Mesh(filename)
-        info_green('The computation domain an element size ranging from %f - %f.'% (MPI.min(self.mesh.hmin()), MPI.max(self.mesh.hmax())))
+        info_green('The computation domain has an element size ranging from %f - %f.'% (MPI.min(self.mesh.hmin()), MPI.max(self.mesh.hmax())))
 
         self.boundaries = MeshFunction('uint', self.mesh, filename[0:-4] + "_facet_region.xml")
         self.ds = Measure('ds')[self.boundaries]

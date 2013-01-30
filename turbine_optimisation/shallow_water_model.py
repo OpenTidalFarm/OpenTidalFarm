@@ -207,7 +207,9 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
     ############################### Perform the simulation ###########################
 
     writer = helpers.StateWriter(config)
+    info_green("Writing state to disk...")
     writer.write(state)
+    info_green("Writing state to disk...finished")
     
     step = 0    
 
@@ -228,6 +230,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
               
             djdm = dt * quad * numpy.array([assemble(f) for f in functional.dJtdm(state)])
 
+    info_green("Starting time loop...")
     adjointer.time.start(t)
     while (t < params["finish_time"]):
         t += dt
@@ -300,7 +303,9 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
         state.assign(state_new)
 
         if step%params["dump_period"] == 0:
+            info_green("Writing state to disk...")
             writer.write(state)
+            info_green("Writing state to disk...finished")
 
         if functional is not None:
             if not (functional_final_time_only and t < params["finish_time"]):
@@ -313,14 +318,18 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
 
                 j += quad * assemble(functional.Jt(state)) 
                 if params["print_individual_turbine_power"]:
+                    info_green("Computing individual turbine power extaction contribution...")
                     for i in range(len(params["turbine_pos"])):
 	                j_individual[i] += dt * quad * assemble(functional.Jt_individual(state, i))
+                    info_green("Computing individual turbine power extaction contribution...finished")
 
                 djtdm = numpy.array([assemble(f) for f in functional.dJtdm(state)])
                 djdm += quad * djtdm
 
         # Increase the adjoint timestep
         adj_inc_timestep(time=t, finished = not t < params["finish_time"])
+        info_green("New timestep")
+    info_green("Ending time loop.")
 
     if params["print_individual_turbine_power"]:
         print "Individual power contributions of the turbines: ", j_individual

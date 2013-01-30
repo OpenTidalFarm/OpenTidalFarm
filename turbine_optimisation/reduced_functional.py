@@ -60,7 +60,7 @@ class ReducedFunctional:
             self.turbine_file << tf
 
             # Solve the shallow water system
-            functional = DefaultFunctional(config.function_space, config)
+            functional = DefaultFunctional(config)
             j, self.last_djdm = forward_model(config, state, functional=functional, turbine_field = tf)
             self.last_state = state
 
@@ -70,6 +70,7 @@ class ReducedFunctional:
                 return j 
 
         def run_adjoint_model(m):
+            myt = Timer("full run_adjoint_model")
             # If the last forward run was performed with the same parameters, then all recorded values by dolfin-adjoint are still valid for this adjoint run
             # and we do not have to rerun the forward model.
             if numpy.any(m != self.last_m):
@@ -78,7 +79,7 @@ class ReducedFunctional:
             state = self.last_state
             djdm = self.last_djdm
 
-            functional = DefaultFunctional(config.function_space, config)
+            functional = DefaultFunctional(config)
             if config.params['steady_state'] or config.params["functional_final_time_only"]:
                 J = Functional(functional.Jt(state)*dt[FINISH_TIME])
             else:
@@ -91,20 +92,18 @@ class ReducedFunctional:
             #               = adj_state * \partial F / \partial u + \partial J / \partial m
             # In this particular case m = turbine_friction, J = \sum_t(ft) 
             dj = [] 
-            U = config.function_space.split()[0].sub(0) # Extract the first component of the velocity function space 
-            U = U.collapse() # Recompute the DOF map
-            tfd = Function(self.__config__.turbine_function_space, name = "friction_derivative") 
+            config.turbine_cache.update(config)
             if 'turbine_friction' in config.params["controls"]:
                 # Compute the derivatives with respect to the turbine friction
                 for n in range(len(config.params["turbine_friction"])):
-                    tfd.interpolate(Turbines(config.params, derivative_index_selector=n, derivative_var_selector='turbine_friction'))
+                    tfd = config.turbine_cache.cache["turbine_derivative_friction"][n]
                     dj.append( djdudm.vector().inner(tfd.vector()) )
 
             if 'turbine_pos' in config.params["controls"]:
                 # Compute the derivatives with respect to the turbine position
                 for n in range(len(config.params["turbine_pos"])):
                     for var in ('turbine_pos_x', 'turbine_pos_y'):
-                        tfd.interpolate(Turbines(config.params, derivative_index_selector=n, derivative_var_selector=var))
+                        tfd = config.turbine_cache.cache["turbine_derivative_pos"][n][var]
                         dj.append( djdudm.vector().inner(tfd.vector()) )
             dj = numpy.array(dj)  
             
@@ -118,8 +117,8 @@ class ReducedFunctional:
         
     def j(self, m):
         ''' This memoised function returns the functional value for the parameter choice m. '''
-        timer = dolfin.Timer("dj Evaluation") 
-        timer.start()
+        print info_green('Start evaluatation of j')
+        timer = dolfin.Timer("j evaluation") 
         j = self.run_forward_model_mem(m) 
         timer.stop()
         if self.plot:
@@ -141,10 +140,9 @@ class ReducedFunctional:
 
     def dj(self, m):
         ''' This memoised function returns the gradient of the functional for the parameter choice m. '''
-        timer = dolfin.Timer("dj Evaluation") 
-        timer.start()
+        print info_green('Start evaluatation of dj')
+        timer = dolfin.Timer("dj evaluation") 
         dj = self.run_adjoint_model_mem(m)
-        timer.stop()
 
         # Compute the scaling factor if never done before
         if self.__config__.params['automatic_scaling'] and not self.automatic_scaling_factor:
@@ -165,7 +163,7 @@ class ReducedFunctional:
                 info_blue("The automatic scaling factor was set to " + str(self.automatic_scaling_factor * self.scaling_factor) + ".")
 
         info_green('Evaluating dj(' + m.__repr__() + ') = ' + str(dj)) 
-        info_blue('Runtime: ' + str(timer.value())  + " s")
+        info_blue('Runtime: ' + str(timer.stop())  + " s")
         if self.__config__.params['automatic_scaling']:
             info_green('Scaled dj(' + m.__repr__() + ') = ' + str(self.automatic_scaling_factor * self.scaling_factor * dj))
             return dj * self.scaling_factor * self.automatic_scaling_factor
