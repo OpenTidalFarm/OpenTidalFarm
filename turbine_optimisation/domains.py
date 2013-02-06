@@ -27,7 +27,7 @@ class RectangularDomain:
         sides = Sides()
 
         # Initialize mesh function for boundary domains
-        self.boundaries = FacetFunction('uint', self.mesh)
+        self.boundaries = FacetFunction('size_t', self.mesh)
         self.boundaries.set_all(0)
         left.mark(self.boundaries, 1)
         right.mark(self.boundaries, 2)
