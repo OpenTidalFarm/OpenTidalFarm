@@ -7,75 +7,56 @@ from dolfin_adjoint import *
 from math import log
 from helpers import info, info_green, info_red, info_blue
 
-def turbines_expression(params, derivative_index_selector=-1,  derivative_var_selector=None):
-  ''' If the derivative selector is i >= 0, the Expression will compute the derivative of the turbine with index i with respect 
-      to either the x or y coorinate or its friction parameter. '''
-  code = '''
-  class MyFunc : public Expression
-  {
-  public: 
- 
-    MyFunc() : Expression()  
-    {
-    }
-
-    double eval_unit(const double *x2, const double *y2) const
-      {
-        if ((*x2 < 1.0) && (*y2 < 1.0))
-           return exp(-1.0/(1.0-*x2) - 1.0/(1.0-*y2) + 2);
-        else
-           return 0.0;
-      }
-
-    void eval(Array<double>& values, const Array<double>& x,
-              const ufc::cell& c) const
-      {
-        double friction = 0.0;
-        const double x2 = x[0]*x[0];
-        const double y2 = x[1]*x[1];
-
-        values[0] = eval_unit(&x2, &y2); 
-      }
-
-  };
-  '''
-  return Expression(code)
-
 class Turbines(object):
 
     def __init__(self, V, params, derivative_index_selector=-1):
         self.params = configuration.Parameters(params)
   
         # Precompute some turbine parameters for efficiency. 
-        self.x_pos = numpy.array(params["turbine_pos"])[:,0] 
-        self.x_pos_low = self.x_pos-params["turbine_x"]/2
-        self.x_pos_high = self.x_pos+params["turbine_x"]/2
-  
-        self.y_pos = numpy.array(params["turbine_pos"])[:,1] 
-        self.y_pos_low = self.y_pos-params["turbine_y"]/2
-        self.y_pos_high = self.y_pos+params["turbine_y"]/2
-  
         self.x = interpolate(Expression("x[0]"), V).vector().array()
         self.y = interpolate(Expression("x[1]"), V).vector().array()
         self.V = V
 
-    def __call__(self, derivative_index_selector=-1,  derivative_var_selector=None):
+    def __call__(self, name = "", derivative_index_selector=None, derivative_var_selector=None):
         ''' If the derivative selector is i >= 0, the Expression will compute the derivative of the turbine with index i with respect 
           to either the x or y coorinate or its friction parameter. '''
-        i = 0
         V = self.V
-        # x_unit = (self.x - self.x_pos[i])/ 0.5# / (0.5*self.params["turbine_x"])
-        # y_unit = (self.y - self.x_pos[i]) /# / (0.5*self.params["turbine_y"])
-        x_unit = self.x 
-        y_unit = self.y 
+        params = self.params
+  
+        if derivative_index_selector == None: 
+          turbine_pos = params["turbine_pos"]
+          turbine_friction = params["turbine_friction"]
+        else:
+          turbine_pos = [params["turbine_pos"][derivative_index_selector]]
+          turbine_friction = [params["turbine_friction"][derivative_index_selector]]
+
+        ff = numpy.zeros(len(self.x))
         # We dont mind division by zero
         numpy.seterr(divide = 'ignore')
-        ff = numpy.exp(-1/(1-(self.x**2) - 1/(1-self.y**2)+2))
+        eps = 1e-12
+        for (x_pos, y_pos), friction in zip(turbine_pos, turbine_friction):
+          x_unit = numpy.minimum(numpy.maximum((self.x - x_pos) / (0.5*self.params["turbine_x"]), -1+eps), 1-eps) 
+          y_unit = numpy.minimum(numpy.maximum((self.y - y_pos) / (0.5*self.params["turbine_y"]), -1+eps), 1-eps) 
+
+          # Apply chain rule to get the derivative with respect to the turbine friction 
+          e = numpy.exp(-1/(1-x_unit**2) - 1./(1-y_unit**2)+2)
+          if derivative_index_selector == None:
+            ff += e * friction
+
+          elif derivative_var_selector == 'turbine_friction':
+            ff += e 
+
+          if derivative_var_selector == 'turbine_pos_x':
+            ff += e * (-2*x_unit / ((1.0-x_unit**2)**2)) * friction*(-1.0/(0.5*params["turbine_x"])) 
+
+          elif derivative_var_selector == 'turbine_pos_y':
+            ff += e * (-2*y_unit / ((1.0-y_unit**2)**2)) * friction*(-1.0/(0.5*params["turbine_y"])) 
+
         numpy.seterr(divide = 'warn')
 
-        f = Function(V)
+        f = Function(V, name = name)
         f.vector().set_local(ff) 
-
+        f.vector().apply("insert")
         return f
 
 class TurbineCache:
@@ -100,9 +81,8 @@ class TurbineCache:
         self.params["turbine_pos"] = numpy.copy(config.params["turbine_pos"])
 
         # Precompute the interpolation of the friction function of all turbines
-        turbines = Turbines(self.params)
-        tf = Function(config.turbine_function_space, name = "functional_turbine_friction") 
-        tf.interpolate(turbines)
+        turbines = Turbines(config.turbine_function_space, self.params)
+        tf = turbines(name = "functional_turbine_friction")
         self.cache["turbine_field"] = tf
 
         # Precompute the interpolation of the friction function for each individual turbine
@@ -113,9 +93,8 @@ class TurbineCache:
                 params_cpy = configuration.Parameters(self.params)
                 params_cpy["turbine_pos"] = [self.params["turbine_pos"][i]]
                 params_cpy["turbine_friction"] = [self.params["turbine_friction"][i]]
-                turbine = Turbines(params_cpy)
-                tf = Function(config.turbine_function_space, name = "functional_turbine_friction") 
-                tf.interpolate(turbine)
+                turbine = Turbines(config.turbine_function_space, params_cpy)
+                tf = turbines(name = "functional_turbine_friction") 
                 self.cache["turbine_field_individual"].append(tf)
                 info_green("finished")
 
@@ -123,9 +102,9 @@ class TurbineCache:
         if "turbine_friction" in self.params["controls"]:
             self.cache["turbine_derivative_friction"] = []
             for n in range(len(self.params["turbine_friction"])):
-                turbines = Turbines(self.params, derivative_index_selector = n, derivative_var_selector = 'turbine_friction')
-                tfd = Function(config.turbine_function_space, name = "functional_turbine_friction_derivative_with_respect_friction_magnitude_of_turbine_" + str(n)) 
-                tfd.interpolate(turbines)
+                tfd = turbines(derivative_index_selector = n, 
+                               derivative_var_selector = 'turbine_friction', 
+                               name = "functional_turbine_friction_derivative_with_respect_friction_magnitude_of_turbine_" + str(n)) 
                 self.cache["turbine_derivative_friction"].append(tfd)
 
         # Precompute the derivatives with respect to the turbine position
@@ -134,28 +113,21 @@ class TurbineCache:
             for n in range(len(self.params["turbine_pos"])):
                 self.cache["turbine_derivative_pos"].append({})
                 for var in ('turbine_pos_x', 'turbine_pos_y'):
-                    turbines = Turbines(self.params, derivative_index_selector = n, derivative_var_selector = var)
-                    tfd = Function(config.turbine_function_space, name = "functional_turbine_friction_derivative_with_respect_position_of_turbine_" + str(n))
-                    tfd.interpolate(turbines)
+                    tfd = turbines(derivative_index_selector = n, 
+                                        derivative_var_selector = var,
+                                        name = "functional_turbine_friction_derivative_with_respect_position_of_turbine_" + str(n))
                     self.cache["turbine_derivative_pos"][-1][var] = tfd
 
 if __name__ == "__main__":
-    mesh = UnitSquareMesh(100, 100)
+    mesh = RectangleMesh(-1, -1, 1, 1, 100, 100)
     V = FunctionSpace(mesh, "CG", 1)
     
     params = {"turbine_friction": [0.1, 0.2],
-              "turbine_pos": [[0.5, 0.5]],
+              "turbine_pos": [[0.5, 0.5], [-0.5, -0.5]],
               "turbine_x": 0.5, 
               "turbine_y": 0.5, 
-              "turbine_model": 'BumpTurbine', 
              }
 
-    #f = Function(V)
-    #turbines = turbines_expression(params)
-    #turbines = turbines_expression(params)
-    #turbines = Turbines(params)
-    #of.interpolate(turbines)
     turbines = Turbines(V, params)
-    f = turbines()
-    out_file = File("t.pvd", "compressed")
-    out_file << f
+    f = turbines()#1, "turbine_pos_y")
+    plot(f, interactive = True)

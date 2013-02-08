@@ -50,8 +50,8 @@ U = U.collapse() # Recompute the DOF map
 tf = Function(U) # The turbine function
 
 # Set up the turbine friction field using the provided control variable
-turbines = Turbines(config.params)
-cProfile.run("tf.interpolate(turbines)")
+turbines = Turbines(U, config.params)
+cProfile.run("tf = turbines()")
 
 print "norm(tf) = ", norm(tf)
 correct_norm = 605.429678289 

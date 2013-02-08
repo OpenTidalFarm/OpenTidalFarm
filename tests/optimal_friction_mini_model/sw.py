@@ -37,7 +37,6 @@ def default_config():
   config.params["turbine_friction"] = 12.0*numpy.random.rand(len(config.params["turbine_pos"]))
   config.params["turbine_x"] = 8000
   config.params["turbine_y"] = 8000
-  config.params["turbine_model"] = "ConstantTurbine"
 
   return config
 
@@ -60,6 +59,6 @@ bounds = [(lb_f[i], ub_f[i]) for i in range(len(lb_f))] + [(500, 500), (500, 500
 
 m = fmin_slsqp(model.j, m0, fprime = model.dj, bounds = bounds, iprint = 2)
 
-if abs(m[0]-0.5) > 10**-4: 
+if abs(m[0]-0.61216779034) > 10**-4: 
   info_red("The optimisation algorithm did not find the correct solution.")
   sys.exit(1) 

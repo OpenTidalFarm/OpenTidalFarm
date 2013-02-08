@@ -42,26 +42,25 @@ def j_and_dj(m, forward_only = None):
   # Set the control values
   U = config.function_space.split()[0].sub(0) # Extract the first component of the velocity function space 
   U = U.collapse() # Recompute the DOF map
-  tf = Function(U, name = "turbine") # The turbine function
-  tfd = Function(U, name = "turbine_derivative") # The derivative turbine function
 
   # Set up the turbine friction field using the provided control variable
-  tf.interpolate(Turbines(config.params))
-  v = tf.vector()
+  turbines = Turbines(U, config.params)
+  tf = turbines()
   # The functional of interest is simply the l2 norm of the turbine field
+  v = tf.vector()
   j = v.inner(v)  
 
   if not forward_only:
       dj = []
       # Compute the derivatives with respect to the turbine friction
       for n in range(len(config.params["turbine_friction"])):
-        tfd.interpolate(Turbines(config.params, derivative_index_selector=n, derivative_var_selector='turbine_friction'))
+        tfd = turbines(derivative_index_selector=n, derivative_var_selector='turbine_friction')
         dj.append( 2 * v.inner(tfd.vector()) )
 
       # Compute the derivatives with respect to the turbine position
       for n in range(len(config.params["turbine_pos"])):
         for var in ('turbine_pos_x', 'turbine_pos_y'):
-          tfd.interpolate(Turbines(config.params, derivative_index_selector=n, derivative_var_selector=var))
+          tfd = turbines(derivative_index_selector=n, derivative_var_selector=var)
           dj.append( 2 * v.inner(tfd.vector()) )
       dj = numpy.array(dj)  
       
@@ -81,7 +80,6 @@ m0 = ReducedFunctional(config).initial_control()
 p = numpy.random.rand(len(m0))
 
 # Run with a functional that does not depend on m directly
-config.params["turbine_model"] = 'BumpTurbine' 
 minconv = test_gradient_array(j, dj, m0, 0.001, perturbation_direction=p)
 
 if minconv < 1.99:

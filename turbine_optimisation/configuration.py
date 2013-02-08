@@ -45,7 +45,6 @@ class Parameters(dict):
             'turbine_friction' : 'turbine friction', 
             'rho' : 'the density of the fluid', 
             'controls' : 'the control variables',
-            'turbine_model': 'turbine model',
             'newton_solver': 'newton solver instead of a picard iteration',
             'linear_solver' : 'default linear solver',
             'preconditioner' : 'default preconditioner',
@@ -99,7 +98,6 @@ class DefaultConfiguration(object):
         'turbine_friction' : [],
         'rho' : 1000., # Use the density of water: 1000kg/m^3
         'controls' : ['turbine_pos', 'turbine_friction'],
-        'turbine_model': 'BumpTurbine',
         'newton_solver': False, 
         'linear_solver' : 'mumps',
         'preconditioner' : 'default',
@@ -167,7 +165,6 @@ class PaperConfiguration(DefaultConfiguration):
     self.params['turbine_x'] = 20. 
     self.params['turbine_y'] = 20. 
     self.params['controls'] = ['turbine_pos']
-    self.params['turbine_model'] = 'BumpTurbine'
 
     # Timing settings
     self.period = 1.24*60*60 
