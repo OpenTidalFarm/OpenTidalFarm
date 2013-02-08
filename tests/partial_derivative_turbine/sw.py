@@ -81,12 +81,10 @@ m0 = ReducedFunctional(config).initial_control()
 p = numpy.random.rand(len(m0))
 
 # Run with a functional that does not depend on m directly
-for turbine_model, s in {'GaussianTurbine': {'seed': 100.0, 'tol': 1.9}, 'BumpTurbine': {'seed': 0.001, 'tol': 1.99}}.items():
-  info("************* %s ********************" % turbine_model)
-  config.params["turbine_model"] = turbine_model 
-  minconv = test_gradient_array(j, dj, m0, s['seed'], perturbation_direction=p)
+config.params["turbine_model"] = 'BumpTurbine' 
+minconv = test_gradient_array(j, dj, m0, 0.001, perturbation_direction=p)
 
-  if minconv < s['tol']:
-    info_red("The turbine test failed")
-    sys.exit(1)
+if minconv < 1.99:
+  info_red("The turbine test failed")
+  sys.exit(1)
 info_green("Test passed")    
