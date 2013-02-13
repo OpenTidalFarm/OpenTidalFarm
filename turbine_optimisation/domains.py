@@ -80,7 +80,7 @@ class LShapeDomain:
         sides = Sides()
 
         # Initialize mesh function for boundary domains
-        self.boundaries = FacetFunction('uint', self.mesh)
+        self.boundaries = FacetFunction('size_t', self.mesh)
         self.boundaries.set_all(0)
         left.mark(self.boundaries, 1)
         right.mark(self.boundaries, 2)
@@ -96,5 +96,5 @@ class GMeshDomain:
         self.mesh = Mesh(filename)
         info_green('The computation domain has an element size ranging from %f - %f.'% (MPI.min(self.mesh.hmin()), MPI.max(self.mesh.hmax())))
 
-        self.boundaries = MeshFunction('uint', self.mesh, filename[0:-4] + "_facet_region.xml")
+        self.boundaries = MeshFunction('size_t', self.mesh, filename[0:-4] + "_facet_region.xml")
         self.ds = Measure('ds')[self.boundaries]
