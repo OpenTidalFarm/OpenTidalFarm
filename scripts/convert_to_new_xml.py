@@ -6,6 +6,6 @@ if len(sys.argv) > 1:
 else:
 	meshfile = "mesh.xml"
 mesh = Mesh(meshfile)
-mesh_function = MeshFunction('uint', mesh, meshfile[:-4] + "_facet_region.xml")
+mesh_function = MeshFunction('size_t', mesh, meshfile[:-4] + "_facet_region.xml")
 file = File(meshfile[:-4] + '_facet_region.xml')
 file << mesh_function
