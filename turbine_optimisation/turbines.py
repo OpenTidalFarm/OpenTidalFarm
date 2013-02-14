@@ -96,7 +96,6 @@ class TurbineCache:
                 turbine = Turbines(config.turbine_function_space, params_cpy)
                 tf = turbines(name = "functional_turbine_friction") 
                 self.cache["turbine_field_individual"].append(tf)
-                info_green("finished")
 
         # Precompute the derivatives with respect to the friction magnitude of each turbine
         if "turbine_friction" in self.params["controls"]:
