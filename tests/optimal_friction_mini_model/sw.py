@@ -20,7 +20,7 @@ from helpers import test_gradient_array
 from mini_model import *
 from reduced_functional import ReducedFunctional
 from dolfin import *
-from scipy.optimize import fmin_slsqp
+from dolfin_adjoint import minimize
 set_log_level(PROGRESS)
 
 def default_config():
@@ -41,11 +41,11 @@ def default_config():
   return config
 
 config = default_config()
-model = ReducedFunctional(config, scaling_factor = -10**-3, forward_model = mini_model_solve)
-m0 = model.initial_control()
+rf = ReducedFunctional(config, scaling_factor = -10**-3, forward_model = mini_model_solve)
+m0 = rf.initial_control()
 
 p = numpy.random.rand(len(m0))
-minconv = test_gradient_array(model.j, model.dj, m0, seed=0.001, perturbation_direction=p)
+minconv = test_gradient_array(rf.j, rf.dj, m0, seed=0.001, perturbation_direction=p)
 if minconv < 1.99:
   info_red("The gradient taylor remainder test failed.")
   sys.exit(1)
@@ -55,10 +55,12 @@ g = lambda m: []
 dg = lambda m: []
 
 lb_f, ub_f = IPOptUtils.friction_constraints(config, lb = 0., ub = 100.)
-bounds = [(lb_f[i], ub_f[i]) for i in range(len(lb_f))] + [(500, 500), (500, 500)] 
-
-m = fmin_slsqp(model.j, m0, fprime = model.dj, bounds = bounds, iprint = 2)
+bb = [Constant(500)]*2
+bounds = [lb_f + bb, ub_f + bb]
+m = minimize(rf, bounds = bounds, method = "SLSQP") 
 
 if abs(m[0]-0.61216779034) > 10**-4: 
   info_red("The optimisation algorithm did not find the correct solution.")
   sys.exit(1) 
+else:
+  info_green("Test passed")

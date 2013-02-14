@@ -9,7 +9,7 @@ from dolfin import *
 from turbines import *
 from numpy.linalg import norm
 from helpers import info, info_green, info_red, info_blue
-
+    
 class ReducedFunctional:
     def __init__(self, config, scaling_factor = 1.0, forward_model = sw_model.sw_solve, plot = False):
         ''' If plot is True, the functional values will be automatically saved in a plot.
@@ -24,6 +24,16 @@ class ReducedFunctional:
         self.last_djdm = None
         self.last_state = None
         self.turbine_file = File("turbines.pvd", "compressed")
+
+        class Parameter:
+            def data(self):
+                m = []
+                if 'turbine_friction' in config.params["controls"]:
+                    m += list(config.params['turbine_friction'])
+                if 'turbine_pos' in config.params["controls"]:
+                    m += numpy.reshape(config.params['turbine_pos'], -1).tolist()
+                return numpy.array(m)
+        self.parameter = [Parameter()]
 
         if plot:
            self.plotter = AnimatedPlot(xlabel = "Iteration", ylabel = "Functional value")
@@ -188,7 +198,7 @@ class ReducedFunctional:
             info_green("The gradient taylor remainder test passed.")
 
         return self.dj(m)
-
+    
     def initial_control(self):
         ''' This function returns the control variable array that derives from the initial configuration. '''
         config = self.__config__ 
@@ -199,3 +209,13 @@ class ReducedFunctional:
             res += numpy.reshape(config.params['turbine_pos'], -1).tolist()
         return numpy.array(res)
 
+    def eval_array(self, m):
+        ''' Interface function for dolfin_adjoint.ReducedFunctional '''
+        return self.j(m)
+
+    def derivative_array(self, m_array, taylor_test = False, seed = 0.001):
+        ''' Interface function for dolfin_adjoint.ReducedFunctional '''
+        if taylor_test:
+            return self.dj_with_check(m_array, seed)
+        else:
+            return self.dj(m_array)

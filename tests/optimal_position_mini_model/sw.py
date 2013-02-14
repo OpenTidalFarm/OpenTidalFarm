@@ -10,16 +10,13 @@ import configuration
 import numpy
 import IPOptUtils
 import finite_elements
-from animated_plot import *
 from helpers import test_gradient_array
 from mini_model import mini_model_solve
 from reduced_functional import ReducedFunctional
 from initial_conditions import BumpInitialCondition
 from dolfin import *
+from dolfin_adjoint import minimize
 from scipy.optimize import fmin_slsqp
-
-# An animated plot to visualise the development of the functional value
-plot = AnimatedPlot(xlabel='Iteration', ylabel='Functional value')
 
 def default_config():
   # We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
@@ -42,11 +39,11 @@ def default_config():
   return config
 
 config = default_config()
-model = ReducedFunctional(config, scaling_factor = -10**1, forward_model = mini_model_solve, plot = True)
-m0 = model.initial_control()
+rf = ReducedFunctional(config, scaling_factor = -10**1, forward_model = mini_model_solve)
+m0 = rf.initial_control()
 
 p = numpy.random.rand(len(m0))
-minconv = test_gradient_array(model.j, model.dj, m0, seed=0.001, perturbation_direction=p)
+minconv = test_gradient_array(rf.j, rf.dj, m0, seed=0.001, perturbation_direction=p)
 if minconv < 1.9:
   info_red("The gradient taylor remainder test failed.")
   sys.exit(1)
@@ -55,12 +52,11 @@ if minconv < 1.9:
 g = lambda m: []
 dg = lambda m: []
 
-bounds = [(0, 3000), (0, 1000)] 
+bounds = [[Constant(0), Constant(0)], [Constant(3000), Constant(1000)]] 
 
-m = fmin_slsqp(model.j, m0, fprime = model.dj, bounds = bounds, iprint = 2)
+m = minimize(rf, bounds = bounds, method = "SLSQP") 
 
 info("Solution of the primal variables: m=" + repr(m) + "\n")
-plot.savefig("plot_functional_value.png")
 
 exit_code = 1
 if abs(m[0]-1500) > 40:

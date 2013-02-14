@@ -1,5 +1,5 @@
 import numpy
-from dolfin import info_blue
+from dolfin import info_blue, Constant
 from helpers import info, info_green, info_red, info_blue
 
 # The wrapper class of the objective/constaint functions that as required by the ipopt package
@@ -48,8 +48,8 @@ def position_constraints(config):
         raise ValueError, "Lower bound is larger than upper bound. Is your domain large enough?"
   
     # The control variable is ordered as [t1_x, t1_y, t2_x, t2_y, t3_x, ...]
-    lb = n * [lb_x, lb_y]
-    ub = n * [ub_x, ub_y]
+    lb = n * [Constant(lb_x), Constant(lb_y)]
+    ub = n * [Constant(ub_x), Constant(ub_y)]
     return lb, ub 
 
 def friction_constraints(config, lb = 0.0, ub = None):
@@ -62,7 +62,7 @@ def friction_constraints(config, lb = 0.0, ub = None):
       ub = 10**12
 
     n = len(config.params["turbine_pos"])
-    return n * [lb], n * [ub] 
+    return n * [Constant(lb)], n * [Constant(ub)] 
 
 def get_minimum_distance_constraint_func(config, min_distance = None):
     if not 'turbine_pos' in config.params['controls']:
