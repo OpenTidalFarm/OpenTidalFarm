@@ -56,7 +56,11 @@ class ReducedFunctional:
 
             # Get initial conditions
             state = Function(config.function_space, name="Current_state")
-            state.interpolate(config.params['initial_condition'](config)())
+            if config.params["steady_state"] and self.last_state != None:
+                # Speed up the nonlinear solves by starting the Newton solve with the most recent state solution               
+                state.interpolate(self.last_state)
+            else:
+                state.interpolate(config.params['initial_condition'](config)())
             # Solve the dummy projection so that libadjoint annotates the initial Current_state
             state_tmp = project(state, config.function_space)
 
