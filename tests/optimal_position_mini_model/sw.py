@@ -16,7 +16,6 @@ from reduced_functional import ReducedFunctional
 from initial_conditions import BumpInitialCondition
 from dolfin import *
 from dolfin_adjoint import minimize
-from scipy.optimize import fmin_slsqp
 
 def default_config():
   # We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.

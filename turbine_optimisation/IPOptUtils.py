@@ -113,4 +113,4 @@ def get_minimum_distance_constraint_func(config, min_distance = None):
                 ieqcons.append(prime_ieqcons)
         return numpy.array(ieqcons)
 
-    return f_ieqcons, fprime_ieqcons 
+    return {'type': 'ineq', 'fun': f_ieqcons, 'jac': fprime_ieqcons} 

@@ -3,7 +3,7 @@ import numpy
 import IPOptUtils
 from reduced_functional import ReducedFunctional
 from dolfin import *
-from scipy.optimize import fmin_slsqp
+from dolfin_adjoint import minimize
 from helpers import info, info_green, info_red, info_blue
 set_log_level(PROGRESS)
 
@@ -23,11 +23,11 @@ config.set_site_dimensions(site_x_start, site_x_start + site_x, site_y_start, si
 # Place some turbines 
 IPOptUtils.deploy_turbines(config, nx = 8, ny = 4)
 
-model = ReducedFunctional(config, scaling_factor = -1, plot = True)
-m0 = model.initial_control()
+rf = ReducedFunctional(config, scaling_factor = -1, plot = True)
+m0 = rf.initial_control()
 
 # Get the upper and lower bounds for the turbine positions
 lb, ub = IPOptUtils.position_constraints(config) 
-bounds = [(float(lb[i]), float(ub[i])) for i in range(len(lb))]
+bounds = [lb, ub]
 
-fmin_slsqp(model.j, m0, fprime = model.dj, bounds = bounds, iprint = 2, iter = 200)
+minimize(rf, bounds = bounds, method = "SLSQP", options = {"maxiter": 200})

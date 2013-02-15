@@ -3,7 +3,7 @@ import numpy
 import IPOptUtils
 from reduced_functional import ReducedFunctional
 from dolfin import *
-from scipy.optimize import fmin_slsqp
+from dolfin_adjoint import minimize
 set_log_level(INFO)
 
 # We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
@@ -21,13 +21,8 @@ config.set_site_dimensions(site_x_start, site_x_start + site_x, site_y_start, si
 config.params["controls"] = ["turbine_friction"]
 config.params['automatic_scaling'] = False
 
-# Place some turbines 
 IPOptUtils.deploy_turbines(config, nx = 8, ny = 6)
-
-model = ReducedFunctional(config, scaling_factor = -1, plot = True)
-m0 = model.initial_control()
-# Get the upper and lower bounds for the turbine friction
+rf = ReducedFunctional(config, scaling_factor = -1, plot = True)
+m0 = rf.initial_control()
 lb_f, ub_f = IPOptUtils.friction_constraints(config, lb = 0., ub = config.turbine_friction)
-bounds = [(lb_f[i], ub_f[i]) for i in range(len(lb_f))]
-
-fmin_slsqp(model.j, m0, fprime = model.dj, bounds = bounds, iprint = 2, iter = 200)
+minimize(rf, bounds = [lb_f, ub_f], method = 'SLSQP', options = {'maxiter': 200})

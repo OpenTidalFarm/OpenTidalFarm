@@ -29,12 +29,10 @@ config.params['diffusion_coef'] = 90.0
 IPOptUtils.deploy_turbines(config, nx = 16, ny = 8)
 config.params["turbine_friction"] = 0.5*numpy.array(config.params["turbine_friction"]) 
 
-model = ReducedFunctional(config, scaling_factor = -1, plot = True)
-m0 = model.initial_control()
+rf = ReducedFunctional(config, scaling_factor = -1, plot = True)
+m0 = rf.initial_control()
 
 # Get the upper and lower bounds for the turbine positions
 lb, ub = IPOptUtils.position_constraints(config) 
-bounds = [(float(lb[i]), float(ub[i])) for i in range(len(lb))]
-f_ieqcons, fprime_ieqcons = IPOptUtils.get_minimum_distance_constraint_func(config)
-
-fmin_slsqp(model.j, m0, fprime = model.dj, bounds = bounds, f_ieqcons = f_ieqcons, fprime_ieqcons = fprime_ieqcons, iprint = 2, iter = 200)
+ineq = IPOptUtils.get_minimum_distance_constraint_func(config)
+minimize(rf, bounds = [lb, ub], constraints = ineq, method = "SLSQP") 

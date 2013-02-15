@@ -3,7 +3,7 @@ import numpy
 import IPOptUtils
 from reduced_functional import ReducedFunctional
 from dolfin import *
-from scipy.optimize import fmin_slsqp
+from dolfin_adjoint import minimize
 set_log_level(INFO)
 
 # We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
@@ -23,14 +23,15 @@ config.params["controls"] = ["turbine_friction", "turbine_pos"]
 # Place some turbines 
 IPOptUtils.deploy_turbines(config, nx = 8, ny = 4)
 
-model = ReducedFunctional(config, scaling_factor = -1, plot = True)
-m0 = model.initial_control()
+rf = ReducedFunctional(config, scaling_factor = -1, plot = True)
+m0 = rf.initial_control()
+
 # Get the upper and lower bounds for the turbine positions and friction
 lb_f, ub_f = IPOptUtils.friction_constraints(config, lb = 0., ub = config.turbine_friction)
 lb, ub = IPOptUtils.position_constraints(config) 
 # The first part of the control vector consists of the turbine friction values followed by their positions
-bounds = [(lb_f[i], ub_f[i]) for i in range(len(lb_f))] + [(lb[i], ub[i]) for i in range(len(lb))]
+bounds = [lb_f + lb, ub_f + ub]
 
-f_ieqcons, fprime_ieqcons = IPOptUtils.get_minimum_distance_constraint_func(config)
+ineq = IPOptUtils.get_minimum_distance_constraint_func(config)
 
-fmin_slsqp(model.j, m0, fprime = model.dj, bounds = bounds, f_ieqcons = f_ieqcons, fprime_ieqcons = fprime_ieqcons, iprint = 2, iter = 200)
+minimize(rf, bounds = bounds, constraints = ineq, method = "SLSQP", options = {"maxiter": 200})
