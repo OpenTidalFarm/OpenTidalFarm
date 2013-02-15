@@ -247,13 +247,13 @@ class ScenarioConfiguration(ConstantInflowPeriodicSidesPaperConfiguration):
 
 
 class SinusoidalScenarioConfiguration(ScenarioConfiguration):
-    def __init__(self, mesh_file, inflow_direction, finite_element = finite_elements.p2p1):
+    def __init__(self, mesh_file, inflow_direction, finite_element = finite_elements.p2p1, period = 12.*60*60):
         super(SinusoidalScenarioConfiguration, self).__init__(mesh_file, inflow_direction, finite_element)
         self.params['steady_state'] = False
         self.params['functional_final_time_only'] = False
 
         # Timing settings
-        self.period = 12.*60*60 
+        self.period = period 
         self.params['k'] = 2*pi/(self.period*sqrt(self.params['g']*self.params['depth']))
         self.params['theta'] = 1.0
         self.params['start_time'] = 1./4*self.period
