@@ -158,7 +158,7 @@ class ReducedFunctional:
 
     def dj(self, m):
         ''' This memoised function returns the gradient of the functional for the parameter choice m. '''
-        print info_green('Start evaluatation of dj')
+        info_green('Start evaluation of dj')
         timer = dolfin.Timer("dj evaluation") 
         dj = self.run_adjoint_model_mem(m)
 
