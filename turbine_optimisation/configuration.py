@@ -139,6 +139,25 @@ class DefaultConfiguration(object):
       self.params['turbine_pos'] = positions
       self.params['turbine_friction'] = friction * numpy.ones(len(positions))
 
+  def __str__(self):
+    s = "\n=== Physical parameters ===\n"
+    s += "Water depth: %f m\n" % self.params["depth"]
+    s += "Gravity constant: %f m/s^2\n" % self.params["g"]
+    s += "Viscosity constant: %f m^2/s\n" % self.params["diffusion_coef"]
+    s += "Water density: %f kg/m^3\n" % self.params["rho"]
+    s += "Advection term: %s\n" % self.params["include_advection"]
+    s += "Diffusion term: %s\n" % self.params["include_diffusion"]
+    s += "\n=== Turbine settings ===\n"
+    s += "Number of turbines: %i\n" % len(self.params["turbine_pos"])
+    s += "\n=== Discretisation settings ===\n"
+    s += "Steady state: %s\n" % self.params["steady_state"]
+    if not self.params["steady_state"]:
+      s += "Theta: %f\n" % self.params["theta"]
+      s += "Start time: %f s\n" % self.params["start_time"]
+      s += "Finish time: %f s\n" % self.params["finish_time"]
+    s += "Number of mesh elements: %i\n" % self.domain.mesh.num_cells() 
+    return s
+
 class PaperConfiguration(DefaultConfiguration):
   def __init__(self, nx = 20, ny = 3, basin_x = None, basin_y = None, finite_element = finite_elements.p2p1):
     # If no mesh file is given, we compute the domain size from the number of elements(nx and ny) with a 2m element size
