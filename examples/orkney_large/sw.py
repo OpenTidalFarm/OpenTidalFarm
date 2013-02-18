@@ -3,7 +3,7 @@ import numpy
 import IPOptUtils
 from reduced_functional import ReducedFunctional
 from dolfin import *
-from scipy.optimize import fmin_slsqp
+from dolfin_adjoint import minimize
 set_log_level(PROGRESS)
 
 # We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
@@ -24,6 +24,7 @@ print "inflow_direction: ", inflow_direction
 config = configuration.ScenarioConfiguration("mesh/earth_orkney_converted.xml", inflow_direction = inflow_direction) 
 config.set_site_dimensions(site_x_start, site_x_start + site_x, site_y_start, site_y_start + site_y)
 config.params['diffusion_coef'] = 90.0
+#config.params['linear_solver'] = 'superlu_dist' 
 
 # Place some turbines 
 IPOptUtils.deploy_turbines(config, nx = 16, ny = 8)
