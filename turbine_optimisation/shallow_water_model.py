@@ -210,7 +210,6 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
 	writer = helpers.StateWriter(config)
 	info_green("Writing state to disk...")
 	writer.write(state)
-	info_green("Writing state to disk...finished")
     
     step = 0    
 
