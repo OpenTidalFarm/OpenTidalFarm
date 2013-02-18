@@ -40,7 +40,6 @@ class RectangularDomain:
           ny = Number of cells in y direction  '''
       # Check if we need to use the new dolfin style classes
       if hasattr(dolfin, "RectangleMesh"):
-          print "Found dolfin version > 1.0x"
           mesh = RectangleMesh(0, 0, basin_x, basin_y, nx, ny)
       else:
           mesh = Rectangle(0, 0, basin_x, basin_y, nx, ny)

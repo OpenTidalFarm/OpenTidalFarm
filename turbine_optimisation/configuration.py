@@ -144,6 +144,7 @@ class DefaultConfiguration(object):
     s += "Gravity constant: %f m/s^2\n" % self.params["g"]
     s += "Viscosity constant: %f m^2/s\n" % self.params["diffusion_coef"]
     s += "Water density: %f kg/m^3\n" % self.params["rho"]
+    s += "Bottom friction: %s\n" % self.params["friction"]
     s += "Advection term: %s\n" % self.params["include_advection"]
     s += "Diffusion term: %s\n" % self.params["include_diffusion"]
     s += "\n=== Turbine settings ===\n"
