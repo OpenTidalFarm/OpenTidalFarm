@@ -32,4 +32,4 @@ m0 = rf.initial_control()
 
 lb, ub = IPOptUtils.position_constraints(config) 
 ineq = IPOptUtils.get_minimum_distance_constraint_func(config)
-minimize(rf, bounds = [lb, ub], constraints = ineq, method = "SLSQP") 
+minimize(rf, bounds = [lb, ub], constraints = ineq, method = "SLSQP")

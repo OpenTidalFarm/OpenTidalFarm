@@ -52,9 +52,9 @@ finish_iteration = -1
 for i in range(len(it)):
     print it[i], ": ", func[i],
     if i > 1:
-	rel_change = (func[i]-func[i-1])/func[i]
+	rel_change = abs(func[i]-func[i-1])/func[i]
 	print "\t(relative change: ", rel_change , ", functional evaluations: ", func_evals[i], ")"
-	if rel_change < 1e-6:
+	if rel_change < 1e-7:
 	    finish_iteration = i+1
 	    break
     else:

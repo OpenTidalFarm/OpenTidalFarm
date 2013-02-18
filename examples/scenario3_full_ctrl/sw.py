@@ -36,7 +36,6 @@ lb, ub = IPOptUtils.position_constraints(config)
 # The first part of the control vector consists of the turbine friction values followed by their positions
 bounds = [lb_f + lb, ub_f + ub]
 
-
 ineq = IPOptUtils.get_minimum_distance_constraint_func(config)
 
 minimize(rf, bounds = bounds, constraints = ineq, method = "SLSQP") 
