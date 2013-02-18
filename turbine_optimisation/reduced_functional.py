@@ -135,7 +135,7 @@ class ReducedFunctional:
         
     def j(self, m):
         ''' This memoised function returns the functional value for the parameter choice m. '''
-        print info_green('Start evaluatation of j')
+        info_green('Start evaluation of j')
         timer = dolfin.Timer("j evaluation") 
         j = self.run_forward_model_mem(m) 
         timer.stop()
