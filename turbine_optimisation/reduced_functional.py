@@ -23,7 +23,7 @@ class ReducedFunctional:
         self.last_m = None
         self.last_djdm = None
         self.last_state = None
-        if params["dump_period"] > 0:
+        if self.__config__.params["dump_period"] > 0:
             self.turbine_file = File("turbines.pvd", "compressed")
 
         class Parameter:
@@ -69,6 +69,7 @@ class ReducedFunctional:
             config.turbine_cache.update(config)
             tf = Function(self.__config__.turbine_function_space, name = "friction") 
             tf.assign(config.turbine_cache.cache["turbine_field"])
+            self.last_tf = tf
             #info_green("Turbine integral: %f ", assemble(tf*dx))
             #info_green("The correct integral should be: %f ",  25.2771) # computed with wolfram alpha using:
             # int 0.17353373* (exp(-1.0/(1-(x/10)**2)) * exp(-1.0/(1-(y/10)**2)) * exp(2)) dx dy, x=-10..10, y=-10..10 
@@ -93,8 +94,8 @@ class ReducedFunctional:
 
             # We assume that at the gradient is computed if and only if at the beginning of each new optimisation iteration.
             # Hence, let this is the right moment to store the turbine friction field. 
-            if params["dump_period"] > 0:
-                self.turbine_file << tf
+            if self.__config__.params["dump_period"] > 0:
+                self.turbine_file << self.last_tf
 
             state = self.last_state
             djdm = self.last_djdm
