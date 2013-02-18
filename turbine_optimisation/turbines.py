@@ -70,7 +70,6 @@ class TurbineCache:
         # If the parameters have not changed, then there is no need to do anything
         if self.params != None:
             if (self.params["turbine_friction"] == config.params["turbine_friction"]).all() and (self.params["turbine_pos"] == config.params["turbine_pos"]).all(): 
-                info_green("Skipping turbine cache update")
                 return 
 
         info_green("Updating turbine cache")
