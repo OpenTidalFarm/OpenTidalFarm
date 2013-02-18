@@ -23,7 +23,8 @@ class ReducedFunctional:
         self.last_m = None
         self.last_djdm = None
         self.last_state = None
-        self.turbine_file = File("turbines.pvd", "compressed")
+        if params["dump_period"] > 0:
+            self.turbine_file = File("turbines.pvd", "compressed")
 
         class Parameter:
             def data(self):
@@ -38,7 +39,7 @@ class ReducedFunctional:
         if plot:
            self.plotter = AnimatedPlot(xlabel = "Iteration", ylabel = "Functional value")
 
-        def run_forward_model(m, return_final_state = False, write_state = True):
+        def run_forward_model(m, return_final_state = False):
             ''' This function solves the forward and adjoint problem and returns the functional value and its gradient for the parameter choice m. ''' 
             adj_reset()
 
@@ -72,12 +73,10 @@ class ReducedFunctional:
             #info_green("The correct integral should be: %f ",  25.2771) # computed with wolfram alpha using:
             # int 0.17353373* (exp(-1.0/(1-(x/10)**2)) * exp(-1.0/(1-(y/10)**2)) * exp(2)) dx dy, x=-10..10, y=-10..10 
             #info_red("relative error: %f", (assemble(tf*dx)-25.2771)/25.2771)
-            if write_state:
-                self.turbine_file << tf
 
             # Solve the shallow water system
             functional = DefaultFunctional(config)
-            j, self.last_djdm = forward_model(config, state, functional=functional, turbine_field = tf, write_state = write_state)
+            j, self.last_djdm = forward_model(config, state, functional=functional, turbine_field = tf)
             self.last_state = state
 
             if return_final_state:
@@ -91,6 +90,11 @@ class ReducedFunctional:
             # and we do not have to rerun the forward model.
             if numpy.any(m != self.last_m):
                 run_forward_model(m)
+
+            # We assume that at the gradient is computed if and only if at the beginning of each new optimisation iteration.
+            # Hence, let this is the right moment to store the turbine friction field. 
+            if params["dump_period"] > 0:
+                self.turbine_file << tf
 
             state = self.last_state
             djdm = self.last_djdm

@@ -6,7 +6,7 @@ from dolfin import *
 from dolfin_adjoint import *
 from helpers import info, info_green, info_red, info_blue
 
-def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, u_source = None, write_state = True):
+def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, u_source = None):
     '''Solve the shallow water equations with the parameters specified in params.
        Options for linear_solver and preconditioner are: 
         linear_solver: lu, cholesky, cg, gmres, bicgstab, minres, tfqmr, richardson
@@ -206,10 +206,10 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
 
     ############################### Perform the simulation ###########################
 
-    if write_state:
-	writer = helpers.StateWriter(config)
-	info_green("Writing state to disk...")
-	writer.write(state)
+    if params["dump_period"] > 0:
+        writer = helpers.StateWriter(config)
+        info_green("Writing state to disk...")
+        writer.write(state)
     
     step = 0    
 
@@ -302,10 +302,9 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
         # After the timestep solve, update state
         state.assign(state_new)
 
-        if write_state and step%params["dump_period"] == 0:
+        if params["dump_period"] > 0 and step%params["dump_period"] == 0:
             info_green("Writing state to disk...")
             writer.write(state)
-            info_green("Writing state to disk...finished")
 
         if functional is not None:
             if not (functional_final_time_only and t < params["finish_time"]):

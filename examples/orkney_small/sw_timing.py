@@ -25,6 +25,7 @@ config.set_site_dimensions(site_x_start, site_x_start + site_x, site_y_start, si
 config.params['diffusion_coef'] = 90.0
 config.params["turbine_x"] = 40.
 config.params["turbine_y"] = 40.
+config.params["dump_period"] = 0
 
 # Place some turbines 
 IPOptUtils.deploy_turbines(config, nx = 8, ny = 4)
@@ -41,7 +42,7 @@ time_adjoint = []
 for i in range(5):
 	print "Running forward model round ", i
 	t1 = Timer("Forward model")
-	model.run_forward_model_mem.fn(m0, write_state = False) 
+	model.run_forward_model_mem.fn(m0) 
 	time_forward.append(t1.stop())
 	print "Forward model runtime: ", time_forward[-1]
 
