@@ -223,3 +223,7 @@ class ReducedFunctional:
             return self.dj_with_check(m_array, seed)
         else:
             return self.dj(m_array)
+
+    def hessian_array(self, m_array, m_dot_array):
+        ''' Interface function for dolfin_adjoint.ReducedFunctional '''
+        raise NotImplementedError, 'The Hessian computation is not yet implemented'
