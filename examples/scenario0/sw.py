@@ -19,7 +19,7 @@ turbine_pos = [[basin_x/3 + offset, basin_y/2 + offset]]
 info_green("Turbine position: " + str(turbine_pos))
 config.set_turbine_pos(turbine_pos)
 
-print config
+config.info()
 
 model = ReducedFunctional(config)
 m = model.initial_control()

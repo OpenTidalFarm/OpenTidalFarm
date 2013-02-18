@@ -20,11 +20,10 @@ config = configuration.ScenarioConfiguration("mesh.xml", inflow_direction = [1, 
 config.set_site_dimensions(site_x_start, site_x_start + site_x, site_y_start, site_y_start + site_y)
 config.params["print_individual_turbine_power"] = True
 
-if MPI.process_number() == 0:
-	print config
-
 # Place some turbines 
 IPOptUtils.deploy_turbines(config, nx = 8, ny = 4)
+
+config.info()
 
 rf = ReducedFunctional(config, scaling_factor = -1, plot = True)
 m0 = rf.initial_control()

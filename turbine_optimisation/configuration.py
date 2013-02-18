@@ -138,25 +138,33 @@ class DefaultConfiguration(object):
       self.params['turbine_pos'] = positions
       self.params['turbine_friction'] = friction * numpy.ones(len(positions))
 
-  def __str__(self):
-    s = "\n=== Physical parameters ===\n"
-    s += "Water depth: %f m\n" % self.params["depth"]
-    s += "Gravity constant: %f m/s^2\n" % self.params["g"]
-    s += "Viscosity constant: %f m^2/s\n" % self.params["diffusion_coef"]
-    s += "Water density: %f kg/m^3\n" % self.params["rho"]
-    s += "Bottom friction: %s\n" % self.params["friction"]
-    s += "Advection term: %s\n" % self.params["include_advection"]
-    s += "Diffusion term: %s\n" % self.params["include_diffusion"]
-    s += "\n=== Turbine settings ===\n"
-    s += "Number of turbines: %i\n" % len(self.params["turbine_pos"])
-    s += "\n=== Discretisation settings ===\n"
-    s += "Steady state: %s\n" % self.params["steady_state"]
-    if not self.params["steady_state"]:
-      s += "Theta: %f\n" % self.params["theta"]
-      s += "Start time: %f s\n" % self.params["start_time"]
-      s += "Finish time: %f s\n" % self.params["finish_time"]
-    s += "Number of mesh elements: %i\n" % self.domain.mesh.num_cells() 
-    return s
+  def info(self):
+    hmin = MPI.min(self.domain.mesh.hmin())
+    hmax = MPI.max(self.domain.mesh.hmax())
+    if MPI.process_number() == 0:
+        s = "\n=== Physical parameters ===\n"
+        s += "Water depth: %f m\n" % self.params["depth"]
+        s += "Gravity constant: %f m/s^2\n" % self.params["g"]
+        s += "Viscosity constant: %f m^2/s\n" % self.params["diffusion_coef"]
+        s += "Water density: %f kg/m^3\n" % self.params["rho"]
+        s += "Bottom friction: %s\n" % self.params["friction"]
+        s += "Advection term: %s\n" % self.params["include_advection"]
+        s += "Diffusion term: %s\n" % self.params["include_diffusion"]
+        s += "Steady state: %s\n" % self.params["steady_state"]
+        s += "\n=== Turbine settings ===\n"
+        s += "Number of turbines: %i\n" % len(self.params["turbine_pos"])
+        s += "Turbines dimensions: %f x %f\n" % (self.params["turbine_x"], self.params["turbine_y"])
+        s += "Control parameters: %s\n" % ', '.join(self.params["controls"])
+        if len(self.params["turbine_friction"]) > 0:
+          s += "Turbines frictions: %f - %f\n" % (min(self.params["turbine_friction"]), max(self.params["turbine_friction"]))
+        s += "\n=== Discretisation settings ===\n"
+        if not self.params["steady_state"]:
+            s += "Theta: %f\n" % self.params["theta"]
+            s += "Start time: %f s\n" % self.params["start_time"]
+            s += "Finish time: %f s\n" % self.params["finish_time"]
+        s += "Number of mesh elements: %i\n" % self.domain.mesh.num_cells() 
+        s += "Mesh element size: %f - %f\n" % (hmin, hmax)
+        print(s)
 
 class PaperConfiguration(DefaultConfiguration):
   def __init__(self, nx = 20, ny = 3, basin_x = None, basin_y = None, finite_element = finite_elements.p2p1):

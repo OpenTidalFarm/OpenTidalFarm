@@ -21,6 +21,8 @@ site_y_start = (basin_y - site_y)/2
 config = configuration.SinusoidalScenarioConfiguration("mesh.xml", inflow_direction = [1,0], period = 10.*60)
 config.set_site_dimensions(site_x_start, site_x_start + site_x, site_y_start, site_y_start + site_y)
 
+config.info()
+
 # Place some turbines 
 IPOptUtils.deploy_turbines(config, nx = 8, ny = 4)
 

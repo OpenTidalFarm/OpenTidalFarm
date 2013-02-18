@@ -22,11 +22,10 @@ config.set_site_dimensions(site_x_start, site_x_start + site_x, site_y_start, si
 # Place some turbines 
 IPOptUtils.deploy_turbines(config, nx = 8, ny = 4)
 
+config.info()
+
 rf = ReducedFunctional(config, scaling_factor = -1, plot = True)
 m0 = rf.initial_control()
 
-# Get the upper and lower bounds for the turbine positions
 lb, ub = IPOptUtils.position_constraints(config) 
-bounds = [lb, ub]
-
-minimize(rf, bounds = bounds, method = "SLSQP", options = {"maxiter": 200})
+minimize(rf, bounds = [lb, ub], method = "SLSQP", options = {"maxiter": 200})

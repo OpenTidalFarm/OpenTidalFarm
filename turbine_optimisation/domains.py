@@ -7,7 +7,6 @@ class RectangularDomain:
         self.nx = nx
         self.ny = ny
         self.mesh = self.generate_mesh(basin_x, basin_y, nx, ny)
-        info_green('The computation domain has a size of %f. x %f. with an element size of %f. x %f.'% (basin_x, basin_y, basin_x/nx, basin_y/ny))
 
         class Left(SubDomain):
               def inside(self, x, on_boundary):
@@ -59,7 +58,6 @@ class LShapeDomain:
         # Extract the dimensions
         basin_x = length 
         basin_y = length 
-        info_green('The computation domain has a L shape with size %f. x %f. and an element size ranging from %f - %f.'% (basin_x, basin_y, MPI.min(self.mesh.hmin()), MPI.max(self.mesh.hmax())))
 
         class Left(SubDomain):
               def inside(self, x, on_boundary):
@@ -93,7 +91,6 @@ class GMeshDomain:
         ''' filename must be a valid gmesh file. '''
 
         self.mesh = Mesh(filename)
-        info_green('The computation domain has an element size ranging from %f - %f.'% (MPI.min(self.mesh.hmin()), MPI.max(self.mesh.hmax())))
 
         self.boundaries = MeshFunction('size_t', self.mesh, filename[0:-4] + "_facet_region.xml")
         self.ds = Measure('ds')[self.boundaries]

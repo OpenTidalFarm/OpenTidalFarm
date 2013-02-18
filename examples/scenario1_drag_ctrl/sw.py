@@ -23,6 +23,9 @@ config.params['automatic_scaling'] = False
 
 IPOptUtils.deploy_turbines(config, nx = 8, ny = 6)
 rf = ReducedFunctional(config, scaling_factor = -1, plot = True)
+
+config.info()
+
 m0 = rf.initial_control()
 lb_f, ub_f = IPOptUtils.friction_constraints(config, lb = 0., ub = config.turbine_friction)
 minimize(rf, bounds = [lb_f, ub_f], method = 'SLSQP', options = {'maxiter': 200})

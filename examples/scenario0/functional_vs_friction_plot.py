@@ -23,6 +23,8 @@ info_green("Turbine position: " + str(turbine_pos))
 config.set_turbine_pos(turbine_pos)
 config.params['controls'] = ['turbine_friction']
 
+config.info()
+
 model = ReducedFunctional(config, scaling_factor = 10**-6)
 m0 = model.initial_control()
 m_list = [numpy.ones(len(m0))*i for i in numpy.linspace(0, 50, 11)] + [numpy.ones(len(m0))*i for i in numpy.linspace(60, 200, 8)]
