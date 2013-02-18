@@ -1,6 +1,9 @@
 run: clean
 	unbuffer time mpirun -n 4 python sw.py 
 
+functional_vs_friction_plot:
+	unbuffer time mpirun -n 4 python functional_vs_friction_plot.py
+
 mesh:	
 	gmsh -2 mesh.geo
 	dolfin-convert -o xml mesh.msh mesh.xml

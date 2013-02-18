@@ -37,9 +37,13 @@ for m in m_list:
 
 # Plot the results
 if MPI.process_number() == 0:
-  plt.figure(1)
-  plt.plot(f, P)
   info_green('The maximum functional value of ' + str(max(P)) + ' is achieved with a friction coefficient of ' + str(f[numpy.argmax(P)]) + '.')
+
+  scaling = 0.7
+  plt.figure(1, figsize = (scaling*7., scaling*4.))
+  plt.gcf().subplots_adjust(bottom=0.15)
+  plt.plot(f, P, color = "black")
   plt.ylabel('Power output [MW]')
   plt.xlabel('Turbine coefficient')
+  plt.yticks(numpy.arange(0, 2.5, 0.5))
   plt.savefig('turbine_friction_vs_power.pdf')
