@@ -214,7 +214,7 @@ class PaperConfiguration(DefaultConfiguration):
 
     # Finally set some optimistion flags 
     dolfin.parameters['form_compiler']['cpp_optimize'] = True
-    dolfin.parameters['form_compiler']['cpp_optimize_flags'] = '-O3'
+    dolfin.parameters['form_compiler']['cpp_optimize_flags'] = '-O3 -ffast-math -march=native'
     dolfin.parameters['form_compiler']['optimize'] = True
 
   def set_turbine_pos(self, position, friction = 0.25):
