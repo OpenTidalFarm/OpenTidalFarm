@@ -12,15 +12,8 @@
  '''
 
 import sys
-import configuration 
+from opentidalfarm import *
 import numpy
-import IPOptUtils
-import finite_elements
-from helpers import test_gradient_array
-from mini_model import *
-from reduced_functional import ReducedFunctional
-from dolfin import *
-from dolfin_adjoint import minimize
 set_log_level(PROGRESS)
 
 def default_config():
@@ -41,11 +34,11 @@ def default_config():
   return config
 
 config = default_config()
-rf = ReducedFunctional(config, scaling_factor = -10**-3, forward_model = mini_model_solve)
+rf = ReducedFunctional(config, scaling_factor = -10**-3, forward_model = mini_model.mini_model_solve)
 m0 = rf.initial_control()
 
 p = numpy.random.rand(len(m0))
-minconv = test_gradient_array(rf.j, rf.dj, m0, seed=0.001, perturbation_direction=p)
+minconv = helpers.test_gradient_array(rf.j, rf.dj, m0, seed=0.001, perturbation_direction=p)
 if minconv < 1.99:
   info_red("The gradient taylor remainder test failed.")
   sys.exit(1)
@@ -54,7 +47,7 @@ if minconv < 1.99:
 g = lambda m: []
 dg = lambda m: []
 
-lb_f, ub_f = IPOptUtils.friction_constraints(config, lb = 0., ub = 100.)
+lb_f, ub_f = friction_constraints(config, lb = 0., ub = 100.)
 bb = [Constant(500)]*2
 bounds = [lb_f + bb, ub_f + bb]
 m = minimize(rf, bounds = bounds, method = "SLSQP") 

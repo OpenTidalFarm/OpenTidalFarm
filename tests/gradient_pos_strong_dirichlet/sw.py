@@ -1,14 +1,7 @@
 ''' This test checks the correctness of the gradient of the turbine position with respect to its position '''
 import sys
-import configuration 
 import numpy
-import IPOptUtils
-from helpers import test_gradient_array
-from animated_plot import *
-from dirichlet_bc import DirichletBCSet
-from dolfin import *
-from dolfin_adjoint import *
-from reduced_functional import ReducedFunctional
+from opentidalfarm import *
 set_log_level(PROGRESS)
 
 def default_config():
@@ -61,7 +54,7 @@ model = ReducedFunctional(config)
 m0 = model.initial_control()
 
 p = numpy.random.rand(len(m0))
-minconv = test_gradient_array(model.j, model.dj, m0, seed=0.1, perturbation_direction=p)
+minconv = helpers.test_gradient_array(model.j, model.dj, m0, seed=0.1, perturbation_direction=p)
 if minconv < 1.98:
     info_red("The gradient taylor remainder test failed.")
     sys.exit(1)

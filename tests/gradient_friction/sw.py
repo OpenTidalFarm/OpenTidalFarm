@@ -2,11 +2,8 @@
    derivative of the functional with respect to the friction field.'''
 
 import sys
-import configuration 
+from opentidalfarm import *
 import numpy
-import finite_elements
-from helpers import test_gradient_array
-from reduced_functional import *
 set_log_level(PROGRESS)
 
 # We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
@@ -50,7 +47,8 @@ p_y = numpy.zeros(len(p_rand))
 p_y[i+1] = 1.
 for p in (p_rand, p_f, p_x, p_y):
   print "Running derivative test in direction", p 
-  minconv = test_gradient_array(model.j, model.dj, m0, seed=0.015, perturbation_direction=p)
-  if minconv < 1.95:
-    print "Oops, the minimum convergence rate was %f < 1.98!" % minconv
+  minconv = helpers.test_gradient_array(model.j, model.dj, m0, seed=0.015, perturbation_direction=p)
+  tol = 1.9
+  if minconv < 1.9:
+    print "Oops, the minimum convergence rate was %f < %f!" % (minconv, tol)
     sys.exit(1)

@@ -4,14 +4,9 @@
 '''
 
 import sys
-import configuration 
 import numpy
-import finite_elements
-from dolfin import *
-from helpers import test_gradient_array
-from turbines import *
-from initial_conditions import SinusoidalInitialCondition
-from reduced_functional import ReducedFunctional 
+from opentidalfarm import *
+from opentidalfarm.helpers import test_gradient_array
 set_log_level(PROGRESS)
 
 def default_config():
@@ -36,7 +31,7 @@ def j_and_dj(m, forward_only = None):
   config.params["turbine_pos"] = numpy.reshape(mp, (-1, 2))
 
   # Get initial conditions
-  state=Function(config.function_space, name = "current_state")
+  state = Function(config.function_space, name = "current_state")
   state.interpolate(SinusoidalInitialCondition(config)())
 
   # Set the control values

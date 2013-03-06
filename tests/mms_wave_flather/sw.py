@@ -1,10 +1,7 @@
 import sys
-import configuration 
-import shallow_water_model as sw_model
-import finite_elements
-from initial_conditions import SinusoidalInitialCondition
-from dolfin import *
-from dolfin_adjoint import *
+from opentidalfarm import *
+from opentidalfarm.initial_conditions import SinusoidalInitialCondition
+from dolfin_adjoint import adj_reset 
 from math import log
 
 set_log_level(ERROR)
@@ -15,7 +12,7 @@ def error(config):
   state.interpolate(SinusoidalInitialCondition(config)())
 
   adj_reset()
-  sw_model.sw_solve(config, state, annotate=False)
+  shallow_water_model.sw_solve(config, state, annotate=False)
 
   analytic_sol = Expression(("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", \
                              "0", \
@@ -28,7 +25,7 @@ def error(config):
   return sqrt(assemble(dot(e,e)*dx))
 
 def test(refinment_level):
-  config = configuration.DefaultConfiguration(nx=2*2**refinment_level, ny=2, finite_element = finite_elements.p1dgp2) 
+  config = DefaultConfiguration(nx=2*2**refinment_level, ny=2, finite_element = finite_elements.p1dgp2) 
   config.params["finish_time"] = pi/(sqrt(config.params["g"]*config.params["depth"])*config.params["k"])/10
   config.params["dt"] = config.params["finish_time"]/150
   config.params["dump_period"] = 100000

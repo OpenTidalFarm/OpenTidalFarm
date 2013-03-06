@@ -1,11 +1,6 @@
 import sys
-import configuration 
-import shallow_water_model as sw_model
-import finite_elements
-from dirichlet_bc import DirichletBCSet
-from initial_conditions import SinusoidalInitialCondition
-from dolfin import *
-from dolfin_adjoint import *
+from opentidalfarm import *
+from dolfin_adjoint import adj_reset 
 from math import log
 
 set_log_level(ERROR)
@@ -16,7 +11,7 @@ def error(config):
   state.interpolate(SinusoidalInitialCondition(config)())
 
   adj_reset()
-  sw_model.sw_solve(config, state, annotate=False)
+  shallow_water_model.sw_solve(config, state, annotate=False)
 
   analytic_sol = Expression(("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", \
                              "0", \

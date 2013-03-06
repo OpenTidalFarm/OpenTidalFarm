@@ -3,12 +3,9 @@
     implementation. On 4 Intel(R) Xeon(R) CPU  E5506  @ 2.13GHz the benchmark time should be around 11s. ''' 
 
 import sys
-import configuration 
+from opentidalfarm import *
 import numpy
 import cProfile
-import finite_elements
-from turbines import *
-from dolfin import *
 
 def default_config():
   # We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.

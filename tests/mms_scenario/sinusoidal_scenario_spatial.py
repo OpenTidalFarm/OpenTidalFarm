@@ -1,16 +1,8 @@
 import sys
-import configuration 
-import shallow_water_model as sw_model
-import finite_elements
-from initial_conditions import SinusoidalInitialCondition
-from dolfin import *
-from dolfin_adjoint import *
+from opentidalfarm import *
+from dolfin_adjoint import adj_reset
+from convergence_plot import *
 import math 
-from dirichlet_bc import DirichletBCSet
-from domains import *
-from helpers import cpu0only
-from convergence_plot import save_convergence_plot
-import pylab
 
 set_log_level(ERROR)
 parameters["std_out_all_processes"] = False;
@@ -33,7 +25,7 @@ def error(config):
                              friction = config.params["friction"])
 
   adj_reset()
-  sw_model.sw_solve(config, state, annotate=False, u_source = source)
+  shallow_water_model.sw_solve(config, state, annotate=False, u_source = source)
 
   analytic_sol = Expression((u_exact, \
                              "0", \

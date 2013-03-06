@@ -6,16 +6,10 @@
 '''
 
 import sys
-import configuration 
 import numpy
-import IPOptUtils
-import finite_elements
-from helpers import test_gradient_array
-from mini_model import mini_model_solve
-from reduced_functional import ReducedFunctional
-from initial_conditions import BumpInitialCondition
-from dolfin import *
-from dolfin_adjoint import minimize
+from opentidalfarm import *
+from opentidalfarm.helpers import test_gradient_array
+from opentidalfarm.mini_model import mini_model_solve
 
 def default_config():
   # We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.

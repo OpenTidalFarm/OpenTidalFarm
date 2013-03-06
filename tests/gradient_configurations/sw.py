@@ -1,14 +1,8 @@
 ''' This example optimises the position of three turbines using the hallow water model. '''
 
 import sys
-from configuration import * 
 import numpy
-from dirichlet_bc import DirichletBCSet
-import IPOptUtils
-from helpers import test_gradient_array
-from animated_plot import *
-from reduced_functional import ReducedFunctional
-from dolfin import *
+from opentidalfarm import *
 set_log_level(ERROR)
 numpy.random.seed(21)
 
@@ -61,7 +55,7 @@ for c in [DefaultConfiguration, PaperConfiguration, ConstantInflowPeriodicSidesP
 
     p = numpy.random.rand(len(m0))
     seed = 0.1
-    minconv = test_gradient_array(model.j, model.dj, m0, seed = seed, perturbation_direction = p, plot_file = "convergence_" + c.__name__ + ".pdf")
+    minconv = helpers.test_gradient_array(model.j, model.dj, m0, seed = seed, perturbation_direction = p, plot_file = "convergence_" + c.__name__ + ".pdf")
     if minconv < 1.9:
         info_red("The gradient taylor remainder test failed for the " + c.__name__ + " configuration.")
         sys.exit(1)
