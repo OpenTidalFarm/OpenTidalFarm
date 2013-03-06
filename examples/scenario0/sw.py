@@ -1,9 +1,6 @@
 ''' Runs the forward model with a single turbine and prints some statistics '''
-import configuration 
 import numpy
-from reduced_functional import ReducedFunctional
-from dolfin import *
-from helpers import info, info_green, info_red, info_blue
+from opentidalfarm import *
 set_log_level(ERROR)
 
 basin_x = 640.
