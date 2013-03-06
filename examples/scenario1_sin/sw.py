@@ -1,13 +1,5 @@
-import configuration 
-import numpy
-import IPOptUtils
-from reduced_functional import ReducedFunctional
-from dolfin import *
-from dolfin_adjoint import minimize
+from opentidalfarm import *
 set_log_level(INFO)
-
-# We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
-numpy.random.seed(21) 
 
 # Some domain information extracted from the geo file
 basin_x = 640.

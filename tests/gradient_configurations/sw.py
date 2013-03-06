@@ -1,10 +1,8 @@
 ''' This example optimises the position of three turbines using the hallow water model. '''
 
 import sys
-import numpy
 from opentidalfarm import *
 set_log_level(ERROR)
-numpy.random.seed(21)
 
 for c in [DefaultConfiguration, PaperConfiguration, ConstantInflowPeriodicSidesPaperConfiguration, ScenarioConfiguration]:
     info_green("Testing configuration " + c.__name__)

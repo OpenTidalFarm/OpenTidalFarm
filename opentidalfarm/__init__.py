@@ -26,3 +26,7 @@ from turbines import Turbines
 
 from dolfin import *
 from dolfin_adjoint import minimize, Function
+
+# We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
+import numpy
+numpy.random.seed(21)

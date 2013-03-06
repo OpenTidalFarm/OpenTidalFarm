@@ -13,12 +13,9 @@
 
 import sys
 from opentidalfarm import *
-import numpy
 set_log_level(PROGRESS)
 
 def default_config():
-  # We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
-  numpy.random.seed(21) 
   config = configuration.DefaultConfiguration(nx=20, ny=10, finite_element = finite_elements.p1dgp2)
   config.params["verbose"] = 0
 

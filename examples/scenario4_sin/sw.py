@@ -1,9 +1,5 @@
-import numpy
 from opentidalfarm import *
 set_log_level(ERROR)
-
-# We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
-numpy.random.seed(21) 
 
 # Some domain information extracted from the geo file
 basin_x = 1280.

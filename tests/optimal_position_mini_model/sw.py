@@ -6,14 +6,11 @@
 '''
 
 import sys
-import numpy
 from opentidalfarm import *
 from opentidalfarm.helpers import test_gradient_array
 from opentidalfarm.mini_model import mini_model_solve
 
 def default_config():
-  # We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
-  numpy.random.seed(21) 
   config = configuration.DefaultConfiguration(nx=40, ny=20, finite_element = finite_elements.p1dgp2)
   config.params["verbose"] = 0
 
