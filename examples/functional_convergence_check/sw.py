@@ -1,10 +1,7 @@
 ''' This tests checks that the power output of a single turbine in a periodic domain is independent of its position ''' 
 import sys
-from configuration import ConstantInflowPeriodicSidesPaperConfiguration
+from opentidalfarm import *
 import numpy
-from dirichlet_bc import DirichletBCSet
-from reduced_functional import ReducedFunctional
-from dolfin import *
 set_log_level(ERROR)
 
 if len(sys.argv) not in [3, 4]:
