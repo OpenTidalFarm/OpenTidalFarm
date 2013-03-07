@@ -1,5 +1,6 @@
 ''' An example that plots the power ouput of a single turbine for different fricition values. (see also test_optimal_friction_single_turbine) '''
 import sys
+import matplotlib.pyplot as plt
 from opentidalfarm import *
 set_log_level(ERROR)
 
