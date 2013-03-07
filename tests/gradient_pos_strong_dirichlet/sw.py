@@ -1,12 +1,9 @@
 ''' This test checks the correctness of the gradient of the turbine position with respect to its position '''
 import sys
-import numpy
 from opentidalfarm import *
 set_log_level(PROGRESS)
 
 def default_config():
-  # We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
-  numpy.random.seed(21) 
   config = configuration.DefaultConfiguration(nx=30, ny=10)
   period = 1.24*60*60 # Wave period
   config.params["k"] = 2*pi/(period*sqrt(config.params["g"]*config.params["depth"]))

@@ -1,11 +1,9 @@
-import numpy
 from opentidalfarm import *
 set_log_level(ERROR)
 
 basin_x = 640.
 basin_y = 320.
 
-# We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
 config = ScenarioConfiguration("mesh.xml", inflow_direction = [1, 0])
 # Switch of the automatic scaling, since we will not solve an optimisation problem
 config.params['automatic_scaling'] = False

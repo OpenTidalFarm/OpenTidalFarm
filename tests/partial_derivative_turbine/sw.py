@@ -4,13 +4,11 @@
 '''
 
 import sys
-import numpy
 from opentidalfarm import *
 from opentidalfarm.helpers import test_gradient_array
 set_log_level(PROGRESS)
 
 def default_config():
-  numpy.random.seed(21) 
   config = configuration.DefaultConfiguration(nx=40, ny=20, finite_element = finite_elements.p1dgp2)
   config.params["dump_period"] = 1000
   config.params["verbose"] = 0

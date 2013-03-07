@@ -3,11 +3,7 @@
 
 import sys
 from opentidalfarm import *
-import numpy
 set_log_level(PROGRESS)
-
-# We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
-numpy.random.seed(21) 
 
 # Create the model configuration
 config = configuration.DefaultConfiguration(nx=30, ny=15, finite_element = finite_elements.p1dgp2)
