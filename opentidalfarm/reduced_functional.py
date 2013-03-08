@@ -106,6 +106,7 @@ class ReducedFunctional:
             else:
                 J = Functional(functional.Jt(state)*dt)
             djdudm = compute_gradient(J, InitialConditionParameter("friction"))
+            dolfin.parameters["adjoint"]["stop_annotating"] = False
 
             # Let J be the functional, m the parameter and u the solution of the PDE equation F(u) = 0.
             # Then we have 
