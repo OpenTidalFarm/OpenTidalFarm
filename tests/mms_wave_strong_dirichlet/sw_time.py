@@ -32,10 +32,11 @@ def test(refinment_level):
     config.params["theta"] = 0.5
     config.params["dump_period"] = 100000
     config.params["bctype"] = "strong_dirichlet"
+    expression = Expression(("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0"), eta0 = config.params["eta0"], g = config.params["g"], depth = config.params["depth"], t = config.params["current_time"], k = config.params["k"])
     bc = DirichletBCSet(config)
-    bc.add_analytic_u(1)
-    bc.add_analytic_u(2)
-    bc.add_analytic_u(3)
+    bc.add_analytic_u(1, expression)
+    bc.add_analytic_u(2, expression)
+    bc.add_analytic_u(3, expression)
     config.params["strong_bc"] = bc
 
     return error(config)

@@ -35,7 +35,7 @@ class Parameters(dict):
             'depth' : 'water depth at rest',
             'g' : 'graviation',
             'k' : 'wave length paramter. If you want a wave lenght of l, then set k to 2*pi/l.',
-            'eta0' : 'deviantion of the water depth in rest',
+            'eta0' : 'amplitude of free surface elevation',
             'quadratic_friction' : 'quadratic friction',
             'friction' : 'friction term on',
             'turbine_pos' : 'list of turbine positions',
@@ -85,7 +85,7 @@ class DefaultConfiguration(object):
         'include_advection': False,
         'include_diffusion': False,
         'diffusion_coef': 0.0,
-        'depth' : 50.,
+        'depth' : 50.0,
         'g' : 9.81,
         'dump_period' : 1,
         'eta0' : 2, 
@@ -143,7 +143,8 @@ class DefaultConfiguration(object):
     hmax = MPI.max(self.domain.mesh.hmax())
     if MPI.process_number() == 0:
         s = "\n=== Physical parameters ===\n"
-        s += "Water depth: %f m\n" % self.params["depth"]
+        if isinstance(self.params["depth"],float):
+          s += "Water depth: %f m\n" % self.params["depth"]
         s += "Gravity constant: %f m/s^2\n" % self.params["g"]
         s += "Viscosity constant: %f m^2/s\n" % self.params["diffusion_coef"]
         s += "Water density: %f kg/m^3\n" % self.params["rho"]
@@ -166,7 +167,7 @@ class DefaultConfiguration(object):
         s += "Mesh element size: %f - %f\n" % (hmin, hmax)
         print(s)
 
-class PaperConfiguration(DefaultConfiguration):
+class BasePaperConfiguration(DefaultConfiguration):
   def __init__(self, nx = 20, ny = 3, basin_x = None, basin_y = None, finite_element = finite_elements.p2p1):
     # If no mesh file is given, we compute the domain size from the number of elements(nx and ny) with a 2m element size
     if not basin_x:
@@ -174,7 +175,7 @@ class PaperConfiguration(DefaultConfiguration):
     if not basin_y:
       basin_y = float(ny * 2)
 
-    super(PaperConfiguration, self).__init__(nx, ny, basin_x, basin_y, finite_element)
+    super(BasePaperConfiguration, self).__init__(nx, ny, basin_x, basin_y, finite_element)
 
     # Model settings
     self.params['include_advection'] = True
@@ -194,23 +195,14 @@ class PaperConfiguration(DefaultConfiguration):
     self.params['controls'] = ['turbine_pos']
 
     # Timing settings
-    self.period = 1.24*60*60 
-    self.params['k'] = 2*pi/(self.period*sqrt(self.params['g']*self.params['depth']))
+    self.period = 1.24*60*60
+    self.params['k'] =  None
     self.params['theta'] = 1.0
     self.params['start_time'] = 1./4*self.period
     self.params['dt'] = self.period/50
     self.params['finish_time'] = 3./4*self.period
     info('Wave period (in h): %f' % (self.period/60/60) )
     info('Approximate CFL number (assuming a velocity of 2): ' + str(2*self.params['dt']/self.domain.mesh.hmin()))
-
-    # Configure the boundary conditions
-    self.params['bctype'] = 'dirichlet',
-    self.params['bctype'] = 'strong_dirichlet'
-    bc = DirichletBCSet(self)
-    bc.add_analytic_u(1)
-    bc.add_analytic_u(2)
-    bc.add_noslip_u(3)
-    self.params['strong_bc'] = bc
 
     # Finally set some optimistion flags 
     dolfin.parameters['form_compiler']['cpp_optimize'] = True
@@ -219,12 +211,33 @@ class PaperConfiguration(DefaultConfiguration):
 
   def set_turbine_pos(self, position, friction = 0.25):
       ''' Sets the turbine position and a equal friction parameter. '''
-      super(PaperConfiguration, self).set_turbine_pos(position, friction)
+      super(BasePaperConfiguration, self).set_turbine_pos(position, friction)
 
-class ConstantInflowPeriodicSidesPaperConfiguration(PaperConfiguration):
+class PaperConfiguration(BasePaperConfiguration):
+  def __init__(self, nx = 20, ny = 3, basin_x = None, basin_y = None, finite_element = finite_elements.p2p1):
+    super(PaperConfiguration, self).__init__(nx, ny, basin_x, basin_y, finite_element)
+
+    # Without the 1e-10, the adjoint model hangs! Why? No idea!
+    self.params['eta0'] = (2.0+1e-10)/sqrt(self.params["g"]/self.params["depth"]) # This will give a inflow velocity of 2m/s
+    self.params['k'] = 2*pi/(self.period*sqrt(self.params['g']*self.params['depth']))
+
+    # Configure the boundary conditions
+    self.params['bctype'] = 'strong_dirichlet'
+    bc = DirichletBCSet(self)
+    expression = Expression(("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0"), eta0 = self.params["eta0"], g = self.params["g"], depth = self.params["depth"], t = self.params["current_time"], k = self.params["k"])
+    bc.add_analytic_u(1, expression)
+    bc.add_analytic_u(2, expression)
+    bc.add_noslip_u(3)
+    self.params['strong_bc'] = bc
+
+class ConstantInflowPeriodicSidesPaperConfiguration(BasePaperConfiguration):
     def __init__(self, nx = 20, ny = 3, basin_x = None, basin_y = None, finite_element = finite_elements.p2p1):
         super(ConstantInflowPeriodicSidesPaperConfiguration, self).__init__(nx, ny, basin_x, basin_y, finite_element)
         self.set_site_dimensions(0, self.domain.basin_x, 0, self.domain.basin_y)
+
+        # Without the 1e-10, the adjoint model hangs! Why? No idea!
+        self.params['eta0'] = (2.0+1e-10)/sqrt(self.params["g"]/self.params["depth"]) # This will give a inflow velocity of 2m/s
+        self.params['k'] = 2*pi/(self.period*sqrt(self.params['g']*self.params['depth']))
 
         self.params["initial_condition"] = ConstantFlowInitialCondition 
         self.params["newton_solver"] = False
@@ -233,6 +246,7 @@ class ConstantInflowPeriodicSidesPaperConfiguration(PaperConfiguration):
         self.params['functional_final_time_only'] = True
         self.params['automatic_scaling'] = True
 
+        self.params['bctype'] = 'strong_dirichlet'
         bc = DirichletBCSet(self)
         bc.add_constant_flow(1)
         bc.add_noslip_u(3)
@@ -252,25 +266,51 @@ class ConstantInflowPeriodicSidesPaperConfiguration(PaperConfiguration):
 
     def set_turbine_pos(self, position, friction = 1.):
         ''' Sets the turbine position and a equal friction parameter. '''
-        super(PaperConfiguration, self).set_turbine_pos(position, friction)
+        super(BasePaperConfiguration, self).set_turbine_pos(position, friction)
 
-class ScenarioConfiguration(ConstantInflowPeriodicSidesPaperConfiguration):
+class ScenarioConfiguration(BasePaperConfiguration):
     def __init__(self, mesh_file, inflow_direction, finite_element = finite_elements.p2p1, turbine_friction = 21.):
         super(ScenarioConfiguration, self).__init__(nx = 100, ny = 33, basin_x = None, basin_y = None, finite_element = finite_element)
         self.set_domain( GMeshDomain(mesh_file), warning = False)
+        # Without the 1e-10, the adjoint model hangs! Why? No idea!
+        self.params['eta0'] = (2.0+1e-10)/sqrt(self.params["g"]/self.params["depth"]) # This will give a inflow velocity of 2m/s
+        self.params['k'] = 2*pi/(self.period*sqrt(self.params['g']*self.params['depth']))
+
+        self.params["initial_condition"] = ConstantFlowInitialCondition 
+        self.params["newton_solver"] = False
+        self.params["picard_iterations"] = 2
+        self.params['theta'] = 1.0
+        self.params['functional_final_time_only'] = True
+        self.params['automatic_scaling'] = True
+
+        self.params['start_time'] = 0.0
+        self.params['dt'] = self.period
+        self.params['finish_time'] = self.params['start_time'] + self.params['dt'] 
+
         # We need to reapply the bc
         bc = DirichletBCSet(self)
         bc.add_constant_flow(1, inflow_direction)
         bc.add_zero_eta(2)
+        self.params['bctype'] = 'strong_dirichlet'
         self.params['strong_bc'] = bc
         self.params['free_slip_on_sides'] = True
         self.params['steady_state'] = True
         self.params["newton_solver"] = True 
+        self.params["initial_condition"] = ConstantFlowInitialCondition 
         self.turbine_friction = turbine_friction
+
 
     def set_turbine_pos(self, position):
         ''' Sets the turbine position and a equal friction parameter. '''
         super(ScenarioConfiguration, self).set_turbine_pos(position, self.turbine_friction)
+
+    def set_site_dimensions(self, site_x_start, site_x_end, site_y_start, site_y_end):
+        if not site_x_start < site_x_end or not site_y_start < site_y_end:
+            raise ValueError, "Site must have a positive area"
+        self.domain.site_x_start = site_x_start
+        self.domain.site_y_start = site_y_start
+        self.domain.site_x_end = site_x_end
+        self.domain.site_y_end = site_y_end
 
 
 class SinusoidalScenarioConfiguration(ScenarioConfiguration):
@@ -290,7 +330,8 @@ class SinusoidalScenarioConfiguration(ScenarioConfiguration):
         info('Approximate CFL number (assuming a velocity of 2): ' + str(2*self.params['dt']/self.domain.mesh.hmin()))
 
         bc = DirichletBCSet(self)
-        bc.add_analytic_u(1)
-        bc.add_analytic_u(2)
+        expression = Expression(("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0"), eta0 = self.params["eta0"], g = self.params["g"], depth = self.params["depth"], t = self.params["current_time"], k = self.params["k"])
+        bc.add_analytic_u(1, expression)
+        bc.add_analytic_u(2, expression)
         bc.add_noslip_u(3)
         self.params['strong_bc'] = bc

@@ -28,32 +28,35 @@ class DirichletBCSet:
         params = config.params
         self.config = config
 
-        self.analytic_u = Expression(("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0"), eta0 = params["eta0"], g = params["g"], depth = params["depth"], t = params["current_time"], k = params["k"])
-        self.analytic_eta = Expression("eta0*cos(k*x[0]-sqrt(g*depth)*k*t)", eta0 = params["eta0"], g = params["g"], depth = params["depth"], t = params["current_time"], k = params["k"])
+        #self.analytic_u = Expression(("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0"), eta0 = params["eta0"], g = params["g"], depth = params["depth"], t = params["current_time"], k = params["k"])
+        #self.analytic_eta = Expression("eta0*cos(k*x[0]-sqrt(g*depth)*k*t)", eta0 = params["eta0"], g = params["g"], depth = params["depth"], t = params["current_time"], k = params["k"])
+        self.expressions = []
         self.constant_inflow_bcs = []
 
         self.bcs = []
 
     def update_time(self, t):
         ''' Update the time values for all boundary conditions '''
-        self.analytic_eta.t = t
-        self.analytic_u.t = t
+        for expression in self.expressions:
+            expression.t = t
         for bc in self.constant_inflow_bcs:
             bc.t = t
 
-    def add_analytic_u(self, label):
+    def add_analytic_u(self, label, expression):
         if self.config.params['steady_state']:
             raise ValueError, 'Can not apply a time dependent boundary condition for a steady state simulation.'
-        self.bcs.append(DirichletBC(self.config.function_space.sub(0), self.analytic_u, self.config.domain.boundaries, label))
+        self.expressions.append(expression)
+        self.bcs.append(DirichletBC(self.config.function_space.sub(0), expression, self.config.domain.boundaries, label))
 
     def add_constant_flow(self, label, direction = [1, 0]):
         self.constant_inflow_bcs.append(ConstantFlowBoundaryCondition(self.config, direction)())
         self.bcs.append(DirichletBC(self.config.function_space.sub(0), self.constant_inflow_bcs[-1], self.config.domain.boundaries, label))
 
-    def add_analytic_eta(self, label):
+    def add_analytic_eta(self, label, expression):
         if self.config.params['steady_state']:
             raise ValueError, 'Can not apply a time dependent boundary condition for a steady state simulation.'
-        self.bcs.append(DirichletBC(self.config.function_space.sub(1), self.analytic_eta, self.config.domain.boundaries, label))
+        self.expressions.append(expression)
+        self.bcs.append(DirichletBC(self.config.function_space.sub(1), expression, self.config.domain.boundaries, label))
 
     def add_noslip_u(self, label):
         self.bcs.append(DirichletBC(self.config.function_space.sub(0), Constant(("0.0", "0.0")), self.config.domain.boundaries, label))
