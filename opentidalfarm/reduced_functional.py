@@ -148,7 +148,6 @@ class ReducedFunctional:
         if self.plot:
             self.plotter.addPoint(j)
             self.plotter.savefig("functional_plot.png")
-        info_green('Evaluating j(' + m.__repr__() + ') = ' + str(j))
         info_blue('Runtime: ' + str(timer.value())  + " s")
 
         if self.__config__.params['automatic_scaling']:
@@ -186,7 +185,6 @@ class ReducedFunctional:
                 self.automatic_scaling_factor = abs(self.__config__.params['automatic_scaling_multiplier'] * max(self.__config__.params['turbine_x'], self.__config__.params['turbine_y']) / djl2 / self.scaling_factor)
                 info_blue("The automatic scaling factor was set to " + str(self.automatic_scaling_factor * self.scaling_factor) + ".")
 
-        info_green('Evaluating dj(' + m.__repr__() + ') = ' + str(dj)) 
         info_blue('Runtime: ' + str(timer.stop())  + " s")
         if self.__config__.params['automatic_scaling']:
             info_green('Scaled dj(' + m.__repr__() + ') = ' + str(self.automatic_scaling_factor * self.scaling_factor * dj))
