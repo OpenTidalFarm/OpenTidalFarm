@@ -184,8 +184,6 @@ class BasePaperConfiguration(DefaultConfiguration):
     self.params['quadratic_friction'] = True
     self.params['newton_solver'] = True 
     self.params['friction'] = 0.0025
-    # Without the 1e-10, the adjoint model hangs! Why? No idea!
-    self.params['eta0'] = (2.0+1e-10)/sqrt(self.params["g"]/self.params["depth"]) # This will give a inflow velocity of 2m/s
 
     # Turbine settings
     self.params['turbine_pos'] = []
@@ -248,7 +246,7 @@ class ConstantInflowPeriodicSidesPaperConfiguration(BasePaperConfiguration):
 
         self.params['bctype'] = 'strong_dirichlet'
         bc = DirichletBCSet(self)
-        bc.add_constant_flow(1)
+        bc.add_constant_flow(1, 2.0+1e-10)
         bc.add_noslip_u(3)
         self.params['strong_bc'] = bc
 
@@ -272,9 +270,7 @@ class ScenarioConfiguration(BasePaperConfiguration):
     def __init__(self, mesh_file, inflow_direction, finite_element = finite_elements.p2p1, turbine_friction = 21.):
         super(ScenarioConfiguration, self).__init__(nx = 100, ny = 33, basin_x = None, basin_y = None, finite_element = finite_element)
         self.set_domain( GMeshDomain(mesh_file), warning = False)
-        # Without the 1e-10, the adjoint model hangs! Why? No idea!
-        self.params['eta0'] = (2.0+1e-10)/sqrt(self.params["g"]/self.params["depth"]) # This will give a inflow velocity of 2m/s
-        self.params['k'] = 2*pi/(self.period*sqrt(self.params['g']*self.params['depth']))
+        self.params['k'] = None # let's hope this isn't used anymore
 
         self.params["initial_condition"] = ConstantFlowInitialCondition 
         self.params["newton_solver"] = False
@@ -289,7 +285,7 @@ class ScenarioConfiguration(BasePaperConfiguration):
 
         # We need to reapply the bc
         bc = DirichletBCSet(self)
-        bc.add_constant_flow(1, inflow_direction)
+        bc.add_constant_flow(1, 2.0+1e-10, direction=inflow_direction)
         bc.add_zero_eta(2)
         self.params['bctype'] = 'strong_dirichlet'
         self.params['strong_bc'] = bc
@@ -318,6 +314,9 @@ class SinusoidalScenarioConfiguration(ScenarioConfiguration):
         super(SinusoidalScenarioConfiguration, self).__init__(mesh_file, inflow_direction, finite_element)
         self.params['steady_state'] = False
         self.params['functional_final_time_only'] = False
+
+        # Without the 1e-10, the adjoint model hangs! Why? No idea!
+        self.params['eta0'] = (2.0+1e-10)/sqrt(self.params["g"]/self.params["depth"]) # This will give a inflow velocity of 2m/s
 
         # Timing settings
         self.period = period 
