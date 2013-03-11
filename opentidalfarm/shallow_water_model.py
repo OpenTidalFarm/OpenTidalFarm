@@ -219,7 +219,6 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
             if params["print_individual_turbine_power"]:
 	        j_individual = [0] * len(params["turbine_pos"])
 
-            djdm = 0.
         else:
             quad = 0.5
             j =  dt * quad * assemble(functional.Jt(state)) 
@@ -228,8 +227,6 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
                 for i in range(len(params["turbine_pos"])):
 	            j_individual.append(dt * quad * assemble(functional.Jt_individual(state, i))) 
               
-            djdm = dt * quad * numpy.array([assemble(f) for f in functional.dJtdm(state)])
-
     info_green("Starting time loop...")
     adjointer.time.start(t)
     while (t < params["finish_time"]):
@@ -301,6 +298,12 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
 
         # After the timestep solve, update state
         state.assign(state_new)
+	if turbine_field:
+	    # We need to make a copy of the control function, even though it is constant in time
+	    # This should be really be fixed in dolfin_adjoint instead...
+	    tf_tmp = Function(turbine_field.function_space())
+	    tf_tmp.assign(turbine_field)
+	    turbine_field.assign(tf_tmp)
 
         if params["dump_period"] > 0 and step%params["dump_period"] == 0:
             info_green("Writing state to disk...")
@@ -322,9 +325,6 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
 	                j_individual[i] += dt * quad * assemble(functional.Jt_individual(state, i))
                     info_green("Computing individual turbine power extaction contribution...finished")
 
-                djtdm = numpy.array([assemble(f) for f in functional.dJtdm(state)])
-                djdm += quad * djtdm
-
         # Increase the adjoint timestep
         adj_inc_timestep(time=t, finished = not t < params["finish_time"])
         info_green("New timestep")
@@ -333,5 +333,5 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
     if params["print_individual_turbine_power"]:
         print "Individual power contributions of the turbines: ", j_individual
     if functional is not None:
-        return j, djdm 
+        return j
 

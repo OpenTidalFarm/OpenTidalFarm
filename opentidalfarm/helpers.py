@@ -60,7 +60,7 @@ def test_gradient_array(J, dJ, x, seed = 0.01, perturbation_direction = None, pl
   # First-order Taylor remainders (not using adjoint)
   no_gradient = [abs(perturbed_j - j_direct) for perturbed_j in functional_values]
 
-  dj = dJ(x)
+  dj = dJ(x, forget = True)
   info_green("Absolute functional evaluation differences: %s" % str(no_gradient))
   info_green("Convergence orders for Taylor remainder without adjoint information (should all be 1): %s" % str(convergence_order(no_gradient)))
 
