@@ -3,9 +3,11 @@ import memoize
 import shallow_water_model as sw_model
 import helpers 
 import sys
+import dolfin_adjoint
 from animated_plot import AnimatedPlot
 from functionals import DefaultFunctional
 from dolfin import *
+from dolfin_adjoint import *
 from turbines import *
 from numpy.linalg import norm
 from helpers import info, info_green, info_red, info_blue
@@ -38,7 +40,7 @@ class ReducedFunctional:
         if plot:
            self.plotter = AnimatedPlot(xlabel = "Iteration", ylabel = "Functional value")
 
-        def run_forward_model(m, return_final_state = False):
+        def compute_functional(m, return_final_state = False):
             # Change the control variables to the config parameters
             shift = 0
             if 'turbine_friction' in config.params['controls']: 
@@ -58,9 +60,9 @@ class ReducedFunctional:
             # int 0.17353373* (exp(-1.0/(1-(x/10)**2)) * exp(-1.0/(1-(y/10)**2)) * exp(2)) dx dy, x=-10..10, y=-10..10 
             #info_red("relative error: %f", (assemble(tf*dx)-25.2771)/25.2771)
 
-            return run_forward_model_friction(tf, return_final_state)
+            return compute_functional_from_tf(tf, return_final_state)
 
-        def run_forward_model_friction(tf, return_final_state):
+        def compute_functional_from_tf(tf, return_final_state):
             adj_reset()
             parameters["adjoint"]["record_all"] = True 
 
@@ -82,12 +84,12 @@ class ReducedFunctional:
             else:
                 return j 
 
-        def run_adjoint_model(m, forget = True):
-            myt = Timer("full run_adjoint_model")
+        def compute_gradient(m, forget=True):
+            myt = Timer("full compute_gradient")
             # If the last forward run was performed with the same parameters, then all recorded values by dolfin-adjoint are still valid for this adjoint run
             # and we do not have to rerun the forward model.
             if numpy.any(m != self.last_m):
-                run_forward_model(m)
+                compute_functional(m)
 
             # We assume that at the gradient is computed if and only if at the beginning of each new optimisation iteration.
             # Hence, let this is the right moment to store the turbine friction field. 
@@ -101,7 +103,7 @@ class ReducedFunctional:
                 J = Functional(functional.Jt(state)*dt[FINISH_TIME])
             else:
                 J = Functional(functional.Jt(state)*dt)
-            djdudm = compute_gradient(J, InitialConditionParameter(config.turbine_cache.cache["turbine_field"]), forget = forget)
+            djdtf = dolfin_adjoint.compute_gradient(J, InitialConditionParameter(config.turbine_cache.cache["turbine_field"]), forget=forget)
             dolfin.parameters["adjoint"]["stop_annotating"] = False
 
             # Let J be the functional, m the parameter and u the solution of the PDE equation F(u) = 0.
@@ -115,7 +117,7 @@ class ReducedFunctional:
                 for n in range(len(config.params["turbine_friction"])):
                     config.turbine_cache.update(config)
                     tfd = config.turbine_cache.cache["turbine_derivative_friction"][n]
-                    dj.append( djdudm.vector().inner(tfd.vector()) )
+                    dj.append( djdtf.vector().inner(tfd.vector()) )
 
             if 'turbine_pos' in config.params["controls"]:
                 # Compute the derivatives with respect to the turbine position
@@ -123,13 +125,12 @@ class ReducedFunctional:
                     for var in ('turbine_pos_x', 'turbine_pos_y'):
                         config.turbine_cache.update(config)
                         tfd = config.turbine_cache.cache["turbine_derivative_pos"][n][var]
-                        dj.append( djdudm.vector().inner(tfd.vector()) )
+                        dj.append( djdtf.vector().inner(tfd.vector()) )
             dj = numpy.array(dj)  
 
             return dj 
 
-
-        def run_soa_model(m, m_dot):
+        def compute_hessian_action(m, m_dot):
             if numpy.any(m != self.last_m):
                 self.run_adjoint_model_mem(m, forget=False)
 
@@ -145,15 +146,15 @@ class ReducedFunctional:
             m_dot = project(Constant(1), config.turbine_function_space)
             return H(m_dot)
 
-        self.run_forward_model_mem = memoize.MemoizeMutable(run_forward_model)
-        self.run_adjoint_model_mem = memoize.MemoizeMutable(run_adjoint_model)
-        self.run_soa_mem = memoize.MemoizeMutable(run_soa_model)
+        self.compute_functional_mem = memoize.MemoizeMutable(compute_functional)
+        self.compute_gradient_mem = memoize.MemoizeMutable(compute_gradient)
+        self.compute_hessian_action_mem = memoize.MemoizeMutable(compute_hessian_action)
         
     def j(self, m):
         ''' This memoised function returns the functional value for the parameter choice m. '''
         info_green('Start evaluation of j')
         timer = dolfin.Timer("j evaluation") 
-        j = self.run_forward_model_mem(m) 
+        j = self.compute_functional_mem(m) 
         timer.stop()
         if self.plot:
             self.plotter.addPoint(j)
@@ -175,7 +176,7 @@ class ReducedFunctional:
         ''' This memoised function returns the gradient of the functional for the parameter choice m. '''
         info_green('Start evaluation of dj')
         timer = dolfin.Timer("dj evaluation") 
-        dj = self.run_adjoint_model_mem(m, forget)
+        dj = self.compute_gradient_mem(m, forget)
 
         # Compute the scaling factor if never done before
         if self.__config__.params['automatic_scaling'] and not self.automatic_scaling_factor:
