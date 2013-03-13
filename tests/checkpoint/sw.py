@@ -32,6 +32,7 @@ def default_config():
 
 config = default_config()
 config.params["save_checkpoints"] = True
+
 rf = ReducedFunctional(config, scaling_factor = -10**-3, forward_model = mini_model.mini_model_solve)
 m0 = rf.initial_control()
 

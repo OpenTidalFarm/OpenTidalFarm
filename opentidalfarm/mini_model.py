@@ -25,7 +25,6 @@ def mini_model(A, M, state, params, functional=None, annotate=True):
     if functional is not None:
       fac = 0.0
       j = fac*0.5*params["dt"]*assemble(functional.Jt(state)) 
-      djdm = fac*0.5*params["dt"]*numpy.array([assemble(f) for f in functional.dJtdm(state)])
 
     adjointer.time.start(0.0)
     tmpstate = Function(state.function_space(), name="tmp_state")
@@ -41,8 +40,7 @@ def mini_model(A, M, state, params, functional=None, annotate=True):
 
     if functional is not None:
       j += 0.5*params["dt"]*assemble(functional.Jt(state)) 
-      djdm += 0.5*params["dt"]*numpy.array([assemble(f) for f in functional.dJtdm(state)])
-      return j, djdm
+      return j
 
 def mini_model_solve(config, state, turbine_field=None, functional=None, annotate=True, linear_solver="default", preconditioner="default", u_source = None):
     A, M = construct_mini_model(config, turbine_field)

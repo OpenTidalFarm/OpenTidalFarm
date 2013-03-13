@@ -41,6 +41,7 @@ class ReducedFunctional:
            self.plotter = AnimatedPlot(xlabel = "Iteration", ylabel = "Functional value")
 
         def compute_functional(m, return_final_state = False):
+            ''' Takes in the turbine positions/frictions values and computes the resulting functional of interest. '''
             # Change the control variables to the config parameters
             shift = 0
             if 'turbine_friction' in config.params['controls']: 
@@ -63,6 +64,7 @@ class ReducedFunctional:
             return compute_functional_from_tf(tf, return_final_state)
 
         def compute_functional_from_tf(tf, return_final_state):
+            ''' Takes in the turbine friction field and computes the resulting functional of interest. '''
             adj_reset()
             parameters["adjoint"]["record_all"] = True 
 
@@ -85,6 +87,7 @@ class ReducedFunctional:
                 return j 
 
         def compute_gradient(m, forget=True):
+            ''' Takes in the turbine positions/frictions values and computes the resulting functional gradient. '''
             myt = Timer("full compute_gradient")
             # If the last forward run was performed with the same parameters, then all recorded values by dolfin-adjoint are still valid for this adjoint run
             # and we do not have to rerun the forward model.
@@ -152,13 +155,13 @@ class ReducedFunctional:
         
     def save_checkpoint(self, base_filename):
         ''' Checkpoint the reduceduced functional from which can be used to restart the turbine optimisation. '''
-        self.run_forward_model_mem.save_checkpoint(base_filename + "_fwd.dat")
-        self.run_adjoint_model_mem.save_checkpoint(base_filename + "_adj.dat")
+        self.compute_functional_mem.save_checkpoint(base_filename + "_fwd.dat")
+        self.compute_gradient_mem.save_checkpoint(base_filename + "_adj.dat")
         
     def load_checkpoint(self, base_filename):
         ''' Checkpoint the reduceduced functional from which can be used to restart the turbine optimisation. '''
-        self.run_forward_model_mem.load_checkpoint(base_filename + "_fwd.dat")
-        self.run_adjoint_model_mem.load_checkpoint(base_filename + "_adj.dat")
+        self.compute_functional_mem.load_checkpoint(base_filename + "_fwd.dat")
+        self.compute_gradient_mem.load_checkpoint(base_filename + "_adj.dat")
 
     def j(self, m):
         ''' This memoised function returns the functional value for the parameter choice m. '''

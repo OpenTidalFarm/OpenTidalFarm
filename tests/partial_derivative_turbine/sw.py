@@ -63,7 +63,7 @@ def j_and_dj(m, forward_only = None):
 
 
 j = lambda m, forward_only = False: j_and_dj(m, forward_only)[0]
-dj = lambda m: j_and_dj(m, forward_only = False)[1]
+dj = lambda m, forget: j_and_dj(m, forward_only = False)[1]
 
 # run the taylor remainder test 
 config = default_config()
