@@ -34,17 +34,25 @@ The installation consists of following steps
 2. [Download OpenTidalFarm](https://github.com/funsim/OpenTidalFarm/zipball/master) and extract it.
 3. Open a terminal and change into the extracted directory and run
 
-       sudo python setup.py install
+       ```bash
+          sudo python setup.py install
+       ```
 
    to install it.
 
 Now you are ready to run one of the many examples in the `examples/` folder.
 
-Getting started
-===============
+Getting started tutorial
+========================
 
 Documentation
 =============
+
+## Boundary IDs ##
+OpenTidalFarm expects the 3 the mesh to have three identifiers of the boundary mesh:
+ * ID 1: inflow boundary
+ * ID 2: outflow boundary 
+ * ID 3: shoreline boundary
 
 Contact 
 =======
