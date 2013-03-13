@@ -53,7 +53,8 @@ class Parameters(dict):
             'solver_exclude': 'solvers/preconditioners to be excluded from the benchmark',
             'automatic_scaling': 'activates the initial automatic scaling of the functional',
             'automatic_scaling_multiplier': 'defines the multiplier that determines the initial gradient length (= multiplier * turbine size)',
-            'print_individual_turbine_power': 'print out the power output of each individual turbine'
+            'print_individual_turbine_power': 'print out the power output of each individual turbine',
+            'save_checkpoints': 'automatically store checkpoints after each optimisation iteration'
             }
 
     def check(self):
@@ -109,7 +110,8 @@ class DefaultConfiguration(object):
         'finish_time': 100.,
         'automatic_scaling': False,
         'automatic_scaling_multiplier': 5,
-   		'print_individual_turbine_power': False
+   		'print_individual_turbine_power': False,
+   		'save_checkpoints': False
         })
 
     params['dt'] = params['finish_time']/4000.
@@ -165,6 +167,8 @@ class DefaultConfiguration(object):
             s += "Finish time: %f s\n" % self.params["finish_time"]
         s += "Number of mesh elements: %i\n" % self.domain.mesh.num_cells() 
         s += "Mesh element size: %f - %f\n" % (hmin, hmax)
+        s += "\n=== Simulation settings ===\n"
+        s += "Automatic checkpoint generation: %s\n" % self.params["save_checkpoints"] 
         print(s)
 
 class BasePaperConfiguration(DefaultConfiguration):

@@ -139,12 +139,26 @@ class ReducedFunctional:
         self.run_forward_model_mem = memoize.MemoizeMutable(run_forward_model)
         self.run_adjoint_model_mem = memoize.MemoizeMutable(run_adjoint_model)
         
+    def save_checkpoint(self, base_filename):
+        ''' Checkpoint the reduceduced functional from which can be used to restart the turbine optimisation. '''
+        self.run_forward_model_mem.save_checkpoint(base_filename + "_fwd.dat")
+        self.run_adjoint_model_mem.save_checkpoint(base_filename + "_adj.dat")
+        
+    def load_checkpoint(self, base_filename):
+        ''' Checkpoint the reduceduced functional from which can be used to restart the turbine optimisation. '''
+        self.run_forward_model_mem.load_checkpoint(base_filename + "_fwd.dat")
+        self.run_adjoint_model_mem.load_checkpoint(base_filename + "_adj.dat")
+
     def j(self, m):
         ''' This memoised function returns the functional value for the parameter choice m. '''
         info_green('Start evaluation of j')
         timer = dolfin.Timer("j evaluation") 
         j = self.run_forward_model_mem(m) 
         timer.stop()
+
+        if self.__config__.params["save_checkpoints"]:
+            self.save_checkpoint("checkpoint")
+
         if self.plot:
             self.plotter.addPoint(j)
             self.plotter.savefig("functional_plot.png")
@@ -166,6 +180,9 @@ class ReducedFunctional:
         info_green('Start evaluation of dj')
         timer = dolfin.Timer("dj evaluation") 
         dj = self.run_adjoint_model_mem(m)
+
+        if self.__config__.params["save_checkpoints"]:
+            self.save_checkpoint("checkpoint")
 
         # Compute the scaling factor if never done before
         if self.__config__.params['automatic_scaling'] and not self.automatic_scaling_factor:

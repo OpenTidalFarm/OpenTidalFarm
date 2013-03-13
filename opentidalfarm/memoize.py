@@ -1,5 +1,6 @@
 import numpy
 import cPickle
+from helpers import cpu0only
 
 # Implement a memoization function to avoid duplicated functional (derivative) evaluations
 class MemoizeMutable:
@@ -23,3 +24,9 @@ class MemoizeMutable:
         str = cPickle.dumps(args, 1)+cPickle.dumps(kwds, 1)
         self.memo[str] = value
 
+    @cpu0only
+    def save_checkpoint(self, filename):
+        cPickle.dump(self.memo, open(filename, "wb"))
+
+    def load_checkpoint(self, filename):
+        self.memo = cPickle.load(open(filename, "rb"))
