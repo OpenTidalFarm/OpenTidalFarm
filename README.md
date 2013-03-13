@@ -22,8 +22,8 @@ The following video demonstrates how OpenTidalFarm optimises 32 turbines in an i
 [Youtube link](http://www.youtube.com/embed/ng3bbso-vGk)
 </iframe>
 
-Getting started
-===============
+Installation
+============
 Note: This installation procedure assumes that you are running the [Ubuntu](http://www.ubuntu.com/) operating system.
 
 The installation consists of following steps
@@ -34,17 +34,18 @@ The installation consists of following steps
     - [SciPy Version >0.11](https://github.com/scipy/scipy).
 2. [Download OpenTidalFarm](https://github.com/funsim/OpenTidalFarm/zipball/master) and extract it.
 3. Open a terminal and change into the extracted directory and run
+
        sudo python setup.py install
-   to install 
+
+   to install it.
 
 Now you are ready to run one of the many examples in the `examples/` folder.
 
 Getting started
 ===============
-<!--
+
 Documentation
 =============
--->
 
 Contact 
 =======
