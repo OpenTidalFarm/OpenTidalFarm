@@ -8,13 +8,12 @@ However, finding the optimal layout is a difficult process due to the complex fl
 
 Features 
 ========
-* High resolution shallow water model for accurate flow prediction
-* Arbitrary shoreline data
-* Optimization for power output
-* Site constraints / minimum distance between turbines
-* Up to hundreds of turbines
-
-For additional features such as bathymetry support, enforcing a minimum/maximum turbine installation depth and cable costs please [contact me](#contact). 
+* High resolution shallow water model for accurate flow prediction.
+* Arbitrary shoreline data and bathymetry support.
+* Optimise the turbine position and size to maximise the total farm power output.
+* Site constraints / minimum distance between turbines.
+* Optimisation of up to hundreds of turbines.
+* Checkpoint support to restart optimisation.
  
 Example
 ========
