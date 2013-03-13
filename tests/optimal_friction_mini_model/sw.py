@@ -27,6 +27,8 @@ def default_config():
   config.params["turbine_friction"] = 12.0*numpy.random.rand(len(config.params["turbine_pos"]))
   config.params["turbine_x"] = 8000
   config.params["turbine_y"] = 8000
+  config.params['controls'] = ['turbine_friction']
+  config.params["functional_final_time_only"] = True
 
   return config
 
@@ -40,13 +42,7 @@ if minconv < 1.99:
   info_red("The gradient taylor remainder test failed.")
   sys.exit(1)
 
-# If this option does not produce any ipopt outputs, delete the ipopt.opt file
-g = lambda m: []
-dg = lambda m: []
-
-lb_f, ub_f = friction_constraints(config, lb = 0., ub = 100.)
-bb = [Constant(500)]*2
-bounds = [lb_f + bb, ub_f + bb]
+bounds = [0, 100]
 m = minimize(rf, bounds = bounds, method = "SLSQP") 
 
 if abs(m[0]-0.61216779034) > 10**-4: 

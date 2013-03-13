@@ -22,9 +22,8 @@ def mini_model(A, M, state, params, functional=None, annotate=True):
        The solution is a x-velocity of old_state/(turbine_friction + 1) and a zero pressure value y-velocity.
     '''
     
-    if functional is not None:
-      fac = 0.0
-      j = fac*0.5*params["dt"]*assemble(functional.Jt(state)) 
+    if functional is not None and not params["functional_final_time_only"]:
+        j = 0.5*params["dt"]*assemble(functional.Jt(state)) 
 
     adjointer.time.start(0.0)
     tmpstate = Function(state.function_space(), name="tmp_state")
@@ -39,7 +38,10 @@ def mini_model(A, M, state, params, functional=None, annotate=True):
     adj_inc_timestep(time=params["dt"], finished = True)
 
     if functional is not None:
-      j += 0.5*params["dt"]*assemble(functional.Jt(state)) 
+      if params["functional_final_time_only"]:
+        j = assemble(functional.Jt(state)) 
+      else:
+        j += 0.5*params["dt"]*assemble(functional.Jt(state)) 
       return j
 
 def mini_model_solve(config, state, turbine_field=None, functional=None, annotate=True, linear_solver="default", preconditioner="default", u_source = None):
