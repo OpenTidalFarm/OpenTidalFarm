@@ -4,9 +4,9 @@ import sys
 from opentidalfarm import *
 set_log_level(ERROR)
 
-for c in [DefaultConfiguration, PaperConfiguration, ConstantInflowPeriodicSidesPaperConfiguration, ScenarioConfiguration]:
+for c in [DefaultConfiguration, SteadyConfiguration]:
     info_green("Testing configuration " + c.__name__)
-    if c == ScenarioConfiguration:
+    if c == SteadyConfiguration:
         config = c("mesh.xml", inflow_direction = [1, 1])
     else:
         config = c(nx = 15, ny = 15)
@@ -14,11 +14,7 @@ for c in [DefaultConfiguration, PaperConfiguration, ConstantInflowPeriodicSidesP
 
     # Deploy some turbines 
     turbine_pos = [] 
-    if c == ScenarioConfiguration or ConstantInflowPeriodicSidesPaperConfiguration:
-        # The configuration does not converge for this (admittely unphysical) setup, so we help a little with some viscosity
-        config.params['diffusion_coef'] = 20.0
-
-    if c == ScenarioConfiguration:
+    if c == SteadyConfiguration:
         # The configuration does not converge for this (admittely unphysical) setup, so we help a little with some viscosity
         config.params['diffusion_coef'] = 40.0
         basin_x = 1200
@@ -45,7 +41,7 @@ for c in [DefaultConfiguration, PaperConfiguration, ConstantInflowPeriodicSidesP
             for y_r in numpy.linspace(0.+border_y, config.domain.basin_y-border_y, 2):
               turbine_pos.append((float(x_r), float(y_r)))
 
-    config.set_turbine_pos(turbine_pos)
+    config.set_turbine_pos(turbine_pos, friction=1.0)
     info_blue("Deployed " + str(len(turbine_pos)) + " turbines.")
 
     model = ReducedFunctional(config, scaling_factor = 10**-6)

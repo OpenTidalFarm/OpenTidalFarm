@@ -1,5 +1,5 @@
 import numpy
-import configuration
+from parameter_dict import ParameterDictionary
 import math
 import numpy
 from dolfin import *
@@ -10,7 +10,7 @@ from helpers import info, info_green, info_red, info_blue
 class Turbines(object):
 
     def __init__(self, V, params, derivative_index_selector=-1):
-        self.params = configuration.Parameters(params)
+        self.params = ParameterDictionary(params)
   
         # Precompute some turbine parameters for efficiency. 
         self.x = interpolate(Expression("x[0]"), V).vector().array()
@@ -75,7 +75,7 @@ class TurbineCache:
         info_green("Updating turbine cache")
 
         # Store the new turbine paramaters
-        self.params = configuration.Parameters(config.params)
+        self.params = ParameterDictionary(config.params)
         self.params["turbine_friction"] = numpy.copy(config.params["turbine_friction"])
         self.params["turbine_pos"] = numpy.copy(config.params["turbine_pos"])
 
@@ -89,7 +89,7 @@ class TurbineCache:
             info_green("Building individual turbine power friction functions for caching purposes...")
             self.cache["turbine_field_individual"] = [] 
             for i in range(len(self.params["turbine_friction"])):
-                params_cpy = configuration.Parameters(self.params)
+                params_cpy = ParameterDictionary(self.params)
                 params_cpy["turbine_pos"] = [self.params["turbine_pos"][i]]
                 params_cpy["turbine_friction"] = [self.params["turbine_friction"][i]]
                 turbine = Turbines(config.turbine_function_space, params_cpy)

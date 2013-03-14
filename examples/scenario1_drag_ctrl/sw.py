@@ -8,7 +8,7 @@ site_x = 320.
 site_y = 160.
 site_x_start = (basin_x - site_x)/2 
 site_y_start = (basin_y - site_y)/2 
-config = ScenarioConfiguration("mesh.xml", inflow_direction = [1, 0])
+config = SteadyConfiguration("mesh.xml", inflow_direction = [1, 0])
 config.set_site_dimensions(site_x_start, site_x_start + site_x, site_y_start, site_y_start + site_y)
 config.params["controls"] = ["turbine_friction"]
 config.params['automatic_scaling'] = False
@@ -19,5 +19,5 @@ rf = ReducedFunctional(config, scaling_factor = -1, plot = True)
 config.info()
 
 m0 = rf.initial_control()
-lb_f, ub_f = friction_constraints(config, lb = 0., ub = config.turbine_friction)
+lb_f, ub_f = friction_constraints(config, lb = 0., ub = 21.)
 minimize(rf, bounds = [lb_f, ub_f], method = 'SLSQP', options = {'maxiter': 200})

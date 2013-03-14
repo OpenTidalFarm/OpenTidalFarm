@@ -11,7 +11,7 @@ site_y = 160
 
 site_x_start = basin_x - land_x
 site_y_start = land_y + land_site_delta 
-config = ScenarioConfiguration("mesh.xml", inflow_direction = [0,1])
+config = SteadyConfiguration("mesh.xml", inflow_direction = [0,1])
 config.set_site_dimensions(site_x_start, site_x_start + site_x, site_y_start, site_y_start + site_y)
 config.params["controls"] = ["turbine_friction", "turbine_pos"]
 
@@ -23,7 +23,7 @@ config.info()
 rf = ReducedFunctional(config, scaling_factor = -1, plot = True)
 m0 = rf.initial_control()
 # Get the upper and lower bounds for the turbine positions and friction
-lb_f, ub_f = friction_constraints(config, lb = 0., ub = config.turbine_friction)
+lb_f, ub_f = friction_constraints(config, lb = 0., ub = 21.)
 lb, ub = position_constraints(config) 
 # The first part of the control vector consists of the turbine friction values followed by their positions
 bounds = [lb_f + lb, ub_f + ub]
