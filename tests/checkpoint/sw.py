@@ -27,25 +27,19 @@ def default_config():
   config.params["turbine_friction"] = 12.0*numpy.random.rand(len(config.params["turbine_pos"]))
   config.params["turbine_x"] = 8000
   config.params["turbine_y"] = 8000
+  config.params['controls'] = ['turbine_friction']
+  config.params["functional_final_time_only"] = True
 
   return config
 
 config = default_config()
 config.params["save_checkpoints"] = True
-
 config.info()
 
-rf = ReducedFunctional(config, scaling_factor = -10**-3, forward_model = mini_model.mini_model_solve)
-m0 = rf.initial_control()
+rf = ReducedFunctional(config, forward_model = mini_model.mini_model_solve)
 
 if len(sys.argv) > 1 and sys.argv[1] == "--from-checkpoint":
   rf.load_checkpoint()
 
-# If this option does not produce any ipopt outputs, delete the ipopt.opt file
-g = lambda m: []
-dg = lambda m: []
-
-lb_f, ub_f = friction_constraints(config, lb = 0., ub = 100.)
-bb = [Constant(500)]*2
-bounds = [lb_f + bb, ub_f + bb]
-m = minimize(rf, bounds = bounds, method = "SLSQP", options={'maxiter': 5}) 
+bounds = [0, 100]
+m = maximize(rf, bounds = bounds, method = "SLSQP", scale=1e-3) 

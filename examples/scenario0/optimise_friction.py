@@ -16,7 +16,5 @@ config.set_turbine_pos(turbine_pos)
 config.params['controls'] = ['turbine_friction']
 
 # Use a negative scaling factor as we want to maximise the power output
-rf = ReducedFunctional(config, scaling_factor = -1)
-m0 = rf.initial_control()
-
-minimize(rf)
+rf = ReducedFunctional(config)
+maximize(rf)

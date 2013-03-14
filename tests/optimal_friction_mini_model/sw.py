@@ -33,7 +33,7 @@ def default_config():
   return config
 
 config = default_config()
-rf = ReducedFunctional(config, scaling_factor = -10**-3, forward_model = mini_model.mini_model_solve)
+rf = ReducedFunctional(config, scale = 1e-3, forward_model = mini_model.mini_model_solve)
 m0 = rf.initial_control()
 
 p = numpy.random.rand(len(m0))
@@ -43,7 +43,7 @@ if minconv < 1.99:
   sys.exit(1)
 
 bounds = [0, 100]
-m = minimize(rf, bounds = bounds, method = "SLSQP") 
+m = maximize(rf, bounds = bounds, method = "SLSQP", scale=1e-3) 
 
 if abs(m[0]-0.61216779034) > 10**-4: 
   info_red("The optimisation algorithm did not find the correct solution.")

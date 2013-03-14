@@ -14,10 +14,10 @@ config.params["controls"] = ["turbine_friction"]
 config.params['automatic_scaling'] = False
 
 deploy_turbines(config, nx = 8, ny = 6)
-rf = ReducedFunctional(config, scaling_factor = -1, plot = True)
+rf = ReducedFunctional(config, plot = True)
 
 config.info()
 
 m0 = rf.initial_control()
 lb_f, ub_f = friction_constraints(config, lb = 0., ub = 21.)
-minimize(rf, bounds = [lb_f, ub_f], method = 'SLSQP', options = {'maxiter': 200})
+maximize(rf, bounds = [lb_f, ub_f], method = 'SLSQP', options = {'maxiter': 200})

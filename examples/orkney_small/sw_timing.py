@@ -24,7 +24,7 @@ config.params["dump_period"] = 0
 deploy_turbines(config, nx = 8, ny = 4)
 config.params["turbine_friction"] = 0.5*numpy.array(config.params["turbine_friction"]) 
 
-model = ReducedFunctional(config, scaling_factor = -1, plot = True)
+model = ReducedFunctional(config, scale = -1, plot = True)
 m0 = model.initial_control()
 
 # Build the turbine cache 

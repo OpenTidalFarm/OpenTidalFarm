@@ -23,13 +23,13 @@ def default_config():
   config.params["turbine_x"] = 800
   config.params["turbine_y"] = 800
   config.params["controls"] = ['turbine_pos']
-  config.params["functional_turbine_scaling"] = 1.0
   config.params["initial_condition"] = BumpInitialCondition
+  config.params["automatic_scaling"] = True
 
   return config
 
 config = default_config()
-rf = ReducedFunctional(config, scaling_factor = -10**1, forward_model = mini_model_solve)
+rf = ReducedFunctional(config, forward_model = mini_model_solve)
 m0 = rf.initial_control()
 
 config.info()
@@ -46,7 +46,7 @@ dg = lambda m: []
 
 bounds = [[Constant(0), Constant(0)], [Constant(3000), Constant(1000)]] 
 
-m = minimize(rf, bounds = bounds, method = "SLSQP") 
+m = maximize(rf, bounds = bounds, method = "SLSQP") 
 
 info("Solution of the primal variables: m=" + repr(m) + "\n")
 

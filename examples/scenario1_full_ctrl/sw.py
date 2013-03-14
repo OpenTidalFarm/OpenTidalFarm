@@ -15,8 +15,7 @@ config.params["controls"] = ["turbine_friction", "turbine_pos"]
 # Place some turbines 
 deploy_turbines(config, nx = 8, ny = 4)
 
-rf = ReducedFunctional(config, scaling_factor = -1, plot = True)
-m0 = rf.initial_control()
+rf = ReducedFunctional(config, plot = True)
 
 # Get the upper and lower bounds for the turbine positions and friction
 lb_f, ub_f = friction_constraints(config, lb = 0., ub = 21.)
@@ -26,4 +25,4 @@ bounds = [lb_f + lb, ub_f + ub]
 
 ineq = get_minimum_distance_constraint_func(config)
 
-minimize(rf, bounds = bounds, constraints = ineq, method = "SLSQP", options = {"maxiter": 200})
+maximize(rf, bounds = bounds, constraints = ineq, method = "SLSQP", options = {"maxiter": 200})

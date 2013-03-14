@@ -23,10 +23,10 @@ config.params["turbine_y"] = 40.
 deploy_turbines(config, nx = 8, ny = 4)
 config.params["turbine_friction"] = 0.5*numpy.array(config.params["turbine_friction"]) 
 
-rf = ReducedFunctional(config, scaling_factor = -1, plot = True)
+rf = ReducedFunctional(config, plot = True)
 m0 = rf.initial_control()
 
 # Get the upper and lower bounds for the turbine positions
 lb, ub = position_constraints(config) 
 ineq = get_minimum_distance_constraint_func(config)
-minimize(rf, bounds = [lb, ub], constraints = ineq, method = "SLSQP") 
+maximize(rf, bounds = [lb, ub], constraints = ineq, method = "SLSQP") 

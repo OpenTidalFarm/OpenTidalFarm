@@ -19,9 +19,9 @@ deploy_turbines(config, nx = 8, ny = 4)
 
 config.info()
 
-rf = ReducedFunctional(config, scaling_factor = -1, plot = True)
+rf = ReducedFunctional(config, plot = True)
 m0 = rf.initial_control()
 
 lb, ub = position_constraints(config) 
 ineq = get_minimum_distance_constraint_func(config)
-minimize(rf, bounds = [lb, ub], constraints = ineq, method = "SLSQP")
+maximize(rf, bounds = [lb, ub], constraints = ineq, method = "SLSQP")

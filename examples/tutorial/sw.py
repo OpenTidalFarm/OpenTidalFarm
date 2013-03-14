@@ -1,6 +1,6 @@
 from opentidalfarm import *
 
-config = SteadyConfiguration("mesh/earth_orkney_converted_coarse.xml", inflow_direction=[0.9865837220518425, -0.16325611591095968]) 
+config = SteadyConfiguration("mesh/earth_orkney_converted.xml", inflow_direction=[0.9865837220518425, -0.16325611591095968]) 
 config.params['diffusion_coef'] = 90.0
 config.params['turbine_x'] = 40.
 config.params['turbine_y'] = 40.
