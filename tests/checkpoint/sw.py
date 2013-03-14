@@ -39,7 +39,7 @@ rf = ReducedFunctional(config, scaling_factor = -10**-3, forward_model = mini_mo
 m0 = rf.initial_control()
 
 if len(sys.argv) > 1 and sys.argv[1] == "--from-checkpoint":
-  rf.load_checkpoint("checkpoint")
+  rf.load_checkpoint()
 
 # If this option does not produce any ipopt outputs, delete the ipopt.opt file
 g = lambda m: []

@@ -55,6 +55,26 @@ OpenTidalFarm expects the 3 the mesh to have three identifiers of the boundary m
  * ID 3: shoreline boundary
 
 ## Advanced options ##
+### Checkpointing ###
+#### Creating checkpoints ####
+OpenTidalFarm can automatically store checkpoints to disk from which the optimisation procedure can be restarted.
+The checkpoints generation is activated with: 
+```python
+config.params["save_checkpoints"] = True
+```
+where `config` is the `Configuration` object.
+The checkpoint data is stored in the two files "checkpoint_fwd.dat" and "checkpoint_adj.dat".
+
+#### Loading from checkpoint ####
+In order to restart from a checkpoint you need to load in the checkpoint with:
+```python
+rf.load_checkpoint() 
+```
+where `rf` is the `ReducedFunctionalObject`.
+
+You will see that the optimisation starts from the beginning, however the optimisation iterations 
+until the checkpoint will happen instantely since the solutions are cachced in the checkpoint. 
+
 ### Compiler optimisations ###
 By default, OpenTidalFarm only uses the '-O3' compiler optimisation flag as a safe choice.
 

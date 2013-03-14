@@ -158,7 +158,7 @@ class ReducedFunctional:
         self.compute_functional_mem.save_checkpoint(base_filename + "_fwd.dat")
         self.compute_gradient_mem.save_checkpoint(base_filename + "_adj.dat")
         
-    def load_checkpoint(self, base_filename):
+    def load_checkpoint(self, base_filename='checkpoint'):
         ''' Checkpoint the reduceduced functional from which can be used to restart the turbine optimisation. '''
         self.compute_functional_mem.load_checkpoint(base_filename + "_fwd.dat")
         self.compute_gradient_mem.load_checkpoint(base_filename + "_adj.dat")
