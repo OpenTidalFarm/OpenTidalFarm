@@ -88,7 +88,7 @@ Documentation
 ## Configurations ##
 OpenTidalFarm is based on configurations for defining different setups.
 The most important configurations are
-* `StadyConfiguration`: Use this configuration for steady state simulations.
+* `SteadyConfiguration`: Use this configuration for steady state simulations.
 * `UnstadyConfiguration`: Use this configuration for steady state simulations.
 
 Once you have a configuration object, try running
@@ -97,7 +97,7 @@ config.info()
 ```
 to see detailed information about the settings of that setup. 
 
-## Options ##
+### Parameters ###
 Each configuration has a large of additional parameters that can be changed.
 
 For example to use Picard iterations instead of a Newton solver one would do:
