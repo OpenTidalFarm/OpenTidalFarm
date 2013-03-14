@@ -13,12 +13,12 @@ from numpy.linalg import norm
 from helpers import info, info_green, info_red, info_blue
     
 class ReducedFunctional:
-    def __init__(self, config, scaling_factor = 1.0, forward_model = sw_model.sw_solve, plot = False):
+    def __init__(self, config, scale = 1.0, forward_model = sw_model.sw_solve, plot = False):
         ''' If plot is True, the functional values will be automatically saved in a plot.
-            scaling_factor is ignored if automatic_scaling is active. '''
+            scale is ignored if automatic_scaling is active. '''
         # Hide the configuration since changes would break the memoize algorithm. 
         self.__config__ = config
-        self.scaling_factor = scaling_factor
+        self.scale = scale
         self.automatic_scaling_factor = None
         self.plot = plot
         # Caching variables that store for which controls the last forward run was performed
@@ -183,11 +183,11 @@ class ReducedFunctional:
                 # Computing dj will set the automatic scaling factor. 
                 info_blue("Computing derivative to determine the automatic scaling factor")
                 dj = self.dj(m, forget=False)
-            info_green('Scaled j(' + m.__repr__() + ') = ' + str(self.automatic_scaling_factor * self.scaling_factor * j))
-            return j * self.scaling_factor * self.automatic_scaling_factor
+            info_green('Scaled j(' + m.__repr__() + ') = ' + str(self.automatic_scaling_factor * self.scale * j))
+            return j * self.scale * self.automatic_scaling_factor
         else:
-            info_green('Scaled j(' + m.__repr__() + ') = ' + str(self.scaling_factor * j))
-            return j * self.scaling_factor
+            info_green('Scaled j(' + m.__repr__() + ') = ' + str(self.scale * j))
+            return j * self.scale
 
     def dj(self, m, forget):
         ''' This memoised function returns the gradient of the functional for the parameter choice m. '''
@@ -213,16 +213,16 @@ class ReducedFunctional:
             if djl2 == 0:
                 raise ValueError, "Automatic scaling failed: The gradient at the parameter point is zero"
             else:
-                self.automatic_scaling_factor = abs(self.__config__.params['automatic_scaling_multiplier'] * max(self.__config__.params['turbine_x'], self.__config__.params['turbine_y']) / djl2 / self.scaling_factor)
-                info_blue("The automatic scaling factor was set to " + str(self.automatic_scaling_factor * self.scaling_factor) + ".")
+                self.automatic_scaling_factor = abs(self.__config__.params['automatic_scaling_multiplier'] * max(self.__config__.params['turbine_x'], self.__config__.params['turbine_y']) / djl2 / self.scale)
+                info_blue("The automatic scaling factor was set to " + str(self.automatic_scaling_factor * self.scale) + ".")
 
         info_blue('Runtime: ' + str(timer.stop())  + " s")
         if self.__config__.params['automatic_scaling']:
-            info_green('Scaled dj(' + m.__repr__() + ') = ' + str(self.automatic_scaling_factor * self.scaling_factor * dj))
-            return dj * self.scaling_factor * self.automatic_scaling_factor
+            info_green('Scaled dj(' + m.__repr__() + ') = ' + str(self.automatic_scaling_factor * self.scale * dj))
+            return dj * self.scale * self.automatic_scaling_factor
         else:
-            info_green('Scaled dj(' + m.__repr__() + ') = ' + str(self.scaling_factor * dj))
-            return dj * self.scaling_factor
+            info_green('Scaled dj(' + m.__repr__() + ') = ' + str(self.scale * dj))
+            return dj * self.scale
 
     def dj_with_check(self, m, seed = 0.1, tol = 1.8, forget = True):
         ''' This function checks the correctness and returns the gradient of the functional for the parameter choice m. '''
