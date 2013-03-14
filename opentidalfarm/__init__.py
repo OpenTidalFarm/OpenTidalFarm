@@ -25,7 +25,7 @@ from initial_conditions import SinusoidalInitialCondition, BumpInitialCondition
 from turbines import Turbines
 
 from dolfin import *
-from dolfin_adjoint import minimize, Function
+from dolfin_adjoint import minimize, maximize, Function
 
 # We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
 import numpy

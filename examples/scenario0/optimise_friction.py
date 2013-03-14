@@ -5,7 +5,7 @@ set_log_level(ERROR)
 basin_x = 640.
 basin_y = 320.
 
-config = ScenarioConfiguration("mesh.xml", inflow_direction = [1, 0])
+config = SteadyConfiguration("mesh.xml", inflow_direction = [1, 0])
 config.params['automatic_scaling'] = False
 
 # Place one turbine 

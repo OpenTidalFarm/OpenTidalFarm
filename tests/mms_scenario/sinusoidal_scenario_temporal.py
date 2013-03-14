@@ -41,7 +41,7 @@ def error(config):
 
 def test(refinement_level):
   # Set up the configuration
-  config = configuration.SinusoidalScenarioConfiguration("mesh_dummy.xml", [1, 0]) 
+  config = configuration.UnsteadyConfiguration("mesh_dummy.xml", [1, 0]) 
   config.set_domain( RectangularDomain(640., 320., nx = 2**8, ny = 2), warning = False)
 
   # Choose more appropriate timing settings for the mms test

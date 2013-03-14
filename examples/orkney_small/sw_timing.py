@@ -13,7 +13,7 @@ inflow_norm = (inflow_x**2 + inflow_y**2)**0.5
 inflow_direction = [inflow_x/inflow_norm, inflow_y/inflow_norm]
 print "inflow_direction: ", inflow_direction
 
-config = ScenarioConfiguration("mesh/earth_orkney_converted.xml", inflow_direction = inflow_direction) 
+config = SteadyConfiguration("mesh/earth_orkney_converted.xml", inflow_direction = inflow_direction) 
 config.set_site_dimensions(site_x_start, site_x_start + site_x, site_y_start, site_y_start + site_y)
 config.params['diffusion_coef'] = 90.0
 config.params["turbine_x"] = 40.

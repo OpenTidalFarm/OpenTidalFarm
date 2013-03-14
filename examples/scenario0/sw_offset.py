@@ -1,21 +1,25 @@
+''' Runs the forward model with a single turbine and prints some statistics '''
 from opentidalfarm import *
 set_log_level(ERROR)
 
 basin_x = 640.
 basin_y = 320.
 
-config = ScenarioConfiguration("mesh.xml", inflow_direction = [1, 0])
+config = SteadyConfiguration("mesh.xml", inflow_direction = [1, 0])
 # Switch of the automatic scaling, since we will not solve an optimisation problem
 config.params['automatic_scaling'] = False
 
 # Place one turbine 
 offset = 0.5
 turbine_pos = [[basin_x/3 + offset, basin_y/2 + offset]] 
+info_green("Turbine position: " + str(turbine_pos))
 config.set_turbine_pos(turbine_pos)
+
+config.info()
 
 model = ReducedFunctional(config)
 m = model.initial_control()
-j, state = model.run_forward_model_mem(m, return_final_state = True)
+j, state = model.compute_functional_mem(m, return_final_state = True)
 info_green("Extracted Power (MW): %f" % (j*10**-6))
 
 # Compute the Lanchester-Betz limit.
@@ -47,5 +51,5 @@ info_green("Inflow velocity u0: " + str(u0) + " m/s")
 info_green("Turbine velocity u1: " + str(u1) + " m/s")
 info_green("u1/u0: " + str(u1/u0) + " (Lanchester-Betz limit is reached at u1/u0 = 0.66666)")
 
-dj = model.dj(m)
+dj = model.dj(m, forget=True)
 info_green("Functional gradient: " + str(dj))

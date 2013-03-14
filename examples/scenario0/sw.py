@@ -5,7 +5,7 @@ set_log_level(ERROR)
 basin_x = 640.
 basin_y = 320.
 
-config = configuration.ScenarioConfiguration("mesh.xml", inflow_direction = [1, 0])
+config = SteadyConfiguration("mesh.xml", inflow_direction = [1, 0])
 config.params['automatic_scaling'] = False
 
 # Place one turbine 
@@ -18,7 +18,7 @@ config.info()
 
 model = ReducedFunctional(config)
 m = model.initial_control()
-j, state = model.run_forward_model_mem(m, return_final_state = True)
+j, state = model.compute_functional_mem(m, return_final_state = True)
 info_green("Extracted Power (MW): %f" % (j*10**-6))
 
 # Compute the Lanchester-Betz limit.
@@ -50,5 +50,5 @@ info_green("Inflow velocity u0: " + str(u0) + " m/s")
 info_green("Turbine velocity u1: " + str(u1) + " m/s")
 info_green("u1/u0: " + str(u1/u0) + " (Lanchester-Betz limit is reached at u1/u0 = 0.66666)")
 
-dj = model.dj(m)
+dj = model.dj(m, forget=True)
 info_green("Functional gradient: " + str(dj))

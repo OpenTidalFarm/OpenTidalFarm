@@ -29,7 +29,7 @@ def default_config():
     for y_r in numpy.linspace(0.+border, config.domain.basin_y-border, 10):
       turbine_pos.append((float(x_r), float(y_r)))
 
-  config.set_turbine_pos(turbine_pos)
+  config.set_turbine_pos(turbine_pos, friction=1.0)
   info_blue("Deployed " + str(len(turbine_pos)) + " turbines.")
 
   config.params["turbine_x"] = 190 # We overlap the turbines on purpose
