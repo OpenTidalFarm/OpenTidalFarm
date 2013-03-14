@@ -162,6 +162,7 @@ In such case you can try following things:
 * If you have the `-ffast-math -march=native` compiler flags active (see above), try switching them off. 
 * Use finer mesh in the turbine site area. The numerical errors of representing the turbines might be dominating the problem.
 * Use a looser optimisation tolerance, by passing the `tol` parameter to maximize function. 
+* If you are only optimising for the turbine friction and you do not use `automatic_scaling` parameter (which you should in this particular case), then you might have to scale your problem manually. This is done by passing a scale argument to maximize, e.g. `maximize(rf, scale=1e-3)`. Choose the scale value such that the first gradient is in the order of 1. 
 
 Contact 
 =======
