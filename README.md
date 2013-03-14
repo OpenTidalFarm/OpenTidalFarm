@@ -101,11 +101,13 @@ to see detailed information about the settings of that setup.
 Each configuration has a large of additional parameters that can be changed.
 
 For example to use Picard iterations instead of a Newton solver one would do:
+```python
 config.params["newton_solver"] = False 
+```
 
 Some of the more important parameters are:
 * "controls": Defines the control parameters that the optimisation algorithm may use. Possible choicees are the optimisation of the turbine positions and/or the friction of each individual turbine. Valid values: a list containing one or more of `['turbine_pos', 'turbine_friction']`.
-* "save_cehckpoints": Automatically save checkpoints to disk from which the optimisation can be restarted. Valid values: `True` or `False`
+* "save_checkpoints": Automatically save checkpoints to disk from which the optimisation can be restarted. Valid values: `True` or `False`
 * "turbine_x": The x-extension of each turbine.
 * "turbine_y": The y-extension of each turbine.
 
