@@ -112,8 +112,11 @@ class DefaultConfiguration(object):
             print "Finish time: %f s" % self.params["finish_time"]
         print "Number of mesh elements: %i" % self.domain.mesh.num_cells() 
         print "Mesh element size: %f - %f" % (hmin, hmax)
-        print "\n=== Simulation settings ==="
+        print "\n=== Optimisation settings ==="
+        print "Automatic functional rescaling: %s" % self.params["automatic_scaling"] 
+        print "Automatic functional rescaling multuplier: %s" % self.params["automatic_scaling_multiplier"] 
         print "Automatic checkpoint generation: %s" % self.params["save_checkpoints"] 
+        print ""
 
   def set_site_dimensions(self, site_x_start, site_x_end, site_y_start, site_y_end):
       if not site_x_start < site_x_end or not site_y_start < site_y_end:
