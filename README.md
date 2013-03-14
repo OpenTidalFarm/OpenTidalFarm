@@ -63,14 +63,14 @@ Experiments have shown that following options can yield significant speed up:
 ```python
 parameters['form_compiler']['cpp_optimize_flags'] = '-O3 -ffast-math -march=native'
 ```
-You can set these parameters directly after importing the opentidalfarm module.
+Add this line just before you call the maximize function. 
 
 However, be carefule that in some circumstances such aggressive optimisation might be problematic for the optimisation algorithms. If the optimisation algorithm returns errors saying that the gradient 
 
 ## Frequently asked questions ##
-### Optimisation stops with Error code 8 ###
-Sometimes, the optimisation algorithm stops early giving the error:
-```bash
+### Optimisation stops with Exit mode 8 ###
+Sometimes, the SLSQP optimisation algorithm stops early giving the error:
+```
 Positive directional derivative for linesearch    (Exit mode 8)
 ```
 In such case you can try following things:
