@@ -42,8 +42,45 @@ sudo python setup.py install
 
 Now you are ready to run one of the many examples in the `examples/` folder.
 
-Getting started tutorial
+Getting started 
 ========================
+Following example code shows how to optimise the position of 32 turbines in a mesh of the Orkney islands.
+```python
+from opentidalfarm import *
+
+config = SteadyConfiguration("mesh/earth_orkney_converted_coarse.xml", inflow_direction=[0.9865837220518425, -0.16325611591095968])
+config.params['diffusion_coef'] = 90.0
+config.params['turbine_x'] = 40.
+config.params['turbine_y'] = 40.
+
+# Some domain information extracted from the geo file.
+# This information is used to deploy the turbines autmatically.
+site_x = 1000.
+site_y = 500.
+site_x_start = 1.03068e+07
+site_y_start = 6.52246e+06 - site_y
+config.set_site_dimensions(site_x_start, site_x_start + site_x, site_y_start, site_y_start + site_y)
+
+# Place 32 turbines in a regular grid, each with a maximum friction coefficient of 10.5
+deploy_turbines(config, nx = 8, ny = 4, friction=10.5)
+
+# Define some constraints for the optimisation positions.
+# Constraint to keep the turbines within the site area 
+lb, ub = position_constraints(config)
+# Constraint to keep a minium distance of 1.5 turbine diameter between each turbine
+ineq = get_minimum_distance_constraint_func(config)
+
+# Solve the optimisation problem
+rf = ReducedFunctional(config, plot = True)
+maximize(rf, bounds = [lb, ub], constraints = ineq, method = "SLSQP")
+```
+
+This example can be found in the `examples/tutorial` directory and can be executed by running `make mesh && make`.
+
+The output files are:
+* turbine.pvd: The turbine positions at each optimisation step
+* p2p1_u.pvd: The velocity function for the most recent turbine position calculation. 
+* p2p1_p.pvd: The free-surface displacement function for the most recent turbine position calculation.
 
 Documentation
 =============
@@ -73,7 +110,7 @@ rf.load_checkpoint()
 where `rf` is the `ReducedFunctionalObject`.
 
 You will see that the optimisation starts from the beginning, however the optimisation iterations 
-until the checkpoint will happen instantely since the solutions are cachced in the checkpoint. 
+until the checkpoint will happen instantly since the solutions are cached in the checkpoint. 
 
 ### Compiler optimisations ###
 By default, OpenTidalFarm only uses the `-O3` compiler optimisation flag as a safe choice.
@@ -85,7 +122,7 @@ parameters['form_compiler']['cpp_optimize_flags'] = '-O3 -ffast-math -march=nati
 ```
 Add this line just before you call the maximize function. 
 
-However, be carefule that in some circumstances such aggressive optimisation might be problematic for the optimisation algorithms. If the optimisation algorithm returns errors saying that the gradient 
+However, note that in some circumstances such aggressive optimisation might be problematic for the optimisation algorithms. If the optimisation algorithm returns errors saying that the gradient 
 
 ## Frequently asked questions ##
 ### Optimisation stops with Exit mode 8 ###

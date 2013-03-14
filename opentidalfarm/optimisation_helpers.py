@@ -24,13 +24,13 @@ class  IPOptFunction(object):
     ''' The Jacobian of the constraint functions evaluated at x. '''
     return (numpy.array([]), numpy.array([]))
 
-def deploy_turbines(config, nx, ny):
+def deploy_turbines(config, nx, ny, friction=21.):
     ''' Generates an array of initial turbine positions with nx x ny turbines homonginuosly distributed over the site with the specified dimensions. '''
     turbine_pos = []
     for x_r in numpy.linspace(config.domain.site_x_start + 0.5*config.params["turbine_x"], config.domain.site_x_end - 0.5*config.params["turbine_y"], nx):
         for y_r in numpy.linspace(config.domain.site_y_start + 0.5*config.params["turbine_x"], config.domain.site_y_end - 0.5*config.params["turbine_y"], ny):
             turbine_pos.append((float(x_r), float(y_r)))
-    config.set_turbine_pos(turbine_pos)
+    config.set_turbine_pos(turbine_pos, friction)
     info_blue("Deployed " + str(len(turbine_pos)) + " turbines.")
     return turbine_pos
 
