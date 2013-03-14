@@ -3,6 +3,9 @@
 run: clean 
 	annotate-output mpirun -n 24 python sw.py > output.txt
 
+restart: clean 
+	annotate-output mpirun -n 24 python sw.py --from-checkpoint > output.txt
+
 mesh:	
 	cd mesh; make mesh
 
