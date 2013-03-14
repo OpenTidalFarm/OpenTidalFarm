@@ -38,9 +38,22 @@ The installation consists of following steps
 sudo python setup.py install
 ```
 
-   to install it.
+to install it. A simple test to check if the installation was correct is to open a Python shell and type:
+
+```python
+from opentidalfarm import *
+```
+
+If you get an error, make sure that you have set the `PYTHONPATH` correctly. In Linux, this can be done with:
+
+```bash
+export PYTHONPATH=/XYZ:$PYTHONPATH
+```
+where `XYZ` should be replaced with the path to your OpenTidalFarm installation. 
 
 Now you are ready to run one of the many examples in the `examples/` folder.
+
+
 
 Getting started 
 ========================
