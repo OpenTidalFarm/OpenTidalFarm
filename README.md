@@ -54,6 +54,30 @@ OpenTidalFarm expects the 3 the mesh to have three identifiers of the boundary m
  * ID 2: outflow boundary 
  * ID 3: shoreline boundary
 
+## Advanced options ##
+### Compiler optimisations ###
+By default, OpenTidalFarm only uses the '-O3' compiler optimisation flag as a safe choice.
+
+However, for large optimisations runs, one might want to use more aggressive compiler optimisation.
+Experiments have shown that following options can yield significant speed up:
+```python
+parameters['form_compiler']['cpp_optimize_flags'] = '-O3 -ffast-math -march=native'
+```
+You can set these parameters directly after importing the opentidalfarm module.
+
+However, be carefule that in some circumstances such aggressive optimisation might be problematic for the optimisation algorithms. If the optimisation algorithm returns errors saying that the gradient 
+
+## Frequently asked questions ##
+### Optimisation stops with Error code 8 ###
+Sometimes, the optimisation algorithm stops early giving the error:
+```bash
+Positive directional derivative for linesearch    (Exit mode 8)
+```
+In such case you can try following things:
+* If you have the "-ffast-math -march=native" compiler flags active (see above), try switching them off. 
+* Use finer mesh in the turbine site area. The numerical errors of representing the turbines might be dominating the problem.
+* Use a looser optimisation tolerance, by passing the "tol" parameter to maximize function. 
+
 Contact 
 =======
 <a id="contact"> </a>
