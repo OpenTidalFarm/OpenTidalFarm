@@ -13,18 +13,18 @@ inflow_norm = (inflow_x**2 + inflow_y**2)**0.5
 inflow_direction = [inflow_x/inflow_norm, inflow_y/inflow_norm]
 print "inflow_direction: ", inflow_direction
 
-config = SteadyConfiguration("mesh/earth_orkney_converted.xml", inflow_direction = inflow_direction) 
+config = SteadyConfiguration("../mesh/earth_orkney_converted.xml", inflow_direction = inflow_direction) 
 config.set_site_dimensions(site_x_start, site_x_start + site_x, site_y_start, site_y_start + site_y)
-config.params['diffusion_coef'] = 90.0
+config.params['diffusion_coef'] = 30.0
 config.params['save_checkpoints'] = True
 #config.params['linear_solver'] = 'superlu_dist' 
+config.info()
 
 # Place some turbines 
 deploy_turbines(config, nx = 16, ny = 8)
 config.params["turbine_friction"] = 0.5*numpy.array(config.params["turbine_friction"]) 
 
 rf = ReducedFunctional(config)
-m0 = rf.initial_control()
 
 # Load checkpoints if desired by the user
 if len(sys.argv) > 1 and sys.argv[1] == "--from-checkpoint":

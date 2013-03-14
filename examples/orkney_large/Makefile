@@ -1,16 +1,10 @@
 .PHONY: mesh 
 
-run: clean 
-	annotate-output mpirun -n 12 python sw.py > output.txt
-
 mesh:	
 	cd mesh; make mesh
-
-clean:
-	rm -f *vtu
-	rm -f *pvd
-	rm -f output.txt
-	rm -f *.html
+	@echo "*************************************************************"
+	@echo "Now go to one of the subdirectories to start the optimisation"
+	@echo "*************************************************************"
 
 clean_mesh:
 	rm -f *.xml
