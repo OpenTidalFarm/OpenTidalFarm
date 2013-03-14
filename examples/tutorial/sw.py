@@ -4,6 +4,7 @@ config = SteadyConfiguration("mesh/earth_orkney_converted_coarse.xml", inflow_di
 config.params['diffusion_coef'] = 90.0
 config.params['turbine_x'] = 40.
 config.params['turbine_y'] = 40.
+config.params['controls'] = ['turbine_pos']
 
 # Some domain information extracted from the geo file.
 # This information is used to deploy the turbines autmatically.

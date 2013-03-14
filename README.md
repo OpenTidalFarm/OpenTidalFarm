@@ -52,6 +52,7 @@ config = SteadyConfiguration("mesh/earth_orkney_converted_coarse.xml", inflow_di
 config.params['diffusion_coef'] = 90.0
 config.params['turbine_x'] = 40.
 config.params['turbine_y'] = 40.
+config.params['controls'] = ['turbine_pos']
 
 # Some domain information extracted from the geo file.
 # This information is used to deploy the turbines autmatically.
@@ -84,6 +85,31 @@ The output files are:
 
 Documentation
 =============
+## Configurations ##
+OpenTidalFarm is based on configurations for defining different setups.
+The most important configurations are
+* `StadyConfiguration`: Use this configuration for steady state simulations.
+* `UnstadyConfiguration`: Use this configuration for steady state simulations.
+
+Once you have a configuration object, try running
+```python
+config.info()
+```
+to see detailed information about the settings of that setup. 
+
+## Options ##
+Each configuration has a large of additional parameters that can be changed.
+
+For example to use Picard iterations instead of a Newton solver one would do:
+config.params["newton_solver"] = False 
+
+Some of the more important parameters are:
+* "controls": Defines the control parameters that the optimisation algorithm may use. Possible choicees are the optimisation of the turbine positions and/or the friction of each individual turbine. Valid values: a list containing one or more of `['turbine_pos', 'turbine_friction']`.
+* "save_cehckpoints": Automatically save checkpoints to disk from which the optimisation can be restarted. Valid values: `True` or `False`
+* "turbine_x": The x-extension of each turbine.
+* "turbine_y": The y-extension of each turbine.
+
+Again, use `config.info()` to list the current configuration setup.
 
 ## Mesh boundary IDs ##
 OpenTidalFarm expects the 3 the mesh to have three identifiers of the boundary mesh:
