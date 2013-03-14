@@ -38,8 +38,14 @@ config.info()
 
 rf = ReducedFunctional(config, forward_model = mini_model.mini_model_solve)
 
-if len(sys.argv) > 1 and sys.argv[1] == "--from-checkpoint":
+if "--from-checkpoint" in sys.argv:
   rf.load_checkpoint()
 
+if "--high-tol" in sys.argv:
+ maxiter = 20 
+else:
+ maxiter = 2 
+
+
 bounds = [0, 100]
-m = maximize(rf, bounds = bounds, method = "SLSQP", scale=1e-3) 
+m = maximize(rf, bounds=bounds, method="SLSQP", scale=1e-3, options={'maxiter': maxiter}) 
