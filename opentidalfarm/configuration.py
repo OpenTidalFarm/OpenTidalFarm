@@ -160,7 +160,7 @@ class SteadyConfiguration(DefaultConfiguration):
 
         # Finally set some DOLFIN optimisation flags 
         dolfin.parameters['form_compiler']['cpp_optimize'] = True
-        dolfin.parameters['form_compiler']['cpp_optimize_flags'] = '-O3 -ffast-math -march=native'
+        dolfin.parameters['form_compiler']['cpp_optimize_flags'] = '-O3'
         dolfin.parameters['form_compiler']['optimize'] = True
 
 class UnsteadyConfiguration(SteadyConfiguration):
