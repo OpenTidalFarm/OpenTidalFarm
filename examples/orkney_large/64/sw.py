@@ -1,4 +1,5 @@
 from opentidalfarm import *
+import sys
 set_log_level(PROGRESS)
 
 # Some domain information extracted from the geo file

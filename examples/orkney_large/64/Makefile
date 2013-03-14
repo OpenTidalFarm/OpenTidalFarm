@@ -1,7 +1,7 @@
 .PHONY: mesh 
 
 run: clean 
-	annotate-output mpirun -n 12 python sw.py > output.txt
+	annotate-output mpirun -n 24 python sw.py > output.txt
 
 mesh:	
 	cd mesh; make mesh
