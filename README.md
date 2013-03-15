@@ -120,9 +120,10 @@ config.params["newton_solver"] = False
 
 Some of the more important parameters are:
 * "controls": Defines the control parameters that the optimisation algorithm may use. Possible choicees are the optimisation of the turbine positions and/or the friction of each individual turbine. Valid values: a list containing one or more of `['turbine_pos', 'turbine_friction']`.
-* "save_checkpoints": Automatically save checkpoints to disk from which the optimisation can be restarted. Valid values: `True` or `False`
+* "save_checkpoints": Automatically save checkpoints to disk from which the optimisation can be restarted. Valid values: `True` or `False`.
 * "turbine_x": The x-extension of each turbine.
 * "turbine_y": The y-extension of each turbine.
+* "print_individual_turbine_power": Also output the energy production for each individual turbine. Valid values: `True` or `False`.
 
 Again, use `config.info()` to list the current configuration setup.
 
