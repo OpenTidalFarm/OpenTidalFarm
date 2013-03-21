@@ -11,7 +11,7 @@ site_y = 160
 
 site_x_start = basin_x - land_x
 site_y_start = land_y + land_site_delta 
-config = SteadyConfiguration("mesh.xml", inflow_direction = [0,1])
+config = SteadyConfiguration("mesh.xml", inflow_direction = [0, 1])
 config.set_site_dimensions(site_x_start, site_x_start + site_x, site_y_start, site_y_start + site_y)
 
 # Place some turbines 
@@ -20,8 +20,7 @@ deploy_turbines(config, nx = 8, ny = 4)
 config.info()
 
 rf = ReducedFunctional(config, plot = True)
-m0 = rf.initial_control()
 
 lb, ub = position_constraints(config) 
 ineq = get_minimum_distance_constraint_func(config)
-maximize(rf, bounds = [lb, ub], constraints = ineq, method = "SLSQP")
+maximize(rf, bounds = [lb, ub], constraints = ineq, method = "SLSQP", options = {"maxiter": 200})

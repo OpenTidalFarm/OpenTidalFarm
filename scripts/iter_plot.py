@@ -35,7 +35,8 @@ for line in f:
 	    print line,
     # The sqp iterations output are characteristic as they consists of four numers and do not have any commas in the output
     elif "," not in line:
-	m = re.match(r"\s+ ([0-9]+) \s+ ([0-9]+) \s+ ([0-9|\.|E\+\-]+) \s+ ([0-9|\.|E\+\-]+)", line)
+	m = re.match(r".* ([0-9]+) \s+ ([0-9]+) \s+ ([0-9|\.|E\+\-]+) \s+ ([0-9|\.|E\+\-]+)", line) # Find the SLSQP lines, mainly by counting the the spaces between the numbesr
+	# re.match(r"\s+ ([0-9]+) \s+ ([0-9]+) \s+ ([0-9|\.|E\+\-]+) \s+ ([0-9|\.|E\+\-]+)", line)
         try:
 	    if len(it) == 0 or it[-1] != int(m.group(1)):
 		it.append(int(m.group(1)))
@@ -47,23 +48,6 @@ for line in f:
         except Exception as e:
 	    pass
 f.close()
-
-finish_iteration = -1
-for i in range(len(it)):
-    print it[i], ": ", func[i],
-    if i > 1:
-	rel_change = abs(func[i]-func[i-1])/func[i]
-	print "\t(relative change: ", rel_change , ", functional evaluations: ", func_evals[i], ")"
-	if rel_change < 1e-7:
-	    finish_iteration = i+1
-	    break
-    else:
-	print ""
-
-if finish_iteration > -1:
-    print "Optimisation finised succesfully after %s iterations." % finish_iteration
-it = it[:finish_iteration]
-func = func[:finish_iteration]
 
 print "Power output of initial layout: ", func[0]
 print "Power output of initial layout: ", func[-1]
@@ -80,7 +64,7 @@ plt.plot(it, func, color = 'black')
 #plt.axis([0, times[-1], -2.5, 2.5])
 #plt.xticks(numpy.arange(0, times[-1]+1, 5))
 #plt.yticks(numpy.arange(14, basin_x_total/1000, 2))
-plt.ylabel(r"$J$, scaled by $10^{-6}$")
-plt.xlabel(r"Iteration")
+plt.ylabel(r"$J$ in MW")
+plt.xlabel(r"Optimisation iteration")
 plt.savefig(filename)
 plt.close()
