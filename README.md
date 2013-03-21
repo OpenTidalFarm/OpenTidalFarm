@@ -30,7 +30,7 @@ Citing
 ======
 Please cite the following paper if you are using OpenTidalFarm:
 
-S.W. Funke, P.E. Funke, M.D. Piggott, Tidal turbine array optimisation using the adjoint approach, in preparation (2013)
+S.W. Funke, P.E. Farrell, M.D. Piggott, Tidal turbine array optimisation using the adjoint approach, in preparation (2013)
 
 
 Installation
