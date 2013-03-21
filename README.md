@@ -6,6 +6,12 @@ The positioning of the turbines in a tidal farm is a crucial decision. Simulatio
  
 However, finding the optimal layout is a difficult process due to the complex flow interactions. OpenTidalFarm solves this problem by applying an efficient optimisation algorithm onto a accurate flow prediction model.
 
+Example
+========
+The following video demonstrates how OpenTidalFarm optimises 32 turbines in an idealised tidal stream.
+[Youtube link](http://www.youtube.com/embed/ng3bbso-vGk)
+</iframe>
+
 Features 
 ========
 * High resolution shallow water model for accurate flow prediction.
@@ -15,11 +21,17 @@ Features
 * Optimisation of up to hundreds of turbines.
 * Checkpoint support to restart optimisation.
  
-Example
-========
-The following video demonstrates how OpenTidalFarm optimises 32 turbines in an idealised tidal stream.
-[Youtube link](http://www.youtube.com/embed/ng3bbso-vGk)
-</iframe>
+Contact 
+=======
+<a id="contact"> </a>
+For questions and support please contact Simon Funke <s.funke09@imperial.ac.uk>.
+
+Citing
+======
+Please cite the following paper if you are using OpenTidalFarm:
+
+S.W. Funke, P.E. Funke, M.D. Piggott, Tidal turbine array optimisation using the adjoint approach, in preparation (2013)
+
 
 Installation
 ============
@@ -177,11 +189,6 @@ In such case you can try following things:
 * Use finer mesh in the turbine site area. The numerical errors of representing the turbines might be dominating the problem.
 * Use a looser optimisation tolerance, by passing the `tol` parameter to maximize function. 
 * If you are only optimising for the turbine friction and you do not use `automatic_scaling` parameter (which you should in this particular case), then you might have to scale your problem manually. This is done by passing a scale argument to maximize, e.g. `maximize(rf, scale=1e-3)`. Choose the scale value such that the first gradient is in the order of 1. 
-
-Contact 
-=======
-<a id="contact"> </a>
-For questions and support please contact Simon W. Funke <s.funke09@imperial.ac.uk>.
 
 Licence
 =======
