@@ -30,7 +30,9 @@ def j_and_dj(m, forward_only = None):
 
   # Get initial conditions
   state = Function(config.function_space, name = "current_state")
-  state.interpolate(SinusoidalInitialCondition(config)())
+  eta0 = 2.0
+  k = pi/config.domain.basin_x
+  state.interpolate(SinusoidalInitialCondition(config, eta0, k, config.params["depth"]))
 
   # Set the control values
   U = config.function_space.split()[0].sub(0) # Extract the first component of the velocity function space 
