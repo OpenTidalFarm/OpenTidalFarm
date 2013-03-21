@@ -14,7 +14,7 @@ inflow_norm = (inflow_x**2 + inflow_y**2)**0.5
 inflow_direction = [inflow_x/inflow_norm, inflow_y/inflow_norm]
 print "inflow_direction: ", inflow_direction
 
-config = SteadyConfiguration("../mesh/earth_orkney_converted_coarse.xml", inflow_direction = inflow_direction) 
+config = SteadyConfiguration("../mesh/earth_orkney_converted.xml", inflow_direction = inflow_direction) 
 config.set_site_dimensions(site_x_start, site_x_start + site_x, site_y_start, site_y_start + site_y)
 config.params['diffusion_coef'] = 30.0
 config.params['save_checkpoints'] = True
@@ -36,4 +36,4 @@ lb, ub = position_constraints(config)
 ineq = get_minimum_distance_constraint_func(config)
 
 parameters['form_compiler']['cpp_optimize_flags'] = '-O3 -ffast-math -march=native'
-maximize(rf, bounds = [lb, ub], constraints = ineq, method = "SLSQP") 
+maximize(rf, bounds = [lb, ub], constraints = ineq, method = "SLSQP", options = {"maxiter": 300}) 
