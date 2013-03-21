@@ -23,9 +23,9 @@ def default_config():
   config.params["turbine_x"] = 800
   config.params["turbine_y"] = 800
   config.params["controls"] = ['turbine_pos']
-  config.params["initial_condition"] = BumpInitialCondition
+  config.params["initial_condition"] = BumpInitialCondition(config)
   config.params["automatic_scaling"] = True
-
+  
   return config
 
 config = default_config()
