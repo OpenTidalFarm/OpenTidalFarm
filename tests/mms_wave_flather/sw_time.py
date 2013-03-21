@@ -7,9 +7,9 @@ from math import log
 set_log_level(PROGRESS)
 parameters["std_out_all_processes"] = False;
 
-def error(config):
+def error(config, eta0, k):
   state = Function(config.function_space)
-  state.interpolate(SinusoidalInitialCondition(config)())
+  state.interpolate(SinusoidalInitialCondition(config, eta0, k, config.params["depth"]))
 
   adj_reset()
   shallow_water_model.sw_solve(config, state, annotate=False)
@@ -26,12 +26,14 @@ def error(config):
 
 def test(refinment_level):
   config = DefaultConfiguration(nx=2**8, ny=2, finite_element = finite_elements.p1dgp2) 
-  config.params["finish_time"] = pi/(sqrt(config.params["g"]*config.params["depth"])*config.params["k"])
+  eta0 = 2.0
+  k = pi/config.domain.basin_x
+  config.params["finish_time"] = pi/(sqrt(config.params["g"]*config.params["depth"])*k)
   config.params["dt"] = config.params["finish_time"]/(2*2**refinment_level)
   config.params["theta"] = 0.5
   config.params["dump_period"]=100000
 
-  return error(config)
+  return error(config, eta0, k)
 
 errors = []
 tests = 6

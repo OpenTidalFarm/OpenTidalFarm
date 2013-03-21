@@ -2,28 +2,25 @@ from math import exp
 from dolfin import *
 from helpers import info, info_green, info_red, info_blue
 
-def SinusoidalInitialCondition(config):
+def SinusoidalInitialCondition(config, eta0, k, depth):
+    """Returns an expression that can be used as initial condition for a channel
+    with a sinusoidal forcing"""
     params = config.params
-    if params['steady_state']:
-        raise ValueError, 'Can not apply the time dependent sinusoidal initial condition for a steady state simulation.'
-
+    
     class SinusoidalExpr(Expression):
         '''This class implements the Expression class for the shallow water initial condition.'''
         def __init__(self):
             pass
         def eval(self, values, X):
-            eta0 = params['eta0']
-            g = params['g']
-            k = params['k']
-            depth = params['depth']
             start_time = params["start_time"]
+            g = params["g"]
 
             values[0] = eta0 * sqrt(g / depth) * cos(k * X[0] - sqrt(g * depth) * k * start_time)
             values[1] = 0.
             values[2] = eta0 * cos(k * X[0] - sqrt(g * depth) * k * start_time)
         def value_shape(self):
             return (3,)
-    return SinusoidalExpr
+    return SinusoidalExpr()
 
 def BumpInitialCondition(config):
     params = config.params
@@ -57,7 +54,7 @@ def BumpInitialCondition(config):
       def value_shape(self):
         return (3,)
 
-    return BumpExpr
+    return BumpExpr()
 
 def ConstantFlowInitialCondition(config):
     class ConstantFlow(Expression):
@@ -68,4 +65,4 @@ def ConstantFlowInitialCondition(config):
         def value_shape(self):
             return (3,)
 
-    return ConstantFlow 
+    return ConstantFlow()
