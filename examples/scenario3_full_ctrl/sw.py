@@ -11,7 +11,7 @@ site_y = 160
 
 site_x_start = basin_x - land_x
 site_y_start = land_y + land_site_delta 
-config = SteadyConfiguration("mesh.xml", inflow_direction = [0,1])
+config = SteadyConfiguration("mesh.xml", inflow_direction = [0, 1])
 config.set_site_dimensions(site_x_start, site_x_start + site_x, site_y_start, site_y_start + site_y)
 config.params["controls"] = ["turbine_friction", "turbine_pos"]
 
@@ -29,4 +29,4 @@ bounds = [lb_f + lb, ub_f + ub]
 
 ineq = get_minimum_distance_constraint_func(config)
 
-maximize(rf, bounds = bounds, constraints = ineq, method = "SLSQP") 
+maximize(rf, bounds = bounds, constraints = ineq, method = "SLSQP", options = {"maxiter": 200}) 

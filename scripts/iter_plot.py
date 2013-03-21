@@ -35,7 +35,8 @@ for line in f:
 	    print line,
     # The sqp iterations output are characteristic as they consists of four numers and do not have any commas in the output
     elif "," not in line:
-	m = re.match(r"\s+ ([0-9]+) \s+ ([0-9]+) \s+ ([0-9|\.|E\+\-]+) \s+ ([0-9|\.|E\+\-]+)", line)
+	m = re.match(r".* ([0-9]+) \s+ ([0-9]+) \s+ ([0-9|\.|E\+\-]+) \s+ ([0-9|\.|E\+\-]+)", line) # Find the SLSQP lines, mainly by counting the the spaces between the numbesr
+	# re.match(r"\s+ ([0-9]+) \s+ ([0-9]+) \s+ ([0-9|\.|E\+\-]+) \s+ ([0-9|\.|E\+\-]+)", line)
         try:
 	    if len(it) == 0 or it[-1] != int(m.group(1)):
 		it.append(int(m.group(1)))
