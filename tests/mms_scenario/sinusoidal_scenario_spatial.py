@@ -7,9 +7,9 @@ import math
 set_log_level(ERROR)
 parameters["std_out_all_processes"] = False;
 
-def error(config):
+def error(config, eta0, k):
   state = Function(config.function_space)
-  state.interpolate(SinusoidalInitialCondition(config)())
+  state.interpolate(SinusoidalInitialCondition(config,eta0,k,config.params["depth"]))
   u_exact = "eta0*sqrt(g/depth) * cos(k*x[0]-sqrt(g*depth)*k*t)" 
   du_exact = "(- eta0*sqrt(g/depth) * sin(k*x[0]-sqrt(g*depth)*k*t) * k)"
   ddu_exact = "(diffusion_coef * eta0*sqrt(g/depth) * cos(k*x[0]-sqrt(g*depth)*k*t) * k*k)"
@@ -18,10 +18,9 @@ def error(config):
   # The source term
   source = Expression((u_exact + " * " + du_exact + " + " + ddu_exact + " + " + friction, 
                              "0.0"), \
-                             eta0 = config.params["eta0"], g = config.params["g"], \
+                             eta0 = eta0, g = config.params["g"], \
                              depth = config.params["depth"], t = config.params["current_time"], \
-                             k = config.params["k"],  
-                             diffusion_coef = config.params["diffusion_coef"],
+                             k = k,  diffusion_coef = config.params["diffusion_coef"],
                              friction = config.params["friction"])
 
   adj_reset()
@@ -30,8 +29,8 @@ def error(config):
   analytic_sol = Expression((u_exact, \
                              "0", \
                              eta_exact), \
-                             eta0=config.params["eta0"], g=config.params["g"], \
-                             depth=config.params["depth"], t=config.params["current_time"], k=config.params["k"])
+                             eta0=eta0, g=config.params["g"], \
+                             depth=config.params["depth"], t=config.params["current_time"], k=k)
   exactstate = Function(config.function_space)
   exactstate.interpolate(analytic_sol)
   e = state - exactstate
@@ -45,24 +44,24 @@ def test(refinement_level):
   config.set_domain( RectangularDomain(640., 320., nx = 2*2**refinement_level, ny = 2*2**refinement_level), warning = False)
 
   # Choose more appropriate timing settings for the mms test
-  config.params["k"] = pi/config.domain.basin_x
-  config.params["start_time"] = 0
-  config.params["finish_time"] = pi/(sqrt(config.params["g"]*config.params["depth"])*config.params["k"])/10
-  config.params["dt"] = config.params["finish_time"]/300
+  k = pi/config.domain.basin_x
+  config.params["start_time"] = 0.0
+  config.params["finish_time"] = pi/(sqrt(config.params["g"]*config.params["depth"])*k)/10.0
+  config.params["dt"] = config.params["finish_time"]/300.0
 
   # Make sure that we apply the analytical boundary conditions
-  config.params['initial_condition'] = SinusoidalInitialCondition 
+  eta0 = 2.0
+  config.params['initial_condition'] = SinusoidalInitialCondition(config, eta0, k, config.params['depth'])
   config.params["dump_period"] = 100000
-  config.params["eta0"] = 2.
   config.params["bctype"] = "strong_dirichlet"
-  expression = Expression(("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0"), eta0 = config.params["eta0"], g = config.params["g"], depth = config.params["depth"], t = config.params["current_time"], k = config.params["k"])
+  expression = Expression(("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0"), eta0 = eta0, g = config.params["g"], depth = config.params["depth"], t = config.params["current_time"], k = k)
   bc = DirichletBCSet(config)
   bc.add_analytic_u(1, expression)
   bc.add_analytic_u(2, expression)
   bc.add_analytic_u(3, expression)
   config.params['strong_bc'] = bc
 
-  return config.domain.mesh.hmax(), error(config)
+  return config.domain.mesh.hmax(), error(config, eta0, k)
 
 errors = []
 element_sizes = []

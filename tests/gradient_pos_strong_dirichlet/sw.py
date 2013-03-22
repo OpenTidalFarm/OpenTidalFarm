@@ -6,7 +6,7 @@ set_log_level(PROGRESS)
 def default_config():
   config = configuration.DefaultConfiguration(nx=30, ny=10)
   period = 1.24*60*60 # Wave period
-  config.params["k"] = 2*pi/(period*sqrt(config.params["g"]*config.params["depth"]))
+  k = 2*pi/(period*sqrt(config.params["g"]*config.params["depth"]))
   info("Wave period (in h): %f" % (period/60/60) )
   config.params["dump_period"] = 10000
   config.params["verbose"] = 0

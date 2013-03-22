@@ -22,7 +22,7 @@ class DefaultConfiguration(object):
         'theta' : 0.6,
         'steady_state' : False,
         'functional_final_time_only' : False,
-        'initial_condition' : SinusoidalInitialCondition, 
+        'initial_condition' : None, 
         'bctype'  : 'flather',
         'strong_bc' : None,
         'free_slip_on_sides' : False,
@@ -133,7 +133,7 @@ class SteadyConfiguration(DefaultConfiguration):
         # Model settings
         self.set_domain(GMeshDomain(mesh_file), warning = False)
         self.params['steady_state'] = True
-        self.params['initial_condition'] = ConstantFlowInitialCondition 
+        self.params['initial_condition'] = ConstantFlowInitialCondition(self) 
         self.params['include_advection'] = True
         self.params['include_diffusion'] = True
         self.params['diffusion_coef'] = 3.0
@@ -167,7 +167,7 @@ class SteadyConfiguration(DefaultConfiguration):
         dolfin.parameters['form_compiler']['optimize'] = True
 
 class UnsteadyConfiguration(SteadyConfiguration):
-    def __init__(self, mesh_file, inflow_direction, finite_element = finite_elements.p2p1, period = 12.*60*60):
+    def __init__(self, mesh_file, inflow_direction, finite_element = finite_elements.p2p1, period = 12.*60*60, eta0=2.0):
         super(UnsteadyConfiguration, self).__init__(mesh_file, inflow_direction, finite_element)
 
         # Switch to the unsteady shallow water equations
@@ -175,18 +175,20 @@ class UnsteadyConfiguration(SteadyConfiguration):
         self.params['functional_final_time_only'] = False
 
         # Timing settings
-        self.period = period 
-        self.params['k'] = 2*pi/(self.period*sqrt(self.params['g']*self.params['depth']))
         self.params['theta'] = 1.0
-        self.params['start_time'] = 1./4*self.period
-        self.params['dt'] = self.period/50
-        self.params['finish_time'] = 5./4*self.period
-        info('Wave period (in h): %f' % (self.period/60/60) )
+        self.params['start_time'] = 1./4*period
+        self.params['dt'] = period/50
+        self.params['finish_time'] = 5./4*period
+
+        # Initial condition
+        k = 2*pi/(period*sqrt(self.params['g']*self.params['depth']))
+        info('Wave period (in h): %f' % (period/60/60) )
         info('Approximate CFL number (assuming a velocity of 2): ' + str(2*self.params['dt']/self.domain.mesh.hmin()))
+        self.params['initial_condition'] = SinusoidalInitialCondition(self, eta0, k, self.params['depth'])
 
         # Boundary conditions
         bc = DirichletBCSet(self)
-        expression = Expression(("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0"), eta0 = self.params["eta0"], g = self.params["g"], depth = self.params["depth"], t = self.params["current_time"], k = self.params["k"])
+        expression = Expression(("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0"), eta0 = eta0, g = self.params["g"], depth = self.params["depth"], t = self.params["current_time"], k = k)
         bc.add_analytic_u(1, expression)
         bc.add_analytic_u(2, expression)
         bc.add_noslip_u(3)
