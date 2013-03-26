@@ -115,7 +115,7 @@ class DefaultConfiguration(object):
         print "Mesh element size: %f - %f" % (hmin, hmax)
         print "\n=== Optimisation settings ==="
         print "Automatic functional rescaling: %s" % self.params["automatic_scaling"] 
-        print "Automatic functional rescaling multuplier: %s" % self.params["automatic_scaling_multiplier"] 
+        print "Automatic functional rescaling multiplier: %s" % self.params["automatic_scaling_multiplier"] 
         print "Automatic checkpoint generation: %s" % self.params["save_checkpoints"] 
         print ""
 
