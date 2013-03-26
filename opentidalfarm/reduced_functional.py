@@ -13,6 +13,19 @@ from numpy.linalg import norm
 from helpers import info, info_green, info_red, info_blue
     
 class ReducedFunctional:
+    
+    def update_turbine_cache(self, m):
+        shift = 0
+        if 'turbine_friction' in self.__config__.params['controls']: 
+            shift = len(self.__config__.params["turbine_friction"])
+            config.params["turbine_friction"] = m[:shift]
+        if 'turbine_pos' in self.__config__.params['controls']: 
+            mp = m[shift:]
+            self.__config__.params["turbine_pos"] = numpy.reshape(mp, (-1, 2))
+        
+        # Set up the turbine field 
+        self.__config__.turbine_cache.update(self.__config__)
+
     def __init__(self, config, scale = 1.0, forward_model = sw_model.sw_solve, plot = False):
         ''' If plot is True, the functional values will be automatically saved in a plot.
             scale is ignored if automatic_scaling is active. '''
@@ -42,19 +55,10 @@ class ReducedFunctional:
 
         def compute_functional(m, return_final_state = False):
             ''' Takes in the turbine positions/frictions values and computes the resulting functional of interest. '''
-            # Change the control variables to the config parameters
-            shift = 0
-            if 'turbine_friction' in config.params['controls']: 
-                shift = len(config.params["turbine_friction"])
-                config.params["turbine_friction"] = m[:shift]
-            if 'turbine_pos' in config.params['controls']: 
-                mp = m[shift:]
-                config.params["turbine_pos"] = numpy.reshape(mp, (-1, 2))
 
             self.last_m = m
 
-            # Set up the turbine field 
-            config.turbine_cache.update(config)
+            self.update_turbine_cache(m)
             tf = config.turbine_cache.cache["turbine_field"]
             #info_green("Turbine integral: %f ", assemble(tf*dx))
             #info_green("The correct integral should be: %f ",  25.2771) # computed with wolfram alpha using:
@@ -96,11 +100,6 @@ class ReducedFunctional:
             # and we do not have to rerun the forward model.
             if numpy.any(m != self.last_m):
                 compute_functional(m)
-
-            # We assume that at the gradient is computed if and only if at the beginning of each new optimisation iteration.
-            # Hence, let this is the right moment to store the turbine friction field. 
-            if self.__config__.params["dump_period"] > 0:
-                self.turbine_file << config.turbine_cache.cache["turbine_field"] 
 
             state = self.last_state
 
@@ -197,6 +196,15 @@ class ReducedFunctional:
         info_green('Start evaluation of dj')
         timer = dolfin.Timer("dj evaluation") 
         dj = self.compute_gradient_mem(m, forget)
+
+        # We assume that at the gradient is computed if and only if at the beginning of each new optimisation iteration.
+        # Hence, let this is the right moment to store the turbine friction field. 
+        if self.__config__.params["dump_period"] > 0:
+            # A cache hit skipps the turbine cach update, so we need 
+            # trigger it manually.
+            if self.compute_gradient_mem.has_cache(m, forget):
+                self.update_turbine_cache(m)
+            self.turbine_file << self.__config__.turbine_cache.cache["turbine_field"] 
 
         if self.__config__.params["save_checkpoints"]:
             self.save_checkpoint("checkpoint")
