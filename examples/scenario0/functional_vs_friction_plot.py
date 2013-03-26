@@ -40,6 +40,6 @@ if MPI.process_number() == 0:
   plt.gcf().subplots_adjust(bottom=0.15)
   plt.plot(f, P, color = "black")
   plt.ylabel('Power output [MW]')
-  plt.xlabel('Turbine coefficient')
+  plt.xlabel('Friction coefficient K')
   plt.yticks(numpy.arange(0, 2.5, 0.5))
   plt.savefig('turbine_friction_vs_power.pdf')
