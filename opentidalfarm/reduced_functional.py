@@ -18,7 +18,7 @@ class ReducedFunctional:
         shift = 0
         if 'turbine_friction' in self.__config__.params['controls']: 
             shift = len(self.__config__.params["turbine_friction"])
-            config.params["turbine_friction"] = m[:shift]
+            self.__config__.params["turbine_friction"] = m[:shift]
         if 'turbine_pos' in self.__config__.params['controls']: 
             mp = m[shift:]
             self.__config__.params["turbine_pos"] = numpy.reshape(mp, (-1, 2))

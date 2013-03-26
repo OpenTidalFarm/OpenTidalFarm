@@ -1,6 +1,6 @@
 from opentidalfarm import *
 import sys
-set_log_level(PROGRESS)
+set_log_level(DEBUG)
 
 # Some domain information extracted from the geo file
 site_x = 2000.
@@ -14,7 +14,7 @@ inflow_norm = (inflow_x**2 + inflow_y**2)**0.5
 inflow_direction = [inflow_x/inflow_norm, inflow_y/inflow_norm]
 print "inflow_direction: ", inflow_direction
 
-config = SteadyConfiguration("../mesh/earth_orkney_converted.xml", inflow_direction = inflow_direction) 
+config = SteadyConfiguration("../mesh/earth_orkney_converted_coarse.xml", inflow_direction = inflow_direction) 
 config.set_site_dimensions(site_x_start, site_x_start + site_x, site_y_start, site_y_start + site_y)
 config.params['diffusion_coef'] = 30.0
 config.params['save_checkpoints'] = True

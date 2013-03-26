@@ -13,7 +13,7 @@
 
 import sys
 from opentidalfarm import *
-set_log_level(PROGRESS)
+set_log_level(DEBUG)
 
 def default_config():
   config = configuration.DefaultConfiguration(nx=20, ny=10, finite_element = finite_elements.p1dgp2)
