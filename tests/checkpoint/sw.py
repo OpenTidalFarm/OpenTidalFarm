@@ -30,6 +30,9 @@ def default_config():
   config.params['controls'] = ['turbine_friction']
   config.params["functional_final_time_only"] = True
 
+  k = pi/config.domain.basin_x
+  config.params['initial_condition'] = SinusoidalInitialCondition(config, 2.0, k, config.params['depth'])
+
   return config
 
 config = default_config()
