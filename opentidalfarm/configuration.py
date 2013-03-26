@@ -53,7 +53,7 @@ class DefaultConfiguration(object):
         'finish_time': 100.,
         'automatic_scaling': False,
         'automatic_scaling_multiplier': 5,
-   		'print_individual_turbine_power': False,
+   		'output_turbine_power': True,
    		'save_checkpoints': False
         })
 

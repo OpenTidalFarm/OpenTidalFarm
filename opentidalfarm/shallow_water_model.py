@@ -216,16 +216,10 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
     if functional is not None:
         if steady_state or functional_final_time_only:
             j = 0.
-            if params["print_individual_turbine_power"]:
-	        j_individual = [0] * len(params["turbine_pos"])
 
         else:
             quad = 0.5
             j =  dt * quad * assemble(functional.Jt(state)) 
-            if params["print_individual_turbine_power"]:
-                j_individual = []
-                for i in range(len(params["turbine_pos"])):
-	            j_individual.append(dt * quad * assemble(functional.Jt_individual(state, i))) 
               
     info_green("Starting time loop...")
     adjointer.time.start(t)
@@ -319,19 +313,12 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
                     quad = 1.0 * dt 
 
                 j += quad * assemble(functional.Jt(state)) 
-                if params["print_individual_turbine_power"]:
-                    info_green("Computing individual turbine power extaction contribution...")
-                    for i in range(len(params["turbine_pos"])):
-	                j_individual[i] += dt * quad * assemble(functional.Jt_individual(state, i))
-                    info_green("Computing individual turbine power extaction contribution...finished")
 
         # Increase the adjoint timestep
         adj_inc_timestep(time=t, finished = not t < params["finish_time"])
         info_green("New timestep")
     info_green("Ending time loop.")
 
-    if params["print_individual_turbine_power"]:
-        print "Individual power contributions of the turbines: ", j_individual
     if functional is not None:
         return j
 
