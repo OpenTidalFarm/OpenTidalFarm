@@ -36,4 +36,4 @@ lb, ub = position_constraints(config)
 ineq = get_minimum_distance_constraint_func(config)
 
 parameters['form_compiler']['cpp_optimize_flags'] = '-O3 -ffast-math -march=native'
-maximize(rf, bounds = [lb, ub], constraints = ineq, method = "SLSQP", options = {"maxiter": 300}) 
+maximize(rf, bounds = [lb, ub], constraints = ineq, method = "SLSQP", options = {"maxiter": 300, "ftol": 1.0}) 
