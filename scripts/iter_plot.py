@@ -24,7 +24,7 @@ for line in f:
     if "Optimization terminated successfully" in line:
 	finished = True
     elif "The automatic scaling factor was set to" in line:
-	m = re.match(r".*to ([0-9|\-]+\.[0-9]+)", line) 
+	m = re.match(r".*to ([0-9|\-]+\.[0-9|e|E|-]+)", line) 
 	print "Found rescaling factor: %s"% m.group(1)
 	rescale /= float(m.group(1))
     if finished:
