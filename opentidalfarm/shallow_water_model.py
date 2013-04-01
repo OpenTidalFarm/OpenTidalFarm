@@ -227,7 +227,9 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
               
     info_green("Starting time loop...")
     adjointer.time.start(t)
+    step_ctr = 0
     while (t < params["finish_time"]):
+	step_ctr += 1
         t += dt
         params["current_time"] = t
 
@@ -322,7 +324,9 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
                 else:
                     quad = 1.0 * dt 
 
-                j += quad * assemble(functional.Jt(state)) 
+                deltaj = assemble(functional.Jt(state))
+                print "Power contribution at time step ", step_ctr, ": ", deltaj
+                j += quad * deltaj 
 
         # Increase the adjoint timestep
         adj_inc_timestep(time=t, finished = not t < params["finish_time"])
