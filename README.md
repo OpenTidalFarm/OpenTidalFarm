@@ -32,6 +32,14 @@ Please cite the following paper if you are using OpenTidalFarm:
 
 S.W. Funke, P.E. Farrell, M.D. Piggott, Tidal turbine array optimisation using the adjoint approach, in preparation (2013)
 
+For the automatic adjoint generation used by OpenTidalFarm, please cite:
+
+Patrick E. Farrell, David A. Ham, Simon W. Funke and Marie E. Rognes (2012). Automated derivation of the adjoint of high-level transient finite element programs, accepted. arXiv:1204.5577
+
+For the automated optimisation framework used by OpenTidalFarm, please cite:
+
+Simon W. Funke and Patrick E. Farrell. A framework for automated PDE-constrained optimisation, submitted. arXiv:1302.3894
+
 
 Installation
 ============
@@ -135,7 +143,7 @@ Some of the more important parameters are:
 * "save_checkpoints": Automatically save checkpoints to disk from which the optimisation can be restarted. Valid values: `True` or `False`.
 * "turbine_x": The x-extension of each turbine.
 * "turbine_y": The y-extension of each turbine.
-* "print_individual_turbine_power": Also output the energy production for each individual turbine. Valid values: `True` or `False`.
+* "output_turbine_power": Output the energy production for each individual turbine. Valid values: `True` or `False`.
 
 Again, use `config.info()` to list the current configuration setup.
 

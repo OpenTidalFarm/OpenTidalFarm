@@ -84,18 +84,6 @@ class TurbineCache:
         tf = turbines(name = "turbine_friction")
         self.cache["turbine_field"] = tf
 
-        # Precompute the interpolation of the friction function for each individual turbine
-        if self.params["print_individual_turbine_power"]:
-            info_green("Building individual turbine power friction functions for caching purposes...")
-            self.cache["turbine_field_individual"] = [] 
-            for i in range(len(self.params["turbine_friction"])):
-                params_cpy = ParameterDictionary(self.params)
-                params_cpy["turbine_pos"] = [self.params["turbine_pos"][i]]
-                params_cpy["turbine_friction"] = [self.params["turbine_friction"][i]]
-                turbine = Turbines(config.turbine_function_space, params_cpy)
-                tf = turbines(name = "turbine_friction") 
-                self.cache["turbine_field_individual"].append(tf)
-
         # Precompute the derivatives with respect to the friction magnitude of each turbine
         if "turbine_friction" in self.params["controls"]:
             self.cache["turbine_derivative_friction"] = []

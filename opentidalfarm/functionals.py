@@ -30,14 +30,10 @@ class DefaultFunctional(FunctionalPrototype):
         self.params = ParameterDictionary(dict(config.params))
 
     def expr(self, state, turbines):
-        return 0.5 * self.params['rho'] * turbines * (dot(state[0], state[0]) + dot(state[1], state[1]))**1.5*dx
+        return 0.5 * self.params['rho'] * turbines * (dot(state[0], state[0]) + dot(state[1], state[1]))**1.5
 
     def Jt(self, state):
-        return self.expr(state, self.config.turbine_cache.cache['turbine_field']) 
-
-    def Jt_individual(self, state, i):
-        ''' Computes the power output of the i'th turbine. '''
-        return self.expr(state, self.config.turbine_cache.cache['turbine_field_individual'][i]) 
+        return self.expr(state, self.config.turbine_cache.cache['turbine_field'])*dx 
 
     def dJtdm(self, state):
         djtdm = [] 
@@ -46,11 +42,11 @@ class DefaultFunctional(FunctionalPrototype):
         if "turbine_friction" in params["controls"]:
             # The derivatives with respect to the friction parameter
             for n in range(len(params["turbine_friction"])):
-                djtdm.append(self.expr(state, self.config.turbine_cache.cache['turbine_derivative_friction'][n]))
+                djtdm.append(self.expr(state, self.config.turbine_cache.cache['turbine_derivative_friction'][n])*dx)
 
         if "turbine_pos" in params["controls"]:
             # The derivatives with respect to the turbine position
             for n in range(len(params["turbine_pos"])):
                 for var in ('turbine_pos_x', 'turbine_pos_y'):
-                    djtdm.append(self.expr(state, self.config.turbine_cache.cache['turbine_derivative_pos'][n][var]))
+                    djtdm.append(self.expr(state, self.config.turbine_cache.cache['turbine_derivative_pos'][n][var])*dx)
         return djtdm 
