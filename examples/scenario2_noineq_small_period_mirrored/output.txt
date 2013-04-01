@@ -1,0 +1,200 @@
+Process 0: Number of global vertices: 84
+Process 0: Number of global cells: 120
+Process 0: Wave period (in h): 0.166667
+Process 0: Approximate CFL number (assuming a velocity of 2): 12.8955811855
+[1;37;34mDeployed 32 turbines.[0m
+
+=== Physical parameters ===
+Water depth: 50.000000 m
+Gravity constant: 9.810000 m/s^2
+Viscosity constant: 3.000000 m^2/s
+Water density: 1000.000000 kg/m^3
+Bottom friction: 0.0025
+Advection term: True
+Diffusion term: True
+Steady state: False
+
+=== Turbine settings ===
+Number of turbines: 32
+Turbines dimensions: 20.000000 x 20.000000
+Control parameters: turbine_pos
+Turbines frictions: 21.000000 - 21.000000
+
+=== Discretisation settings ===
+Finite element pair:  p2p1
+Steady state:  False
+Theta: 1.000000
+Start time: 150.000000 s
+Finish time: 750.000000 s
+Time step: 12.000000 s
+Number of mesh elements: 16182
+Mesh element size: 1.787584 - 27.822641
+
+=== Optimisation settings ===
+Automatic functional rescaling: False
+Automatic functional rescaling multiplier: 5
+Automatic checkpoint generation: False
+
+[1;37;32mStart evaluation of j[0m
+[1;37;32mUpdating turbine cache[0m
+Process 0: Expected Reynolds number is roughly (assumes velocity is 2): 13.3333333333
+[1;37;32mWriting state to disk...[0m
+Process 0: Solving linear system of size 33106 x 33106 (PETSc Krylov solver).
+Process 0: PETSc Krylov solver starting to solve 33106 x 33106 system.
+Process 0: PETSc Krylov solver (cg, sor) converged in 0 iterations.
+Process 0: Solving linear system of size 16553 x 16553 (PETSc Krylov solver).
+Process 0: PETSc Krylov solver starting to solve 16553 x 16553 system.
+Process 0: PETSc Krylov solver (cg, sor) converged in 0 iterations.
+[1;37;32mStarting time loop...[0m
+Process 0: No Jacobian form specified for nonlinear variational problem.
+Process 0: Differentiating residual form F to obtain Jacobian J = F'.
+Process 0: Solving nonlinear variational problem.
+  Process 0: Applying boundary conditions to linear system.
+  Process 0: Applying boundary conditions to linear system.
+  Process 0: Applying boundary conditions to linear system.
+  Process 0: Assembling matrix over cells [======>                               ] 17.5%
+  Process 0: Assembling matrix over cells [=============>                        ] 36.5%
+  Process 0: Assembling matrix over cells [===================>                  ] 52.4%
+  Process 0: Assembling matrix over cells [===========================>          ] 71.4%
+  Process 0: Assembling matrix over cells [=================================>    ] 87.2%
+  Process 0: Assembling matrix over cells [======================================] 100.0%
+  Process 0: Applying boundary conditions to linear system.
+  Process 0: Applying boundary conditions to linear system.
+  Process 0: Applying boundary conditions to linear system.
+  Process 0: Solving linear system of size 148779 x 148779 (PETSc LU solver, mumps).
+  Process 0: Applying boundary conditions to linear system.
+  Process 0: Applying boundary conditions to linear system.
+  Process 0: Applying boundary conditions to linear system.
+  Process 0: Newton iteration 1: r (abs) = 3.465e+01 (tol = 1.000e-10) r (rel) = 1.000e+00 (tol = 1.000e-16)
+  Process 0: Assembling matrix over cells [======>                               ] 17.5%
+  Process 0: Assembling matrix over cells [============>                         ] 33.4%
+  Process 0: Assembling matrix over cells [==================>                   ] 49.2%
+  Process 0: Assembling matrix over cells [========================>             ] 65.1%
+  Process 0: Assembling matrix over cells [==============================>       ] 80.9%
+  Process 0: Assembling matrix over cells [===================================>  ] 93.6%
+  Process 0: Assembling matrix over cells [======================================] 100.0%
+  Process 0: Applying boundary conditions to linear system.
+  Process 0: Applying boundary conditions to linear system.
+  Process 0: Applying boundary conditions to linear system.
+  Process 0: Solving linear system of size 148779 x 148779 (PETSc LU solver, mumps).
+  Process 0: Applying boundary conditions to linear system.
+  Process 0: Applying boundary conditions to linear system.
+  Process 0: Applying boundary conditions to linear system.
+  Process 0: Newton iteration 2: r (abs) = 3.097e-01 (tol = 1.000e-10) r (rel) = 8.938e-03 (tol = 1.000e-16)
+  Process 0: Assembling matrix over cells [=======>                              ] 19.1%
+  Process 0: Assembling matrix over cells [==============>                       ] 38.1%
+  Process 0: Assembling matrix over cells [=====================>                ] 57.1%
+  Process 0: Assembling matrix over cells [============================>         ] 76.1%
+  Process 0: Assembling matrix over cells [==================================>   ] 92.0%
+  Process 0: Assembling matrix over cells [======================================] 100.0%
+  Process 0: Applying boundary conditions to linear system.
+  Process 0: Applying boundary conditions to linear system.
+  Process 0: Applying boundary conditions to linear system.
+  Process 0: Solving linear system of size 148779 x 148779 (PETSc LU solver, mumps).
+  Process 0: Applying boundary conditions to linear system.
+  Process 0: Applying boundary conditions to linear system.
+  Process 0: Applying boundary conditions to linear system.
+  Process 0: Newton iteration 3: r (abs) = 1.071e-03 (tol = 1.000e-10) r (rel) = 3.091e-05 (tol = 1.000e-16)
+  Process 0: Assembling matrix over cells [======>                               ] 15.9%
+  Process 0: Assembling matrix over cells [============>                         ] 31.8%
+  Process 0: Assembling matrix over cells [==================>                   ] 47.7%
+  Process 0: Assembling matrix over cells [========================>             ] 63.6%
+  Process 0: Assembling matrix over cells [==============================>       ] 79.5%
+  Process 0: Assembling matrix over cells [====================================> ] 95.3%
+  Process 0: Assembling matrix over cells [======================================] 100.0%
+  Process 0: Applying boundary conditions to linear system.
+  Process 0: Applying boundary conditions to linear system.
+  Process 0: Applying boundary conditions to linear system.
+  Process 0: Solving linear system of size 148779 x 148779 (PETSc LU solver, mumps).
+  Process 0: Applying boundary conditions to linear system.
+  Process 0: Applying boundary conditions to linear system.
+  Process 0: Applying boundary conditions to linear system.
+  Process 0: Newton iteration 4: r (abs) = 2.356e-08 (tol = 1.000e-10) r (rel) = 6.800e-10 (tol = 1.000e-16)
+  Process 0: Assembling matrix over cells [======>                               ] 15.9%
+  Process 0: Assembling matrix over cells [============>                         ] 31.8%
+  Process 0: Assembling matrix over cells [==================>                   ] 47.6%
+  Process 0: Assembling matrix over cells [========================>             ] 63.5%
+  Process 0: Assembling matrix over cells [==============================>       ] 79.3%
+  Process 0: Assembling matrix over cells [====================================> ] 95.2%
+  Process 0: Assembling matrix over cells [======================================] 100.0%
+  Process 0: Applying boundary conditions to linear system.
+  Process 0: Applying boundary conditions to linear system.
+  Process 0: Applying boundary conditions to linear system.
+  Process 0: Solving linear system of size 148779 x 148779 (PETSc LU solver, mumps).
+  Process 0: Applying boundary conditions to linear system.
+  Process 0: Applying boundary conditions to linear system.
+  Process 0: Applying boundary conditions to linear system.
+  Process 0: Newton iteration 5: r (abs) = 6.733e-15 (tol = 1.000e-10) r (rel) = 1.944e-16 (tol = 1.000e-16)
+  Process 0: Newton solver finished in 5 iterations and 5 linear solver iterations.
+Process 0: Solving linear system of size 66113 x 66113 (PETSc Krylov solver).
+Process 0: PETSc Krylov solver starting to solve 66113 x 66113 system.
+Process 0: PETSc Krylov solver (cg, bjacobi) converged in 9 iterations.
+Process 0: PETSc Krylov solver preconditioner (bjacobi) submethods: (preonly, ilu)
+[1;37;32mWriting state to disk...[0m
+Process 0: Solving linear system of size 33106 x 33106 (PETSc Krylov solver).
+Process 0: PETSc Krylov solver starting to solve 33106 x 33106 system.
+Process 0: PETSc Krylov solver (cg, sor) converged in 9 iterations.
+Process 0: Solving linear system of size 16553 x 16553 (PETSc Krylov solver).
+Process 0: PETSc Krylov solver starting to solve 16553 x 16553 system.
+Process 0: PETSc Krylov solver (cg, sor) converged in 8 iterations.
+Power contribution at time step  1 :  7547.78953137
+Power contribution at time step  1 :  7547.78953137
+[1;37;32mNew timestep[0m
+Process 0: No Jacobian form specified for nonlinear variational problem.
+Process 0: Differentiating residual form F to obtain Jacobian J = F'.
+Process 0: Solving nonlinear variational problem.
+  Process 0: Applying boundary conditions to linear system.
+  Process 0: Applying boundary conditions to linear system.
+  Process 0: Applying boundary conditions to linear system.
+  Process 0: Assembling matrix over cells [======>                               ] 17.5%
+  Process 0: Assembling matrix over cells [=============>                        ] 36.5%
+  Process 0: Assembling matrix over cells [=====================>                ] 55.5%
+  Process 0: Assembling matrix over cells [============================>         ] 74.6%
+  Process 0: Assembling matrix over cells [===================================>  ] 93.6%
+  Process 0: Assembling matrix over cells [======================================] 100.0%
+  Process 0: Applying boundary conditions to linear system.
+  Process 0: Applying boundary conditions to linear system.
+  Process 0: Applying boundary conditions to linear system.
+  Process 0: Solving linear system of size 148779 x 148779 (PETSc LU solver, mumps).
+  Process 0: Applying boundary conditions to linear system.
+  Process 0: Applying boundary conditions to linear system.
+  Process 0: Applying boundary conditions to linear system.
+  Process 0: Newton iteration 1: r (abs) = 6.912e+01 (tol = 1.000e-10) r (rel) = 1.000e+00 (tol = 1.000e-16)
+  Process 0: Assembling matrix over cells [======>                               ] 15.9%
+  Process 0: Assembling matrix over cells [============>                         ] 31.8%
+  Process 0: Assembling matrix over cells [==================>                   ] 47.6%
+  Process 0: Assembling matrix over cells [=========================>            ] 66.6%
+  Process 0: Assembling matrix over cells [================================>     ] 85.7%
+  Process 0: Assembling matrix over cells [======================================] 100.0%
+  Process 0: Applying boundary conditions to linear system.
+  Process 0: Applying boundary conditions to linear system.
+  Process 0: Applying boundary conditions to linear system.
+  Process 0: Solving linear system of size 148779 x 148779 (PETSc LU solver, mumps).
+  Process 0: Applying boundary conditions to linear system.
+  Process 0: Applying boundary conditions to linear system.
+  Process 0: Applying boundary conditions to linear system.
+  Process 0: Newton iteration 2: r (abs) = 8.549e-01 (tol = 1.000e-10) r (rel) = 1.237e-02 (tol = 1.000e-16)
+  Process 0: Assembling matrix over cells [=======>                              ] 19.1%
+  Process 0: Assembling matrix over cells [==============>                       ] 38.1%
+  Process 0: Assembling matrix over cells [====================>                 ] 53.9%
+  Process 0: Assembling matrix over cells [===========================>          ] 73.0%
+  Process 0: Assembling matrix over cells [=================================>    ] 88.8%
+  Process 0: Assembling matrix over cells [======================================] 100.0%
+  Process 0: Applying boundary conditions to linear system.
+  Process 0: Applying boundary conditions to linear system.
+  Process 0: Applying boundary conditions to linear system.
+  Process 0: Solving linear system of size 148779 x 148779 (PETSc LU solver, mumps).
+  Process 0: Applying boundary conditions to linear system.
+  Process 0: Applying boundary conditions to linear system.
+  Process 0: Applying boundary conditions to linear system.
+  Process 0: Newton iteration 3: r (abs) = 4.840e-03 (tol = 1.000e-10) r (rel) = 7.001e-05 (tol = 1.000e-16)
+  Process 0: Assembling matrix over cells [======>                               ] 15.9%
+  Process 0: Assembling matrix over cells [=============>                        ] 34.9%
+  Process 0: Assembling matrix over cells [====================>                 ] 53.9%
+  Process 0: Assembling matrix over cells [==========================>           ] 69.8%
+  Process 0: Assembling matrix over cells [=================================>    ] 88.8%
+  Process 0: Assembling matrix over cells [======================================] 100.0%
+  Process 0: Applying boundary conditions to linear system.
+  Process 0: Applying boundary conditions to linear system.
+  Process 0: Applying boundary conditions to linear system.
+  Process 0: Solving linear system of size 148779 x 148779 (PETSc LU solver, mumps).

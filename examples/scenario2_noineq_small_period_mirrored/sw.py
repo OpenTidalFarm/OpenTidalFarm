@@ -32,12 +32,18 @@ turbine_pos_array = [ 169.9999999 ,   89.99999981,  170.42874408,  107.03999637,
 						310.59242822,  170.63688308,  330.86993196,  230.00000003,
 						370.94484682,   89.99999998,  313.07690025,  114.34854002,
 						311.21701781,  188.83356058,  378.51678395,  230.00000001]
+turbine_pos = numpy.reshape(turbine_pos_array, [-1, 2])
+turbine_pos_mirror = []
+for x, y in turbine_pos:
+	turbine_pos_mirror.append([-(x-(160+160))+(160+160), y])
 
-config.params['turbine_pos'] = numpy.reshape(turbine_pos_array, [-1, 2])
+turbine_pos_mirror_array = numpy.reshape(turbine_pos_mirror, -1)
+
+config.params['turbine_pos'] = turbine_pos_mirror 
 
 config.info()
 
 rf = ReducedFunctional(config)
-J = rf.j(turbine_pos_array)
+J = rf.j(turbine_pos_mirror_array)
 print "J = ", J 
 
