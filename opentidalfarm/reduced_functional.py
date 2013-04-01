@@ -40,9 +40,6 @@ class ReducedFunctional:
         if self.__config__.params["dump_period"] > 0:
             self.turbine_file = File("turbines.pvd", "compressed")
 
-            if config.params['output_turbine_power']:
-                self.power_file = File("power.pvd", "compressed")
-
         class Parameter:
             def data(self):
                 m = []
@@ -106,11 +103,6 @@ class ReducedFunctional:
 
             state = self.last_state
             functional = DefaultFunctional(config)
-
-            # Produce power plot 
-            if config.params['output_turbine_power']:
-                turbines = self.__config__.turbine_cache.cache["turbine_field"]
-                self.power_file << project(functional.expr(state, turbines), config.turbine_function_space, annotate=False)
 
             if config.params['steady_state'] or config.params["functional_final_time_only"]:
                 J = Functional(functional.Jt(state)*dt[FINISH_TIME])

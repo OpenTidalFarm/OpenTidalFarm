@@ -19,6 +19,10 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
     ds = config.domain.ds
     params = config.params
 
+    if config.params["dump_period"] > 0:
+	if config.params['output_turbine_power']:
+	    power_file = File("power.pvd", "compressed")
+
     # To begin with, check if the provided parameters are valid
     params.check()
 
@@ -292,6 +296,12 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
 
         # After the timestep solve, update state
         state.assign(state_new)
+
+	# Update power plot 
+	if config.params['output_turbine_power']:
+	    turbines = config.turbine_cache.cache["turbine_field"]
+	    power_file << project(functional.expr(state, turbines), config.turbine_function_space, annotate=False)
+
 	if turbine_field:
 	    # We need to make a copy of the control function, even though it is constant in time
 	    # This should be really be fixed in dolfin_adjoint instead...
