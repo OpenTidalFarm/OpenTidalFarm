@@ -1,3 +1,9 @@
+
+generate_power_timeline:
+	cat output.txt | grep Power | cut -c38- > power_timeline.txt
+	python plot_power_timeline.py
+
+
 run: clean 
 	unbuffer time mpirun -n 2 python sw.py > output.txt
 

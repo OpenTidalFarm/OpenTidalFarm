@@ -11,7 +11,7 @@ for i in funcs_dupl:
     if i not in func:
         func.append(i)
 
-it = [float(i)/5 for i in range(len(func))]
+it = [float(i)/50*12 for i in range(len(func))]
 func = numpy.array(func)*1e-6
 
 filename = "power_timeline.pdf"
@@ -24,8 +24,7 @@ plt.plot(it, func, color = 'black')
 #plt.axis([0, times[-1], -2.5, 2.5])
 #plt.xticks(numpy.arange(0, times[-1]+1, 5))
 #plt.yticks(numpy.arange(14, basin_x_total/1000, 2))
-plot.ylim((0, 25))
 plt.ylabel(r"Power production [MW]")
-plt.xlabel(r"Time [min]")
+plt.xlabel(r"Time [h]")
 plt.savefig(filename)
 plt.close()
