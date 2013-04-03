@@ -24,7 +24,7 @@ Z2 = np.maximum(Z2, 1e-12)
 Z2 = np.exp(-1./Z2)
 Z = Z1 * Z2 * np.exp(2)
 
-ax.plot_surface(X, Y, Z, rstride=1, cstride=1, cmap=cm.jet, linewidth=0.3)
+ax.plot_surface(X, Y, Z, rstride=1, cstride=1, cmap=cm.jet, linewidth=0)
 plt.setp(ax.get_zticklabels(), fontsize=20)
 plt.setp(ax.get_xticklabels(), fontsize=20)  
 plt.setp(ax.get_yticklabels(), fontsize=20)
