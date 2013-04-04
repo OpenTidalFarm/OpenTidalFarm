@@ -1,12 +1,13 @@
 run: clean 
-	unbuffer time mpirun -n 2 python sw.py mesh_coarse.xml > output_layer1.txt
-	unbuffer time mpirun -n 2 python sw.py mesh.xml --from-checkpoint > output_layer1.txt
+	for number in 2 1 0 ; do \
+		unbuffer time mpirun -n 2 python sw.py $$number.xml > output_$$number.txt; \
+	done
 
 coarse: clean 
 	python sw_coarse.py 
 
 mesh:	
-	for number in 0 1 2 ; do \
+	for number in 2 1 0 ; do \
 		gmsh -2 mesh$$number.geo; \
 		dolfin-convert -o xml mesh$$number.msh mesh$$number.xml; \
 		../../scripts/convert_to_new_xml.py mesh$$number.xml; \
@@ -23,3 +24,5 @@ clean_mesh:
 	rm -f *.xml.bak
 	rm -f *.msh
 
+clean_checkpoints:
+	rm -f *.dat
