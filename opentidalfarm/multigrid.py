@@ -1,3 +1,0 @@
-
-def multigrid_minimize():
-
