@@ -1,6 +1,7 @@
 from opentidalfarm import *
 from optparse import OptionParser
 import sys
+import pickle
 set_log_level(INFO)
 
 layer = int(sys.argv[1])
@@ -23,6 +24,11 @@ config.params['save_checkpoints'] = True
 
 # Place some turbines 
 deploy_turbines(config, nx = 8, ny = 4)
+# If available, overload the turbine positions from the coarser layer 
+try:
+    config.params["turbine_pos"] = pickle.load(open("turbine_pos"+str(layer+1)+".dat", "r"))
+except IOError:
+    print "No turbine positions from coarser level found. Starting from the initial layout."
 
 config.info()
 
@@ -36,3 +42,6 @@ except IOError:
 
 lb, ub = position_constraints(config) 
 maximize(rf, bounds = [lb, ub], method = "SLSQP", options = {"maxiter": settings[1]})
+
+# Save most recent turbine positions to file
+pickle.dump(config.params["turbine_pos"], open("turbine_pos"+str(layer)+".dat", "w"))
