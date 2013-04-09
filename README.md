@@ -6,7 +6,7 @@ The positioning of the turbines in a tidal farm is a crucial decision. Simulatio
  
 However, finding the optimal layout is a difficult process due to the complex flow interactions. OpenTidalFarm solves this problem by applying an efficient optimisation algorithm onto a accurate flow prediction model.
 
-Example
+Examples
 ========
 The following video demonstrates OpenTidalFarm on different setups:
 
@@ -15,9 +15,9 @@ The following video demonstrates OpenTidalFarm on different setups:
 The following videos show the how the turbine positions change during the optimisation. The final frame of the videos show 
 the optimisation locations of the turbines. In these cases, the total power production of the turbines was improved by over 25%.  
 * [Optimisation of 128 turbines in the Pentland Firth, Scotland](http://www.youtube.com/embed/mMNes2Ubz2Y?vq=hd1080)
-* [Optimisation of 128 turbines in the Pentland Firth, Scotland(zoomed into site area)](http://www.youtube.com/embed/GjWNBzvSeSs?vq=hd1080)
+* [Optimisation of 128 turbines in the Pentland Firth, Scotland (zoomed into site area)](http://www.youtube.com/embed/GjWNBzvSeSs?vq=hd1080)
 * [Optimisation of 256 turbines in the Pentland Firth, Scotland](http://www.youtube.com/embed/3yOeCL5_Vrs?vq=hd1080)
-* [Optimisation of 256 turbines in the Pentland Firth, Scotland(zoomed into site area)](http://www.youtube.com/embed/p6U5_7Su58E?vq=hd1080)
+* [Optimisation of 256 turbines in the Pentland Firth, Scotland (zoomed into site area)](http://www.youtube.com/embed/p6U5_7Su58E?vq=hd1080)
 
 Features 
 ========
@@ -37,16 +37,15 @@ Citing
 ======
 Please cite the following paper if you are using OpenTidalFarm:
 
-S.W. Funke, P.E. Farrell, M.D. Piggott, Tidal turbine array optimisation using the adjoint approach, in preparation (2013)
-
-For the automatic adjoint generation used by OpenTidalFarm, please cite:
-
-Patrick E. Farrell, David A. Ham, Simon W. Funke and Marie E. Rognes (2012). Automated derivation of the adjoint of high-level transient finite element programs, accepted. arXiv:1204.5577
+S.W. Funke, P.E. Farrell, M.D. Piggott, Tidal turbine array optimisation using the adjoint approach, Renewable Energy, submitted (2013) [arXiv:1304.1768](http://arxiv.org/abs/1304.1768)
 
 For the automated optimisation framework used by OpenTidalFarm, please cite:
 
-Simon W. Funke and Patrick E. Farrell. A framework for automated PDE-constrained optimisation, submitted. arXiv:1302.3894
+Simon W. Funke and Patrick E. Farrell. A framework for automated PDE-constrained optimisation, TOMS, submitted. [arXiv:1302.3894](http://arxiv.org/abs/1302.3894)
 
+For the automatic adjoint generation used by OpenTidalFarm, please cite:
+
+Patrick E. Farrell, David A. Ham, Simon W. Funke and Marie E. Rognes (2012). Automated derivation of the adjoint of high-level transient finite element programs, accepted. [arXiv:1204.5577](http://arxiv.org/abs/1204.5577)
 
 Installation
 ============
