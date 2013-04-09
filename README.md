@@ -28,25 +28,6 @@ Features
 * Optimisation of up to hundreds of turbines.
 * Checkpoint support to restart optimisation.
  
-Contact 
-=======
-<a id="contact"> </a>
-For questions and support please contact Simon Funke <s.funke09@imperial.ac.uk>.
-
-Citing
-======
-Please cite the following paper if you are using OpenTidalFarm:
-
-S.W. Funke, P.E. Farrell, M.D. Piggott, Tidal turbine array optimisation using the adjoint approach, Renewable Energy, submitted (2013) [arXiv:1304.1768](http://arxiv.org/abs/1304.1768)
-
-For the automated optimisation framework used by OpenTidalFarm, please cite:
-
-Simon W. Funke and Patrick E. Farrell. A framework for automated PDE-constrained optimisation, TOMS, submitted. [arXiv:1302.3894](http://arxiv.org/abs/1302.3894)
-
-For the automatic adjoint generation used by OpenTidalFarm, please cite:
-
-Patrick E. Farrell, David A. Ham, Simon W. Funke and Marie E. Rognes (2012). Automated derivation of the adjoint of high-level transient finite element programs, accepted. [arXiv:1204.5577](http://arxiv.org/abs/1204.5577)
-
 Installation
 ============
 Note: This installation procedure assumes that you are running the [Ubuntu](http://www.ubuntu.com/) operating system.
@@ -203,6 +184,25 @@ In such case you can try following things:
 * Use finer mesh in the turbine site area. The numerical errors of representing the turbines might be dominating the problem.
 * Use a looser optimisation tolerance, by passing the `tol` parameter to maximize function. 
 * If you are only optimising for the turbine friction and you do not use `automatic_scaling` parameter (which you should in this particular case), then you might have to scale your problem manually. This is done by passing a scale argument to maximize, e.g. `maximize(rf, scale=1e-3)`. Choose the scale value such that the first gradient is in the order of 1. 
+
+Citing
+======
+Please cite the following paper if you are using OpenTidalFarm:
+
+S.W. Funke, P.E. Farrell, M.D. Piggott, Tidal turbine array optimisation using the adjoint approach, Renewable Energy, submitted (2013) [arXiv:1304.1768](http://arxiv.org/abs/1304.1768)
+
+For the automated optimisation framework used by OpenTidalFarm, please cite:
+
+Simon W. Funke and Patrick E. Farrell. A framework for automated PDE-constrained optimisation, TOMS, submitted. [arXiv:1302.3894](http://arxiv.org/abs/1302.3894)
+
+For the automatic adjoint generation used by OpenTidalFarm, please cite:
+
+Patrick E. Farrell, David A. Ham, Simon W. Funke and Marie E. Rognes (2012). Automated derivation of the adjoint of high-level transient finite element programs, accepted. [arXiv:1204.5577](http://arxiv.org/abs/1204.5577)
+
+Contact 
+=======
+<a id="contact"> </a>
+For questions and support please contact Simon Funke <s.funke09@imperial.ac.uk>.
 
 Licence
 =======
