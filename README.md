@@ -115,12 +115,12 @@ Once you have a configuration object, try running
 ```python
 config.info()
 ```
-to see detailed information about the settings of that setup. 
+to see detailed information about the settings of the current configuration. 
 
 ### Parameters ###
 Each configuration has a large of additional parameters that can be changed.
 
-For example to use Picard iterations instead of a Newton solver one would do:
+For example to use Picard iterations instead of a Newton solver to solve the nonlinear shallow water equations one would set:
 ```python
 config.params["newton_solver"] = False 
 ```
