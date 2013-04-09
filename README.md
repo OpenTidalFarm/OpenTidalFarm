@@ -9,8 +9,11 @@ However, finding the optimal layout is a difficult process due to the complex fl
 Example
 ========
 The following video demonstrates how OpenTidalFarm optimises 32 turbines in an idealised tidal stream.
-[Youtube link](http://www.youtube.com/embed/ng3bbso-vGk)
-</iframe>
+[Youtube link](http://www.youtube.com/embed/ng3bbso-vGk?vq=hd1080)
+[Pentland Firth 128 turbines](http://www.youtube.com/embed/mMNes2Ubz2Y?vq=hd1080)
+[Pentland Firth 128 turbines (zoom)](http://www.youtube.com/embed/GjWNBzvSeSs?vq=hd1080)
+[Pentland Firth 256 turbines](http://www.youtube.com/embed/3yOeCL5_Vrs?vq=hd1080)
+[Pentland Firth 256 turbines (zoom)](http://www.youtube.com/embed/p6U5_7Su58E?vq=hd1080)
 
 Features 
 ========
