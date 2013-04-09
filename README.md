@@ -108,8 +108,8 @@ Documentation
 ## Configurations ##
 OpenTidalFarm is based on configurations for defining different setups.
 The most important configurations are
-* `SteadyConfiguration`: Use this configuration for steady state simulations.
-* `UnstadyConfiguration`: Use this configuration for steady state simulations.
+* `SteadyConfiguration`: Use this configuration for steady simulations.
+* `UnstadyConfiguration`: Use this configuration for unsteady simulations.
 
 Once you have a configuration object, try running
 ```python
