@@ -1,5 +1,4 @@
 from opentidalfarm import *
-from optparse import OptionParser
 import sys
 import pickle
 set_log_level(INFO)
