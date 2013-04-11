@@ -145,7 +145,7 @@ def plot_site_constraints(config, vertices):
     out_file = dolfin.File("site_constraints.pvd", "compressed")
     out_file << f
 
-def generate_site_constraints(config, vertices):
+def generate_site_constraints(config, vertices, penalty_factor=1e5):
     ''' Generates the inequality constraints for generic polygon constraints. The parameter polygon 
         must be a list of point coorinates that describes the site edges in anti-clockwise order. '''
 
@@ -172,7 +172,7 @@ def generate_site_constraints(config, vertices):
 
                 # So the inequality for this edge is: g(x) := n^T.(x1-x) >= 0 
                 x = [m_pos[0], m_pos[1]]
-                ieqcons.append(numpy.dot(n, x1-x))
+                ieqcons.append(penalty_factor*numpy.dot(n, x1-x))
 
         return numpy.array(ieqcons)
 
@@ -199,8 +199,8 @@ def generate_site_constraints(config, vertices):
                 prime_ieqcons = numpy.zeros(len(m))
 
                 # The control vector contains the friction coefficients first, so we need to shift here
-                prime_ieqcons[mf_len + 2*i] = -n[0] 
-                prime_ieqcons[mf_len + 2*i+1] = -n[1] 
+                prime_ieqcons[mf_len + 2*i] = -penalty_factor*n[0] 
+                prime_ieqcons[mf_len + 2*i+1] = -penalty_factor*n[1] 
 
                 ieqcons.append(prime_ieqcons)
         return numpy.array(ieqcons)
