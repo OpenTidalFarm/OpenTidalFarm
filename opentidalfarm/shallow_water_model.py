@@ -106,7 +106,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
       if steady_state:
           raise ValueError, "Can not use a time dependent boundary condition for a steady state simulation"
       # The dirichlet boundary condition on the left hand side 
-      ufl = Expression(("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0", "0"), eta0=params["eta0"], g=g, depth=depth, t=t, k=params["k"])
+      ufl = Expression(("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0"), eta0=params["eta0"], g=g, depth=depth, t=t, k=params["k"])
       bc_contr = - depth * dot(ufl, n) * q * ds(1)
 
       # The dirichlet boundary condition on the right hand side
@@ -119,7 +119,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
       if steady_state:
           raise ValueError, "Can not use a time dependent boundary condition for a steady state simulation"
       # The Flather boundary condition on the left hand side 
-      ufl = Expression(("2*eta0*sqrt(g/depth)*cos(-sqrt(g*depth)*k*t)", "0", "0"), eta0=params["eta0"], g=g, depth=depth, t=t, k=params["k"])
+      ufl = Expression(("2*eta0*sqrt(g/depth)*cos(-sqrt(g*depth)*k*t)", "0"), eta0=params["eta0"], g=g, depth=depth, t=t, k=params["k"])
       bc_contr = - depth * dot(ufl, n) * q * ds(1)
       Ct_mid += sqrt(g*depth)*inner(h_mid, q)*ds(1)
 
