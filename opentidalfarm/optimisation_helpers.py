@@ -1,5 +1,6 @@
 import numpy
 from dolfin import info_blue, Constant
+import dolfin
 from helpers import info, info_green, info_red, info_blue
 
 # The wrapper class of the objective/constaint functions that as required by the ipopt package
@@ -118,8 +119,38 @@ def get_minimum_distance_constraint_func(config, min_distance = None):
 
     return {'type': 'ineq', 'fun': f_ieqcons, 'jac': fprime_ieqcons} 
 
+def plot_site_constraints(config, vertices):
+    
+    ineqs = []
+    for p in range(len(vertices)):
+        # x1 and x2 are the two points that describe one of the sites edge 
+        x1 = numpy.array(vertices[p])
+        x2 = numpy.array(vertices[(p+1)%len(vertices)])
+        c = x2-x1
+        # Normal vector of c
+        n = [c[1], -c[0]]
+
+        ineqs.append((x1, n))
+    
+    class SiteConstraintExpr(dolfin.Expression):
+        def eval(self, value, x):
+            inside = True
+            for x1, n in ineqs:
+                # So the inequality for this edge is: g(x) := n^T.(x1-x) >= 0 
+                inside = inside and (numpy.dot(n, x1-x) >= 0)
+            
+            value[0] = int(inside)
+    
+    f = dolfin.project(SiteConstraintExpr(), config.turbine_function_space)
+    out_file = dolfin.File("site_constraints.pvd", "compressed")
+    out_file << f
+
 def generate_site_constraints(config, vertices):
-    ''' Generates the inequality constraints for generic polygon constraints. The parameter polygon must be a list of point coorinates that describes the site edges in anti-clockwise order. '''
+    ''' Generates the inequality constraints for generic polygon constraints. The parameter polygon 
+        must be a list of point coorinates that describes the site edges in anti-clockwise order. '''
+
+    # To begin with, lets save a vtu that visualises the constraints
+    plot_site_constraints(config, vertices)
 
     def f_ieqcons(m):
         ieqcons = []
