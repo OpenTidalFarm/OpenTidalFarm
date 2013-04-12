@@ -134,6 +134,38 @@ Some of the more important parameters are:
 
 Again, use `config.info()` to list the current configuration setup.
 
+## Positioning constraints ## 
+Often, one ones to ensure that the turbines must be deployed in a particular area. 
+This can be achieved in two ways:
+
+### Box constraints ###
+Box constraints is the easiest solution of the deployment area is a rectangle. 
+
+The code below shows an example usage:
+```python
+config.set_site_dimensions(site_x_start, site_x_end, site_y_start, site_y_end)
+bounds = position_constraints(config)
+maximize(rf, bounds=bounds, method = "SLSQP")
+```
+
+### Inequality constraints for polygon shaped site domains ###
+For more complex site domains, one can define a polygon in which the turbines must be deployed.
+
+The code below shows an example usage for a domain polygon with 4 vertices:
+```python
+vertices = [[site_x_start, site_y_start], 
+            [site_x_end,   site_y_start], 
+            [site_x_end,   site_y_end], 
+            [site_x_start, site_y_end]]
+
+ineq = generate_site_constraints(config, vertices)
+maximize(rf, constraints=ineq, method = "SLSQP")
+```
+
+Note that SLSQP in an infeasible algorithm, which means that the initial turbine layout does not have to fulfill these constraints.
+
+
+
 ## Mesh boundary IDs ##
 OpenTidalFarm expects the 3 the mesh to have three identifiers of the boundary mesh:
  * ID 1: inflow boundary
