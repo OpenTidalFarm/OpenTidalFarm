@@ -5,7 +5,6 @@ import helpers
 import sys
 import dolfin_adjoint
 from animated_plot import AnimatedPlot
-from functionals import DefaultFunctional
 from dolfin import *
 from dolfin_adjoint import *
 from turbines import *
@@ -87,7 +86,7 @@ class ReducedFunctional:
                   state.assign(ic, annotate = False)
 
             # Solve the shallow water system
-            functional = DefaultFunctional(config)
+            functional = config.functional(config)
             j = forward_model(config, state, functional=functional, turbine_field=tf)
             self.last_state = state
 
@@ -105,7 +104,7 @@ class ReducedFunctional:
                 compute_functional(m)
 
             state = self.last_state
-            functional = DefaultFunctional(config)
+            functional = config.functional(config)
 
             # Produce power plot 
             if config.params['output_turbine_power']:
@@ -149,7 +148,7 @@ class ReducedFunctional:
 
             state = self.last_state
 
-            functional = DefaultFunctional(config)
+            functional = config.functional(config)
             if config.params['steady_state'] or config.params["functional_final_time_only"]:
                 J = Functional(functional.Jt(state)*dt[FINISH_TIME])
             else:

@@ -8,6 +8,7 @@ from math import exp, sqrt, pi
 from initial_conditions import *
 from domains import *
 from helpers import info, info_green, info_red, info_blue
+from functionals import DefaultFunctional
 
 class DefaultConfiguration(object):
   ''' A default configuration setup that is used by all tests. '''
@@ -16,6 +17,8 @@ class DefaultConfiguration(object):
     # Initialize function space and the domain
     self.finite_element = finite_element
     self.set_domain(RectangularDomain(basin_x, basin_y, nx, ny), warning = False)
+
+    self.functional = DefaultFunctional
 
     params = ParameterDictionary({
         'verbose'  : 1,

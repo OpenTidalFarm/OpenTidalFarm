@@ -219,7 +219,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
 
         else:
             quad = 0.5
-            j =  dt * quad * assemble(functional.Jt(state)) 
+            j =  dt * quad * functional.Jt(state)
               
     print0("Starting time loop...")
     adjointer.time.start(t)
@@ -312,7 +312,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
                 else:
                     quad = 1.0 * dt 
 
-                j += quad * assemble(functional.Jt(state)) 
+                j += quad * functional.Jt(state)
 
         # Increase the adjoint timestep
         adj_inc_timestep(time=t, finished = not t < params["finish_time"])
