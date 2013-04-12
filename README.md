@@ -134,7 +134,7 @@ Some of the more important parameters are:
 
 Again, use `config.info()` to list the current configuration setup.
 
-## Positioning constraints ## 
+## Positioning constraints ##
 Often, one ones to ensure that the turbines must be deployed in a particular area. 
 This can be achieved in two ways:
 
