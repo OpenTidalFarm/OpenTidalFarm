@@ -13,10 +13,6 @@ class FunctionalPrototype(object):
         ''' This function should return the form that computes the functional's contribution for one timelevel.'''
         raise NotImplementedError, "FunctionalPrototyp.__Jt__ needs to be overloaded."
 
-    def dJtdm(self):
-        ''' This function computes the partial derivatives with respect to controls of the functional's contribution for one timelevel. ''' 
-        raise NotImplementedError, "FunctionalPrototyp.__dJdm__ needs to be overloaded."
-
 class DefaultFunctional(FunctionalPrototype):
     ''' Implements a simple functional of the form:
           J(u, m) = 0.5 * rho * turbines(params) * (||u||**3)
@@ -34,19 +30,3 @@ class DefaultFunctional(FunctionalPrototype):
 
     def Jt(self, state):
         return self.expr(state, self.config.turbine_cache.cache['turbine_field'])*dx 
-
-    def dJtdm(self, state):
-        djtdm = [] 
-        params = self.params
-
-        if "turbine_friction" in params["controls"]:
-            # The derivatives with respect to the friction parameter
-            for n in range(len(params["turbine_friction"])):
-                djtdm.append(self.expr(state, self.config.turbine_cache.cache['turbine_derivative_friction'][n])*dx)
-
-        if "turbine_pos" in params["controls"]:
-            # The derivatives with respect to the turbine position
-            for n in range(len(params["turbine_pos"])):
-                for var in ('turbine_pos_x', 'turbine_pos_y'):
-                    djtdm.append(self.expr(state, self.config.turbine_cache.cache['turbine_derivative_pos'][n][var])*dx)
-        return djtdm 

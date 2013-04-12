@@ -4,7 +4,7 @@ import numpy
 import sys
 from dolfin import *
 from dolfin_adjoint import *
-from helpers import info, info_green, info_red, info_blue
+from helpers import info, info_green, info_red, info_blue, print0
 
 def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, u_source = None):
     '''Solve the shallow water equations with the parameters specified in params.
@@ -208,7 +208,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
 
     if params["dump_period"] > 0:
         writer = helpers.StateWriter(config)
-        info_green("Writing state to disk...")
+        print0("Writing state to disk...")
         writer.write(state)
     
     step = 0    
@@ -221,7 +221,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
             quad = 0.5
             j =  dt * quad * assemble(functional.Jt(state)) 
               
-    info_green("Starting time loop...")
+    print0("Starting time loop...")
     adjointer.time.start(t)
     while (t < params["finish_time"]):
         t += dt
@@ -300,7 +300,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
 	    turbine_field.assign(tf_tmp)
 
         if params["dump_period"] > 0 and step%params["dump_period"] == 0:
-            info_green("Writing state to disk...")
+            print0("Writing state to disk...")
             writer.write(state)
 
         if functional is not None:
@@ -316,8 +316,8 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
 
         # Increase the adjoint timestep
         adj_inc_timestep(time=t, finished = not t < params["finish_time"])
-        info_green("New timestep")
-    info_green("Ending time loop.")
+        print0("New timestep t = %f" % t)
+    print0("Ending time loop.")
 
     if functional is not None:
         return j
