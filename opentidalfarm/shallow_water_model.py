@@ -7,6 +7,9 @@ from dolfin_adjoint import *
 from helpers import info, info_green, info_red, info_blue, print0
 import ufl
 
+
+distance_to_upstream = 1.5*20
+
 def uflmin(a, b):
     return conditional(lt(a, b), a, b)
 def uflmax(a, b):
@@ -15,54 +18,28 @@ def norm_approx(u, alpha=1e-4):
    # A smooth approximation to ||u||
    return sqrt(inner(u, u)+alpha**2)
 
-def average_u_equation(config, u, avg_u, o):
+def upstream_u_equation(config, u, up_u, o):
         tf = config.turbine_cache.cache['turbine_field']
 
-        def smooth(u, avg_u, o):
+        def smooth(u, up_u, o):
             # Calculate averaged velocities
 
             # Define the indicator function of the turbine support 
             chi = ufl.conditional(ufl.gt(tf, 0), 1, 0)
 
             # Solve the Helmholtz equation in each turbine area to obtain averaged velocity values
-            nu = Constant(1e10)
-            F1 = chi*(inner(avg_u-u, o) + nu*inner(grad(avg_u), grad(o)))*dx 
+	    c_diff = Constant(1e5)
+	    # This defines how far we are advecting the velocity before smoothing 
+	    c_adv = Constant(distance_to_upstream)
+	    F1 = chi*(inner(up_u-norm_approx(u), o) + c_adv*inner(dot(grad(norm_approx(u)), u/norm_approx(u)), o) + c_diff*inner(grad(up_u), grad(o)))*dx 
             invchi = 1-chi
-            F2 = inner(invchi*avg_u, o)*dx 
+            F2 = inner(invchi*up_u, o)*dx 
             F = F1 + F2
 
 	    return F
 
-        avg_u_eq = smooth(norm_approx(u), avg_u, o) 
-	return avg_u_eq
-
-
-def compute_average_turbine_velocities(config, state):
-    t = Timer("Computing average velocities")
-    print "Start computing the averaged velocities"
-    tf = config.turbine_cache.cache['turbine_field']
-    turb_dx = config.turbine_cache.dx
-
-    R = FunctionSpace(tf.function_space().mesh(), "R", 0)
-    tr = TrialFunction(R)
-    te = TestFunction(R)
-    norm_u = (dot(state[0], state[0]) + dot(state[1], state[1]))**0.5
-
-    def compute_average(i):
-	p = Function(R)
-
-	# Compute average velocity by projecting the velocity in the turbine area to a real valued function
-	F = (inner(tr, te) - inner(norm_u, te))*turb_dx[i](1)
-	solve(lhs(F) == rhs(F), p)
-
-	return p
-
-    average_u = [compute_average(i) for i in range(len(config.params["turbine_pos"]))]
-    print "Finished computing the averaged velocities in %f s" % t.stop()
-
-    return average_u
-
-
+        up_u_eq = smooth(u, up_u, o) 
+	return up_u_eq
 
 def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, u_source = None):
     '''Solve the shallow water equations with the parameters specified in params.
@@ -141,14 +118,14 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
     # Split mixed functions
     if is_nonlinear and newton_solver:
 	if turbine_thrust_representation:
-            u, h, avg_u = split(state_new) 
+            u, h, up_u = split(state_new) 
         else:
             u, h = split(state_new) 
     else:
         u, h = TrialFunctions(function_space) 
 
     if turbine_thrust_representation:
-        u0, h0, avg_u0 = split(state)
+        u0, h0, up_u0 = split(state)
     else:
         u0, h0 = split(state)
         u_nl, h_nl = split(state_nl)
@@ -230,24 +207,22 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
             friction += turbine_field
     else:
 	print "Adding thrust force"
-	# Compute the average velocities
-	avg_u_eq = average_u_equation(config, u, avg_u, o)
+	# Compute the upstream velocities
+	up_u_eq = upstream_u_equation(config, u, up_u, o)
 
 	# Now apply a pointwise transformation based on the interpolation of a loopup table 
 	c_T_coeffs = [0.08344535,  -1.42428216, 9.13153605, -26.19370168, 28.8752054]
 	c_T_coeffs.reverse()
-	c_T = uflmin(0.883, sum([c_T_coeffs[i]*avg_u**i for i in range(len(c_T_coeffs))]))
-
-	def avg_to_upstream(avg_u):
-	    return 3/2.65*avg_u
+	c_T = uflmin(0.883, sum([c_T_coeffs[i]*up_u**i for i in range(len(c_T_coeffs))]))
 
 	# This is the amount of forcing we want to apply
-	A_c = 2*pi*15.**2 # Turbine cross section
-	f = 0.5*c_T*avg_to_upstream(avg_u)**2*A_c
+	turbine_cross_section = 15.**2
+	A_c = 2*pi*Constant(turbine_cross_section) # Turbine cross section
+	f = 0.5*c_T*up_u**2*A_c
 	f_dir = -f*u/norm_approx(u) # Apply the force in the opposite direction of the flow 
 
 	if turbine_field:
-	    thrust = inner(f_dir*turbine_field/config.turbine_cache.turbine_integral()/config.params["rho"]/config.params["depth"], v)*dx
+	    thrust = inner(f_dir*turbine_field/config.turbine_cache.turbine_integral()/config.params["depth"], v)*dx
 	
     # Friction term
     # With a newton solver we can simply use a non-linear form
@@ -291,7 +266,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
         F += M - M0 
 
     if params["turbine_thrust_representation"]:
-	F += avg_u_eq
+	F += up_u_eq
 	if turbine_field:
 	    F -= thrust
 
@@ -351,7 +326,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
           #solver_parameters["preconditioner"] = "amg" 
           #solver_parameters["linear_solver"] = "mumps"
           solver_parameters["newton_solver"] = {}
-	  solver_parameters["newton_solver"]["error_on_nonconvergence"] = False
+	  #solver_parameters["newton_solver"]["error_on_nonconvergence"] = False
           solver_parameters["newton_solver"]["maximum_iterations"] = 20 
           solver_parameters["newton_solver"]["convergence_criterion"] = "incremental"
           solver_parameters["newton_solver"]["relative_tolerance"] = 1e-16
@@ -364,13 +339,11 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
 
           if turbine_thrust_representation:
 	      print "Inflow velocity: ", u[0]((10, 160))
-	      print "Average velocity norm at turbine center: ", avg_u((640./3, 160))
-	      print "Estimated upstream velocity: ", avg_to_upstream(avg_u((640./3, 160)))
-	      c_T_expected = min(0.883, sum([c_T_coeffs[i]*u[0]((10, 160))**i for i in range(len(c_T_coeffs))]))
-	      print "Expected thrust force: ", 0.5*c_T_expected*u[0]((10, 160))**2*A_c
+	      print "Expected upstream velocity: ", u[0]((640./3-distance_to_upstream, 160))
+	      print "Estimated upstream velocity: ", up_u((640./3, 160))
+	      c_T_expected = min(0.883, sum([c_T_coeffs[i]*u[0]((640./3-distance_to_upstream, 160))**i for i in range(len(c_T_coeffs))]))
+	      print "Expected thrust force: ", 0.5*c_T_expected*u[0]((640./3-distance_to_upstream, 160))**2*A_c((0))
 	      print "Total amount of thurst force applied: ", assemble(inner(Constant(1), f*turbine_field/config.turbine_cache.turbine_integral())*dx)
-	  from IPython import embed
-	  embed()
 
         # Solve non-linear system with a Picard iteration
         elif is_nonlinear:

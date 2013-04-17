@@ -81,26 +81,9 @@ class TurbineCache:
         unit_bump_int = 1.45661 # Computed with wolfram alpha: integrate e^(-1/(1-x**2)-1/(1-y**2)+2) dx dy, x=-0.999..0.999, y=-0.999..0.999
         return unit_bump_int*self.params["turbine_x"]*self.params["turbine_y"]/4
 
-    def update_measures(self, config):
-        ''' Update the integration measures dx[i] for each turbine i '''
-
-        t = Timer("Creating turbine measures")
-        self.dx = []
-        for i in range(len(config.params["turbine_pos"])):
-            # Turbines may overlap, so we need to create a new CellFunction for each turbine.
-            domains = CellFunction("size_t", config.domain.mesh)
-            domains.set_all(0)
-
-            (TurbineDomain(config.params, i)).mark(domains, 1)
-            self.dx.append(Measure("dx")[domains])
-        print "Finished creating turbine measures", t.stop()
-
     def update(self, config):
         ''' Creates a list of all turbine function/derivative interpolations. This list is used as a cache 
           to avoid the recomputation of the expensive interpolation of the turbine expression. '''
-
-        # Update the turbine intergration measures
-        self.update_measures(config)
 
         # If the parameters have not changed, then there is no need to do anything
         if self.params != None:

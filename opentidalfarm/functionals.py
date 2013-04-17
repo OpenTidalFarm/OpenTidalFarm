@@ -54,29 +54,16 @@ class PowerCurveFunctional(FunctionalPrototype):
         assert(self.params["turbine_thrust_representation"])
 
     def Jt(self, state):
+        up_u = state[3]
+        ux = state[0]
         tf = self.config.turbine_cache.cache['turbine_field']
-        turb_dx = self.config.turbine_cache.dx
 
-        R = FunctionSpace(tf.function_space().mesh(), "R", 0)
-        tr = TrialFunction(R)
-        te = TestFunction(R)
+        def power_function(u):
+            fac = Constant(1.5e6/27.66)
+            return uflmin(1.5e6, fac*u**3)
 
-        def add_power(i):
-            p = Function(R)
+        P = inner(Constant(1), power_function(up_u)*tf/self.config.turbine_cache.turbine_integral())*dx
 
-            # Compute average velocity by projecting the velocity in the turbine area to a real valued function
-            norm_u = (dot(state[0], state[0]) + dot(state[1], state[1]))**0.5
-            F = (inner(tr, te) - inner(norm_u, te))*turb_dx[i](1)
-            solve(lhs(F) == rhs(F), p)
-
-            # Compute the power contribution
-            fac = 1.5e6/22.2441162722 # This factor was manually calculated and results in 1.5MW for an 3m/s inflow velocity
-            area = assemble(inner(interpolate(Constant(1), R), 1)*turb_dx[i](1)) 
-
-            return 1./area*uflmin(1.5e6, fac*p**3)*turb_dx[i](1)
-
-        t = Timer("Assembling power")
-        print "Start assembling and adding the power"
-        power = sum([assemble(add_power(i)) for i in range(len(self.config.params["turbine_pos"]))])
-        print "Finished assembling and adding the power in %f s" % t.stop()
-        return power
+        print "Estimated power: %f MW" % (assemble(P)/1e6)
+        print "Expected power: %f MW" % (power_function(ux((640./3-1.5*20, 160)))((0))/1e6)
+        return assemble(P)
