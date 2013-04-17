@@ -201,6 +201,10 @@ Experiments have shown that following options can yield significant speed up:
 ```python
 parameters['form_compiler']['cpp_optimize_flags'] = '-O3 -ffast-math -march=native'
 ```
+or the less aggressive version:
+```python
+parameters['form_compiler']['cpp_optimize_flags'] = '-O3 -fno-math-errno -march=native'
+```
 Add this line just before you call the maximize function. 
 
 However, note that in some circumstances such aggressive optimisation might be problematic for the optimisation algorithms. If the optimisation algorithm returns errors saying that the gradient 
