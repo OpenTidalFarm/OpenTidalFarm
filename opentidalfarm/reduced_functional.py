@@ -75,7 +75,11 @@ class ReducedFunctional:
             parameters["adjoint"]["record_all"] = True 
 
             # Get initial conditions
-            state = Function(config.function_space, name="Current_state")
+            if config.params["turbine_thrust_representation"]:
+                state = Function(config.function_space_enriched, name="Current_state")
+            else:
+                state = Function(config.function_space, name="Current_state")
+
             if config.params["steady_state"] and self.last_state != None:
                 # Speed up the nonlinear solves by starting the Newton solve with the most recent state solution               
                 state.assign(self.last_state, annotate = False)

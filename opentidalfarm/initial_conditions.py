@@ -62,7 +62,8 @@ def ConstantFlowInitialCondition(config):
             values[0] = 1e-19
             values[1] = 0.
             values[2] = 0. 
+            values[3] = 0. 
         def value_shape(self):
-            return (3,)
+            return (4,)
 
     return ConstantFlow()

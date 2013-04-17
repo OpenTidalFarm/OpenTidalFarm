@@ -42,6 +42,7 @@ class DefaultConfiguration(object):
         'turbine_x' : 20., 
         'turbine_y' : 5., 
         'turbine_friction' : [],
+        'turbine_thrust_representation' : False,
         'rho' : 1000., # Use the density of water: 1000kg/m^3
         'controls' : ['turbine_pos', 'turbine_friction'],
         'newton_solver': False, 
@@ -78,8 +79,14 @@ class DefaultConfiguration(object):
       if warning:
            info_red("If you are overwriting the domain, make sure that you reapply the boundary conditions as well")
       self.domain = domain
-      self.function_space = self.finite_element(self.domain.mesh)
-      self.turbine_function_space = FunctionSpace(self.domain.mesh, 'CG', 2) 
+
+      V = VectorFunctionSpace(self.domain.mesh, 'CG', 2, dim=2) # Velocity space
+      H = FunctionSpace(self.domain.mesh, 'CG', 1)              # Height space
+      T = FunctionSpace(self.domain.mesh, 'CG', 2)              # Turbine space 
+
+      self.turbine_function_space = T 
+      self.function_space = MixedFunctionSpace([V, H])
+      self.function_space_enriched = MixedFunctionSpace([V, H, T])
 
   def set_turbine_pos(self, positions, friction = 21.0):
       ''' Sets the turbine position and a equal friction parameter. '''
@@ -131,11 +138,12 @@ class DefaultConfiguration(object):
       self.domain.site_y_end = site_y_end
 
 class SteadyConfiguration(DefaultConfiguration):
-    def __init__(self, mesh_file, inflow_direction, finite_element = finite_elements.p2p1):
+    def __init__(self, mesh_file, inflow_direction, finite_element=finite_elements.p2p1):
 
         super(SteadyConfiguration, self).__init__(finite_element=finite_element)
         # Model settings
-        self.set_domain(GMeshDomain(mesh_file), warning = False)
+        self.set_domain(GMeshDomain(mesh_file), warning=False)
+        self.params['turbine_thrust_representation'] = True
         self.params['steady_state'] = True
         self.params['initial_condition'] = ConstantFlowInitialCondition(self) 
         self.params['include_advection'] = True

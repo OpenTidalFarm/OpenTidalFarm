@@ -32,6 +32,7 @@ class ParameterDictionary(dict):
             'turbine_x' : 'turbine extension in the x direction',
             'turbine_y' : 'turbine extension in the y direction',
             'turbine_friction' : 'turbine friction', 
+            'turbine_thrust_representation' : 'use a thrust representation of the turbine',
             'rho' : 'the density of the fluid', 
             'controls' : 'the control variables',
             'newton_solver': 'newton solver instead of a picard iteration',

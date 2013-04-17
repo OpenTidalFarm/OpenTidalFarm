@@ -1,4 +1,5 @@
 from dolfin import info
+import ufl
 from turbines import *
 from helpers import info, info_green, info_red, info_blue
 from parameter_dict import ParameterDictionary
@@ -50,34 +51,32 @@ class PowerCurveFunctional(FunctionalPrototype):
         self.config = config
         # Create a copy of the parameters so that future changes will not affect the definition of this object.
         self.params = ParameterDictionary(dict(config.params))
-
-        class TurbineDomain(SubDomain):
-            def __init__(self, turbine_index):
-                self.center = config.params["turbine_pos"][turbine_index]
-                self.turbine_x = 3*config.params["turbine_x"]
-                self.turbine_y = 3*config.params["turbine_y"]
-                super(TurbineDomain, self).__init__()
-
-            def inside(self, x, on_boundary):
-                return (between(x[0]-self.center[0], (-self.turbine_x, self.turbine_x)) 
-                        and between(x[1]-self.center[1], (-self.turbine_y, self.turbine_y)))
-
-        t = Timer("Marking turbine measures")
-        self.dx = []
-        for i in range(len(config.params["turbine_pos"])):
-            domains = CellFunction("size_t", config.domain.mesh)
-            domains.set_all(0)
-
-            (TurbineDomain(i)).mark(domains, 1)
-            self.dx.append(Measure("dx")[domains])
-
-    def expr(self, state, turbines):
-        return 0.5 * self.params['rho'] * turbines * (dot(state[0], state[0]) + dot(state[1], state[1]))**1.5
+        assert(self.params["turbine_thrust_representation"])
 
     def Jt(self, state):
-        t = Timer("Time spend in functional evaluation")
-        x = 0
-        for i in range(len(self.config.params["turbine_pos"])):
-            x += min(1.5e6, assemble(self.expr(state, self.config.turbine_cache.cache['turbine_field'])*self.dx[i](1)))
-        print "Time spend in functional evaluation", t.stop()
-        return x
+        tf = self.config.turbine_cache.cache['turbine_field']
+        turb_dx = self.config.turbine_cache.dx
+
+        R = FunctionSpace(tf.function_space().mesh(), "R", 0)
+        tr = TrialFunction(R)
+        te = TestFunction(R)
+
+        def add_power(i):
+            p = Function(R)
+
+            # Compute average velocity by projecting the velocity in the turbine area to a real valued function
+            norm_u = (dot(state[0], state[0]) + dot(state[1], state[1]))**0.5
+            F = (inner(tr, te) - inner(norm_u, te))*turb_dx[i](1)
+            solve(lhs(F) == rhs(F), p)
+
+            # Compute the power contribution
+            fac = 1.5e6/22.2441162722 # This factor was manually calculated and results in 1.5MW for an 3m/s inflow velocity
+            area = assemble(inner(interpolate(Constant(1), R), 1)*turb_dx[i](1)) 
+
+            return 1./area*uflmin(1.5e6, fac*p**3)*turb_dx[i](1)
+
+        t = Timer("Assembling power")
+        print "Start assembling and adding the power"
+        power = sum([assemble(add_power(i)) for i in range(len(self.config.params["turbine_pos"]))])
+        print "Finished assembling and adding the power in %f s" % t.stop()
+        return power

@@ -59,14 +59,49 @@ class Turbines(object):
         f.vector().apply("insert")
         return f
 
+class TurbineDomain(SubDomain):
+    def __init__(self, params, turbine_index):
+        self.center = params["turbine_pos"][turbine_index]
+        self.turbine_x = 3*params["turbine_x"]
+        self.turbine_y = 3*params["turbine_y"]
+        super(TurbineDomain, self).__init__()
+
+    def inside(self, x, on_boundary):
+        return (between(x[0]-self.center[0], (-self.turbine_x, self.turbine_x)) 
+                and between(x[1]-self.center[1], (-self.turbine_y, self.turbine_y)))
+
 class TurbineCache:
     def __init__(self):
         self.cache = {}
         self.params = None
+        self.dx = None 
+
+    def turbine_integral(self):
+        ''' Computes the integral of the turbine '''
+        unit_bump_int = 1.45661 # Computed with wolfram alpha: integrate e^(-1/(1-x**2)-1/(1-y**2)+2) dx dy, x=-0.999..0.999, y=-0.999..0.999
+        return unit_bump_int*self.params["turbine_x"]*self.params["turbine_y"]/4
+
+    def update_measures(self, config):
+        ''' Update the integration measures dx[i] for each turbine i '''
+
+        t = Timer("Creating turbine measures")
+        self.dx = []
+        for i in range(len(config.params["turbine_pos"])):
+            # Turbines may overlap, so we need to create a new CellFunction for each turbine.
+            domains = CellFunction("size_t", config.domain.mesh)
+            domains.set_all(0)
+
+            (TurbineDomain(config.params, i)).mark(domains, 1)
+            self.dx.append(Measure("dx")[domains])
+        print "Finished creating turbine measures", t.stop()
 
     def update(self, config):
         ''' Creates a list of all turbine function/derivative interpolations. This list is used as a cache 
           to avoid the recomputation of the expensive interpolation of the turbine expression. '''
+
+        # Update the turbine intergration measures
+        self.update_measures(config)
+
         # If the parameters have not changed, then there is no need to do anything
         if self.params != None:
             if (self.params["turbine_friction"] == config.params["turbine_friction"]).all() and (self.params["turbine_pos"] == config.params["turbine_pos"]).all(): 

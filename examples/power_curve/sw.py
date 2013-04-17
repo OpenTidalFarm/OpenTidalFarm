@@ -1,7 +1,10 @@
 ''' Runs the forward model with a single turbine and prints some statistics '''
 from opentidalfarm import *
 import matplotlib.pyplot as plt
-set_log_level(ERROR)
+import numpy
+set_log_level(PROGRESS)
+parameters['form_compiler']['cpp_optimize_flags'] = '-O3 -fno-math-errno -march=native'        
+parameters['form_compiler']['quadrature_degree'] = 20
 
 basin_x = 640.
 basin_y = 320.
@@ -13,13 +16,14 @@ config.functional = PowerCurveFunctional
 config.params['automatic_scaling'] = False
 
 # Place one turbine 
-turbine_pos = [[basin_x/3, basin_y/2], 
-               [basin_x/3 + 50, basin_y/2]] 
+turbine_pos = [[basin_x/3, basin_y/2]]#, 
+        #[basin_x/3 + 50, basin_y/2]] 
 
 print0("Turbine position: " + str(turbine_pos))
-config.set_turbine_pos(turbine_pos)
+config.set_turbine_pos(turbine_pos, friction=1.0)
 
-us = [0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5]
+us = numpy.linspace(0, 5, 21)
+us = [3.0]
 powers = []
 for u in us:  
     # Boundary conditions
