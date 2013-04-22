@@ -172,7 +172,11 @@ OpenTidalFarm expects the 3 the mesh to have three identifiers of the boundary m
  * ID 2: outflow boundary 
  * ID 3: shoreline boundary
 
+## Optimisation options ##
+The available optimisation options are explained in detail [here](http://dolfin-adjoint.org/documentation/optimisation.html).
+
 ## Advanced options ##
+
 ### Checkpointing ###
 #### Creating checkpoints ####
 OpenTidalFarm can automatically store checkpoints to disk from which the optimisation procedure can be restarted.
