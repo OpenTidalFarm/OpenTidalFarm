@@ -36,6 +36,7 @@ for u in us:
     model = ReducedFunctional(config)
     m = model.initial_control()
     j, state = model.compute_functional_mem(m, return_final_state = True)
+
     print0("Extracted Power (MW): %f" % (j*10**-6))
     powers.append(j)
 

@@ -78,7 +78,8 @@ class TurbineCache:
 
     def turbine_integral(self):
         ''' Computes the integral of the turbine '''
-        unit_bump_int = 1.45661 # Computed with wolfram alpha: integrate e^(-1/(1-x**2)-1/(1-y**2)+2) dx dy, x=-0.999..0.999, y=-0.999..0.999
+        unit_bump_int = 1.45661 # The integral of the unit bump function computed with Wolfram Alpha: 
+                                # integrate e^(-1/(1-x**2)-1/(1-y**2)+2) dx dy, x=-0.999..0.999, y=-0.999..0.999
         return unit_bump_int*self.params["turbine_x"]*self.params["turbine_y"]/4
 
     def update(self, config):
