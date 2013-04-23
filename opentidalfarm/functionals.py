@@ -59,6 +59,7 @@ class PowerCurveFunctional(FunctionalPrototype):
         tf = self.config.turbine_cache.cache['turbine_field']
 
         def power_function(u):
+            # A simple power function implementation. Could be replaced with a polynomial approximation. 
             fac = Constant(1.5e6/27.66)
             return uflmin(1.5e6, fac*u**3)
 
@@ -66,4 +67,4 @@ class PowerCurveFunctional(FunctionalPrototype):
 
         print "Estimated power: %f MW" % (assemble(P)/1e6)
         print "Expected power: %f MW" % (power_function(ux((640./3-1.5*20, 160)))((0))/1e6)
-        return assemble(P)
+        return P

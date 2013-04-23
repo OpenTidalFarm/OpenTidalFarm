@@ -8,7 +8,7 @@ from helpers import info, info_green, info_red, info_blue, print0
 import ufl
 
 
-distance_to_upstream = 1.5*20
+distance_to_upstream = 2*20
 
 def uflmin(a, b):
     return conditional(lt(a, b), a, b)
@@ -222,6 +222,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
 	f_dir = -f*u/norm_approx(u) # Apply the force in the opposite direction of the flow 
 
 	if turbine_field:
+            # Define the thrust force distributed over the turbine area.
 	    thrust = inner(f_dir*turbine_field/config.turbine_cache.turbine_integral()/config.params["depth"], v)*dx
 	
     # Friction term
@@ -299,7 +300,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
 
         else:
             quad = 0.5
-            j =  dt * quad * functional.Jt(state)
+            j =  dt * quad * assemble(functional.Jt(state))
               
     print0("Starting time loop...")
     adjointer.time.start(t)
@@ -403,7 +404,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
                 else:
                     quad = 1.0 * dt 
 
-                j += quad * functional.Jt(state)
+                j += quad * assemble(functional.Jt(state))
 
         # Increase the adjoint timestep
         adj_inc_timestep(time=t, finished = not t < params["finish_time"])

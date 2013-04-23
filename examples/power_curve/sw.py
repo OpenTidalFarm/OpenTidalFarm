@@ -23,7 +23,7 @@ print0("Turbine position: " + str(turbine_pos))
 config.set_turbine_pos(turbine_pos, friction=1.0)
 
 us = numpy.linspace(0, 5, 21)
-us = [2.5]
+#us = [2.5]
 powers = []
 for u in us:  
     # Boundary conditions
