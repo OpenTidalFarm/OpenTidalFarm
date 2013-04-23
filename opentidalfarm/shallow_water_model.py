@@ -18,6 +18,9 @@ def norm_approx(u, alpha=1e-4):
    # A smooth approximation to ||u||
    return sqrt(inner(u, u)+alpha**2)
 
+def smooth_uflmin(a, b):
+    return a - (norm_approx(a-b) + a-b)/2 
+
 def upstream_u_equation(config, u, up_u, o):
         ''' Returns the equation that computes the turbine upstream velocities ''' 
 
@@ -213,7 +216,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
 	# Compute the upstream velocities
 	up_u_eq = upstream_u_equation(config, u, up_u, o)
 
-	def thrust_force(up_u, min=uflmin):
+	def thrust_force(up_u, min=smooth_uflmin):
 	   ''' Returns the thrust force for a given upstream velcocity ''' 
 	   # Now apply a pointwise transformation based on the interpolation of a loopup table 
 	   c_T_coeffs = [0.08344535,  -1.42428216, 9.13153605, -26.19370168, 28.8752054]
@@ -343,7 +346,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
           else:
               solver_benchmark.solve(F == 0, state_new, solver_parameters = solver_parameters, annotate=annotate, benchmark = run_benchmark, solve = solve, solver_exclude = solver_exclude)
 
-          if turbine_thrust_representation and False:
+	  if turbine_thrust_representation:# and False:
               print "Inflow velocity: ", u[0]((10, 160))
               print "Estimated upstream velocity: ", up_u((640./3, 160))
               print "Expected thrust force: ", thrust_force(u[0]((10, 160)))((0))

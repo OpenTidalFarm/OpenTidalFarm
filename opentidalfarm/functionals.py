@@ -3,6 +3,7 @@ import ufl
 from turbines import *
 from helpers import info, info_green, info_red, info_blue
 from parameter_dict import ParameterDictionary
+import shallow_water_model
 
 class FunctionalPrototype(object):
     ''' This prototype class should be overloaded for an actual functional implementation.  '''
@@ -32,14 +33,6 @@ class DefaultFunctional(FunctionalPrototype):
     def Jt(self, state):
         return self.expr(state, self.config.turbine_cache.cache['turbine_field'])*dx 
 
-def smoothmax(r, eps=1e-6):
-    return conditional(gt(r, eps), r - eps/2, conditional(lt(r, 0), 0, r**2 / (2*eps)))
-
-def uflmin(a, b):
-    return conditional(lt(a, b), a, b)
-def uflmax(a, b):
-    return conditional(gt(a, b), a, b)
-
 class PowerCurveFunctional(FunctionalPrototype):
     ''' Implements a functional for the power with a given power curve 
           J(u, m) = \int_\Omega power(u) 
@@ -60,8 +53,8 @@ class PowerCurveFunctional(FunctionalPrototype):
 
         def power_function(u):
             # A simple power function implementation. Could be replaced with a polynomial approximation. 
-            fac = Constant(1.5e6/27.66)
-            return uflmin(1.5e6, fac*u**3)
+            fac = Constant(1.5e6/(3**3))
+            return shallow_water_model.smooth_uflmin(1.5e6, fac*u**3)
 
         P = inner(Constant(1), power_function(up_u)*tf/self.config.turbine_cache.turbine_integral())*dx
 
