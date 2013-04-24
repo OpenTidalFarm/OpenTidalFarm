@@ -75,7 +75,7 @@ class ReducedFunctional:
             parameters["adjoint"]["record_all"] = True 
 
             # Get initial conditions
-            if config.params["turbine_thrust_representation"]:
+            if config.params["turbine_thrust_parametrisation"]:
                 state = Function(config.function_space_enriched, name="Current_state")
             else:
                 state = Function(config.function_space, name="Current_state")
@@ -112,7 +112,7 @@ class ReducedFunctional:
 
             # Produce power plot 
             if config.params['output_turbine_power']:
-                if config.params['turbine_thrust_representation']:
+                if config.params['turbine_thrust_parametrisation']:
                     info_red("Turbine power VTU's is not yet implemented with thrust based turbines parameterisations.")
                 else:
                     turbines = self.__config__.turbine_cache.cache["turbine_field"]

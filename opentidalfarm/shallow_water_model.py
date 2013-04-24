@@ -87,9 +87,9 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
     steady_state = params["steady_state"]
     functional_final_time_only = params["functional_final_time_only"]
     is_nonlinear = (include_advection or quadratic_friction)
-    turbine_thrust_representation = params["turbine_thrust_representation"]
+    turbine_thrust_parametrisation = params["turbine_thrust_parametrisation"]
 
-    if turbine_thrust_representation:
+    if turbine_thrust_parametrisation:
 	function_space = config.function_space_enriched
     else:
 	function_space = config.function_space
@@ -101,7 +101,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
         theta = 1.
 
     # Define test functions
-    if turbine_thrust_representation:
+    if turbine_thrust_parametrisation:
 	v, q, o = TestFunctions(function_space)
     else:
 	v, q = TestFunctions(function_space)
@@ -110,19 +110,19 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
     state_new = Function(function_space, name="New_state")  # solution of the next timestep 
     state_nl = Function(function_space, name="Best_guess_state")  # the last computed state of the next timestep, used for the picard iteration
 
-    if not newton_solver and turbine_thrust_representation:
+    if not newton_solver and turbine_thrust_parametrisation:
 	raise NotImplementedError, "Thrust turbine representation does currently only work with the newton solver." 
 
     # Split mixed functions
     if is_nonlinear and newton_solver:
-	if turbine_thrust_representation:
+	if turbine_thrust_parametrisation:
             u, h, up_u = split(state_new) 
         else:
             u, h = split(state_new) 
     else:
         u, h = TrialFunctions(function_space) 
 
-    if turbine_thrust_representation:
+    if turbine_thrust_parametrisation:
         u0, h0, up_u0 = split(state)
     else:
         u0, h0 = split(state)
@@ -200,7 +200,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
            value[0] = params["friction"] 
 
     friction = FrictionExpr()
-    if not params["turbine_thrust_representation"]:
+    if not params["turbine_thrust_parametrisation"]:
 	if turbine_field:
             friction += turbine_field
     else:
@@ -266,7 +266,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
     if not steady_state:
         F += M - M0 
 
-    if params["turbine_thrust_representation"]:
+    if params["turbine_thrust_parametrisation"]:
 	F += up_u_eq
 	if turbine_field:
 	    F -= thrust
@@ -338,7 +338,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
           else:
               solver_benchmark.solve(F == 0, state_new, solver_parameters = solver_parameters, annotate=annotate, benchmark = run_benchmark, solve = solve, solver_exclude = solver_exclude)
 
-	  if turbine_thrust_representation and False:
+	  if turbine_thrust_parametrisation and False:
               print "Inflow velocity: ", u[0]((10, 160))
               print "Estimated upstream velocity: ", up_u((640./3, 160))
               print "Expected thrust force: ", thrust_force(u[0]((10, 160)))((0))

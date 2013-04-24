@@ -42,7 +42,7 @@ class DefaultConfiguration(object):
         'turbine_x' : 20., 
         'turbine_y' : 5., 
         'turbine_friction' : [],
-        'turbine_thrust_representation' : False,
+        'turbine_thrust_parametrisation' : False,
         'rho' : 1000., # Use the density of water: 1000kg/m^3
         'controls' : ['turbine_pos', 'turbine_friction'],
         'newton_solver': False, 
@@ -143,7 +143,7 @@ class SteadyConfiguration(DefaultConfiguration):
         super(SteadyConfiguration, self).__init__(finite_element=finite_element)
         # Model settings
         self.set_domain(GMeshDomain(mesh_file), warning=False)
-        self.params['turbine_thrust_representation'] = True
+        self.params['turbine_thrust_parametrisation'] = True
         self.params['steady_state'] = True
         self.params['initial_condition'] = ConstantFlowInitialCondition(self) 
         self.params['include_advection'] = True

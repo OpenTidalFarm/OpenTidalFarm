@@ -7,7 +7,7 @@ class DirichletBCSet:
         params = config.params
         self.config = config
 
-        if params["turbine_thrust_representation"]:
+        if params["turbine_thrust_parametrisation"]:
             self.function_space = self.config.function_space_enriched
         else:
             self.function_space = self.config.function_space
