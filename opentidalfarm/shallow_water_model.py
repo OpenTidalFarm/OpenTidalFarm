@@ -94,14 +94,6 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
     else:
 	function_space = config.function_space
     
-    
-    # Print out an estimation of the Reynolds number 
-    if include_diffusion and diffusion_coef>0:
-      reynolds = params["turbine_x"]*2./diffusion_coef
-    else:
-      reynolds = "oo"
-    info("Expected Reynolds number is roughly (assumes velocity is 2): %s" % str(reynolds))
-
     # Take care of the steady state case
     if steady_state:
         dt = 1.
@@ -224,14 +216,14 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
 	   c_T = min(0.88, sum([c_T_coeffs[i]*up_u**i for i in range(len(c_T_coeffs))]))
 
 	   # This is the amount of forcing we want to apply
-	   turbine_cross_section = 15.**2
-	   A_c = 2*pi*Constant(turbine_cross_section) # Turbine cross section
+	   turbine_radius = 15.**2 
+	   A_c = pi*Constant(turbine_radius) # Turbine cross section
 	   f = 0.5*c_T*up_u**2*A_c
 	   return f
 
 	if turbine_field:
 	    f_dir = -thrust_force(up_u)*u/norm_approx(u) # Apply the force in the opposite direction of the flow 
-	    thrust = inner(f_dir*turbine_field/config.turbine_cache.turbine_integral()/config.params["depth"], v)*dx
+	    thrust = inner(f_dir*turbine_field/(Constant(config.turbine_cache.turbine_integral())*config.params["depth"]), v)*dx
 	
     # Friction term
     # With a newton solver we can simply use a non-linear form
@@ -346,7 +338,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
           else:
               solver_benchmark.solve(F == 0, state_new, solver_parameters = solver_parameters, annotate=annotate, benchmark = run_benchmark, solve = solve, solver_exclude = solver_exclude)
 
-	  if turbine_thrust_representation:# and False:
+	  if turbine_thrust_representation and False:
               print "Inflow velocity: ", u[0]((10, 160))
               print "Estimated upstream velocity: ", up_u((640./3, 160))
               print "Expected thrust force: ", thrust_force(u[0]((10, 160)))((0))

@@ -112,8 +112,11 @@ class ReducedFunctional:
 
             # Produce power plot 
             if config.params['output_turbine_power']:
-                turbines = self.__config__.turbine_cache.cache["turbine_field"]
-                self.power_file << project(functional.expr(state, turbines), config.turbine_function_space, annotate=False)
+                if config.params['turbine_thrust_representation']:
+                    info_red("Turbine power VTU's is not yet implemented with thrust based turbines parameterisations.")
+                else:
+                    turbines = self.__config__.turbine_cache.cache["turbine_field"]
+                    self.power_file << project(functional.expr(state, turbines), config.turbine_function_space, annotate=False)
 
             if config.params['steady_state'] or config.params["functional_final_time_only"]:
                 J = Functional(functional.Jt(state)*dt[FINISH_TIME])
