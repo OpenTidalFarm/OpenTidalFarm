@@ -143,7 +143,6 @@ class SteadyConfiguration(DefaultConfiguration):
         super(SteadyConfiguration, self).__init__(finite_element=finite_element)
         # Model settings
         self.set_domain(GMeshDomain(mesh_file), warning=False)
-        self.params['turbine_thrust_parametrisation'] = True
         self.params['steady_state'] = True
         self.params['initial_condition'] = ConstantFlowInitialCondition(self) 
         self.params['include_advection'] = True
