@@ -40,7 +40,7 @@ def default_config():
 # Set up the turbine friction field using the provided control variable
 config = default_config()
 tf = Function(config.turbine_function_space) 
-turbines = Turbines(U, config.params)
+turbines = Turbines(config.turbine_function_space, config.params)
 
 # Benchmark the generation of the turbine function
 cProfile.run("tf = turbines()")
