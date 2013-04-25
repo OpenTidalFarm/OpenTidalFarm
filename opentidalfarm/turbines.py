@@ -59,17 +59,6 @@ class Turbines(object):
         f.vector().apply("insert")
         return f
 
-class TurbineDomain(SubDomain):
-    def __init__(self, params, turbine_index):
-        self.center = params["turbine_pos"][turbine_index]
-        self.turbine_x = 3*params["turbine_x"]
-        self.turbine_y = 3*params["turbine_y"]
-        super(TurbineDomain, self).__init__()
-
-    def inside(self, x, on_boundary):
-        return (between(x[0]-self.center[0], (-self.turbine_x, self.turbine_x)) 
-                and between(x[1]-self.center[1], (-self.turbine_y, self.turbine_y)))
-
 class TurbineCache:
     def __init__(self):
         self.cache = {}
