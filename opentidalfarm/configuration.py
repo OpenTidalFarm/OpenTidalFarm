@@ -25,7 +25,6 @@ class DefaultConfiguration(object):
         'theta' : 0.6,
         'steady_state' : False,
         'functional_final_time_only' : False,
-        'initial_condition' : None, 
         'bctype'  : 'flather',
         'strong_bc' : None,
         'free_slip_on_sides' : False,
@@ -71,6 +70,8 @@ class DefaultConfiguration(object):
 
     # Store the result as class variables
     self.params = params
+
+    params['initial_condition'] = ConstantFlowInitialCondition(self)
 
     # Create a chaching object for the interpolated turbine friction fields (as their computation is very expensive)
     self.turbine_cache = TurbineCache()

@@ -82,12 +82,10 @@ class ReducedFunctional:
 
             if config.params["steady_state"] and self.last_state != None:
                 # Speed up the nonlinear solves by starting the Newton solve with the most recent state solution               
-                state.assign(self.last_state, annotate = False)
+                state.assign(self.last_state, annotate=False)
             else:
                 ic = config.params['initial_condition']
-                if ic is not None:
-                  # otherwise a zero i.c. is assumed
-                  state.assign(ic, annotate = False)
+                state.assign(ic, annotate=False)
 
             # Solve the shallow water system
             functional = config.functional(config)

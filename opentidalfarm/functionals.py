@@ -58,6 +58,6 @@ class PowerCurveFunctional(FunctionalPrototype):
 
         P = inner(Constant(1), power_function(up_u)*tf/self.config.turbine_cache.turbine_integral())*dx
 
-        print "Expected power: %f MW" % (power_function(ux((10, 160)))((0))/1e6)
+        #print "Expected power: %f MW" % (power_function(ux((10, 160)))((0))/1e6)
         print "Estimated power: %f MW" % (assemble(P)/1e6)
         return P

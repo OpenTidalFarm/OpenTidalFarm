@@ -62,14 +62,14 @@ def BumpInitialCondition(config):
 
     return BumpExpr()
 
-def ConstantFlowInitialCondition(config):
+def ConstantFlowInitialCondition(config, val=[1e-19, 0, 0, 0]):
     class ConstantFlow(Expression):
         def eval(self, values, X):
-            values[0] = 1e-19
-            values[1] = 0.
-            values[2] = 0. 
+            values[0] = val[0] 
+            values[1] = val[1] 
+            values[2] = val[2] 
             if config.params['turbine_thrust_parametrisation']:
-                values[3] = 0. 
+                values[3] = val[3] 
         def value_shape(self):
             if config.params['turbine_thrust_parametrisation']:
                 return (4,)
