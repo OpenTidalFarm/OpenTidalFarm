@@ -80,8 +80,7 @@ class DefaultConfiguration(object):
            info_red("If you are overwriting the domain, make sure that you reapply the boundary conditions as well")
       self.domain = domain
 
-      V = VectorFunctionSpace(self.domain.mesh, 'CG', 2, dim=2) # Velocity space
-      H = FunctionSpace(self.domain.mesh, 'CG', 1)              # Height space
+      V, H = self.finite_element(self.domain.mesh)
       T = FunctionSpace(self.domain.mesh, 'CG', 2)              # Turbine space 
 
       self.turbine_function_space = T 

@@ -27,7 +27,7 @@ def upstream_u_equation(config, u, up_u, o):
         tf = config.turbine_cache.cache['turbine_field']
 
         # The equations underpredict the upstream velocity which is corrected with this factor
-	correction_factor = Constant(1.5)
+        correction_factor = Constant(1.5)
 
         def smooth(u, up_u, o):
             # Calculate averaged velocities
@@ -36,16 +36,16 @@ def upstream_u_equation(config, u, up_u, o):
             chi = ufl.conditional(ufl.gt(tf, 0), 1, 0)
 
             # Solve the Helmholtz equation in each turbine area to obtain averaged velocity values
-	    c_diff = Constant(1e6)
-	    F1 = chi*(inner(up_u-norm_approx(u), o) + Constant(distance_to_upstream)/norm_approx(u)*(inner(dot(grad(norm_approx(u)), u), o) + c_diff*inner(grad(up_u), grad(o))))*dx 
+            c_diff = Constant(1e6)
+            F1 = chi*(inner(up_u-norm_approx(u), o) + Constant(distance_to_upstream)/norm_approx(u)*(inner(dot(grad(norm_approx(u)), u), o) + c_diff*inner(grad(up_u), grad(o))))*dx 
             invchi = 1-chi
             F2 = inner(invchi*up_u, o)*dx 
             F = F1 + F2
 
-	    return F
+            return F
 
         up_u_eq = smooth(u, 1./correction_factor*up_u, o) 
-	return up_u_eq
+        return up_u_eq
 
 def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, u_source = None):
     '''Solve the shallow water equations with the parameters specified in params.
@@ -90,9 +90,9 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
     turbine_thrust_parametrisation = params["turbine_thrust_parametrisation"]
 
     if turbine_thrust_parametrisation:
-	function_space = config.function_space_enriched
+        function_space = config.function_space_enriched
     else:
-	function_space = config.function_space
+        function_space = config.function_space
     
     # Take care of the steady state case
     if steady_state:
@@ -102,20 +102,20 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
 
     # Define test functions
     if turbine_thrust_parametrisation:
-	v, q, o = TestFunctions(function_space)
+        v, q, o = TestFunctions(function_space)
     else:
-	v, q = TestFunctions(function_space)
+        v, q = TestFunctions(function_space)
 
     # Define functions
     state_new = Function(function_space, name="New_state")  # solution of the next timestep 
     state_nl = Function(function_space, name="Best_guess_state")  # the last computed state of the next timestep, used for the picard iteration
 
     if not newton_solver and turbine_thrust_parametrisation:
-	raise NotImplementedError, "Thrust turbine representation does currently only work with the newton solver." 
+        raise NotImplementedError, "Thrust turbine representation does currently only work with the newton solver." 
 
     # Split mixed functions
     if is_nonlinear and newton_solver:
-	if turbine_thrust_parametrisation:
+        if turbine_thrust_parametrisation:
             u, h, up_u = split(state_new) 
         else:
             u, h = split(state_new) 
@@ -201,30 +201,30 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
 
     friction = FrictionExpr()
     if not params["turbine_thrust_parametrisation"]:
-	if turbine_field:
+        if turbine_field:
             friction += turbine_field
     else:
-	print "Adding thrust force"
-	# Compute the upstream velocities
-	up_u_eq = upstream_u_equation(config, u, up_u, o)
+        print "Adding thrust force"
+        # Compute the upstream velocities
+        up_u_eq = upstream_u_equation(config, u, up_u, o)
 
-	def thrust_force(up_u, min=smooth_uflmin):
-	   ''' Returns the thrust force for a given upstream velcocity ''' 
-	   # Now apply a pointwise transformation based on the interpolation of a loopup table 
-	   c_T_coeffs = [0.08344535,  -1.42428216, 9.13153605, -26.19370168, 28.8752054]
-	   c_T_coeffs.reverse()
-	   c_T = min(0.88, sum([c_T_coeffs[i]*up_u**i for i in range(len(c_T_coeffs))]))
+        def thrust_force(up_u, min=smooth_uflmin):
+           ''' Returns the thrust force for a given upstream velcocity ''' 
+           # Now apply a pointwise transformation based on the interpolation of a loopup table 
+           c_T_coeffs = [0.08344535,  -1.42428216, 9.13153605, -26.19370168, 28.8752054]
+           c_T_coeffs.reverse()
+           c_T = min(0.88, sum([c_T_coeffs[i]*up_u**i for i in range(len(c_T_coeffs))]))
 
-	   # This is the amount of forcing we want to apply
-	   turbine_radius = 15.**2 
-	   A_c = pi*Constant(turbine_radius) # Turbine cross section
-	   f = 0.5*c_T*up_u**2*A_c
-	   return f
+           # This is the amount of forcing we want to apply
+           turbine_radius = 15.**2 
+           A_c = pi*Constant(turbine_radius) # Turbine cross section
+           f = 0.5*c_T*up_u**2*A_c
+           return f
 
-	if turbine_field:
-	    f_dir = -thrust_force(up_u)*u/norm_approx(u) # Apply the force in the opposite direction of the flow 
-	    thrust = inner(f_dir*turbine_field/(Constant(config.turbine_cache.turbine_integral())*config.params["depth"]), v)*dx
-	
+        if turbine_field:
+            f_dir = -thrust_force(up_u)*u/norm_approx(u) # Apply the force in the opposite direction of the flow 
+            thrust = inner(f_dir*turbine_field/(Constant(config.turbine_cache.turbine_integral())*config.params["depth"]), v)*dx
+        
     # Friction term
     # With a newton solver we can simply use a non-linear form
     if quadratic_friction and newton_solver:
@@ -267,9 +267,9 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
         F += M - M0 
 
     if params["turbine_thrust_parametrisation"]:
-	F += up_u_eq
-	if turbine_field:
-	    F -= thrust
+        F += up_u_eq
+        if turbine_field:
+            F -= thrust
 
     # Preassemble the lhs if possible
     use_lu_solver = (linear_solver == "lu") 
@@ -327,29 +327,28 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
           #solver_parameters["preconditioner"] = "amg" 
           #solver_parameters["linear_solver"] = "mumps"
           solver_parameters["newton_solver"] = {}
-	  #solver_parameters["newton_solver"]["error_on_nonconvergence"] = False
+          #solver_parameters["newton_solver"]["error_on_nonconvergence"] = False
           solver_parameters["newton_solver"]["maximum_iterations"] = 20 
           solver_parameters["newton_solver"]["convergence_criterion"] = "incremental"
           solver_parameters["newton_solver"]["relative_tolerance"] = 1e-16
-
 
           if bctype == 'strong_dirichlet':
               solver_benchmark.solve(F == 0, state_new, bcs = strong_bc.bcs, solver_parameters = solver_parameters, annotate=annotate, benchmark = run_benchmark, solve = solve, solver_exclude = solver_exclude)
           else:
               solver_benchmark.solve(F == 0, state_new, solver_parameters = solver_parameters, annotate=annotate, benchmark = run_benchmark, solve = solve, solver_exclude = solver_exclude)
 
-	  if turbine_thrust_parametrisation and False:
+          if turbine_thrust_parametrisation and False:
               print "Inflow velocity: ", u[0]((10, 160))
               print "Estimated upstream velocity: ", up_u((640./3, 160))
               print "Expected thrust force: ", thrust_force(u[0]((10, 160)))((0))
               print "Total amount of thurst force applied: ", assemble(inner(Constant(1), thrust_force(up_u)*turbine_field/config.turbine_cache.turbine_integral())*dx)
-	  #P1 = FunctionSpace(config.domain.mesh, "CG", 1)
-	  #up_u_p1 = interpolate(state_new.split(deepcopy=True)[2], P1)
-	  #plot(up_u_p1, interactive=True)
+          #P1 = FunctionSpace(config.domain.mesh, "CG", 1)
+          #up_u_p1 = interpolate(state_new.split(deepcopy=True)[2], P1)
+          #plot(up_u_p1, interactive=True)
 
-	  #V1 = VectorFunctionSpace(config.domain.mesh, "CG", 1)
-	  #u_p1 = interpolate(state_new.split(deepcopy=True)[0], V1)
-	  #plot(u_p1, interactive=True)
+          #V1 = VectorFunctionSpace(config.domain.mesh, "CG", 1)
+          #u_p1 = interpolate(state_new.split(deepcopy=True)[0], V1)
+          #plot(u_p1, interactive=True)
 
         # Solve non-linear system with a Picard iteration
         elif is_nonlinear:
@@ -384,17 +383,17 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
                 info("Using a LU solver to solve the linear system.")
                 lu_solver.solve(state.vector(), rhs_preass, annotate=annotate)
             else:
-                state_tmp = Function(function_space(), name="TempState")
+                state_tmp = Function(function_space, name="TempState")
                 solver_benchmark.solve(lhs_preass, state_new.vector(), rhs_preass, solver_parameters["linear_solver"], solver_parameters["preconditioner"], annotate=annotate, benchmark = run_benchmark, solve = solve, solver_exclude = solver_exclude)
 
         # After the timestep solve, update state
         state.assign(state_new)
-	if turbine_field:
-	    # We need to make a copy of the control function, even though it is constant in time
-	    # This should be really be fixed in dolfin_adjoint instead...
-	    tf_tmp = Function(turbine_field.function_space())
-	    tf_tmp.assign(turbine_field)
-	    turbine_field.assign(tf_tmp)
+        if turbine_field:
+            # We need to make a copy of the control function, even though it is constant in time
+            # This should be really be fixed in dolfin_adjoint instead...
+            tf_tmp = Function(turbine_field.function_space())
+            tf_tmp.assign(turbine_field)
+            turbine_field.assign(tf_tmp)
 
         if params["dump_period"] > 0 and step%params["dump_period"] == 0:
             print0("Writing state to disk...")
