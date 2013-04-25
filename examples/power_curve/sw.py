@@ -16,16 +16,15 @@ config.functional = PowerCurveFunctional
 config.params['turbine_thrust_parametrisation'] = True
 config.params['initial_condition'] = ConstantFlowInitialCondition(config)
 config.params['automatic_scaling'] = False
+#config.params['diffusion_coef'] = 10.
 
 # Place one turbine 
-turbine_pos = [[basin_x/3, basin_y/2]]#, 
-        #[basin_x/3 + 50, basin_y/2]] 
+turbine_pos = [[basin_x/3, basin_y/2]]
 
 print0("Turbine position: " + str(turbine_pos))
 config.set_turbine_pos(turbine_pos, friction=1.0)
 
 us = numpy.linspace(0, 5, 21)
-#us = [2.5]
 powers = []
 for u in us:  
     # Boundary conditions

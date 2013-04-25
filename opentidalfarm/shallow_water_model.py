@@ -27,7 +27,7 @@ def upstream_u_equation(config, u, up_u, o):
         tf = config.turbine_cache.cache['turbine_field']
 
         # The equations underpredict the upstream velocity which is corrected with this factor
-        correction_factor = Constant(1.5)
+        correction_factor = Constant(1.34)
 
         def smooth(u, up_u, o):
             # Calculate averaged velocities
