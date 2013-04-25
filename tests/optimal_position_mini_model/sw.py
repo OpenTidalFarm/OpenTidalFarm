@@ -35,7 +35,7 @@ m0 = rf.initial_control()
 config.info()
 
 p = numpy.random.rand(len(m0))
-minconv = test_gradient_array(rf.j, rf.dj, m0, seed=0.001, perturbation_direction=p)
+minconv = test_gradient_array(rf.j, rf.dj, m0, seed=0.005, perturbation_direction=p)
 if minconv < 1.9:
   info_red("The gradient taylor remainder test failed.")
   sys.exit(1)
