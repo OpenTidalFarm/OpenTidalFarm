@@ -5,7 +5,6 @@ import helpers
 import sys
 import dolfin_adjoint
 from animated_plot import AnimatedPlot
-from functionals import DefaultFunctional
 from dolfin import *
 from dolfin_adjoint import *
 from turbines import *
@@ -76,18 +75,20 @@ class ReducedFunctional:
             parameters["adjoint"]["record_all"] = True 
 
             # Get initial conditions
-            state = Function(config.function_space, name="Current_state")
+            if config.params["turbine_thrust_parametrisation"]:
+                state = Function(config.function_space_enriched, name="Current_state")
+            else:
+                state = Function(config.function_space, name="Current_state")
+
             if config.params["steady_state"] and self.last_state != None:
                 # Speed up the nonlinear solves by starting the Newton solve with the most recent state solution               
-                state.assign(self.last_state, annotate = False)
+                state.assign(self.last_state, annotate=False)
             else:
                 ic = config.params['initial_condition']
-                if ic is not None:
-                  # otherwise a zero i.c. is assumed
-                  state.assign(ic, annotate = False)
+                state.assign(ic, annotate=False)
 
             # Solve the shallow water system
-            functional = DefaultFunctional(config)
+            functional = config.functional(config)
             j = forward_model(config, state, functional=functional, turbine_field=tf)
             self.last_state = state
 
@@ -105,12 +106,15 @@ class ReducedFunctional:
                 compute_functional(m)
 
             state = self.last_state
-            functional = DefaultFunctional(config)
+            functional = config.functional(config)
 
             # Produce power plot 
             if config.params['output_turbine_power']:
-                turbines = self.__config__.turbine_cache.cache["turbine_field"]
-                self.power_file << project(functional.expr(state, turbines), config.turbine_function_space, annotate=False)
+                if config.params['turbine_thrust_parametrisation']:
+                    info_red("Turbine power VTU's is not yet implemented with thrust based turbines parameterisations.")
+                else:
+                    turbines = self.__config__.turbine_cache.cache["turbine_field"]
+                    self.power_file << project(functional.expr(state, turbines), config.turbine_function_space, annotate=False)
 
             if config.params['steady_state'] or config.params["functional_final_time_only"]:
                 J = Functional(functional.Jt(state)*dt[FINISH_TIME])
@@ -149,7 +153,7 @@ class ReducedFunctional:
 
             state = self.last_state
 
-            functional = DefaultFunctional(config)
+            functional = config.functional(config)
             if config.params['steady_state'] or config.params["functional_final_time_only"]:
                 J = Functional(functional.Jt(state)*dt[FINISH_TIME])
             else:

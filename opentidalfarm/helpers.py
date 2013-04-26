@@ -1,28 +1,30 @@
+from __future__ import print_function
 import random
 from dolfin import * 
 from dolfin_adjoint import *
 from numpy import array, dot
 import pylab 
+import dolfin
 
 def info_green(*args, **kwargs):
-    import dolfin
     if MPI.process_number() == 0:
         dolfin.info_green(*args, **kwargs)
 
 def info_red(*args, **kwargs):
-    import dolfin
     if MPI.process_number() == 0:
         dolfin.info_red(*args, **kwargs)
 
 def info_blue(*args, **kwargs):
-    import dolfin
     if MPI.process_number() == 0:
         dolfin.info_blue(*args, **kwargs)
 
 def info(*args, **kwargs):
-    import dolfin
     if MPI.process_number() == 0:
         dolfin.info(*args, **kwargs)
+
+def print0(*args, **kwargs):
+    if MPI.process_number() == 0:
+        print(*args, **kwargs)
 
 def test_gradient_array(J, dJ, x, seed = 0.01, perturbation_direction = None, plot_file = None):
   '''Checks the correctness of the derivative dJ.

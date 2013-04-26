@@ -7,9 +7,7 @@ def rt0(mesh):
  
     H = FunctionSpace(mesh, 'DG', 0)             # Height space
 
-    W=V*H                                        # Mixed space of both.
-
-    return W
+    return V, H
 
 def p2p1(mesh):
     "Return a function space U*H on mesh from the p2p1 space."
@@ -18,9 +16,7 @@ def p2p1(mesh):
  
     H = FunctionSpace(mesh, 'CG', 1)             # Height space
 
-    W=V*H                                        # Mixed space of both.
-
-    return W
+    return V, H
 
 def p1dgp2(mesh):
     "Return a function space U*H on mesh from the rt0 space."
@@ -29,9 +25,7 @@ def p1dgp2(mesh):
  
     H = FunctionSpace(mesh, 'CG', 2)             # Height space
 
-    W=V*H                                        # Mixed space of both.
-
-    return W
+    return V, H
 
 def bdfmp1dg(mesh):
     "Return a function space U*H on mesh from the BFDM1 space."
@@ -40,9 +34,7 @@ def bdfmp1dg(mesh):
  
     H = FunctionSpace(mesh, 'DG', 1)             # Height space
 
-    W=V*H                                        # Mixed space of both.
-
-    return W
+    return V, H
 
 def bdmp0(mesh):
     "Return a function space U*H on mesh from the BFDM1 space."
@@ -51,9 +43,7 @@ def bdmp0(mesh):
  
     H = FunctionSpace(mesh, 'DG', 0)             # Height space
 
-    W=V*H                                        # Mixed space of both.
-
-    return W
+    return V, H
 
 def bdmp1dg(mesh):
     "Return a function space U*H on mesh from the BFDM1 space."
@@ -62,6 +52,4 @@ def bdmp1dg(mesh):
  
     H = FunctionSpace(mesh, 'DG', 1)             # Height space
 
-    W = V*H                                        # Mixed space of both.
-
-    return W
+    return V, H

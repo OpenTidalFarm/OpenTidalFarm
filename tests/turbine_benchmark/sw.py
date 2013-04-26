@@ -37,21 +37,16 @@ def default_config():
 
   return config
 
-config = default_config()
-
-state=Function(config.function_space)
-
-# Set the control values
-U = config.function_space.split()[0].sub(0) # Extract the first component of the velocity function space 
-U = U.collapse() # Recompute the DOF map
-tf = Function(U) # The turbine function
-
 # Set up the turbine friction field using the provided control variable
-turbines = Turbines(U, config.params)
+config = default_config()
+tf = Function(config.turbine_function_space) 
+turbines = Turbines(config.turbine_function_space, config.params)
+
+# Benchmark the generation of the turbine function
 cProfile.run("tf = turbines()")
 
 print "norm(tf) = ", norm(tf)
 correct_norm = 605.429678289 
 if abs(norm(tf) - correct_norm) > 0.000000001:
   print "Warning: Wrong norm. Should be ", correct_norm 
-print "Note: this test should take round 11s"
+print "Note: this test should take round 1 min."

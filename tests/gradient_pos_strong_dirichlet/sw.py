@@ -1,14 +1,13 @@
 ''' This test checks the correctness of the gradient of the turbine position with respect to its position '''
 import sys
 from opentidalfarm import *
-set_log_level(PROGRESS)
+set_log_level(INFO)
 
 def default_config():
   config = configuration.DefaultConfiguration(nx=30, ny=10)
   period = 1.24*60*60 # Wave period
   k = 2*pi/(period*sqrt(config.params["g"]*config.params["depth"]))
   info("Wave period (in h): %f" % (period/60/60) )
-  config.params["dump_period"] = 10000
   config.params["verbose"] = 0
 
   # Start at rest state
@@ -20,11 +19,9 @@ def default_config():
   config.params["include_diffusion"] = True 
   config.params["diffusion_coef"] = 20.0
   config.params["newton_solver"] = True 
-  config.params["picard_iterations"] = 20
-  config.params["linear_solver"] = "default"
-  config.params["preconditioner"] = "default"
   config.params["controls"] = ["turbine_pos"]
 
+  config.info()
   # Boundary condition settings
   config.params["bctype"] = "strong_dirichlet"
   expression = Expression(("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0"), eta0 = config.params["eta0"], g = config.params["g"], depth = config.params["depth"], t = config.params["current_time"], k = config.params["k"])
@@ -33,6 +30,10 @@ def default_config():
   bc.add_analytic_u(2, expression)
   bc.add_analytic_u(3, expression)
   config.params["strong_bc"] = bc
+
+  # Initial condition
+  config.params["initial_condition"] = SinusoidalInitialCondition(config, config.params["eta0"], k, config.params["depth"])
+
 
   # Turbine settings
   config.params["quadratic_friction"] = True
@@ -48,11 +49,11 @@ def default_config():
   return config
 
 config = default_config()
-model = ReducedFunctional(config)
-m0 = model.initial_control()
+rf = ReducedFunctional(config)
+m0 = rf.initial_control()
 
 p = numpy.random.rand(len(m0))
-minconv = helpers.test_gradient_array(model.j, model.dj, m0, seed=0.1, perturbation_direction=p)
+minconv = helpers.test_gradient_array(rf.j, rf.dj, m0, seed=0.1, perturbation_direction=p)
 if minconv < 1.98:
     info_red("The gradient taylor remainder test failed.")
     sys.exit(1)

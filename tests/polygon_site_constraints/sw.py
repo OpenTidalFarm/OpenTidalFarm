@@ -34,26 +34,16 @@ m0 = rf.initial_control()
 
 config.info()
 
-p = numpy.random.rand(len(m0))
-minconv = test_gradient_array(rf.j, rf.dj, m0, seed=0.005, perturbation_direction=p)
-if minconv < 1.9:
-  info_red("The gradient taylor remainder test failed.")
-  sys.exit(1)
-
-# If this option does not produce any ipopt outputs, delete the ipopt.opt file
-g = lambda m: []
-dg = lambda m: []
-
-bounds = [[Constant(0), Constant(0)], [Constant(3000), Constant(1000)]] 
-
-m = maximize(rf, bounds = bounds, method = "SLSQP") 
+ineq = generate_site_constraints(config, [[20, 20], [120, 20], [120, 220], [20, 220]])
+m = maximize(rf, constraints=ineq, method="SLSQP", options={"maxiter": 2}) 
 
 info("Solution of the primal variables: m=" + repr(m) + "\n")
 
 exit_code = 1
-if abs(m[0]-1500) > 40:
+tol = 1
+if abs(m[0]-120) > tol:
     info_red("The optimisation algorithm did not find the optimal x position: %f instead of 1500." % m[0])
-elif abs(m[1]-500) > 0.4:
+elif abs(m[1]-220) > tol:
     info_red("The optimisation algorithm did not find the optimal y position: %f instead of 500." %m[1])
 else:
     info_green("Test passed")

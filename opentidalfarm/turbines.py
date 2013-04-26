@@ -63,10 +63,18 @@ class TurbineCache:
     def __init__(self):
         self.cache = {}
         self.params = None
+        self.dx = None 
+
+    def turbine_integral(self):
+        ''' Computes the integral of the turbine '''
+        unit_bump_int = 1.45661 # The integral of the unit bump function computed with Wolfram Alpha: 
+                                # integrate e^(-1/(1-x**2)-1/(1-y**2)+2) dx dy, x=-0.999..0.999, y=-0.999..0.999
+        return unit_bump_int*self.params["turbine_x"]*self.params["turbine_y"]/4
 
     def update(self, config):
         ''' Creates a list of all turbine function/derivative interpolations. This list is used as a cache 
           to avoid the recomputation of the expensive interpolation of the turbine expression. '''
+
         # If the parameters have not changed, then there is no need to do anything
         if self.params != None:
             if (self.params["turbine_friction"] == config.params["turbine_friction"]).all() and (self.params["turbine_pos"] == config.params["turbine_pos"]).all(): 

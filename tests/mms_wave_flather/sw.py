@@ -25,7 +25,7 @@ def error(config, eta0, k):
   return sqrt(assemble(dot(e,e)*dx))
 
 def test(refinment_level):
-  config = DefaultConfiguration(nx=2*2**refinment_level, ny=2, finite_element = finite_elements.p1dgp2) 
+  config = DefaultConfiguration(nx=2*2**refinment_level, ny=2, finite_element=finite_elements.p1dgp2) 
   eta0 = 2.0
   k = pi/config.domain.basin_x
   config.params["finish_time"] = pi/(sqrt(config.params["g"]*config.params["depth"])*k)/10

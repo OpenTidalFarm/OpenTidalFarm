@@ -8,6 +8,7 @@ from math import exp, sqrt, pi
 from initial_conditions import *
 from domains import *
 from helpers import info, info_green, info_red, info_blue
+from functionals import DefaultFunctional
 
 class DefaultConfiguration(object):
   ''' A default configuration setup that is used by all tests. '''
@@ -17,12 +18,13 @@ class DefaultConfiguration(object):
     self.finite_element = finite_element
     self.set_domain(RectangularDomain(basin_x, basin_y, nx, ny), warning = False)
 
+    self.functional = DefaultFunctional
+
     params = ParameterDictionary({
         'verbose'  : 1,
         'theta' : 0.6,
         'steady_state' : False,
         'functional_final_time_only' : False,
-        'initial_condition' : None, 
         'bctype'  : 'flather',
         'strong_bc' : None,
         'free_slip_on_sides' : False,
@@ -39,6 +41,7 @@ class DefaultConfiguration(object):
         'turbine_x' : 20., 
         'turbine_y' : 5., 
         'turbine_friction' : [],
+        'turbine_thrust_parametrisation' : False,
         'rho' : 1000., # Use the density of water: 1000kg/m^3
         'controls' : ['turbine_pos', 'turbine_friction'],
         'newton_solver': False, 
@@ -68,6 +71,8 @@ class DefaultConfiguration(object):
     # Store the result as class variables
     self.params = params
 
+    params['initial_condition'] = ConstantFlowInitialCondition(self)
+
     # Create a chaching object for the interpolated turbine friction fields (as their computation is very expensive)
     self.turbine_cache = TurbineCache()
 
@@ -75,8 +80,13 @@ class DefaultConfiguration(object):
       if warning:
            info_red("If you are overwriting the domain, make sure that you reapply the boundary conditions as well")
       self.domain = domain
-      self.function_space = self.finite_element(self.domain.mesh)
-      self.turbine_function_space = FunctionSpace(self.domain.mesh, 'CG', 2) 
+
+      V, H = self.finite_element(self.domain.mesh)
+      T = FunctionSpace(self.domain.mesh, 'CG', 2)              # Turbine space 
+
+      self.turbine_function_space = T 
+      self.function_space = MixedFunctionSpace([V, H])
+      self.function_space_enriched = MixedFunctionSpace([V, H, T])
 
   def set_turbine_pos(self, positions, friction = 21.0):
       ''' Sets the turbine position and a equal friction parameter. '''
@@ -115,7 +125,8 @@ class DefaultConfiguration(object):
         print "Mesh element size: %f - %f" % (hmin, hmax)
         print "\n=== Optimisation settings ==="
         print "Automatic functional rescaling: %s" % self.params["automatic_scaling"] 
-        print "Automatic functional rescaling multiplier: %s" % self.params["automatic_scaling_multiplier"] 
+        if self.params["automatic_scaling"]:
+          print "Automatic functional rescaling multiplier: %s" % self.params["automatic_scaling_multiplier"] 
         print "Automatic checkpoint generation: %s" % self.params["save_checkpoints"] 
         print ""
 
@@ -128,11 +139,11 @@ class DefaultConfiguration(object):
       self.domain.site_y_end = site_y_end
 
 class SteadyConfiguration(DefaultConfiguration):
-    def __init__(self, mesh_file, inflow_direction, finite_element = finite_elements.p2p1):
+    def __init__(self, mesh_file, inflow_direction, finite_element=finite_elements.p2p1):
 
         super(SteadyConfiguration, self).__init__(finite_element=finite_element)
         # Model settings
-        self.set_domain(GMeshDomain(mesh_file), warning = False)
+        self.set_domain(GMeshDomain(mesh_file), warning=False)
         self.params['steady_state'] = True
         self.params['initial_condition'] = ConstantFlowInitialCondition(self) 
         self.params['include_advection'] = True

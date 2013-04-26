@@ -6,14 +6,18 @@ The positioning of the turbines in a tidal farm is a crucial decision. Simulatio
  
 However, finding the optimal layout is a difficult process due to the complex flow interactions. OpenTidalFarm solves this problem by applying an efficient optimisation algorithm onto a accurate flow prediction model.
 
-Example
+Examples
 ========
-The following video demonstrates how OpenTidalFarm optimises 32 turbines in an idealised tidal stream.
-[Youtube link](http://www.youtube.com/embed/ng3bbso-vGk?vq=hd1080)
-[Pentland Firth 128 turbines](http://www.youtube.com/embed/mMNes2Ubz2Y?vq=hd1080)
-[Pentland Firth 128 turbines (zoom)](http://www.youtube.com/embed/GjWNBzvSeSs?vq=hd1080)
-[Pentland Firth 256 turbines](http://www.youtube.com/embed/3yOeCL5_Vrs?vq=hd1080)
-[Pentland Firth 256 turbines (zoom)](http://www.youtube.com/embed/p6U5_7Su58E?vq=hd1080)
+The following video demonstrates OpenTidalFarm on different setups:
+
+* [Optimisation of 32 turbines in an idealised tidal stream](http://www.youtube.com/embed/ng3bbso-vGk?vq=hd1080)
+
+The following videos show the how the turbine positions change during the optimisation. The final frame of the videos show 
+the optimisation locations of the turbines. In these cases, the total power production of the turbines was improved by over 25%.  
+* [Optimisation of 128 turbines in the Pentland Firth, Scotland](http://www.youtube.com/embed/mMNes2Ubz2Y?vq=hd1080)
+* [Optimisation of 128 turbines in the Pentland Firth, Scotland (zoomed into site area)](http://www.youtube.com/embed/GjWNBzvSeSs?vq=hd1080)
+* [Optimisation of 256 turbines in the Pentland Firth, Scotland](http://www.youtube.com/embed/3yOeCL5_Vrs?vq=hd1080)
+* [Optimisation of 256 turbines in the Pentland Firth, Scotland (zoomed into site area)](http://www.youtube.com/embed/p6U5_7Su58E?vq=hd1080)
 
 Features 
 ========
@@ -24,26 +28,6 @@ Features
 * Optimisation of up to hundreds of turbines.
 * Checkpoint support to restart optimisation.
  
-Contact 
-=======
-<a id="contact"> </a>
-For questions and support please contact Simon Funke <s.funke09@imperial.ac.uk>.
-
-Citing
-======
-Please cite the following paper if you are using OpenTidalFarm:
-
-S.W. Funke, P.E. Farrell, M.D. Piggott, Tidal turbine array optimisation using the adjoint approach, in preparation (2013)
-
-For the automatic adjoint generation used by OpenTidalFarm, please cite:
-
-Patrick E. Farrell, David A. Ham, Simon W. Funke and Marie E. Rognes (2012). Automated derivation of the adjoint of high-level transient finite element programs, accepted. arXiv:1204.5577
-
-For the automated optimisation framework used by OpenTidalFarm, please cite:
-
-Simon W. Funke and Patrick E. Farrell. A framework for automated PDE-constrained optimisation, submitted. arXiv:1302.3894
-
-
 Installation
 ============
 Note: This installation procedure assumes that you are running the [Ubuntu](http://www.ubuntu.com/) operating system.
@@ -124,19 +108,19 @@ Documentation
 ## Configurations ##
 OpenTidalFarm is based on configurations for defining different setups.
 The most important configurations are
-* `SteadyConfiguration`: Use this configuration for steady state simulations.
-* `UnstadyConfiguration`: Use this configuration for steady state simulations.
+* `SteadyConfiguration`: Use this configuration for steady simulations.
+* `UnstadyConfiguration`: Use this configuration for unsteady simulations.
 
 Once you have a configuration object, try running
 ```python
 config.info()
 ```
-to see detailed information about the settings of that setup. 
+to see detailed information about the settings of the current configuration. 
 
 ### Parameters ###
 Each configuration has a large of additional parameters that can be changed.
 
-For example to use Picard iterations instead of a Newton solver one would do:
+For example to use Picard iterations instead of a Newton solver to solve the nonlinear shallow water equations one would set:
 ```python
 config.params["newton_solver"] = False 
 ```
@@ -150,13 +134,49 @@ Some of the more important parameters are:
 
 Again, use `config.info()` to list the current configuration setup.
 
+## Positioning constraints ##
+Often, one ones to ensure that the turbines must be deployed in a particular area. 
+This can be achieved in two ways:
+
+### Box constraints ###
+Box constraints is the easiest solution of the deployment area is a rectangle. 
+
+The code below shows an example usage:
+```python
+config.set_site_dimensions(site_x_start, site_x_end, site_y_start, site_y_end)
+bounds = position_constraints(config)
+maximize(rf, bounds=bounds, method = "SLSQP")
+```
+
+### Inequality constraints for polygon shaped site domains ###
+For more complex site domains, one can define a polygon in which the turbines must be deployed.
+
+The code below shows an example usage for a domain polygon with 4 vertices:
+```python
+vertices = [[site_x_start, site_y_start], 
+            [site_x_end,   site_y_start], 
+            [site_x_end,   site_y_end], 
+            [site_x_start, site_y_end]]
+
+ineq = generate_site_constraints(config, vertices)
+maximize(rf, constraints=ineq, method = "SLSQP")
+```
+
+Note that SLSQP in an infeasible algorithm, which means that the initial turbine layout does not have to fulfill these constraints.
+
+
+
 ## Mesh boundary IDs ##
 OpenTidalFarm expects the 3 the mesh to have three identifiers of the boundary mesh:
  * ID 1: inflow boundary
  * ID 2: outflow boundary 
  * ID 3: shoreline boundary
 
+## Optimisation options ##
+The available optimisation options are explained in detail [here](http://dolfin-adjoint.org/documentation/optimisation.html).
+
 ## Advanced options ##
+
 ### Checkpointing ###
 #### Creating checkpoints ####
 OpenTidalFarm can automatically store checkpoints to disk from which the optimisation procedure can be restarted.
@@ -185,6 +205,10 @@ Experiments have shown that following options can yield significant speed up:
 ```python
 parameters['form_compiler']['cpp_optimize_flags'] = '-O3 -ffast-math -march=native'
 ```
+or the less aggressive version:
+```python
+parameters['form_compiler']['cpp_optimize_flags'] = '-O3 -fno-math-errno -march=native'
+```
 Add this line just before you call the maximize function. 
 
 However, note that in some circumstances such aggressive optimisation might be problematic for the optimisation algorithms. If the optimisation algorithm returns errors saying that the gradient 
@@ -200,6 +224,25 @@ In such case you can try following things:
 * Use finer mesh in the turbine site area. The numerical errors of representing the turbines might be dominating the problem.
 * Use a looser optimisation tolerance, by passing the `tol` parameter to maximize function. 
 * If you are only optimising for the turbine friction and you do not use `automatic_scaling` parameter (which you should in this particular case), then you might have to scale your problem manually. This is done by passing a scale argument to maximize, e.g. `maximize(rf, scale=1e-3)`. Choose the scale value such that the first gradient is in the order of 1. 
+
+Citing
+======
+Please cite the following paper if you are using OpenTidalFarm:
+
+S.W. Funke, P.E. Farrell, M.D. Piggott, Tidal turbine array optimisation using the adjoint approach, Renewable Energy, submitted (2013) [arXiv:1304.1768](http://arxiv.org/abs/1304.1768)
+
+For the automated optimisation framework used by OpenTidalFarm, please cite:
+
+Simon W. Funke and Patrick E. Farrell. A framework for automated PDE-constrained optimisation, TOMS, submitted. [arXiv:1302.3894](http://arxiv.org/abs/1302.3894)
+
+For the automatic adjoint generation used by OpenTidalFarm, please cite:
+
+Patrick E. Farrell, David A. Ham, Simon W. Funke and Marie E. Rognes (2012). Automated derivation of the adjoint of high-level transient finite element programs, accepted. [arXiv:1204.5577](http://arxiv.org/abs/1204.5577)
+
+Contact 
+=======
+<a id="contact"> </a>
+For questions and support please contact Simon Funke <s.funke09@imperial.ac.uk>.
 
 Licence
 =======
