@@ -1,6 +1,6 @@
 run: clean 
 	for number in 2 1 0 ; do \
-		unbuffer time mpirun -n 2 python sw.py $$number.xml > output_$$number.txt; \
+		unbuffer time mpirun -n 2 python sw.py $$number > output_$$number.txt; \
 	done
 
 coarse: clean 
