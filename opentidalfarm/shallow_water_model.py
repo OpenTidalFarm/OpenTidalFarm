@@ -7,6 +7,10 @@ from dolfin_adjoint import *
 from helpers import info, info_green, info_red, info_blue, print0
 import ufl
 
+# Some global variables for plotting the thurst plot - just for testing purposes 
+us = []
+thrusts = []
+thrusts_est = []
 
 distance_to_upstream = 1.*20
 
@@ -337,11 +341,22 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
           else:
               solver_benchmark.solve(F == 0, state_new, solver_parameters = solver_parameters, annotate=annotate, benchmark = run_benchmark, solve = solve, solver_exclude = solver_exclude)
 
-          #if turbine_thrust_parametrisation:
-          #    print "Inflow velocity: ", u[0]((10, 160))
-          #    print "Estimated upstream velocity: ", up_u((640./3, 160))
-          #    print "Expected thrust force: ", thrust_force(u[0]((10, 160)))((0))
-          #    print "Total amount of thurst force applied: ", assemble(inner(Constant(1), thrust_force(up_u)*turbine_field/config.turbine_cache.turbine_integral())*dx)
+          if turbine_thrust_parametrisation:
+              print "Inflow velocity: ", u[0]((10, 160))
+              print "Estimated upstream velocity: ", up_u((640./3, 160))
+              print "Expected thrust force: ", thrust_force(u[0]((10, 160)))((0))
+              print "Total amount of thurst force applied: ", assemble(inner(Constant(1), thrust_force(up_u)*turbine_field/config.turbine_cache.turbine_integral())*dx)
+
+              us.append(u[0]((10, 160)))
+              thrusts.append(thrust_force(u[0]((10, 160)))((0)))
+              thrusts_est.append(assemble(inner(Constant(1), thrust_force(up_u)*turbine_field/config.turbine_cache.turbine_integral())*dx))
+
+              import matplotlib.pyplot as plt
+              plt.clf()
+              plt.plot(us, thrusts, label="Analytical")
+              plt.plot(us, thrusts_est, label="Approximated")
+              plt.legend()
+              plt.savefig("thrust_plot.pdf", format='pdf')
 
         # Solve non-linear system with a Picard iteration
         elif is_nonlinear:

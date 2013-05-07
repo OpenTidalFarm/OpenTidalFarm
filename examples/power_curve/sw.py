@@ -24,7 +24,7 @@ turbine_pos = [[basin_x/3, basin_y/2]]
 print0("Turbine position: " + str(turbine_pos))
 config.set_turbine_pos(turbine_pos, friction=1.0)
 
-us = numpy.linspace(0, 5, 21)
+us = numpy.linspace(0, 5, 6)
 powers = []
 for u in us:  
     # Boundary conditions
@@ -41,5 +41,9 @@ for u in us:
     print0("Extracted Power (MW): %f" % (j*10**-6))
     powers.append(j)
 
-plt.plot(us, powers)
+plt.plot(us, [p*1e-6 for p in powers], label="Approximated")
+fac = 1.5e6/(3**3) # Scaling factor such that for 3 m/s, the turbine produces 1.5 MW
+plt.plot(us, [min(1.5e6, fac*u**3)*10**-6 for u in us], label="Analytical")
+plt.legend()
+
 plt.savefig("power_plot.pdf", format='pdf')
