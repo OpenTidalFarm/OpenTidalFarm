@@ -27,7 +27,6 @@ config.set_turbine_pos(turbine_pos, friction=1.0)
 
 fac = 1.5e6/(3**3) # Scaling factor such that for 3 m/s, the turbine produces 1.5 MW
 us = numpy.linspace(0, 5, 6)
-us = [2.5]
 powers = []
 for u in us:  
     # Boundary conditions
