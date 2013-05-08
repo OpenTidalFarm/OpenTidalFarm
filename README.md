@@ -6,9 +6,7 @@ The positioning of the turbines in a tidal farm is a crucial decision. Simulatio
  
 However, finding the optimal layout is a difficult process due to the complex flow interactions. OpenTidalFarm solves this problem by applying an efficient optimisation algorithm onto a accurate flow prediction model.
 
-```html
 <div style="width:425px;text-align:left"><a style="font:14px Helvetica,Arial,Sans-serif;color: #0000CC;display:block;margin:12px 0 3px 0;text-decoration:underline;" href="//www.slideboom.com/presentations/758051/OpenTidalFarm" title="OpenTidalFarm">OpenTidalFarm</a><object classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000" codebase="http://fpdownload.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=9,0,28,0" width="425" height="370" id="onlinePlayer758051"><param name="movie" value="//www.slideboom.com/player/player.swf?id_resource=758051" /><param name="allowScriptAccess" value="always" /><param name="quality" value="high" /><param name="bgcolor" value="#ffffff" /><param name="allowFullScreen" value="true" /><param name="flashVars" value="" /><embed src="//www.slideboom.com/player/player.swf?id_resource=758051" width="425" height="370" name="onlinePlayer758051" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer"allowScriptAccess="always" quality="high" bgcolor="#ffffff" allowFullScreen="true" flashVars="" ></embed></object><div style="font-size:11px;font-family:tahoma,arial;height:26px;padding-top:2px;">View <a href="" style="color: #0000CC;">more presentations</a> or <a href="/upload" style="color: #0000CC;">Upload</a> your own.</div></div>
-```
 
 Examples
 ========
