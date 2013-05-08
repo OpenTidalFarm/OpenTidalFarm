@@ -42,6 +42,7 @@ class DefaultConfiguration(object):
         'turbine_y' : 5., 
         'turbine_friction' : [],
         'turbine_thrust_parametrisation' : False,
+        'implicit_turbine_thrust_parametrisation' : False,
         'rho' : 1000., # Use the density of water: 1000kg/m^3
         'controls' : ['turbine_pos', 'turbine_friction'],
         'newton_solver': False, 
@@ -87,6 +88,7 @@ class DefaultConfiguration(object):
       self.turbine_function_space = T 
       self.function_space = MixedFunctionSpace([V, H])
       self.function_space_enriched = MixedFunctionSpace([V, H, T])
+      self.function_space_2enriched = MixedFunctionSpace([V, H, T, T])
 
   def set_turbine_pos(self, positions, friction = 21.0):
       ''' Sets the turbine position and a equal friction parameter. '''

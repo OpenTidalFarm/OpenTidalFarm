@@ -13,6 +13,7 @@ inflow_direction = [1, 0]
 
 config = SteadyConfiguration("mesh.xml", inflow_direction=inflow_direction)
 config.functional = PowerCurveFunctional
+#config.params['implicit_turbine_thrust_parametrisation'] = True
 config.params['turbine_thrust_parametrisation'] = True
 config.params['initial_condition'] = ConstantFlowInitialCondition(config)
 config.params['automatic_scaling'] = False
@@ -24,7 +25,9 @@ turbine_pos = [[basin_x/3, basin_y/2]]
 print0("Turbine position: " + str(turbine_pos))
 config.set_turbine_pos(turbine_pos, friction=1.0)
 
+fac = 1.5e6/(3**3) # Scaling factor such that for 3 m/s, the turbine produces 1.5 MW
 us = numpy.linspace(0, 5, 6)
+us = [2.5]
 powers = []
 for u in us:  
     # Boundary conditions
@@ -38,11 +41,11 @@ for u in us:
     m = model.initial_control()
     j, state = model.compute_functional_mem(m, return_final_state = True)
 
-    print0("Extracted Power (MW): %f" % (j*10**-6))
+    print0("Extracted power (MW): %f" % (j*10**-6))
+    print0("Expected power (MW): %f" % (min(1.5e6, fac*u**3)*10**-6))
     powers.append(j)
 
 plt.plot(us, [p*1e-6 for p in powers], label="Approximated")
-fac = 1.5e6/(3**3) # Scaling factor such that for 3 m/s, the turbine produces 1.5 MW
 plt.plot(us, [min(1.5e6, fac*u**3)*10**-6 for u in us], label="Analytical")
 plt.legend()
 

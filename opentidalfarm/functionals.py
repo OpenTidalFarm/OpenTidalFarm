@@ -44,7 +44,7 @@ class PowerCurveFunctional(FunctionalPrototype):
         self.config = config
         # Create a copy of the parameters so that future changes will not affect the definition of this object.
         self.params = ParameterDictionary(dict(config.params))
-        assert(self.params["turbine_thrust_parametrisation"])
+        assert(self.params["turbine_thrust_parametrisation"] or self.params["implicit_turbine_thrust_parametrisation"])
 
     def Jt(self, state):
         up_u = state[3]

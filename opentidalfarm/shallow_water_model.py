@@ -25,6 +25,37 @@ def norm_approx(u, alpha=1e-4):
 def smooth_uflmin(a, b):
     return a - (norm_approx(a-b) + a-b)/2 
 
+def upstream_u_implicit_equation(config, u, up_u, o, up_u_adv, o_adv):
+        ''' Returns the implicit equations that compute the turbine upstream velocities ''' 
+
+        tf = config.turbine_cache.cache['turbine_field']
+
+        def advect(u, up_u_adv, o_adv):
+
+            theta = 1.0
+            uh = Constant(1-theta)*norm_approx(u) + Constant(theta)*up_u_adv
+            F = (inner(up_u_adv-norm_approx(u), o_adv) + Constant(distance_to_upstream)/norm_approx(uh)*inner(dot(grad(uh), u), o_adv))*dx 
+            #F = (inner(up_u_adv-norm_approx(u), o_adv) + Constant(distance_to_upstream)*inner(dot(grad(uh), Constant((1, 0))), o_adv))*dx 
+
+            return F
+
+        def smooth(up_u_adv, up_u, o):
+            # Calculate averaged velocities
+
+            # Define the indicator function of the turbine support 
+            chi = ufl.conditional(ufl.gt(tf, 0), 1, 0)
+
+            c_diff = Constant(1e6)
+            F1 = chi*(inner(up_u-up_u_adv, o) + c_diff*inner(grad(up_u), grad(o)))*dx 
+            invchi = 1-chi
+            F2 = inner(invchi*up_u, o)*dx 
+            F = F1 + F2
+
+            return F
+
+        up_u_eqs = advect(u, up_u_adv, o_adv) + smooth(up_u_adv, up_u, o)
+        return up_u_eqs
+
 def upstream_u_equation(config, u, up_u, o):
         ''' Returns the equation that computes the turbine upstream velocities ''' 
 
@@ -92,8 +123,11 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
     functional_final_time_only = params["functional_final_time_only"]
     is_nonlinear = (include_advection or quadratic_friction)
     turbine_thrust_parametrisation = params["turbine_thrust_parametrisation"]
+    implicit_turbine_thrust_parametrisation = params["implicit_turbine_thrust_parametrisation"]
 
-    if turbine_thrust_parametrisation:
+    if implicit_turbine_thrust_parametrisation:
+        function_space = config.function_space_2enriched
+    elif turbine_thrust_parametrisation:
         function_space = config.function_space_enriched
     else:
         function_space = config.function_space
@@ -105,7 +139,9 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
         theta = 1.
 
     # Define test functions
-    if turbine_thrust_parametrisation:
+    if implicit_turbine_thrust_parametrisation:
+        v, q, o, o_adv = TestFunctions(function_space)
+    elif turbine_thrust_parametrisation:
         v, q, o = TestFunctions(function_space)
     else:
         v, q = TestFunctions(function_space)
@@ -114,19 +150,23 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
     state_new = Function(function_space, name="New_state")  # solution of the next timestep 
     state_nl = Function(function_space, name="Best_guess_state")  # the last computed state of the next timestep, used for the picard iteration
 
-    if not newton_solver and turbine_thrust_parametrisation:
+    if not newton_solver and (turbine_thrust_parametrisation or implicit_turbine_thrust_parametrisation):
         raise NotImplementedError, "Thrust turbine representation does currently only work with the newton solver." 
 
     # Split mixed functions
     if is_nonlinear and newton_solver:
-        if turbine_thrust_parametrisation:
+        if implicit_turbine_thrust_parametrisation:
+            u, h, up_u, up_u_adv = split(state_new) 
+        elif turbine_thrust_parametrisation:
             u, h, up_u = split(state_new) 
         else:
             u, h = split(state_new) 
     else:
         u, h = TrialFunctions(function_space) 
 
-    if turbine_thrust_parametrisation:
+    if implicit_turbine_thrust_parametrisation:
+        u0, h0, up_u0, up_u_adv0 = split(state)
+    elif turbine_thrust_parametrisation:
         u0, h0, up_u0 = split(state)
     else:
         u0, h0 = split(state)
@@ -204,13 +244,17 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
            value[0] = params["friction"] 
 
     friction = FrictionExpr()
-    if not params["turbine_thrust_parametrisation"]:
+    if not turbine_thrust_parametrisation and not implicit_turbine_thrust_parametrisation:
         if turbine_field:
             friction += turbine_field
     else:
         print "Adding thrust force"
         # Compute the upstream velocities
-        up_u_eq = upstream_u_equation(config, u, up_u, o)
+
+        if implicit_turbine_thrust_parametrisation:
+           up_u_eq = upstream_u_implicit_equation(config, u, up_u, o, up_u_adv, o_adv)
+        elif turbine_thrust_parametrisation:
+           up_u_eq = upstream_u_equation(config, u, up_u, o)
 
         def thrust_force(up_u, min=smooth_uflmin):
            ''' Returns the thrust force for a given upstream velcocity ''' 
@@ -270,7 +314,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
     if not steady_state:
         F += M - M0 
 
-    if params["turbine_thrust_parametrisation"]:
+    if turbine_thrust_parametrisation or implicit_turbine_thrust_parametrisation:
         F += up_u_eq
         if turbine_field:
             F -= thrust
@@ -341,7 +385,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
           else:
               solver_benchmark.solve(F == 0, state_new, solver_parameters = solver_parameters, annotate=annotate, benchmark = run_benchmark, solve = solve, solver_exclude = solver_exclude)
 
-          if turbine_thrust_parametrisation:
+          if turbine_thrust_parametrisation or implicit_turbine_thrust_parametrisation:
               print "Inflow velocity: ", u[0]((10, 160))
               print "Estimated upstream velocity: ", up_u((640./3, 160))
               print "Expected thrust force: ", thrust_force(u[0]((10, 160)))((0))
