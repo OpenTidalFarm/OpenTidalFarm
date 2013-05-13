@@ -22,8 +22,8 @@ def norm_approx(u, alpha=1e-4):
    # A smooth approximation to ||u||
    return sqrt(inner(u, u)+alpha**2)
 
-def smooth_uflmin(a, b):
-    return a - (norm_approx(a-b) + a-b)/2 
+def smooth_uflmin(a, b, alpha=1e-8):
+    return a - (norm_approx(a-b, alpha=alpha) + a-b)/2 
 
 def upstream_u_implicit_equation(config, u, up_u, o, up_u_adv, o_adv):
         ''' Returns the implicit equations that compute the turbine upstream velocities ''' 
@@ -263,14 +263,16 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
            c_T_coeffs.reverse()
            c_T = min(0.88, sum([c_T_coeffs[i]*up_u**i for i in range(len(c_T_coeffs))]))
 
-           # This is the amount of forcing we want to apply
-           turbine_radius = 15.**2 
-           A_c = pi*Constant(turbine_radius) # Turbine cross section
+           # The amount of forcing we want to apply
+           turbine_radius = 15.
+           A_c = pi*Constant(turbine_radius**2) # Turbine cross section
            f = 0.5*c_T*up_u**2*A_c
            return f
 
         if turbine_field:
-            f_dir = -thrust_force(up_u)*u/norm_approx(u) # Apply the force in the opposite direction of the flow 
+            # Apply the force in the opposite direction of the flow
+            f_dir = -thrust_force(up_u)*u/norm_approx(u, alpha=1e-6)
+            # Distribute this force over the turbine area
             thrust = inner(f_dir*turbine_field/(Constant(config.turbine_cache.turbine_integral())*config.params["depth"]), v)*dx
         
     # Friction term
@@ -388,7 +390,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
           if turbine_thrust_parametrisation or implicit_turbine_thrust_parametrisation:
               print "Inflow velocity: ", u[0]((10, 160))
               print "Estimated upstream velocity: ", up_u((640./3, 160))
-              print "Expected thrust force: ", thrust_force(u[0]((10, 160)))((0))
+              print "Expected thrust force: ", thrust_force(u[0]((10, 160)), min=min)((0))
               print "Total amount of thurst force applied: ", assemble(inner(Constant(1), thrust_force(up_u)*turbine_field/config.turbine_cache.turbine_integral())*dx)
 
               us.append(u[0]((10, 160)))
@@ -399,7 +401,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
               plt.clf()
               plt.plot(us, thrusts, label="Analytical")
               plt.plot(us, thrusts_est, label="Approximated")
-              plt.legend()
+              plt.legend(loc=2)
               plt.savefig("thrust_plot.pdf", format='pdf')
 
         # Solve non-linear system with a Picard iteration

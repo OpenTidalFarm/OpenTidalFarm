@@ -44,8 +44,9 @@ for u in us:
     print0("Expected power (MW): %f" % (min(1.5e6, fac*u**3)*10**-6))
     powers.append(j)
 
+plt.clf()
 plt.plot(us, [p*1e-6 for p in powers], label="Approximated")
 plt.plot(us, [min(1.5e6, fac*u**3)*10**-6 for u in us], label="Analytical")
-plt.legend()
+plt.legend(loc=2)
 
 plt.savefig("power_plot.pdf", format='pdf')
