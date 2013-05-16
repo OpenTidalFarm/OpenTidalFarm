@@ -46,7 +46,7 @@ turbines = Turbines(config.turbine_function_space, config.params)
 cProfile.run("tf = turbines()")
 
 print "norm(tf) = ", norm(tf)
-correct_norm = 605.429678289 
+correct_norm = 634.425772066 
 if abs(norm(tf) - correct_norm) > 0.000000001:
   print "Warning: Wrong norm. Should be ", correct_norm 
 print "Note: this test should take round 1 min."
