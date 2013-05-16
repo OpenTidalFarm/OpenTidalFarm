@@ -25,10 +25,8 @@ def norm_approx(u, alpha=1e-4):
 def smooth_uflmin(a, b, alpha=1e-8):
     return a - (norm_approx(a-b, alpha=alpha) + a-b)/2 
 
-def upstream_u_implicit_equation(config, u, up_u, o, up_u_adv, o_adv):
+def upstream_u_implicit_equation(config, tf, u, up_u, o, up_u_adv, o_adv):
         ''' Returns the implicit equations that compute the turbine upstream velocities ''' 
-
-        tf = config.turbine_cache.cache['turbine_field']
 
         def advect(u, up_u_adv, o_adv):
 
@@ -56,10 +54,8 @@ def upstream_u_implicit_equation(config, u, up_u, o, up_u_adv, o_adv):
         up_u_eqs = advect(u, up_u_adv, o_adv) + smooth(up_u_adv, up_u, o)
         return up_u_eqs
 
-def upstream_u_equation(config, u, up_u, o):
+def upstream_u_equation(config, tf, u, up_u, o):
         ''' Returns the equation that computes the turbine upstream velocities ''' 
-
-        tf = config.turbine_cache.cache['turbine_field']
 
         # The equations underpredict the upstream velocity which is corrected with this factor
         correction_factor = Constant(1.34)
@@ -252,15 +248,14 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
 
         if not turbine_thrust_parametrisation and not implicit_turbine_thrust_parametrisation:
             friction += tf
-
         else:
             print "Adding thrust force"
             # Compute the upstream velocities
 
             if implicit_turbine_thrust_parametrisation:
-                up_u_eq = upstream_u_implicit_equation(config, u, up_u, o, up_u_adv, o_adv)
+                up_u_eq = upstream_u_implicit_equation(config, tf, u, up_u, o, up_u_adv, o_adv)
             elif turbine_thrust_parametrisation:
-                up_u_eq = upstream_u_equation(config, u, up_u, o)
+                up_u_eq = upstream_u_equation(config, tf, u, up_u, o)
 
             def thrust_force(up_u, min=smooth_uflmin):
                 ''' Returns the thrust force for a given upstream velcocity ''' 
