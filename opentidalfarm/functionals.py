@@ -30,8 +30,8 @@ class DefaultFunctional(FunctionalPrototype):
     def expr(self, state, turbines):
         return 0.5 * self.params['rho'] * turbines * (dot(state[0], state[0]) + dot(state[1], state[1]))**1.5
 
-    def Jt(self, state):
-        return self.expr(state, self.config.turbine_cache.cache['turbine_field'])*dx 
+    def Jt(self, state, tf):
+        return self.expr(state, tf)*dx 
 
 class PowerCurveFunctional(FunctionalPrototype):
     ''' Implements a functional for the power with a given power curve 
@@ -46,10 +46,9 @@ class PowerCurveFunctional(FunctionalPrototype):
         self.params = ParameterDictionary(dict(config.params))
         assert(self.params["turbine_thrust_parametrisation"] or self.params["implicit_turbine_thrust_parametrisation"])
 
-    def Jt(self, state):
+    def Jt(self, state, tf):
         up_u = state[3]
         ux = state[0]
-        tf = self.config.turbine_cache.cache['turbine_field']
 
         def power_function(u):
             # A simple power function implementation. Could be replaced with a polynomial approximation. 

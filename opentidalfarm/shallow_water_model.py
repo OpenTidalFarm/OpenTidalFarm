@@ -242,38 +242,44 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
     class FrictionExpr(Expression):
         def eval(self, value, x):
            value[0] = params["friction"] 
-
     friction = FrictionExpr()
-    if not turbine_thrust_parametrisation and not implicit_turbine_thrust_parametrisation:
-        if turbine_field:
-            friction += turbine_field
-    else:
-        print "Adding thrust force"
-        # Compute the upstream velocities
 
-        if implicit_turbine_thrust_parametrisation:
-           up_u_eq = upstream_u_implicit_equation(config, u, up_u, o, up_u_adv, o_adv)
-        elif turbine_thrust_parametrisation:
-           up_u_eq = upstream_u_equation(config, u, up_u, o)
+    if turbine_field:
+        if type(turbine_field) == list:
+           tf = project(turbine_field[0], turbine_field[0].function_space(), name="turbine_friction")
+        else:
+           tf = project(turbine_field, turbine_field.function_space(), name="turbine_friction")
 
-        def thrust_force(up_u, min=smooth_uflmin):
-           ''' Returns the thrust force for a given upstream velcocity ''' 
-           # Now apply a pointwise transformation based on the interpolation of a loopup table 
-           c_T_coeffs = [0.08344535,  -1.42428216, 9.13153605, -26.19370168, 28.8752054]
-           c_T_coeffs.reverse()
-           c_T = min(0.88, sum([c_T_coeffs[i]*up_u**i for i in range(len(c_T_coeffs))]))
+        if not turbine_thrust_parametrisation and not implicit_turbine_thrust_parametrisation:
+            friction += tf
 
-           # The amount of forcing we want to apply
-           turbine_radius = 15.
-           A_c = pi*Constant(turbine_radius**2) # Turbine cross section
-           f = 0.5*c_T*up_u**2*A_c
-           return f
+        else:
+            print "Adding thrust force"
+            # Compute the upstream velocities
 
-        if turbine_field:
+            if implicit_turbine_thrust_parametrisation:
+                up_u_eq = upstream_u_implicit_equation(config, u, up_u, o, up_u_adv, o_adv)
+            elif turbine_thrust_parametrisation:
+                up_u_eq = upstream_u_equation(config, u, up_u, o)
+
+            def thrust_force(up_u, min=smooth_uflmin):
+                ''' Returns the thrust force for a given upstream velcocity ''' 
+                # Now apply a pointwise transformation based on the interpolation of a loopup table 
+                c_T_coeffs = [0.08344535,  -1.42428216, 9.13153605, -26.19370168, 28.8752054]
+                c_T_coeffs.reverse()
+                c_T = min(0.88, sum([c_T_coeffs[i]*up_u**i for i in range(len(c_T_coeffs))]))
+
+                # The amount of forcing we want to apply
+                turbine_radius = 15.
+                A_c = pi*Constant(turbine_radius**2) # Turbine cross section
+                f = 0.5*c_T*up_u**2*A_c
+                return f
+
+    
             # Apply the force in the opposite direction of the flow
             f_dir = -thrust_force(up_u)*u/norm_approx(u, alpha=1e-6)
             # Distribute this force over the turbine area
-            thrust = inner(f_dir*turbine_field/(Constant(config.turbine_cache.turbine_integral())*config.params["depth"]), v)*dx
+            thrust = inner(f_dir*tf/(Constant(config.turbine_cache.turbine_integral())*config.params["depth"]), v)*dx
         
     # Friction term
     # With a newton solver we can simply use a non-linear form
@@ -335,6 +341,12 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
 
     solver_parameters = {"linear_solver": linear_solver, "preconditioner": preconditioner}
 
+    # Do some parameter checking:
+    if "dynamic_turbine_friction" in params["controls"]:
+       if len(config.params["turbine_friction"]) != (params["finish_time"]-t)/dt+1:
+          print "You control the turbine friction dynamically, but your turbine friction parameter is not an array of length 'number of timesteps' (here: %i)." % ((params["finish_time"]-t)/dt+1)
+          import sys; sys.exit()
+
     ############################### Perform the simulation ###########################
 
     if params["dump_period"] > 0:
@@ -350,11 +362,13 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
 
         else:
             quad = 0.5
-            j =  dt * quad * assemble(functional.Jt(state))
+            j =  dt * quad * assemble(functional.Jt(state, tf))
               
     print0("Starting time loop...")
     adjointer.time.start(t)
+    timestep = 0
     while (t < params["finish_time"]):
+        timestep += 1
         t += dt
         params["current_time"] = t
 
@@ -391,11 +405,11 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
               print "Inflow velocity: ", u[0]((10, 160))
               print "Estimated upstream velocity: ", up_u((640./3, 160))
               print "Expected thrust force: ", thrust_force(u[0]((10, 160)), min=min)((0))
-              print "Total amount of thurst force applied: ", assemble(inner(Constant(1), thrust_force(up_u)*turbine_field/config.turbine_cache.turbine_integral())*dx)
+              print "Total amount of thurst force applied: ", assemble(inner(Constant(1), thrust_force(up_u)*tf/config.turbine_cache.turbine_integral())*dx)
 
               us.append(u[0]((10, 160)))
               thrusts.append(thrust_force(u[0]((10, 160)))((0)))
-              thrusts_est.append(assemble(inner(Constant(1), thrust_force(up_u)*turbine_field/config.turbine_cache.turbine_integral())*dx))
+              thrusts_est.append(assemble(inner(Constant(1), thrust_force(up_u)*tf/config.turbine_cache.turbine_integral())*dx))
 
               import matplotlib.pyplot as plt
               plt.clf()
@@ -442,12 +456,14 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
 
         # After the timestep solve, update state
         state.assign(state_new)
+
+        # Set the control function for the upcoming timestep.
         if turbine_field:
-            # We need to make a copy of the control function, even though it is constant in time
-            # This should be really be fixed in dolfin_adjoint instead...
-            tf_tmp = Function(turbine_field.function_space())
-            tf_tmp.assign(turbine_field)
-            turbine_field.assign(tf_tmp)
+            if type(turbine_field) == list:
+               tf.assign(turbine_field[timestep])
+            else:
+
+               tf.assign(turbine_field)
 
         if params["dump_period"] > 0 and step%params["dump_period"] == 0:
             print0("Writing state to disk...")
@@ -462,7 +478,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
                 else:
                     quad = 1.0 * dt 
 
-                j += quad * assemble(functional.Jt(state))
+                j += quad * assemble(functional.Jt(state, tf))
 
         # Increase the adjoint timestep
         adj_inc_timestep(time=t, finished = not t < params["finish_time"])

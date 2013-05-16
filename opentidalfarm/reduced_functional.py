@@ -14,18 +14,26 @@ from helpers import info, info_green, info_red, info_blue
 class ReducedFunctional:
     
     def update_turbine_cache(self, m):
+        ''' Reconstructs the parameters from the flattened parameter array m and updates the configuration. '''
+
         shift = 0
         if 'turbine_friction' in self.__config__.params['controls']: 
             shift = len(self.__config__.params["turbine_friction"])
             self.__config__.params["turbine_friction"] = m[:shift]
+
+        elif 'dynamic_turbine_friction' in self.__config__.params['controls']: 
+            shift = len(numpy.reshape(self.__config__.params["turbine_friction"], -1))
+            nb_turbines = len(self.__config__.params["turbine_pos"])
+            self.__config__.params["turbine_friction"] = numpy.reshape(m[:shift], (-1, nb_turbines)).tolist()
+
         if 'turbine_pos' in self.__config__.params['controls']: 
             mp = m[shift:]
-            self.__config__.params["turbine_pos"] = numpy.reshape(mp, (-1, 2))
+            self.__config__.params["turbine_pos"] = numpy.reshape(mp, (-1, 2)).tolist()
         
         # Set up the turbine field 
         self.__config__.turbine_cache.update(self.__config__)
 
-    def __init__(self, config, scale = 1.0, forward_model = sw_model.sw_solve, plot = False):
+    def __init__(self, config, scale=1.0, forward_model=sw_model.sw_solve, plot=False):
         ''' If plot is True, the functional values will be automatically saved in a plot.
             scale is ignored if automatic_scaling is active. '''
         # Hide the configuration since changes would break the memoize algorithm. 
@@ -112,17 +120,28 @@ class ReducedFunctional:
 
             # Produce power plot 
             if config.params['output_turbine_power']:
-                if config.params['turbine_thrust_parametrisation'] or config.params["implicit_turbine_thrust_parametrisation"]:
-                    info_red("Turbine power VTU's is not yet implemented with thrust based turbines parameterisations.")
+                if config.params['turbine_thrust_parametrisation'] or config.params["implicit_turbine_thrust_parametrisation"] or "dynamic_turbine_friction" in config.params["controls"]:
+                    info_red("Turbine power VTU's is not yet implemented with thrust based turbines parameterisations and dynamic turbine friction control.")
                 else:
                     turbines = self.__config__.turbine_cache.cache["turbine_field"]
                     self.power_file << project(functional.expr(state, turbines), config.turbine_function_space, annotate=False)
 
+            # The functional depends on the turbine friction function which we do not have on scope here.
+            # But dolfin-adjoint only cares about the name, so we can just create a dummy function with the desired name.
+            dummy_tf = Function(FunctionSpace(state.function_space().mesh(), "R", 0), name="turbine_friction")
+
             if config.params['steady_state'] or config.params["functional_final_time_only"]:
-                J = Functional(functional.Jt(state)*dt[FINISH_TIME])
+                J = Functional(functional.Jt(state, dummy_tf)*dt[FINISH_TIME])
             else:
-                J = Functional(functional.Jt(state)*dt)
-            djdtf = dolfin_adjoint.compute_gradient(J, InitialConditionParameter(config.turbine_cache.cache["turbine_field"]), forget=forget)
+                J = Functional(functional.Jt(state, dummy_tf)*dt)
+
+            if 'dynamic_turbine_friction' in config.params["controls"]:
+                parameters = [InitialConditionParameter("turbine_friction_cache_t_%i"%i) for i in range(len(config.params["turbine_friction"]))]
+
+            else:
+                parameters = InitialConditionParameter("turbine_friction_cache") 
+
+            djdtf = dolfin_adjoint.compute_gradient(J, parameters, forget=forget)
             dolfin.parameters["adjoint"]["stop_annotating"] = False
 
             # Let J be the functional, m the parameter and u the solution of the PDE equation F(u) = 0.
@@ -131,19 +150,26 @@ class ReducedFunctional:
             #               = adj_state * \partial F / \partial u + \partial J / \partial m
             # In this particular case m = turbine_friction, J = \sum_t(ft) 
             dj = [] 
+
             if 'turbine_friction' in config.params["controls"]:
                 # Compute the derivatives with respect to the turbine friction
-                for n in range(len(config.params["turbine_friction"])):
+                for tfd in config.turbine_cache.cache["turbine_derivative_friction"]: 
                     config.turbine_cache.update(config)
-                    tfd = config.turbine_cache.cache["turbine_derivative_friction"][n]
                     dj.append( djdtf.vector().inner(tfd.vector()) )
+
+            elif 'dynamic_turbine_friction' in config.params["controls"]:
+                # Compute the derivatives with respect to the turbine friction
+                for djdtf_arr, t in zip(djdtf, config.turbine_cache.cache["turbine_derivative_friction"]):
+                    for tfd in t:
+                        config.turbine_cache.update(config)
+                        dj.append( djdtf_arr.vector().inner(tfd.vector()) )
 
             if 'turbine_pos' in config.params["controls"]:
                 # Compute the derivatives with respect to the turbine position
-                for n in range(len(config.params["turbine_pos"])):
+                for d in config.turbine_cache.cache["turbine_derivative_pos"]:
                     for var in ('turbine_pos_x', 'turbine_pos_y'):
                         config.turbine_cache.update(config)
-                        tfd = config.turbine_cache.cache["turbine_derivative_pos"][n][var]
+                        tfd = d[var]
                         dj.append( djdtf.vector().inner(tfd.vector()) )
             dj = numpy.array(dj)  
 
@@ -218,7 +244,10 @@ class ReducedFunctional:
             # trigger it manually.
             if self.compute_gradient_mem.has_cache(m, forget):
                 self.update_turbine_cache(m)
-            self.turbine_file << self.__config__.turbine_cache.cache["turbine_field"] 
+            if "dynamic_turbine_friction" in self.__config__.params["controls"]:
+                info_red("Turbine VTU output not yet implemented for dynamic turbine control")
+            else:    
+                self.turbine_file << self.__config__.turbine_cache.cache["turbine_field"] 
 
         if self.__config__.params["save_checkpoints"]:
             self.save_checkpoint("checkpoint")
@@ -267,10 +296,12 @@ class ReducedFunctional:
         ''' This function returns the control variable array that derives from the initial configuration. '''
         config = self.__config__ 
         res = []
-        if 'turbine_friction' in config.params["controls"]:
-            res += list(config.params['turbine_friction'])
+        if 'turbine_friction' in config.params["controls"] or 'dynamic_turbine_friction' in config.params["controls"]:
+            res += numpy.reshape(config.params['turbine_friction'], -1).tolist()
+
         if 'turbine_pos' in config.params["controls"]:
             res += numpy.reshape(config.params['turbine_pos'], -1).tolist()
+
         return numpy.array(res)
 
     def eval_array(self, m):

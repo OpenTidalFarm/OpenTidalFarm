@@ -8,7 +8,7 @@ def construct_mini_model(config, turbine_field):
     (v, q) = TestFunctions(config.function_space)
     (u, h) = TrialFunctions(config.function_space)
 
-    # Mass matrix
+    # Mass matrices
     M = inner(v,u)*dx
     M += inner(q,h)*dx
 
@@ -17,20 +17,22 @@ def construct_mini_model(config, turbine_field):
 
     return A, M
 
-def mini_model(A, M, state, params, functional=None, annotate=True):
+def mini_model(A, M, state, config, turbine_field, functional=None, annotate=True):
     '''Solve (1+turbine)*M*state = M*old_state. 
        The solution is a x-velocity of old_state/(turbine_friction + 1) and a zero pressure value y-velocity.
     '''
     
+    tf = project(turbine_field, turbine_field.function_space(), name="turbine_friction", annotate=annotate)
+    params = config.params
     if functional is not None and not params["functional_final_time_only"]:
-        j = 0.5*params["dt"]*assemble(functional.Jt(state)) 
+        j = 0.5*params["dt"]*assemble(functional.Jt(state, tf)) 
 
     adjointer.time.start(0.0)
     tmpstate = Function(state.function_space(), name="tmp_state")
     rhs = action(M, state)
     # Solve the mini model 
     solver_parameters = {"linear_solver": "cg", "preconditioner": "sor"}
-    solve(A == rhs, tmpstate, solver_parameters=solver_parameters, annotate = annotate)
+    solve(A == rhs, tmpstate, solver_parameters=solver_parameters, annotate=annotate)
 
     state.assign(tmpstate, annotate=annotate)
 
@@ -39,11 +41,11 @@ def mini_model(A, M, state, params, functional=None, annotate=True):
 
     if functional is not None:
       if params["functional_final_time_only"]:
-        j = assemble(functional.Jt(state)) 
+        j = assemble(functional.Jt(state, tf)) 
       else:
-        j += 0.5*params["dt"]*assemble(functional.Jt(state)) 
+        j += 0.5*params["dt"]*assemble(functional.Jt(state, tf)) 
       return j
 
 def mini_model_solve(config, state, turbine_field=None, functional=None, annotate=True, linear_solver="default", preconditioner="default", u_source = None):
     A, M = construct_mini_model(config, turbine_field)
-    return mini_model(A, M, state, params = config.params, functional = functional)
+    return mini_model(A, M, state, config, turbine_field, functional=functional)
