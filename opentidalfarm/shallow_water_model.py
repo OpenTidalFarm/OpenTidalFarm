@@ -242,9 +242,9 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
 
     if turbine_field:
         if type(turbine_field) == list:
-           tf = project(turbine_field[0], turbine_field[0].function_space(), name="turbine_friction")
+           tf = Function(turbine_field[0], name="turbine_friction", annotate=annotate)
         else:
-           tf = project(turbine_field, turbine_field.function_space(), name="turbine_friction")
+           tf = Function(turbine_field, name="turbine_friction", annotate=annotate)
 
         if not turbine_thrust_parametrisation and not implicit_turbine_thrust_parametrisation:
             friction += tf
@@ -446,7 +446,6 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
                 info("Using a LU solver to solve the linear system.")
                 lu_solver.solve(state.vector(), rhs_preass, annotate=annotate)
             else:
-                state_tmp = Function(function_space, name="TempState")
                 solver_benchmark.solve(lhs_preass, state_new.vector(), rhs_preass, solver_parameters["linear_solver"], solver_parameters["preconditioner"], annotate=annotate, benchmark = run_benchmark, solve = solve, solver_exclude = solver_exclude)
 
         # After the timestep solve, update state
