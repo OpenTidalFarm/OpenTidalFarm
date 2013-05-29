@@ -4,6 +4,7 @@
 '''
 
 import sys
+from dolfin_adjoint import adj_reset
 from opentidalfarm import *
 from opentidalfarm.helpers import test_gradient_array
 set_log_level(PROGRESS)
@@ -23,6 +24,8 @@ def default_config():
   return config
 
 def j_and_dj(m, forward_only = None):
+  adj_reset()
+
   # Change the control variables to the config parameters
   config.params["turbine_friction"] = m[:len(config.params["turbine_friction"])]
   mp = m[len(config.params["turbine_friction"]):]
