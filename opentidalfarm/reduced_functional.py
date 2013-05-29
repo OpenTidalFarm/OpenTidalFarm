@@ -225,10 +225,10 @@ class ReducedFunctional:
                 # Computing dj will set the automatic scaling factor. 
                 info_blue("Computing derivative to determine the automatic scaling factor")
                 dj = self.dj(m, forget=False)
-            info_green('Scaled j(' + m.__repr__() + ') = ' + str(self.automatic_scaling_factor * self.scale * j))
+            info_green('j(' + m.__repr__() + ') = ' + str(j))
             return j * self.scale * self.automatic_scaling_factor
         else:
-            info_green('Scaled j(' + m.__repr__() + ') = ' + str(self.scale * j))
+            info_green('j(' + m.__repr__() + ') = ' + str(j))
             return j * self.scale
 
     def dj(self, m, forget):
@@ -272,10 +272,10 @@ class ReducedFunctional:
 
         info_blue('Runtime: ' + str(timer.stop())  + " s")
         if self.__config__.params['automatic_scaling']:
-            info_green('Scaled dj(' + m.__repr__() + ') = ' + str(self.automatic_scaling_factor * self.scale * dj))
+            info_green('dj(' + m.__repr__() + ') = ' + str(dj))
             return dj * self.scale * self.automatic_scaling_factor
         else:
-            info_green('Scaled dj(' + m.__repr__() + ') = ' + str(self.scale * dj))
+            info_green('dj(' + m.__repr__() + ') = ' + str(dj))
             return dj * self.scale
 
     def dj_with_check(self, m, seed = 0.1, tol = 1.8, forget = True):
