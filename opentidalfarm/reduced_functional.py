@@ -41,7 +41,7 @@ class ReducedFunctional:
         self.scale = scale
         self.automatic_scaling_factor = None
         self.plot = plot
-        # Caching variables that store for which controls the last forward run was performed
+        # Caching variables that store which controls the last forward run was performed
         self.last_m = None
         self.last_state = None
         if self.__config__.params["dump_period"] > 0:
@@ -58,7 +58,11 @@ class ReducedFunctional:
                 if 'turbine_pos' in config.params["controls"]:
                     m += numpy.reshape(config.params['turbine_pos'], -1).tolist()
                 return numpy.array(m)
-        self.parameter = [Parameter()]
+
+        if config.params["turbine_parametrisation"] == "smooth":
+            self.parameter = [InitialConditionParameter("turbine_friction")]
+        else:
+            self.parameter = [Parameter()]
 
         if plot:
            self.plotter = AnimatedPlot(xlabel = "Iteration", ylabel = "Functional value")
@@ -144,34 +148,40 @@ class ReducedFunctional:
             djdtf = dolfin_adjoint.compute_gradient(J, parameters, forget=forget)
             dolfin.parameters["adjoint"]["stop_annotating"] = False
 
-            # Let J be the functional, m the parameter and u the solution of the PDE equation F(u) = 0.
-            # Then we have 
-            # dJ/dm = (\partial J)/(\partial u) * (d u) / d m + \partial J / \partial m
-            #               = adj_state * \partial F / \partial u + \partial J / \partial m
-            # In this particular case m = turbine_friction, J = \sum_t(ft) 
-            dj = [] 
+            # Decide if we need to apply the chain rule to get the gradient of interest
+            if config.params['turbine_parametrisation'] == 'smooth':
+                # We are looking for the gradient with respect to the friction
+                dj = djdtf.vector().array()
+                
+            else:
+                # Let J be the functional, m the parameter and u the solution of the PDE equation F(u) = 0.
+                # Then we have 
+                # dJ/dm = (\partial J)/(\partial u) * (d u) / d m + \partial J / \partial m
+                #               = adj_state * \partial F / \partial u + \partial J / \partial m
+                # In this particular case m = turbine_friction, J = \sum_t(ft) 
+                dj = [] 
 
-            if 'turbine_friction' in config.params["controls"]:
-                # Compute the derivatives with respect to the turbine friction
-                for tfd in config.turbine_cache.cache["turbine_derivative_friction"]: 
-                    config.turbine_cache.update(config)
-                    dj.append( djdtf.vector().inner(tfd.vector()) )
-
-            elif 'dynamic_turbine_friction' in config.params["controls"]:
-                # Compute the derivatives with respect to the turbine friction
-                for djdtf_arr, t in zip(djdtf, config.turbine_cache.cache["turbine_derivative_friction"]):
-                    for tfd in t:
+                if 'turbine_friction' in config.params["controls"]:
+                    # Compute the derivatives with respect to the turbine friction
+                    for tfd in config.turbine_cache.cache["turbine_derivative_friction"]: 
                         config.turbine_cache.update(config)
-                        dj.append( djdtf_arr.vector().inner(tfd.vector()) )
-
-            if 'turbine_pos' in config.params["controls"]:
-                # Compute the derivatives with respect to the turbine position
-                for d in config.turbine_cache.cache["turbine_derivative_pos"]:
-                    for var in ('turbine_pos_x', 'turbine_pos_y'):
-                        config.turbine_cache.update(config)
-                        tfd = d[var]
                         dj.append( djdtf.vector().inner(tfd.vector()) )
-            dj = numpy.array(dj)  
+
+                elif 'dynamic_turbine_friction' in config.params["controls"]:
+                    # Compute the derivatives with respect to the turbine friction
+                    for djdtf_arr, t in zip(djdtf, config.turbine_cache.cache["turbine_derivative_friction"]):
+                        for tfd in t:
+                            config.turbine_cache.update(config)
+                            dj.append( djdtf_arr.vector().inner(tfd.vector()) )
+
+                if 'turbine_pos' in config.params["controls"]:
+                    # Compute the derivatives with respect to the turbine position
+                    for d in config.turbine_cache.cache["turbine_derivative_pos"]:
+                        for var in ('turbine_pos_x', 'turbine_pos_y'):
+                            config.turbine_cache.update(config)
+                            tfd = d[var]
+
+                dj = numpy.array(dj)  
 
             return dj 
 
@@ -240,7 +250,7 @@ class ReducedFunctional:
         # We assume that at the gradient is computed if and only if at the beginning of each new optimisation iteration.
         # Hence, let this is the right moment to store the turbine friction field. 
         if self.__config__.params["dump_period"] > 0:
-            # A cache hit skipps the turbine cach update, so we need 
+            # A cache hit skips the turbine cache update, so we need 
             # trigger it manually.
             if self.compute_gradient_mem.has_cache(m, forget):
                 self.update_turbine_cache(m)

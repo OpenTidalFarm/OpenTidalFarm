@@ -37,6 +37,7 @@ class DefaultConfiguration(object):
         'eta0' : 2, 
         'quadratic_friction' : False, 
         'friction' : 0.0, 
+        'turbine_parametrisation' : 'individual',
         'turbine_pos' : [],
         'turbine_x' : 20., 
         'turbine_y' : 5., 
@@ -111,7 +112,9 @@ class DefaultConfiguration(object):
         print "Steady state: %s" % self.params["steady_state"]
         print "\n=== Turbine settings ==="
         print "Number of turbines: %i" % len(self.params["turbine_pos"])
-        print "Turbines dimensions: %f x %f" % (self.params["turbine_x"], self.params["turbine_y"])
+        print "Turbines parametrisation: %s" % self.params["turbine_parametrisation"]
+        if self.params["turbine_parametrisation"] == "individual":
+            print "Turbines dimensions: %f x %f" % (self.params["turbine_x"], self.params["turbine_y"])
         print "Control parameters: %s" % ', '.join(self.params["controls"])
         if len(self.params["turbine_friction"]) > 0:
           print "Turbines frictions: %f - %f" % (min(self.params["turbine_friction"]), max(self.params["turbine_friction"]))
