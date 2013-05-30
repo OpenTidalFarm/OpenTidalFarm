@@ -16,19 +16,23 @@ class ReducedFunctional:
     def update_turbine_cache(self, m):
         ''' Reconstructs the parameters from the flattened parameter array m and updates the configuration. '''
 
-        shift = 0
-        if 'turbine_friction' in self.__config__.params['controls']: 
-            shift = len(self.__config__.params["turbine_friction"])
-            self.__config__.params["turbine_friction"] = m[:shift]
+        if self.__config__.params["turbine_parametrisation"]=="smooth":
+            self.__config__.params["turbine_friction"] = m
 
-        elif 'dynamic_turbine_friction' in self.__config__.params['controls']: 
-            shift = len(numpy.reshape(self.__config__.params["turbine_friction"], -1))
-            nb_turbines = len(self.__config__.params["turbine_pos"])
-            self.__config__.params["turbine_friction"] = numpy.reshape(m[:shift], (-1, nb_turbines)).tolist()
+        else:
+            shift = 0
+            if 'turbine_friction' in self.__config__.params['controls']: 
+                shift = len(self.__config__.params["turbine_friction"])
+                self.__config__.params["turbine_friction"] = m[:shift]
 
-        if 'turbine_pos' in self.__config__.params['controls']: 
-            mp = m[shift:]
-            self.__config__.params["turbine_pos"] = numpy.reshape(mp, (-1, 2)).tolist()
+            elif 'dynamic_turbine_friction' in self.__config__.params['controls']: 
+                shift = len(numpy.reshape(self.__config__.params["turbine_friction"], -1))
+                nb_turbines = len(self.__config__.params["turbine_pos"])
+                self.__config__.params["turbine_friction"] = numpy.reshape(m[:shift], (-1, nb_turbines)).tolist()
+
+            if 'turbine_pos' in self.__config__.params['controls']: 
+                mp = m[shift:]
+                self.__config__.params["turbine_pos"] = numpy.reshape(mp, (-1, 2)).tolist()
         
         # Set up the turbine field 
         self.__config__.turbine_cache.update(self.__config__)
@@ -53,16 +57,16 @@ class ReducedFunctional:
         class Parameter:
             def data(self):
                 m = []
-                if 'turbine_friction' in config.params["controls"]:
-                    m += list(config.params['turbine_friction'])
-                if 'turbine_pos' in config.params["controls"]:
-                    m += numpy.reshape(config.params['turbine_pos'], -1).tolist()
+                if config.params["turbine_parametrisation"] == "smooth":
+                    m = numpy.zeros(config.turbine_function_space.dim())
+                else:
+                    if 'turbine_friction' in config.params["controls"]:
+                        m += list(config.params['turbine_friction'])
+                    if 'turbine_pos' in config.params["controls"]:
+                        m += numpy.reshape(config.params['turbine_pos'], -1).tolist()
                 return numpy.array(m)
 
-        if config.params["turbine_parametrisation"] == "smooth":
-            self.parameter = [InitialConditionParameter("turbine_friction")]
-        else:
-            self.parameter = [Parameter()]
+        self.parameter = [Parameter()]
 
         if plot:
            self.plotter = AnimatedPlot(xlabel = "Iteration", ylabel = "Functional value")
@@ -151,7 +155,7 @@ class ReducedFunctional:
             # Decide if we need to apply the chain rule to get the gradient of interest
             if config.params['turbine_parametrisation'] == 'smooth':
                 # We are looking for the gradient with respect to the friction
-                dj = djdtf.vector().array()
+                dj = dolfin_adjoint.optimization.get_global(djdtf)
                 
             else:
                 # Let J be the functional, m the parameter and u the solution of the PDE equation F(u) = 0.
@@ -180,6 +184,7 @@ class ReducedFunctional:
                         for var in ('turbine_pos_x', 'turbine_pos_y'):
                             config.turbine_cache.update(config)
                             tfd = d[var]
+                            dj.append( djdtf.vector().inner(tfd.vector()) )
 
                 dj = numpy.array(dj)  
 
@@ -229,16 +234,15 @@ class ReducedFunctional:
             self.plotter.addPoint(j)
             self.plotter.savefig("functional_plot.png")
         info_blue('Runtime: ' + str(timer.value())  + " s")
+        info_green('j = ' + str(j))
 
         if self.__config__.params['automatic_scaling']:
             if not self.automatic_scaling_factor:
                 # Computing dj will set the automatic scaling factor. 
                 info_blue("Computing derivative to determine the automatic scaling factor")
                 dj = self.dj(m, forget=False)
-            info_green('j(' + m.__repr__() + ') = ' + str(j))
             return j * self.scale * self.automatic_scaling_factor
         else:
-            info_green('j(' + m.__repr__() + ') = ' + str(j))
             return j * self.scale
 
     def dj(self, m, forget):
@@ -281,11 +285,11 @@ class ReducedFunctional:
                 info_blue("The automatic scaling factor was set to " + str(self.automatic_scaling_factor * self.scale) + ".")
 
         info_blue('Runtime: ' + str(timer.stop())  + " s")
+        info_green('|dj| = ' + str(numpy.linalg.norm(dj)))
+
         if self.__config__.params['automatic_scaling']:
-            info_green('dj(' + m.__repr__() + ') = ' + str(dj))
             return dj * self.scale * self.automatic_scaling_factor
         else:
-            info_green('dj(' + m.__repr__() + ') = ' + str(dj))
             return dj * self.scale
 
     def dj_with_check(self, m, seed = 0.1, tol = 1.8, forget = True):
@@ -306,11 +310,15 @@ class ReducedFunctional:
         ''' This function returns the control variable array that derives from the initial configuration. '''
         config = self.__config__ 
         res = []
-        if 'turbine_friction' in config.params["controls"] or 'dynamic_turbine_friction' in config.params["controls"]:
-            res += numpy.reshape(config.params['turbine_friction'], -1).tolist()
+        if config.params["turbine_parametrisation"]=="smooth":
+            res = numpy.zeros(config.turbine_function_space.dim())
 
-        if 'turbine_pos' in config.params["controls"]:
-            res += numpy.reshape(config.params['turbine_pos'], -1).tolist()
+        else:
+            if 'turbine_friction' in config.params["controls"] or 'dynamic_turbine_friction' in config.params["controls"]:
+                res += numpy.reshape(config.params['turbine_friction'], -1).tolist()
+
+            if 'turbine_pos' in config.params["controls"]:
+                res += numpy.reshape(config.params['turbine_pos'], -1).tolist()
 
         return numpy.array(res)
 

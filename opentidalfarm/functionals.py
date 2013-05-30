@@ -31,7 +31,7 @@ class DefaultFunctional(FunctionalPrototype):
         return 0.5 * self.params['rho'] * turbines * (dot(state[0], state[0]) + dot(state[1], state[1]))**1.5
 
     def Jt(self, state, tf):
-        return self.expr(state, tf)*dx 
+        return self.expr(state, tf)*self.config.site_dx(1)
 
 class PowerCurveFunctional(FunctionalPrototype):
     ''' Implements a functional for the power with a given power curve 

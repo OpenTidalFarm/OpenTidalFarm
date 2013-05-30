@@ -1,6 +1,5 @@
-run: clean mesh
+run: clean 
 	mpirun -n 2 python sw.py 
-
 
 clean:
 	rm -f functional_plot.png

@@ -4,7 +4,7 @@ import sys
 from opentidalfarm import *
 set_log_level(ERROR)
 
-config = DefaultConfiguration(nx = 15, ny = 15)
+config = DefaultConfiguration(nx=5, ny=5)
 config.params['finish_time'] = config.params["start_time"] + 10*config.params["dt"]
 
 # Switch to a smooth turbine representation
@@ -27,6 +27,8 @@ site.mark(domains, 1)
 config.site_dx = Measure("dx")[domains]
 
 rf = ReducedFunctional(config)
+# Ensure the same seed value accross all CPUs
+numpy.random.seed(33)
 m0 = numpy.random.rand(len(rf.initial_control()))
 
 seed = 0.1 

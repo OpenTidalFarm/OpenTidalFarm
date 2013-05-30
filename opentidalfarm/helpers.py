@@ -26,7 +26,7 @@ def print0(*args, **kwargs):
     if MPI.process_number() == 0:
         print(*args, **kwargs)
 
-def test_gradient_array(J, dJ, x, seed = 0.01, perturbation_direction = None, plot_file = None):
+def test_gradient_array(J, dJ, x, seed=0.01, perturbation_direction=None, plot_file=None):
   '''Checks the correctness of the derivative dJ.
      x must be an array that specifies at which point in the parameter space
      the gradient is to be checked. The functions J(x) and dJ(x) must return 
@@ -45,6 +45,8 @@ def test_gradient_array(J, dJ, x, seed = 0.01, perturbation_direction = None, pl
   # Randomise the perturbation direction:
   if perturbation_direction is None:
     perturbation_direction = x.copy()
+    # Make sure that we use a consistent seed value accross all processors
+    random.seed(243)
     for i in range(len(x)):
       perturbation_direction[i] = random.random()
 
