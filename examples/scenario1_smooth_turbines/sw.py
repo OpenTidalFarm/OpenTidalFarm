@@ -1,4 +1,5 @@
 from opentidalfarm import *
+import ipopt
 set_log_level(INFO)
 
 # Some domain information extracted from the geo file
@@ -31,6 +32,36 @@ deploy_turbines(config, nx = 8, ny = 4)
 
 config.info()
 
-rf = ReducedFunctional(config)
+rf = ReducedFunctional(config, scale=-1e-6)
 
-maximize(rf, method = "L-BFGS-B", options={'maxiter':100}, bounds=[0, 1])
+class Problem(object):
+    def __init__(self, rf):
+	self.rf = rf
+
+    def objective(self, x):
+	return self.rf.j(x)
+
+    def gradient(self, x):
+	return self.rf.dj(x, forget=False)
+
+    def constraints(self, x):
+	return [sum(x)]
+
+    def jacobian(self, x):
+	return [[1]*len(x)]
+
+
+m0 = rf.initial_control()
+nlp = ipopt.problem(n=len(m0), 
+	            m=0, 
+		    problem_obj=Problem(rf),
+		    lb=[0]*len(m0),
+		    ub=[1]*len(m0),
+		    cl=[0],
+		    cu=[1000])
+
+nlp.addOption("hessian_approximation", "limited-memory")
+
+nlp.solve(m0)
+
+#maximize(rf, method = "SLSQP", options={'maxiter':100}, bounds=[0, 1], constraints={"type": "ineq", "fun": maxint, "jac": maxint_prime})
