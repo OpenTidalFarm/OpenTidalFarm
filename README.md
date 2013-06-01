@@ -229,6 +229,16 @@ In such case you can try following things:
 * Use a looser optimisation tolerance, by passing the `tol` parameter to maximize function. 
 * If you are only optimising for the turbine friction and you do not use `automatic_scaling` parameter (which you should in this particular case), then you might have to scale your problem manually. This is done by passing a scale argument to maximize, e.g. `maximize(rf, scale=1e-3)`. Choose the scale value such that the first gradient is in the order of 1. 
 
+### How can I extract the turbine positions/friction values after the optimisation? ###
+OpenTidalFarm updates the configuration values while running the optimisation. 
+Therefore, in order to get the position and friction values after the optimisation, simply add this line of code at the bottom of your program:
+
+```python
+ print "Turbine positions: ", config.params['turbine_pos']
+ print "Turbine friction: ", config.params['turbine_friction']
+```
+
+
 Citing
 ======
 Please cite the following paper if you are using OpenTidalFarm:
