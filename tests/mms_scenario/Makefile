@@ -1,4 +1,4 @@
-run: clean
+run: mesh clean
 	python sinusoidal_scenario_spatial.py 
 	python sinusoidal_scenario_temporal.py 
 
