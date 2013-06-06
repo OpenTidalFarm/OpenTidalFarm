@@ -230,11 +230,9 @@ class ReducedFunctional:
         if self.__config__.params["save_checkpoints"]:
             self.save_checkpoint("checkpoint")
 
-        if self.plot:
-            self.plotter.addPoint(j)
-            self.plotter.savefig("functional_plot.png")
         info_blue('Runtime: ' + str(timer.value())  + " s")
         info_green('j = ' + str(j))
+        self.last_j = j
 
         if self.__config__.params['automatic_scaling']:
             if not self.automatic_scaling_factor:
@@ -252,7 +250,7 @@ class ReducedFunctional:
         dj = self.compute_gradient_mem(m, forget)
 
         # We assume that at the gradient is computed if and only if at the beginning of each new optimisation iteration.
-        # Hence, let this is the right moment to store the turbine friction field. 
+        # Hence, this is the right moment to store the turbine friction field. 
         if self.__config__.params["dump_period"] > 0:
             # A cache hit skips the turbine cache update, so we need 
             # trigger it manually.
@@ -262,6 +260,10 @@ class ReducedFunctional:
                 info_red("Turbine VTU output not yet implemented for dynamic turbine control")
             else:    
                 self.turbine_file << self.__config__.turbine_cache.cache["turbine_field"] 
+
+        if self.plot:
+            self.plotter.addPoint(self.last_j)
+            self.plotter.savefig("functional_plot.png")
 
         if self.__config__.params["save_checkpoints"]:
             self.save_checkpoint("checkpoint")
