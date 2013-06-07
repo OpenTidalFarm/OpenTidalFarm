@@ -1,4 +1,5 @@
-''' Converts a .geo file from stereographic coordinates to UTM coordinates. '''
+#!/usr/bin/python
+''' Converts a .geo file from lat/lon coordinates to UTM coordinates. '''
 
 from math import asin, atan2, sqrt, pi, sin
 import sys
@@ -34,6 +35,9 @@ def Stereographic2Flat(x, y):
     lat, lon = Cartesian2LatLon(x, y, z)
     return LatLon2Flat(lat, lon)
 
+def LatLon2UTM(lat, lon):
+    return utm.from_latlon(lat, lon)
+
 def Stereographic2UTM(x, y):
     x, y, z = Stereographic2Cartesian(x, y)
     lat, lon = Cartesian2LatLon(x, y, z)
@@ -56,13 +60,13 @@ def main():
     for line in fin:
         if "Point" in line:
             try:
-                m = re.search('{([-0-9\.e]*), ([-0-9\.e]*), ([-0-9\.e]*) }', line)
+                m = re.search('{\s*([-0-9\.e]*)\s*,\s*([-0-9\.e]*)\s*,\s*([-0-9\.e]*)\s*}', line)
                 assert(float(m.group(3)) == 0)
                 x, y = (float(m.group(1)), float(m.group(2)))
             except:
                 print "Error while parsing line: ", line
                 sys.exit(1)
-            east, north, zone_number, zone_letter = Stereographic2UTM(x, y)
+            east, north, zone_number, zone_letter = LatLon2UTM(y, x)
             zone_letters.append(zone_letter)
             zone_numbers.append(zone_number)
 
