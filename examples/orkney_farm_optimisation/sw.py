@@ -1,17 +1,18 @@
 from opentidalfarm import *
 import ipopt
 
-config = SteadyConfiguration("mesh/coast_idBoundary_utm.xml", inflow_direction=[0.9865837220518425, -0.16325611591095968]) 
+inflow_direction = [0.9865837220518425, -0.16325611591095968]
+config = SteadyConfiguration("mesh/coast_idBoundary_utm.xml", inflow_direction=inflow_direction) 
 config.params['diffusion_coef'] = 180.0
 config.params["controls"] = ["turbine_friction"]
 config.params["turbine_parametrisation"] = "smooth"
 config.params["automatic_scaling"] = False 
 
-bc = DirichletBCSet(self)
+bc = DirichletBCSet(config)
 bc.add_constant_flow(1, 1.0, direction=inflow_direction)
 bc.add_zero_eta(2)
-self.params['bctype'] = 'strong_dirichlet'
-self.params['strong_bc'] = bc
+config.params['bctype'] = 'strong_dirichlet'
+config.params['strong_bc'] = bc
 
 config.turbine_function_space = FunctionSpace(config.domain.mesh, 'DG', 0)
 
