@@ -136,7 +136,7 @@ def plot_site_constraints(config, vertices):
         def eval(self, value, x):
             inside = True
             for x1, n in ineqs:
-                # So the inequality for this edge is: g(x) := n^T.(x1-x) >= 0 
+                # The inequality for this edge is: g(x) := n^T.(x1-x) >= 0 
                 inside = inside and (numpy.dot(n, x1-x) >= 0)
             
             value[0] = int(inside)
@@ -145,9 +145,10 @@ def plot_site_constraints(config, vertices):
     out_file = dolfin.File("site_constraints.pvd", "compressed")
     out_file << f
 
-def generate_site_constraints(config, vertices, penalty_factor=1e3):
+def generate_site_constraints(config, vertices, penalty_factor=1e3, slack_eps=0):
     ''' Generates the inequality constraints for generic polygon constraints. The parameter polygon 
-        must be a list of point coorinates that describes the site edges in anti-clockwise order. '''
+        must be a list of point coordinates that describes the site edges in anti-clockwise order. 
+        The argument slack_eps is used to increase or decrease the site by an epsilon value - this is useful to avoid rounding problems. '''
 
     # To begin with, lets save a vtu that visualises the constraints
     plot_site_constraints(config, vertices)
@@ -170,9 +171,9 @@ def generate_site_constraints(config, vertices, penalty_factor=1e3):
                 # Normal vector of c
                 n = [c[1], -c[0]]
 
-                # So the inequality for this edge is: g(x) := n^T.(x1-x) >= 0 
+                # The inequality for this edge is: g(x) := n^T.(x1-x) >= 0 
                 x = m_pos[2*i:2*i+2]
-                ieqcons.append(penalty_factor*numpy.dot(n, x1-x))
+                ieqcons.append(penalty_factor*(numpy.dot(n, x1-x)+slack_eps))
 
         return numpy.array(ieqcons)
 
