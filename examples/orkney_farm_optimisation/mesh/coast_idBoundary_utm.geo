@@ -4504,6 +4504,10 @@ Physical Surface(1) = {1};
 
 Mesh.RemeshAlgorithm=1;
 
+Physical Line(1) = {1, 1252, 2};
+Physical Line(2) = {824, 825, 826, 827};
+Physical Line(3) = {2203003, 2203006, 2197, 2198, 2190, 2204, 2207, 2212, 2193, 2210, 2202, 2206, 2209, 2195, 2192, 2191, 2205, 2189, 2211, 2201, 2196, 2194, 2200, 2199, 2208};
+
 //Code added by Mesh NetCDF to create uniform mesh.
 Field[1] = MathEval;
 Field[1].F = "500";
