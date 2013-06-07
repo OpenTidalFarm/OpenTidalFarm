@@ -15,6 +15,9 @@ config.params["controls"] = ["turbine_friction"]
 config.params["turbine_parametrisation"] = "smooth"
 config.params["automatic_scaling"] = False 
 
+config.turbine_function_space = FunctionSpace(config.domain.mesh, 'DG', 0)
+
+# Define the site domain
 class Site(SubDomain):
     def inside(self, x, on_boundary):
 	border = 10
@@ -26,9 +29,6 @@ domains = CellFunction("size_t", config.domain.mesh)
 domains.set_all(0)
 site.mark(domains, 1)
 config.site_dx = Measure("dx")[domains]
-
-# Place some turbines 
-deploy_turbines(config, nx = 8, ny = 4)
 
 config.info()
 
@@ -61,7 +61,4 @@ nlp = ipopt.problem(n=len(m0),
 		    cu=[1000])
 
 nlp.addOption("hessian_approximation", "limited-memory")
-
 nlp.solve(m0)
-
-#maximize(rf, method = "SLSQP", options={'maxiter':100}, bounds=[0, 1], constraints={"type": "ineq", "fun": maxint, "jac": maxint_prime})
