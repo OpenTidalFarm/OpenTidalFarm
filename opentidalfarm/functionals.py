@@ -17,7 +17,7 @@ class FunctionalPrototype(object):
 
 class DefaultFunctional(FunctionalPrototype):
     ''' Implements a simple functional of the form:
-          J(u, m) = 0.5 * rho * turbines(m) * (||u||**3)
+          J(u, m) = rho * turbines(m) * (||u||**3)
         where turbines(m) defines the friction function due to the turbines.  
     '''
     def __init__(self, config):
@@ -28,7 +28,7 @@ class DefaultFunctional(FunctionalPrototype):
         self.params = ParameterDictionary(dict(config.params))
 
     def expr(self, state, turbines):
-        return 0.5 * self.params['rho'] * turbines * (dot(state[0], state[0]) + dot(state[1], state[1]))**1.5
+        return self.params['rho'] * turbines * (dot(state[0], state[0]) + dot(state[1], state[1]))**1.5
 
     def Jt(self, state, tf):
         return self.expr(state, tf)*self.config.site_dx(1)
