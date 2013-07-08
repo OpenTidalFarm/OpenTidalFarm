@@ -207,3 +207,48 @@ def generate_site_constraints(config, vertices, penalty_factor=1e3, slack_eps=0)
         return numpy.array(ieqcons)
 
     return {'type': 'ineq', 'fun': f_ieqcons, 'jac': fprime_ieqcons} 
+
+class DomainRestrictionConstraints:
+  def __init__(self, config, feasible_area, attraction_center):
+    ''' 
+       Generates the inequality constraints to enforce the turbines in the feasible area.
+       If the turbine is outside the domain, the constraints is equal to the distance between the turbine and the attraction center. 
+    ''' 
+    self.config = config 
+    self.feasible_area = feasible_area
+    self.attraction_center = attraction_center
+
+  def generate(self):
+
+    def f_ieqcons(m):
+      ieqcons = []
+      if len(self.config.params['controls']) == 2:
+      # If the controls consists of the the friction and the positions, then we need to first extract the position part
+        assert(len(m)%3 == 0)
+        m_pos = m[len(m)/3:]
+      else:
+        m_pos = m
+
+      for i in range(len(m_pos)/2):
+        x = m_pos[2*i]
+        y = m_pos[2*i+1]
+        try:
+          ieqcons.append(self.feasible_area((x, y)))
+        except RuntimeError:
+          print "Warning: a turbine is outside the domain"
+          ieqcons.append((x-self.attraction_center[0])**2+(y-self.attraction_center[1])**2) # Point is outside domain
+
+      print "Inequality constrains (should be > 0): ", -numpy.array(ieqcons)
+      return -numpy.array(ieqcons)
+
+    return {'type': 'ineq', 'fun': f_ieqcons} 
+
+def get_domain_constraints(config, feasible_area, attraction_center):
+  return DomainRestrictionConstraints(config, feasible_area, attraction_center).generate()
+
+def merge_contraints(ineq1, ineq2):
+  assert(ineq1['type']=='ineq' and ineq2['type']=='ineq')
+  ineq_fun = lambda m: numpy.array(list(ineq1['fun'](m))+list(ineq2['fun'](m)))
+  return {'type': 'ineq', 'fun': ineq_fun} 
+
+
