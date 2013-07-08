@@ -22,6 +22,7 @@ class ParameterDictionary(dict):
             'include_advection': 'advection term on',
             'include_diffusion': 'diffusion term on',
             'diffusion_coef': 'diffusion coefficient',
+            'cost_coef': 'multiplcator that determines the cost per turbine friction',
             'depth' : 'water depth at rest',
             'g' : 'graviation',
             'k' : 'wave length paramter. If you want a wave lenght of l, then set k to 2*pi/l.',
