@@ -132,7 +132,7 @@ class ReducedFunctional:
                     info_red("Turbine power VTU's is not yet implemented with thrust based turbines parameterisations and dynamic turbine friction control.")
                 else:
                     turbines = self.__config__.turbine_cache.cache["turbine_field"]
-                    self.power_file << project(functional.expr(state, turbines), config.turbine_function_space, annotate=False)
+                    self.power_file << project(functional.power(state, turbines), config.turbine_function_space, annotate=False)
 
             # The functional depends on the turbine friction function which we do not have on scope here.
             # But dolfin-adjoint only cares about the name, so we can just create a dummy function with the desired name.
@@ -249,7 +249,7 @@ class ReducedFunctional:
         timer = dolfin.Timer("dj evaluation") 
         dj = self.compute_gradient_mem(m, forget)
 
-        # We assume that at the gradient is computed if and only if at the beginning of each new optimisation iteration.
+        # We assume that at the gradient is computed at and only at the beginning of each new optimisation iteration.
         # Hence, this is the right moment to store the turbine friction field. 
         if self.__config__.params["dump_period"] > 0:
             # A cache hit skips the turbine cache update, so we need 
@@ -260,6 +260,9 @@ class ReducedFunctional:
                 info_red("Turbine VTU output not yet implemented for dynamic turbine control")
             else:    
                 self.turbine_file << self.__config__.turbine_cache.cache["turbine_field"] 
+                # Compute the total amount of friction due to turbines
+                if self.__config__.params["turbine_parametrisation"]=="smooth":
+                    print "Total amount of friction: ", assemble(self.__config__.turbine_cache.cache["turbine_field"]*dx)
 
         if self.plot:
             self.plotter.addPoint(self.last_j)

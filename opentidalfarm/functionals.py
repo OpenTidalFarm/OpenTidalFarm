@@ -27,11 +27,11 @@ class DefaultFunctional(FunctionalPrototype):
         # Create a copy of the parameters so that future changes will not affect the definition of this object.
         self.params = ParameterDictionary(dict(config.params))
 
-    def expr(self, state, turbines):
-        return self.params['rho'] * turbines * (dot(state[0], state[0]) + dot(state[1], state[1]))**1.5
+    def power(self, state, turbines):
+            return self.params['rho'] * turbines * (dot(state[0], state[0]) + dot(state[1], state[1]))**1.5 
 
     def Jt(self, state, tf):
-        return self.expr(state, tf)*self.config.site_dx(1)
+        return self.power(state, tf)*self.config.site_dx(1) 
 
 class PowerCurveFunctional(FunctionalPrototype):
     ''' Implements a functional for the power with a given power curve 
