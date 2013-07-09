@@ -17,6 +17,7 @@ config.params['initial_condition'] = ConstantFlowInitialCondition(config)
 # Place some turbines 
 deploy_turbines(config, nx = 8, ny = 4)
 
+config.params["save_checkpoints"] = True
 config.info()
 
 rf = ReducedFunctional(config)

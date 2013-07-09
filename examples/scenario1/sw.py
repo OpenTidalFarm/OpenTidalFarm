@@ -14,9 +14,10 @@ config.set_site_dimensions(site_x_start, site_x_start + site_x, site_y_start, si
 # Place some turbines 
 deploy_turbines(config, nx = 8, ny = 4)
 
+config.params["save_checkpoints"] = True
 config.info()
 
-rf = ReducedFunctional(config, plot = True)
+rf = ReducedFunctional(config)
 
 lb, ub = position_constraints(config) 
 ineq = get_minimum_distance_constraint_func(config)
