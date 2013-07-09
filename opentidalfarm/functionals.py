@@ -19,7 +19,7 @@ class FunctionalPrototype(object):
 
 class DefaultFunctional(FunctionalPrototype):
     ''' Implements a simple functional of the form:
-          J(u, m) = 0.5 * rho * turbines(params) * (||u||**3)
+         J(u, m) = rho * turbines(params) * (||u||**3)
         where m controls the strength of each turbine.
     '''
     def __init__(self, config):
@@ -30,7 +30,7 @@ class DefaultFunctional(FunctionalPrototype):
         self.params = ParameterDictionary(dict(config.params))
 
     def expr(self, state, turbines):
-        return 0.5 * self.params['rho'] * turbines * (dot(state[0], state[0]) + dot(state[1], state[1]))**1.5
+        return self.params['rho'] * turbines * (dot(state[0], state[0]) + dot(state[1], state[1]))**1.5
 
     def Jt(self, state):
         return self.expr(state, self.config.turbine_cache.cache['turbine_field'])*dx 
