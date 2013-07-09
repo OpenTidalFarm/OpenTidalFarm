@@ -41,6 +41,11 @@ class DefaultFunctional(FunctionalPrototype):
 
     def Jt(self, state, tf):
         return self.power(state, tf)*self.config.site_dx(1) - self.cost_per_friction(tf)*dx
+    
+    def Jt_individual(self, state, i):
+        ''' Computes the power output of the i'th turbine. '''
+        return self.power(state, self.config.turbine_cache.cache['turbine_field_individual'][i])
+
 
 class PowerCurveFunctional(FunctionalPrototype):
     ''' Implements a functional for the power with a given power curve 

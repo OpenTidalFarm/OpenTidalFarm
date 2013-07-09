@@ -78,7 +78,7 @@ def upstream_u_equation(config, tf, u, up_u, o):
         up_u_eq = smooth(u, 1./correction_factor*up_u, o) 
         return up_u_eq
 
-def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, u_source = None):
+def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, u_source=None):
     '''Solve the shallow water equations with the parameters specified in params.
        Options for linear_solver and preconditioner are: 
         linear_solver: lu, cholesky, cg, gmres, bicgstab, minres, tfqmr, richardson
@@ -363,11 +363,17 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
     if functional is not None:
         if steady_state or functional_final_time_only:
             j = 0.
-
+            if params["print_individual_turbine_power"]:
+                j_individual = [0] * len(params["turbine_pos"])
+ 
         else:
             quad = 0.5
             j =  dt * quad * assemble(functional.Jt(state, tf))
-              
+            if params["print_individual_turbine_power"]:
+                j_individual = []
+                for i in range(len(params["turbine_pos"])):
+                    j_individual.append(dt * quad * assemble(functional.Jt_individual(state, i))) 
+        
     print0("Starting time loop...")
     adjointer.time.start(t)
     timestep = 0
@@ -481,12 +487,20 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
                 else:
                     quad = 1.0 * dt 
 
-                j += quad * assemble(functional.Jt(state, tf))
+                j += quad*assemble(functional.Jt(state, tf))
+                if params["print_individual_turbine_power"]:
+                    print0("Computing individual turbine power extraction contribution...")
+                    for i in range(len(params["turbine_pos"])):
+                        j_individual[i] += dt * quad * assemble(functional.Jt_individual(state, i)*dx)
+                        print0("Computing power extraction contribution of turbine number %d ...finished" % (i+1) )
 
         # Increase the adjoint timestep
         adj_inc_timestep(time=t, finished = not t < params["finish_time"])
         print0("New timestep t = %f" % t)
     print0("Ending time loop.")
+
+    if params['print_individual_turbine_power']:
+        print 'Individual power contributions of each turbine: ', j_individual
 
     if functional is not None:
         return j

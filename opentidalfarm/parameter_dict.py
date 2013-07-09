@@ -47,6 +47,7 @@ class ParameterDictionary(dict):
             'solver_exclude': 'solvers/preconditioners to be excluded from the benchmark',
             'automatic_scaling': 'activates the initial automatic scaling of the functional',
             'automatic_scaling_multiplier': 'defines the multiplier that determines the initial gradient length (= multiplier * turbine size)',
+            'print_individual_turbine_power': 'print out the power output of each individual turbine',
             'output_turbine_power': 'output the power generation of the individual turbines',
             'save_checkpoints': 'automatically store checkpoints after each optimisation iteration'
             }
