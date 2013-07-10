@@ -44,7 +44,7 @@ class DefaultFunctional(FunctionalPrototype):
     
     def Jt_individual(self, state, i):
         ''' Computes the power output of the i'th turbine. '''
-        return self.power(state, self.config.turbine_cache.cache['turbine_field_individual'][i])
+        return self.power(state, self.config.turbine_cache.cache['turbine_field_individual'][i])*dx
 
 
 class PowerCurveFunctional(FunctionalPrototype):
