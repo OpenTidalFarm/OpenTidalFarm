@@ -30,4 +30,4 @@ bounds = [lb_f + lb, ub_f + ub]
 
 ineq = get_minimum_distance_constraint_func(config)
 
-maximize(rf, bounds = bounds, constraints = ineq, method = "SLSQP", options = {"maxiter": 300}) 
+maximize(rf, bounds = bounds, constraints = ineq, method = "SLSQP", options = {"maxiter": 400}) 

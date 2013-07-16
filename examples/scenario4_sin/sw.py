@@ -24,4 +24,4 @@ rf = ReducedFunctional(config)
 
 lb, ub = position_constraints(config) 
 ineq = get_minimum_distance_constraint_func(config)
-maximize(rf, bounds = [lb, ub], constraints = ineq, method = "SLSQP", options = {"maxiter": 300})
+maximize(rf, bounds = [lb, ub], constraints = ineq, method = "SLSQP", options = {"maxiter": 400})
