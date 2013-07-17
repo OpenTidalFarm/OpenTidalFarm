@@ -60,10 +60,13 @@ except RuntimeError:
 u1 = MPI.max(u1)
 
 info_green("Inflow velocity u0: " + str(u0) + " m/s")
+info_green("-"*80)
 info_green("Turbine velocity u1 (evaluated at the turbine center): " + str(u1) + " m/s")
 info_green("u1/u0: " + str(u1/u0) + " (Lanchester-Betz limit is reached at u1/u0 = 0.66666)")
+info_green("-"*80)
 info_green("Turbine velocity u1 (averaged over the turbine area): " + str(u1_indicator) + " m/s")
 info_green("u1/u0: " + str(u1_indicator/u0) + " (Lanchester-Betz limit is reached at u1/u0 = 0.66666)")
+info_green("-"*80)
 info_green("Turbine velocity u1 (weighted averaged over the turbine area): " + str(u1_weighted) + " m/s")
 info_green("u1/u0: " + str(u1_weighted/u0) + " (Lanchester-Betz limit is reached at u1/u0 = 0.66666)")
 
