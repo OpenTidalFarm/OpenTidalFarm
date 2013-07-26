@@ -77,8 +77,12 @@ class TurbineCache:
 
         # If the parameters have not changed, then there is no need to do anything
         if self.params != None:
-            if (self.params["turbine_friction"]==config.params["turbine_friction"]).all() and (self.params["turbine_pos"] == config.params["turbine_pos"]).all(): 
-                return 
+
+            if (len(self.params["turbine_friction"]) == len(config.params["turbine_friction"]) and
+                len(self.params["turbine_pos"])      == len(config.params["turbine_pos"]) and
+                (self.params["turbine_friction"]     == config.params["turbine_friction"]).all() and
+                (self.params["turbine_pos"]          == config.params["turbine_pos"]).all()):
+                return
 
         if config.params["turbine_parametrisation"]=="smooth":
             tf = Function(config.turbine_function_space, name="turbine_friction_cache")
