@@ -4430,7 +4430,7 @@ Line Loop(2236) = {2212};
 
 
 // Add Farms
-farmres = 100;
+farmres = 50;
 Point(6519) = {491747, 6.50161e+06, 0, farmres};
 Point(6520) = {490536, 6.50225e+06, 0, farmres};
 Point(6521) = {492998, 6.5012e+06, 0, farmres};
