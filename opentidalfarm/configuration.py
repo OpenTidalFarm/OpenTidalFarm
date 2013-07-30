@@ -80,6 +80,9 @@ class DefaultConfiguration(object):
     # Create a chaching object for the interpolated turbine friction fields (as their computation is very expensive)
     self.turbine_cache = TurbineCache()
 
+    # A counter for the current optimisation iteration
+    self.optimisation_iteration = 0
+
   def set_domain(self, domain, warning = True):
       if warning:
            info_red("If you are overwriting the domain, make sure that you reapply the boundary conditions as well")

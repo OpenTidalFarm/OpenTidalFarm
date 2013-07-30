@@ -249,8 +249,11 @@ class ReducedFunctional:
         timer = dolfin.Timer("dj evaluation") 
         dj = self.compute_gradient_mem(m, forget)
 
-        # We assume that at the gradient is computed at and only at the beginning of each new optimisation iteration.
-        # Hence, this is the right moment to store the turbine friction field. 
+        # We assume that the gradient is computed at and only at the beginning of each new optimisation iteration.
+        # Hence, this is the right moment to store the turbine friction field and to increment the optimisation iteration
+        # counter. 
+        self.__config__.optimisation_iteration += 1 
+
         if self.__config__.params["dump_period"] > 0:
             # A cache hit skips the turbine cache update, so we need 
             # trigger it manually.

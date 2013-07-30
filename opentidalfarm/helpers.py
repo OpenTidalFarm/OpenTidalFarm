@@ -94,7 +94,8 @@ def save_to_file_scalar(function, basename):
     out_file << function 
 
 class StateWriter:
-    def __init__(self, config):
+    def __init__(self, config, optimisation_iteration):
+        self.optimisation_iteration = optimisation_iteration
         self.u_out, self.p_out = self.output_files(config.finite_element.func_name)
         self.M_u_out, self.v_out, self.u_out_state = self.u_output_projector(config.function_space)
         self.M_p_out, self.q_out, self.p_out_state = self.p_output_projector(config.function_space)
@@ -135,8 +136,8 @@ class StateWriter:
     def output_files(self, basename):
             
         # Output file
-        u_out = File(basename+"_u.pvd", "compressed")
-        p_out = File(basename+"_p.pvd", "compressed")
+        u_out = File("iter_"+str(self.optimisation_iteration)+"/"+basename+"_u.pvd", "compressed")
+        p_out = File("iter_"+str(self.optimisation_iteration)+"/"+basename+"_p.pvd", "compressed")
 
         return u_out, p_out
 
