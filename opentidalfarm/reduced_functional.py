@@ -11,31 +11,7 @@ from turbines import *
 from numpy.linalg import norm
 from helpers import info, info_green, info_red, info_blue
     
-class ReducedFunctional:
-    
-    def update_turbine_cache(self, m):
-        ''' Reconstructs the parameters from the flattened parameter array m and updates the configuration. '''
-
-        if self.__config__.params["turbine_parametrisation"]=="smooth":
-            self.__config__.params["turbine_friction"] = m
-
-        else:
-            shift = 0
-            if 'turbine_friction' in self.__config__.params['controls']: 
-                shift = len(self.__config__.params["turbine_friction"])
-                self.__config__.params["turbine_friction"] = m[:shift]
-
-            elif 'dynamic_turbine_friction' in self.__config__.params['controls']: 
-                shift = len(numpy.reshape(self.__config__.params["turbine_friction"], -1))
-                nb_turbines = len(self.__config__.params["turbine_pos"])
-                self.__config__.params["turbine_friction"] = numpy.reshape(m[:shift], (-1, nb_turbines)).tolist()
-
-            if 'turbine_pos' in self.__config__.params['controls']: 
-                mp = m[shift:]
-                self.__config__.params["turbine_pos"] = numpy.reshape(mp, (-1, 2)).tolist()
-        
-        # Set up the turbine field 
-        self.__config__.turbine_cache.update(self.__config__)
+class ReducedFunctionalNumPy:
 
     def __init__(self, config, scale=1.0, forward_model=sw_model.sw_solve, plot=False):
         ''' If plot is True, the functional values will be automatically saved in a plot.
@@ -209,6 +185,30 @@ class ReducedFunctional:
         self.compute_functional_mem = memoize.MemoizeMutable(compute_functional)
         self.compute_gradient_mem = memoize.MemoizeMutable(compute_gradient)
         self.compute_hessian_action_mem = memoize.MemoizeMutable(compute_hessian_action)
+    
+    def update_turbine_cache(self, m):
+        ''' Reconstructs the parameters from the flattened parameter array m and updates the configuration. '''
+
+        if self.__config__.params["turbine_parametrisation"]=="smooth":
+            self.__config__.params["turbine_friction"] = m
+
+        else:
+            shift = 0
+            if 'turbine_friction' in self.__config__.params['controls']: 
+                shift = len(self.__config__.params["turbine_friction"])
+                self.__config__.params["turbine_friction"] = m[:shift]
+
+            elif 'dynamic_turbine_friction' in self.__config__.params['controls']: 
+                shift = len(numpy.reshape(self.__config__.params["turbine_friction"], -1))
+                nb_turbines = len(self.__config__.params["turbine_pos"])
+                self.__config__.params["turbine_friction"] = numpy.reshape(m[:shift], (-1, nb_turbines)).tolist()
+
+            if 'turbine_pos' in self.__config__.params['controls']: 
+                mp = m[shift:]
+                self.__config__.params["turbine_pos"] = numpy.reshape(mp, (-1, 2)).tolist()
+        
+        # Set up the turbine field 
+        self.__config__.turbine_cache.update(self.__config__)
         
     def save_checkpoint(self, base_filename):
         ''' Checkpoint the reduceduced functional from which can be used to restart the turbine optimisation. '''
@@ -330,17 +330,20 @@ class ReducedFunctional:
 
         return numpy.array(res)
 
-    def eval_array(self, m):
+    def __call__(self, m):
         ''' Interface function for dolfin_adjoint.ReducedFunctional '''
         return self.j(m)
 
-    def derivative_array(self, m_array, taylor_test = False, seed = 0.001, forget = True):
+    def derivative(self, m_array, taylor_test = False, seed = 0.001, forget = True):
         ''' Interface function for dolfin_adjoint.ReducedFunctional '''
         if taylor_test:
             return self.dj_with_check(m_array, seed, forget)
         else:
             return self.dj(m_array, forget)
 
-    def hessian_array(self, m_array, m_dot_array):
+    def hessian(self, m_array, m_dot_array):
         ''' Interface function for dolfin_adjoint.ReducedFunctional '''
         raise NotImplementedError, 'The Hessian computation is not yet implemented'
+
+class ReducedFunctional(ReducedFunctionalNumPy):
+    pass
