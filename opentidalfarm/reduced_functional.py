@@ -24,6 +24,7 @@ class ReducedFunctionalNumPy:
         # Caching variables that store which controls the last forward run was performed
         self.last_m = None
         self.last_state = None
+        self.in_euclidian_space = False
         if self.__config__.params["dump_period"] > 0:
             self.turbine_file = File("turbines.pvd", "compressed")
 
@@ -344,6 +345,13 @@ class ReducedFunctionalNumPy:
     def hessian(self, m_array, m_dot_array):
         ''' Interface function for dolfin_adjoint.ReducedFunctional '''
         raise NotImplementedError, 'The Hessian computation is not yet implemented'
+
+    def obj_to_array(self, obj):
+        return dolfin_adjoint.optimization.get_global(obj)
+
+    def set_parameters(self, m_array):
+        m = [p.data() for p in self.parameter]
+        return dolfin_adjoint.optimization.set_local(m, m_array)
 
 class ReducedFunctional(ReducedFunctionalNumPy):
     pass
