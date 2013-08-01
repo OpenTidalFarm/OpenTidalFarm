@@ -234,10 +234,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
     #+inner(avg(v),jump(h_mid,n))*dS # This term is only needed for dg element pairs
 
     # Bottom friction
-    class FrictionExpr(Expression):
-        def eval(self, value, x):
-           value[0] = params["friction"] 
-    friction = FrictionExpr()
+    friction = params["friction"]
 
     if turbine_field:
         if type(turbine_field) == list:

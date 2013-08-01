@@ -36,7 +36,7 @@ class DefaultConfiguration(object):
         'dump_period' : 1,
         'eta0' : 2, 
         'quadratic_friction' : False, 
-        'friction' : 0.0, 
+        'friction' : Constant(0.0), 
         'turbine_parametrisation' : 'individual',
         'turbine_pos' : [],
         'turbine_x' : 20., 
@@ -166,7 +166,7 @@ class SteadyConfiguration(DefaultConfiguration):
         self.params['diffusion_coef'] = 3.0
         self.params['quadratic_friction'] = True
         self.params['newton_solver'] = True 
-        self.params['friction'] = 0.0025
+        self.params['friction'] = Constant(0.0025)
         self.params['theta'] = 1.0
 
         # Boundary conditions
