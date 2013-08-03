@@ -65,3 +65,6 @@ class DirichletBCSet:
 
     def add_zero_eta(self, label):
         self.bcs.append(DirichletBC(self.function_space.sub(1), Constant("0.0"), self.config.domain.boundaries, label))
+
+    def add_constant_eta(self, label, expresssion):
+        self.bcs.append(DirichletBC(self.function_space.sub(1), expresssion, self.config.domain.boundaries, label))
