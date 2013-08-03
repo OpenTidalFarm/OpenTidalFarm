@@ -11,7 +11,8 @@ for i in funcs_dupl:
     if i not in func:
         func.append(i)
 
-it = [float(i)/50*12 for i in range(len(func))]
+period = 12
+it = [float(i)/len(func)*period for i in range(len(func))]
 func = numpy.array(func)*1e-6
 
 filename = "power_timeline.pdf"
