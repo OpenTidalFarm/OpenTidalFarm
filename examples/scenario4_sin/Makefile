@@ -1,6 +1,6 @@
 
 generate_power_timeline:
-	cat output.txt | grep Power | cut -c38- > power_timeline.txt
+	cat output.txt | grep Power | tail -n 50 | cut -c38- > power_timeline.txt
 	python plot_power_timeline.py
 
 
