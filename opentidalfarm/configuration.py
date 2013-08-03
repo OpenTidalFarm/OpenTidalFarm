@@ -118,7 +118,12 @@ class DefaultConfiguration(object):
         print "Gravity constant: %f m/s^2" % self.params["g"]
         print "Viscosity constant: %f m^2/s" % self.params["diffusion_coef"]
         print "Water density: %f kg/m^3" % self.params["rho"]
-        print "Bottom friction: %s" % self.params["friction"]
+        if isinstance(self.params["friction"], dolfin.functions.constant.Constant):
+            print "Bottom friction: %s" % (self.params["friction"](0))
+        else:
+            print "Bottom fruction: %f - %f" %\
+                (self.params["friction"].vector().array().min(),\
+                 self.params["friction"].vector().array().max())
         print "Advection term: %s" % self.params["include_advection"]
         print "Diffusion term: %s" % self.params["include_diffusion"]
         print "Steady state: %s" % self.params["steady_state"]
