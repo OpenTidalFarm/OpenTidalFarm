@@ -20,4 +20,4 @@ config.info()
 rf = ReducedFunctional(config)
 
 lb, ub = position_constraints(config) 
-maximize(rf, bounds = [lb, ub], method = "SLSQP", options = {"maxiter": 200})
+maximize(rf, bounds = [lb, ub], method = "SLSQP", options = {"maxiter": 400})
