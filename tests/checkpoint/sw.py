@@ -52,3 +52,4 @@ else:
 
 bounds = [0, 100]
 m = maximize(rf, bounds=bounds, method="SLSQP", scale=1e-3, options={'maxiter': maxiter}) 
+info_green("Test passed")
