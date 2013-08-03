@@ -251,12 +251,12 @@ class ReducedFunctionalNumPy:
             if not self.automatic_scaling_factor:
                 # Computing dj will set the automatic scaling factor. 
                 info_blue("Computing derivative to determine the automatic scaling factor")
-                dj = self.dj(m, forget=False)
+                dj = self.dj(m, forget=False, optimisation_iteration=False)
             return j * self.scale * self.automatic_scaling_factor
         else:
             return j * self.scale
 
-    def dj(self, m, forget):
+    def dj(self, m, forget, optimisation_iteration=True):
         ''' This memoised function returns the gradient of the functional for the parameter choice m. '''
         info_green('Start evaluation of dj')
         timer = dolfin.Timer("dj evaluation") 
@@ -265,20 +265,20 @@ class ReducedFunctionalNumPy:
         # We assume that the gradient is computed at and only at the beginning of each new optimisation iteration.
         # Hence, this is the right moment to store the turbine friction field and to increment the optimisation iteration
         # counter. 
-        self.__config__.optimisation_iteration += 1 
-
-        if self.__config__.params["dump_period"] > 0:
-            # A cache hit skips the turbine cache update, so we need 
-            # trigger it manually.
-            if self.compute_gradient_mem.has_cache(m, forget):
-                self.update_turbine_cache(m)
-            if "dynamic_turbine_friction" in self.__config__.params["controls"]:
-                info_red("Turbine VTU output not yet implemented for dynamic turbine control")
-            else:    
-                self.turbine_file << self.__config__.turbine_cache.cache["turbine_field"] 
-                # Compute the total amount of friction due to turbines
-                if self.__config__.params["turbine_parametrisation"]=="smooth":
-                    print "Total amount of friction: ", assemble(self.__config__.turbine_cache.cache["turbine_field"]*dx)
+        if optimisation_iteration:
+            self.__config__.optimisation_iteration += 1 
+            if self.__config__.params["dump_period"] > 0:
+                # A cache hit skips the turbine cache update, so we need 
+                # trigger it manually.
+                if self.compute_gradient_mem.has_cache(m, forget):
+                    self.update_turbine_cache(m)
+                if "dynamic_turbine_friction" in self.__config__.params["controls"]:
+                    info_red("Turbine VTU output not yet implemented for dynamic turbine control")
+                else:    
+                    self.turbine_file << self.__config__.turbine_cache.cache["turbine_field"] 
+                    # Compute the total amount of friction due to turbines
+                    if self.__config__.params["turbine_parametrisation"]=="smooth":
+                        print "Total amount of friction: ", assemble(self.__config__.turbine_cache.cache["turbine_field"]*dx)
 
         if self.plot:
             self.plotter.addPoint(self.last_j)
