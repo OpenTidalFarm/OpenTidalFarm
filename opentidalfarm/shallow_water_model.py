@@ -1,4 +1,3 @@
-import solver_benchmark 
 import numpy
 import sys
 from dolfin import *
@@ -103,12 +102,11 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
     quadratic_friction = params["quadratic_friction"]
     include_advection = params["include_advection"]
     include_diffusion = params["include_diffusion"]
+    include_time_term = params["include_time_term"]
     diffusion_coef = params["diffusion_coef"]
     newton_solver = params["newton_solver"] 
     picard_relative_tolerance = params["picard_relative_tolerance"]
     picard_iterations = params["picard_iterations"]
-    run_benchmark = params["run_benchmark"]
-    solver_exclude = params["solver_exclude"]
     linear_solver = params["linear_solver"]
     preconditioner = params["preconditioner"]
     bctype = params["bctype"]
@@ -116,9 +114,13 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
     free_slip_on_sides = params["free_slip_on_sides"]
     steady_state = params["steady_state"]
     functional_final_time_only = params["functional_final_time_only"]
+    functional_quadrature_degree = params["functional_quadrature_degree"]
     is_nonlinear = (include_advection or quadratic_friction)
     turbine_thrust_parametrisation = params["turbine_thrust_parametrisation"]
     implicit_turbine_thrust_parametrisation = params["implicit_turbine_thrust_parametrisation"]
+
+    if not 0 <= functional_quadrature_degree <= 1:
+       raise ValueError, "functional_quadrature_degree must be 0 or 1."
 
     if implicit_turbine_thrust_parametrisation:
         function_space = config.function_space_2enriched
@@ -319,7 +321,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
         G_mid -= inner(u_source, v)*dx 
     F = dt * G_mid - dt * bc_contr
     # Add the time term
-    if not steady_state:
+    if include_time_term and not steady_state:
         F += M - M0 
 
     if turbine_thrust_parametrisation or implicit_turbine_thrust_parametrisation:
@@ -329,7 +331,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
 
     # Preassemble the lhs if possible
     use_lu_solver = (linear_solver == "lu") 
-    if not quadratic_friction and not include_advection:
+    if not is_nonlinear:
         lhs_preass = assemble(dolfin.lhs(F))
         # Precompute the LU factorisation 
         if use_lu_solver:
@@ -363,7 +365,10 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
                 j_individual = [0] * len(params["turbine_pos"])
  
         else:
-            quad = 0.5
+            if functional_quadrature_degree == 0:
+                quad = 0.0
+            else:
+                quad = 0.5
             j =  dt * quad * assemble(functional.Jt(state, tf))
             if params["print_individual_turbine_power"]:
                 j_individual = []
@@ -396,6 +401,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
           #solver_parameters["preconditioner"] = "ilu" # does not work in parallel
           #solver_parameters["preconditioner"] = "amg" 
           #solver_parameters["linear_solver"] = "mumps"
+          #solver_parameters["linear_solver"] = "umfpack"
           solver_parameters["newton_solver"] = {}
           #solver_parameters["newton_solver"]["error_on_nonconvergence"] = False
           solver_parameters["newton_solver"]["maximum_iterations"] = 20 
@@ -403,9 +409,9 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
           solver_parameters["newton_solver"]["relative_tolerance"] = 1e-16
 
           if bctype == 'strong_dirichlet':
-              solver_benchmark.solve(F == 0, state_new, bcs = strong_bc.bcs, solver_parameters = solver_parameters, annotate=annotate, benchmark = run_benchmark, solve = solve, solver_exclude = solver_exclude)
+              solve(F == 0, state_new, bcs=strong_bc.bcs, solver_parameters=solver_parameters, annotate=annotate)
           else:
-              solver_benchmark.solve(F == 0, state_new, solver_parameters = solver_parameters, annotate=annotate, benchmark = run_benchmark, solve = solve, solver_exclude = solver_exclude)
+              solve(F == 0, state_new, solver_parameters=solver_parameters, annotate=annotate)
 
           if turbine_thrust_parametrisation or implicit_turbine_thrust_parametrisation:
               print "Inflow velocity: ", u[0]((10, 160))
@@ -427,12 +433,12 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
         # Solve non-linear system with a Picard iteration
         elif is_nonlinear:
           # Solve the problem using a picard iteration
-          iter_counter = 0
+          iter_counter=0
           while True:
             if bctype == 'strong_dirichlet':
-                solver_benchmark.solve(dolfin.lhs(F) == dolfin.rhs(F), state_new, bcs = strong_bc.bcs, solver_parameters = solver_parameters, annotate=annotate, benchmark = run_benchmark, solve = solve, solver_exclude = solver_exclude)
+                solve(dolfin.lhs(F) == dolfin.rhs(F), state_new, bcs=strong_bc.bcs, solver_parameters=solver_parameters)
             else:
-                solver_benchmark.solve(dolfin.lhs(F) == dolfin.rhs(F), state_new, solver_parameters = solver_parameters, annotate=annotate, benchmark = run_benchmark, solve = solve, solver_exclude = solver_exclude)
+                solve(dolfin.lhs(F) == dolfin.rhs(F), state_new, solver_parameters=solver_parameters, annotate=annotate)
             iter_counter += 1
             if iter_counter > 0:
               relative_diff = abs(assemble( inner(state_new-state_nl, state_new-state_nl) * dx ))/assemble( inner(state_new, state_new) * dx )
@@ -449,7 +455,10 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
 
         # Solve linear system with preassembled matrices 
         else:
-            rhs_preass = assemble(dolfin.rhs(F))
+            # dolfin can't assemble empty forms which can sometimes happen here. 
+            # A simple workaround is to add a dummy term:
+            dummy_term = Constant(0)*q*dx
+            rhs_preass = assemble(dolfin.rhs(F+dummy_term)) 
             # Apply dirichlet boundary conditions
             if bctype == 'strong_dirichlet':
                 [bc.apply(lhs_preass, rhs_preass) for bc in strong_bc.bcs]
@@ -457,7 +466,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
                 info("Using a LU solver to solve the linear system.")
                 lu_solver.solve(state.vector(), rhs_preass, annotate=annotate)
             else:
-                solver_benchmark.solve(lhs_preass, state_new.vector(), rhs_preass, solver_parameters["linear_solver"], solver_parameters["preconditioner"], annotate=annotate, benchmark = run_benchmark, solve = solve, solver_exclude = solver_exclude)
+                solve(lhs_preass, state_new.vector(), rhs_preass, solver_parameters["linear_solver"], solver_parameters["preconditioner"], annotate=annotate)
 
         # After the timestep solve, update state
         state.assign(state_new)
@@ -476,7 +485,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
 
         if functional is not None:
             if not (functional_final_time_only and t < params["finish_time"]):
-                if steady_state or functional_final_time_only:
+                if steady_state or functional_final_time_only or functional_quadrature_degree == 0:
                     quad = 1.0
                 elif t >= params["finish_time"]:
                     quad = 0.5 * dt
@@ -493,7 +502,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
                         print0("Contribution of turbine number %d at co-ordinates:" % (i+1), params["turbine_pos"][i], ' is: ', j_individual[i]*0.001, 'kW')
 
         # Increase the adjoint timestep
-        adj_inc_timestep(time=t, finished = not t < params["finish_time"])
+        adj_inc_timestep(time=t, finished=(not t<params["finish_time"]))
         print0("New timestep t = %f" % t)
     print0("Ending time loop.")
 

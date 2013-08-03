@@ -12,7 +12,7 @@ clean:
 	rm -f *pvd
 	rm -f output.txt
 	rm -f *.html
-	rm -R iter_*
+	rm -fR iter_*
 
 clean_mesh:
 	rm -f *.xml
