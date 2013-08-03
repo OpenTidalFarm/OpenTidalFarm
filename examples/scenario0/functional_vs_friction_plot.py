@@ -31,6 +31,9 @@ for m in m_list:
   P.append(model.j(m))
   f.append(m[0])
 
+print "friction values: ", f
+print "Power values: ", P
+
 # Plot the results
 if MPI.process_number() == 0:
   info_green('The maximum functional value of ' + str(max(P)) + ' is achieved with a friction coefficient of ' + str(f[numpy.argmax(P)]) + '.')
