@@ -46,9 +46,13 @@ dg = lambda m: []
 
 bounds = [[Constant(0), Constant(0)], [Constant(3000), Constant(1000)]] 
 
-m = maximize(rf, bounds = bounds, method = "SLSQP") 
+maximize(rf, bounds = bounds, method = "SLSQP") 
+
+m = config.params["turbine_pos"][0]
 
 info("Solution of the primal variables: m=" + repr(m) + "\n")
+
+print m
 
 exit_code = 1
 if abs(m[0]-1500) > 40:

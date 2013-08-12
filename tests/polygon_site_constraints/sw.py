@@ -35,7 +35,9 @@ m0 = rf.initial_control()
 config.info()
 
 ineq = generate_site_constraints(config, [[20, 20], [120, 20], [120, 220], [20, 220]])
-m = maximize(rf, constraints=ineq, method="SLSQP", options={"maxiter": 2}) 
+maximize(rf, constraints=ineq, method="SLSQP", options={"maxiter": 2}) 
+
+m = config.params["turbine_pos"][0]
 
 info("Solution of the primal variables: m=" + repr(m) + "\n")
 

@@ -119,6 +119,18 @@ class ReducedFunctionalNumPy:
 
             if config.params['steady_state'] or config.params["functional_final_time_only"]:
                 J = Functional(functional.Jt(state, dummy_tf)*dt[FINISH_TIME])
+            elif config.params['functional_quadrature_degree'] == 0:
+                # Pseudo-redo the time loop to collect the necessary timestep information 
+                timesteps = [0]
+                t = config.params["start_time"]
+                while (t < config.params["finish_time"]):
+                    timesteps.append(timesteps[-1]+1)
+                    t += config.params["dt"] 
+                # Remove the functional contribution from the initial condition. I think this is a bug in dolfin-adjoint, since really I expected del(0) here - but the Taylor tests pass only with del(1)!
+                timesteps.remove(1) 
+
+                # Construct the functional
+                J = Functional(sum(functional.Jt(state, dummy_tf)*dt[t] for t in timesteps))
             else:
                 J = Functional(functional.Jt(state, dummy_tf)*dt)
 
@@ -241,12 +253,12 @@ class ReducedFunctionalNumPy:
             if not self.automatic_scaling_factor:
                 # Computing dj will set the automatic scaling factor. 
                 info_blue("Computing derivative to determine the automatic scaling factor")
-                dj = self.dj(m, forget=False)
+                dj = self.dj(m, forget=False, optimisation_iteration=False)
             return j * self.scale * self.automatic_scaling_factor
         else:
             return j * self.scale
 
-    def dj(self, m, forget):
+    def dj(self, m, forget, optimisation_iteration=True):
         ''' This memoised function returns the gradient of the functional for the parameter choice m. '''
         info_green('Start evaluation of dj')
         timer = dolfin.Timer("dj evaluation") 
@@ -255,20 +267,20 @@ class ReducedFunctionalNumPy:
         # We assume that the gradient is computed at and only at the beginning of each new optimisation iteration.
         # Hence, this is the right moment to store the turbine friction field and to increment the optimisation iteration
         # counter. 
-        self.__config__.optimisation_iteration += 1 
-
-        if self.__config__.params["dump_period"] > 0:
-            # A cache hit skips the turbine cache update, so we need 
-            # trigger it manually.
-            if self.compute_gradient_mem.has_cache(m, forget):
-                self.update_turbine_cache(m)
-            if "dynamic_turbine_friction" in self.__config__.params["controls"]:
-                info_red("Turbine VTU output not yet implemented for dynamic turbine control")
-            else:    
-                self.turbine_file << self.__config__.turbine_cache.cache["turbine_field"] 
-                # Compute the total amount of friction due to turbines
-                if self.__config__.params["turbine_parametrisation"]=="smooth":
-                    print "Total amount of friction: ", assemble(self.__config__.turbine_cache.cache["turbine_field"]*dx)
+        if optimisation_iteration:
+            self.__config__.optimisation_iteration += 1 
+            if self.__config__.params["dump_period"] > 0:
+                # A cache hit skips the turbine cache update, so we need 
+                # trigger it manually.
+                if self.compute_gradient_mem.has_cache(m, forget):
+                    self.update_turbine_cache(m)
+                if "dynamic_turbine_friction" in self.__config__.params["controls"]:
+                    info_red("Turbine VTU output not yet implemented for dynamic turbine control")
+                else:    
+                    self.turbine_file << self.__config__.turbine_cache.cache["turbine_field"] 
+                    # Compute the total amount of friction due to turbines
+                    if self.__config__.params["turbine_parametrisation"]=="smooth":
+                        print "Total amount of friction: ", assemble(self.__config__.turbine_cache.cache["turbine_field"]*dx)
 
         if self.save_functional_values and MPI.process_number()==0:
             with open("functional_values.txt", "a") as functional_values:
