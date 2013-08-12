@@ -13,7 +13,8 @@ from helpers import info, info_green, info_red, info_blue
     
 class ReducedFunctionalNumPy:
 
-    def __init__(self, config, scale=1.0, forward_model=sw_model.sw_solve, plot=False):
+    def __init__(self, config, scale=1.0, forward_model=sw_model.sw_solve,\
+                 plot=False, save_functional_values=False):
         ''' If plot is True, the functional values will be automatically saved in a plot.
             scale is ignored if automatic_scaling is active. '''
         # Hide the configuration since changes would break the memoize algorithm. 
@@ -21,6 +22,7 @@ class ReducedFunctionalNumPy:
         self.scale = scale
         self.automatic_scaling_factor = None
         self.plot = plot
+        self.save_functional_values = save_functional_values
         # Caching variables that store which controls the last forward run was performed
         self.last_m = None
         self.last_state = None
@@ -267,6 +269,10 @@ class ReducedFunctionalNumPy:
                 # Compute the total amount of friction due to turbines
                 if self.__config__.params["turbine_parametrisation"]=="smooth":
                     print "Total amount of friction: ", assemble(self.__config__.turbine_cache.cache["turbine_field"]*dx)
+
+        if self.save_functional_values and MPI.process_number()==0:
+            with open("functional_values.txt", "a") as functional_values:
+                functional_values.write(str(self.last_j)+"\n")
 
         if self.plot:
             self.plotter.addPoint(self.last_j)
