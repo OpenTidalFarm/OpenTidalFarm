@@ -1,9 +1,9 @@
 from opentidalfarm import *
-from bathymetry.netcdf_reader import NetCDFInterpolator
-import ipopt
+#import ipopt
 import utm
 import uptide
 import uptide.tidal_netcdf
+from uptide.netcdf_reader import NetCDFInterpolator
 import datetime
 utm_zone = 30
 utm_band = 'V'
@@ -45,7 +45,8 @@ class TidalForcing(Expression):
 eta_expr = TidalForcing() 
 bc.add_analytic_eta(1, eta_expr)
 bc.add_analytic_eta(2, eta_expr)
-bc.add_noslip_u(3)
+# comment out if you want free slip:
+#bc.add_noslip_u(3)
 config.params['bctype'] = 'strong_dirichlet'
 config.params['strong_bc'] = bc
 
@@ -59,7 +60,7 @@ class BathymetryDepthExpression(Expression):
     latlon = utm.to_latlon(x[0], x[1], utm_zone, utm_band)
     values[0] = max(10, -self.nci.get_val(latlon))
 
-bexpr = BathymetryDepthExpression('bathymetry/bathymetry.nc')
+bexpr = BathymetryDepthExpression('bathymetry.nc')
 depth = interpolate(bexpr, FunctionSpace(config.domain.mesh, "CG", 1))
 depth_pvd = File("bathymetry.pvd")
 depth_pvd << depth
@@ -76,13 +77,13 @@ config.info()
 
 rf = ReducedFunctional(config, scale=-1e-6)
 
-#print "Running forward model"
-#m0 = rf.initial_control()
-#rf.j(m0)
-#print "Finished"
-#import sys; sys.exit(1)
+print "Running forward model"
+m0 = rf.initial_control()
+rf.j(m0)
+print "Finished"
+import sys; sys.exit(1)
 
-maximize(rf, bounds=(0, 1))
+#maximize(rf, bounds=(0, 1))
 
 #class Problem(object):
 #    def __init__(self, rf):
