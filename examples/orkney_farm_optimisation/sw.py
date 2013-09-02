@@ -79,7 +79,7 @@ rf = ReducedFunctional(config, scale=-1e-6)
 
 print "Running forward model"
 m0 = rf.initial_control()
-rf.j(m0)
+rf.j(m0, annotate=False)
 print "Finished"
 import sys; sys.exit(1)
 
