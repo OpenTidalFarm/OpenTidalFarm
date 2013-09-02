@@ -50,7 +50,7 @@ class ReducedFunctionalNumPy:
         if plot:
            self.plotter = AnimatedPlot(xlabel = "Iteration", ylabel = "Functional value")
 
-        def compute_functional(m, return_final_state = False):
+        def compute_functional(m, return_final_state = False, annotate = True):
             ''' Takes in the turbine positions/frictions values and computes the resulting functional of interest. '''
 
             self.last_m = m
@@ -62,9 +62,9 @@ class ReducedFunctionalNumPy:
             # int 0.17353373* (exp(-1.0/(1-(x/10)**2)) * exp(-1.0/(1-(y/10)**2)) * exp(2)) dx dy, x=-10..10, y=-10..10 
             #info_red("relative error: %f", (assemble(tf*dx)-25.2771)/25.2771)
 
-            return compute_functional_from_tf(tf, return_final_state)
+            return compute_functional_from_tf(tf, return_final_state, annotate=annotate)
 
-        def compute_functional_from_tf(tf, return_final_state):
+        def compute_functional_from_tf(tf, return_final_state, annotate = True):
             ''' Takes in the turbine friction field and computes the resulting functional of interest. '''
             adj_reset()
             parameters["adjoint"]["record_all"] = True 
@@ -86,7 +86,7 @@ class ReducedFunctionalNumPy:
 
             # Solve the shallow water system
             functional = config.functional(config)
-            j = forward_model(config, state, functional=functional, turbine_field=tf)
+            j = forward_model(config, state, functional=functional, turbine_field=tf, annotate=annotate)
             self.last_state = state
 
             if return_final_state:
@@ -100,7 +100,7 @@ class ReducedFunctionalNumPy:
             # If the last forward run was performed with the same parameters, then all recorded values by dolfin-adjoint are still valid for this adjoint run
             # and we do not have to rerun the forward model.
             if numpy.any(m != self.last_m):
-                compute_functional(m)
+                compute_functional(m, annotate = True)
 
             state = self.last_state
             functional = config.functional(config)
@@ -235,11 +235,11 @@ class ReducedFunctionalNumPy:
         self.compute_functional_mem.load_checkpoint(base_filename + "_fwd.dat")
         self.compute_gradient_mem.load_checkpoint(base_filename + "_adj.dat")
 
-    def j(self, m):
+    def j(self, m, annotate=True):
         ''' This memoised function returns the functional value for the parameter choice m. '''
         info_green('Start evaluation of j')
         timer = dolfin.Timer("j evaluation") 
-        j = self.compute_functional_mem(m) 
+        j = self.compute_functional_mem(m, annotate=annotate) 
         timer.stop()
 
         if self.__config__.params["save_checkpoints"]:
