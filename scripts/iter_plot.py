@@ -50,7 +50,7 @@ for line in f:
 f.close()
 
 print "Power output of initial layout: ", func[0]
-print "Power output of initial layout: ", func[-1]
+print "Power output of final layout: ", func[-1]
 print "Relative power increase: ", func[-1]/func[0]
 
 # The produce a nice plot
