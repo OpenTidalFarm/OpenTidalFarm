@@ -77,7 +77,7 @@ class ReducedFunctionalNumPy:
             else:
                 state = Function(config.function_space, name="Current_state")
 
-            if config.params["steady_state"] and self.last_state != None:
+            if config.params["steady_state"] and config.params["include_time_term"] and self.last_state != None:
                 # Speed up the nonlinear solves by starting the Newton solve with the most recent state solution               
                 state.assign(self.last_state, annotate=False)
             else:
