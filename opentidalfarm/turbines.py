@@ -30,6 +30,10 @@ class Turbines(object):
           turbine_pos = [params["turbine_pos"][derivative_index_selector]]
           turbine_friction = [params["turbine_friction"][derivative_index_selector]] if timestep==None else [params["turbine_friction"][timestep][derivative_index_selector]]
 
+        # Infeasible optimisation algorithms (such as SLSQP) may try to evaluate the functional with negative turbine_frictions.
+        # Since the forward model would crash in such cases, we project the turbine friction values to positive reals. 
+        turbine_friction = [max(0, f) for f in turbine_friction]
+
         ff = numpy.zeros(len(self.x))
         # We dont mind division by zero
         numpy.seterr(divide = 'ignore')
