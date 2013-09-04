@@ -14,10 +14,11 @@ config.params['diffusion_coef'] = 180.0
 config.params["controls"] = ["turbine_friction"]
 config.params["turbine_parametrisation"] = "smooth"
 config.params["automatic_scaling"] = False 
+config.params['friction'] = Constant(0.0025)
 
 config.params['start_time'] = 0 
 config.params['dt'] = 600 
-config.params['finish_time'] = 12*60*60 
+config.params['finish_time'] = 12.5*60*60 
 config.params['theta'] = 1.0 
 
 # Tidal boundary forcing
@@ -29,7 +30,7 @@ class TidalForcing(Expression):
 
         constituents = ['Q1', 'O1', 'P1', 'K1', 'N2', 'M2', 'S2', 'K2']
         tide = uptide.Tides(constituents)
-        tide.set_initial_time(datetime.datetime(2009,4,8,5,0,0))
+        tide.set_initial_time(datetime.datetime(2001,9,18,0,0,0))
         self.tnci = uptide.tidal_netcdf.OTPSncTidalInterpolator(tide,
                     'gridES2008.nc', 'hf.ES2008.nc', ranges=((-4.0,0.0),(58.0,61.0)))
 
