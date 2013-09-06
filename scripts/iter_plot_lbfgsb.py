@@ -28,7 +28,7 @@ for line in f:
 
     elif "At iterate" in line:
         it.append(float(line.split()[2]))
-        func.append(float(line.split()[4].replace('D', 'e')))
+        func.append(float(line.split()[4].replace('D', 'e'))*rescale)
 
 f.close()
 
