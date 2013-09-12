@@ -403,7 +403,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
           #solver_parameters["linear_solver"] = "mumps"
           #solver_parameters["linear_solver"] = "umfpack"
           solver_parameters["newton_solver"] = {}
-          #solver_parameters["newton_solver"]["error_on_nonconvergence"] = False
+          solver_parameters["newton_solver"]["error_on_nonconvergence"] = True
           solver_parameters["newton_solver"]["maximum_iterations"] = 20 
           solver_parameters["newton_solver"]["convergence_criterion"] = "incremental"
           solver_parameters["newton_solver"]["relative_tolerance"] = 1e-16
