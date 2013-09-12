@@ -495,11 +495,15 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
                 j += quad*assemble(functional.Jt(state, tf))
                 if params["print_individual_turbine_power"]:
                     info_green("Computing individual turbine power extraction contribution...")
-                    individual_contribution_list = ['x_pos', 'y_pos', 'turbine_power']
+                    individual_contribution_list = ['x_pos', 'y_pos', 'turbine_power', 'turbine_friction']
+                    fr_individual = range(len(params["turbine_pos"]))
                     for i in range(len(params["turbine_pos"])):
                         j_individual[i] += dt * quad * assemble(functional.Jt_individual(state, i))
-                        individual_contribution_list.append((params["turbine_pos"][i])[0]), individual_contribution_list.append((params["turbine_pos"][i])[1])  , individual_contribution_list.append(j_individual[i])
-                        print0("Contribution of turbine number %d at co-ordinates:" % (i+1), params["turbine_pos"][i], ' is: ', j_individual[i]*0.001, 'kW')
+                        if len(params["turbine_friction"]) > 0:
+                            fr_individual[i] = params["turbine_friction"][i]
+                        else: fr_individual = [params["turbine_friction"]] * len(params["turbine_pos"])
+                        individual_contribution_list.append((params["turbine_pos"][i])[0]), individual_contribution_list.append((params["turbine_pos"][i])[1])  , individual_contribution_list.append(j_individual[i]), individual_contribution_list.append(fr_individual[i])
+                        print0("Contribution of turbine number %d at co-ordinates:" % (i+1), params["turbine_pos"][i], ' is: ', j_individual[i]*0.001, 'kW', 'with friction of', fr_individual[i])
 
         # Increase the adjoint timestep
         adj_inc_timestep(time=t, finished=(not t<params["finish_time"]))
@@ -509,8 +513,8 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
     # Write the turbine positions, power extraction and friction to a .csv file named turbine_info.csv
     if params['print_individual_turbine_power']:
         output_turbines = open('turbine_info.csv', 'w')
-        for i in range(0, len(individual_contribution_list), 3):
-            print >> output_turbines, '%s, %s, %s' % (individual_contribution_list[i], individual_contribution_list[i+1],individual_contribution_list[i+2])
+        for i in range(0, len(individual_contribution_list), 4):
+            print >> output_turbines, '%s, %s, %s, %s' % (individual_contribution_list[i], individual_contribution_list[i+1],individual_contribution_list[i+2], individual_contribution_list[i+3])
         print 'Total of individual turbines is', sum(j_individual)   
 
     if functional is not None:

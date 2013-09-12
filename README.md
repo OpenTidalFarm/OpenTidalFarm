@@ -238,6 +238,11 @@ Therefore, in order to get the position and friction values after the optimisati
  print "Turbine friction: ", config.params['turbine_friction']
 ```
 
+The location, power generated and turbine friction of the optimised layout can be stored in a .csv file named 'turbine_info.csv', simply add this line to your program:
+
+'''python
+ print "Save individual turbine output to .csv: ", config.params["print_individual_turbine_power"] = True
+'''
 
 Citing
 ======
