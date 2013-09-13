@@ -81,7 +81,7 @@ domains = MeshFunction("size_t", config.domain.mesh, "mesh/coast_idBoundary_utm_
 # Compute gradient of the batyhmetry
 depth_grad = Function(V_dg0)
 F = inner(TrialFunction(V_dg0) - (depth.dx(0)**2 + depth.dx(1)**2)**0.5, TestFunction(V_dg0))*dx
-solve(lhs(F) == rhs(F), depth_grad, annotate=False)
+solve(lhs(F) == rhs(F), depth_grad)
 
 # The maximum gradient in which turbines can be deployed
 grad_limit = 0.015
