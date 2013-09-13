@@ -77,6 +77,21 @@ config.params['depth'] = depth
 config.turbine_function_space = V_dg0 
 
 domains = MeshFunction("size_t", config.domain.mesh, "mesh/coast_idBoundary_utm_physical_region.xml")
+
+# Compute gradient of the batyhmetry
+depth_grad = Function(V_dg0)
+F = inner(TrialFunction(V_dg0) - (depth.dx(0)**2 + depth.dx(1)**2)**0.5, TestFunction(V_dg0))*dx
+solve(lhs(F) == rhs(F), depth_grad)
+
+# The maximum gradient in which turbines can be deployed
+grad_limit = 0.015
+jump = lambda x: 1 if x < grad_limit else 0 
+vjump = numpy.vectorize(jump)
+
+indic_arr = vjump(depth_grad.vector().get_local())
+indic_arr *= domains.array() 
+
+domains.set_values(numpy.array(indic_arr, dtype=numpy.uintp))
 config.site_dx = Measure("dx")[domains]
 f = File("turbine_mask.pvd")
 f << domains
