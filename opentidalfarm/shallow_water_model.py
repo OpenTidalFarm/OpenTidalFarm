@@ -1,5 +1,6 @@
 import numpy
 import sys
+import os.path
 from dolfin import *
 from dolfin_adjoint import *
 from helpers import info, info_green, info_red, info_blue, print0, StateWriter
@@ -512,7 +513,14 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
 
     # Write the turbine positions, power extraction and friction to a .csv file named turbine_info.csv
     if params['print_individual_turbine_power']:
-        output_turbines = open('turbine_info.csv', 'w')
+        f = "iter_"+str(config.optimisation_iteration)+'/'
+        # Save the very first result in a different file
+        if os.path.isfile(f):
+           f += 'initial_turbine_info.csv'
+        else:
+           f += 'turbine_info.csv'
+
+        output_turbines = open(f, 'w')
         for i in range(0, len(individual_contribution_list), 4):
             print >> output_turbines, '%s, %s, %s, %s' % (individual_contribution_list[i], individual_contribution_list[i+1],individual_contribution_list[i+2], individual_contribution_list[i+3])
         print 'Total of individual turbines is', sum(j_individual)   
