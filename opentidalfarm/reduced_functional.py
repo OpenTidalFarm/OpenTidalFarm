@@ -353,7 +353,7 @@ class ReducedFunctionalNumPy:
         ''' Interface function for dolfin_adjoint.ReducedFunctional '''
         return self.j(m)
 
-    def derivative(self, m_array, taylor_test = False, seed = 0.001, forget = True):
+    def derivative(self, m_array, taylor_test = False, seed = 0.001, forget = True, **kwargs):
         ''' Interface function for dolfin_adjoint.ReducedFunctional '''
         if taylor_test:
             return self.dj_with_check(m_array, seed, forget)
