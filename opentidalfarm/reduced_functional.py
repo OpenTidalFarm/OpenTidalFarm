@@ -37,7 +37,11 @@ class ReducedFunctionalNumPy:
             def data(self):
                 m = []
                 if config.params["turbine_parametrisation"] == "smooth":
-                    m = numpy.zeros(config.turbine_function_space.dim())
+                    if len(config.params["turbine_friction"]) == 0:
+                        # If the user has not set the turbine friction it is initialised here
+                        m = numpy.zeros(config.turbine_function_space.dim())
+                    else:
+                        m = config.params["turbine_friction"]
                 else:
                     if 'turbine_friction' in config.params["controls"]:
                         m += list(config.params['turbine_friction'])
@@ -369,7 +373,7 @@ class ReducedFunctionalNumPy:
 
     def set_parameters(self, m_array):
         m = [p.data() for p in self.parameter]
-        return dolfin_adjoint.optimization.set_local(m, m_array)
+        dolfin_adjoint.optimization.set_local(m, m_array)
 
 class ReducedFunctional(ReducedFunctionalNumPy):
     pass
