@@ -4511,5 +4511,5 @@ Physical Line(3) = {2203003, 2203006, 2197, 2198, 2190, 2204, 2207, 2212, 2193, 
 Field[1] = MathEval;
 Field[1].F = "500";
 Background Field = 1;
-Physical Surface(0) = {1};
-Physical Surface(1) = {12602, 12608, 12606, 12604};
+Physical Surface(0) = {1, 12602, 12606, 12604};
+Physical Surface(1) = {12608};
