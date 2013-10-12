@@ -238,17 +238,19 @@ Therefore, in order to get the position and friction values after the optimisati
  print "Turbine friction: ", config.params['turbine_friction']
 ```
 
-The location, power generated and turbine friction of the optimised layout can be stored in a .csv file named 'turbine_info.csv', simply add this line to your program:
+The location, power generated and turbine friction of the optimised layout can be stored in .csv files named 'turbine_info.csv' in the iteration directories, simply add this line to your program:
 
 ```python
  config.params["print_individual_turbine_power"] = True
 ```
 
+Additionally, the very results of the initial guess is stored in 'iter_0/initial_turbine_info.csv'.
+
 Citing
 ======
 Please cite the following paper if you are using OpenTidalFarm:
 
-S.W. Funke, P.E. Farrell, M.D. Piggott, Tidal turbine array optimisation using the adjoint approach, Renewable Energy, submitted (2013) [arXiv:1304.1768](http://arxiv.org/abs/1304.1768)
+S.W. Funke, P.E. Farrell, M.D. Piggott, Tidal turbine array optimisation using the adjoint approach, Renewable Energy, accepted (2013) [arXiv:1304.1768](http://arxiv.org/abs/1304.1768)
 
 For the automated optimisation framework used by OpenTidalFarm, please cite:
 
@@ -256,7 +258,7 @@ Simon W. Funke and Patrick E. Farrell. A framework for automated PDE-constrained
 
 For the automatic adjoint generation used by OpenTidalFarm, please cite:
 
-Patrick E. Farrell, David A. Ham, Simon W. Funke and Marie E. Rognes (2012). Automated derivation of the adjoint of high-level transient finite element programs, accepted. [arXiv:1204.5577](http://arxiv.org/abs/1204.5577)
+Patrick E. Farrell, David A. Ham, Simon W. Funke and Marie E. Rognes (2013). Automated derivation of the adjoint of high-level transient finite element programs. SIAM Journal on Scientific Computing, Vol:35, ISSN:1064-8275, Pages:C369-C393 
 
 Contact 
 =======
