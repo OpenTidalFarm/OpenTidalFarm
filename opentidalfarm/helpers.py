@@ -2,7 +2,7 @@ from __future__ import print_function
 import random
 from dolfin import * 
 from dolfin_adjoint import *
-from numpy import array, dot
+from numpy import array, dot, inf
 import pylab 
 import dolfin
 
@@ -150,3 +150,15 @@ def cpu0only(f):
 
   return decorator
 
+def function_eval(func, point): 
+  ''' A parallel safe evaluation of dolfin functions '''
+  try:
+      val = func(point)
+  except RuntimeError:
+      val = -inf
+
+  maxval = MPI.max(val)
+  if maxval == -inf:
+    raise RuntimeError, "Point is outside the domain"
+  else:
+    return maxval
