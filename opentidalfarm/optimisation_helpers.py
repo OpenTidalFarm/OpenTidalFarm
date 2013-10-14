@@ -238,7 +238,7 @@ class DomainRestrictionConstraints:
           print "Warning: a turbine is outside the domain"
           ieqcons.append((x-self.attraction_center[0])**2+(y-self.attraction_center[1])**2) # Point is outside domain
 
-      print "Inequality constrains (should be > 0): ", -numpy.array(ieqcons)
+      print "Inequality constraints (should be > 0): ", -numpy.array(ieqcons)
       return -numpy.array(ieqcons)
 
     return {'type': 'ineq', 'fun': f_ieqcons} 
