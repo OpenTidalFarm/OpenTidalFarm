@@ -4430,13 +4430,14 @@ Line Loop(2236) = {2212};
 
 
 // Add Farms
-farmres = 50;
-Point(6519) = {491747, 6.50161e+06, 0, farmres};
-Point(6520) = {490536, 6.50225e+06, 0, farmres};
-Point(6521) = {492998, 6.5012e+06, 0, farmres};
-Point(6522) = {493927, 6.50177e+06, 0, farmres};
-Point(6523) = {493927, 6.50242e+06, 0, farmres};
-Point(6524) = {490778, 6.50266e+06, 0, farmres};
+farmres = 500;
+innersoundres = 10;
+Point(6519) = {491747, 6.50161e+06, 0, innersoundres};
+Point(6520) = {490536, 6.50225e+06, 0, innersoundres};
+Point(6521) = {492998, 6.5012e+06, 0, innersoundres};
+Point(6522) = {493927, 6.50177e+06, 0, innersoundres};
+Point(6523) = {493927, 6.50242e+06, 0, innersoundres};
+Point(6524) = {490778, 6.50266e+06, 0, innersoundres};
 Point(6525) = {496429, 6.5029e+06, 0, farmres};
 Point(6526) = {496954, 6.50205e+06, 0, farmres};
 Point(6527) = {498447, 6.50108e+06, 0, farmres};
