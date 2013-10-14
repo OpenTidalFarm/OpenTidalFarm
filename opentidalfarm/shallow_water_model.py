@@ -518,7 +518,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
 
     # Write the turbine positions, power extraction and friction to a .csv file named turbine_info.csv
     if params['print_individual_turbine_power']:
-        f = "iter_"+str(config.optimisation_iteration)+'/'
+        f = config.params['base_path'] + os.path.sep + "iter_"+str(config.optimisation_iteration)+'/'
         # Save the very first result in a different file
         if os.path.isfile(f):
            f += 'initial_turbine_info.csv'
