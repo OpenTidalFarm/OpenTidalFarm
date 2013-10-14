@@ -409,6 +409,11 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
           solver_parameters["newton_solver"]["convergence_criterion"] = "incremental"
           solver_parameters["newton_solver"]["relative_tolerance"] = 1e-16
 
+          if not include_time_term:
+             info_red("Resetting the initial guess to 1 after timestep. Reason: You are running multiple steady state problems.")
+             # Reset the initial guess after each timestep
+             state_new.vector()[:] = 1.
+
           if bctype == 'strong_dirichlet':
               solve(F == 0, state_new, bcs=strong_bc.bcs, solver_parameters=solver_parameters, annotate=annotate)
           else:
