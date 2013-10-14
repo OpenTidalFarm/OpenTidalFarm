@@ -238,7 +238,7 @@ class DomainRestrictionConstraints:
           print "Warning: a turbine is outside the domain"
           ieqcons.append((x-self.attraction_center[0])**2+(y-self.attraction_center[1])**2) # Point is outside domain
 
-      print "Inequality constrains (should be > 0): ", -numpy.array(ieqcons)
+      print "Inequality constraints (should be > 0): ", -numpy.array(ieqcons)
       return -numpy.array(ieqcons)
 
     return {'type': 'ineq', 'fun': f_ieqcons} 
@@ -246,9 +246,37 @@ class DomainRestrictionConstraints:
 def get_domain_constraints(config, feasible_area, attraction_center):
   return DomainRestrictionConstraints(config, feasible_area, attraction_center).generate()
 
-def merge_contraints(ineq1, ineq2):
+def merge_constraints(ineq1, ineq2):
   assert(ineq1['type']=='ineq' and ineq2['type']=='ineq')
   ineq_fun = lambda m: numpy.array(list(ineq1['fun'](m))+list(ineq2['fun'](m)))
   return {'type': 'ineq', 'fun': ineq_fun} 
 
+def get_distance_function(config, domains):
+  V = dolfin.FunctionSpace(config.domain.mesh, "CG", 1)
+  v = dolfin.TestFunction(V)
+  d = dolfin.Function(V)
+  dist = dolfin.interpolate(Constant(1.0), V)
+  s = dolfin.interpolate(Constant(1.0), V)
+  domains_func = dolfin.Function(dolfin.FunctionSpace(config.domain.mesh, "DG", 0))
+  domains_func.vector().set_local(domains.array().astype(numpy.float))
 
+  def boundary(x):
+    eps_x = config.params["turbine_x"] 
+    eps_y = config.params["turbine_y"] 
+
+    min_val = 1
+    for e_x, e_y in [(-eps_x, 0), (eps_x, 0), (0, -eps_y), (0, eps_y)]:
+      try: 
+        min_val = min(min_val, domains_func((x[0]+e_x, x[1]+e_y)))
+      except RuntimeError:
+        pass
+
+    return min_val == 1.0
+
+  bc = dolfin.DirichletBC(V, 0.0, boundary)
+
+  # Solve the diffusion problem with a constant source term
+  F = (dolfin.inner(dolfin.grad(d), dolfin.grad(v)) - dolfin.inner(s, v))*dolfin.dx
+  dolfin.solve(F==0, d, bc)
+
+  return d

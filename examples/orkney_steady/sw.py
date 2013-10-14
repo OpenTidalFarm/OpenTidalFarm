@@ -13,14 +13,16 @@ import sys
 set_log_level(PROGRESS)
 
 config = SteadyConfiguration("mesh/coast_idBoundary_utm.xml", [1, 1])
-config.params['diffusion_coef'] = 180.0
+config.params['diffusion_coef'] = Constant(360.0)
 config.params['save_checkpoints'] = True
+config.params['turbine_x'] = 100
+config.params['turbine_y'] = 100
 
 # Tidal boundary forcing
 bc = DirichletBCSet(config)
 class TidalForcing(Expression):
     def __init__(self):
-        self.t = None
+        self.t = 0
         self.tnci_time = None
 
         constituents = ['Q1', 'O1', 'P1', 'K1', 'N2', 'M2', 'S2', 'K2']
@@ -39,10 +41,10 @@ class TidalForcing(Expression):
         values[0] = self.tnci.get_val((latlon[1], latlon[0]), allow_extrapolation=True)
 
 eta_expr = TidalForcing() 
-bc.add_constant_eta(1, eta_expr)
-bc.add_constant_eta(2, eta_expr)
-# comment out if you want free slip:
-#bc.add_noslip_u(3)
+bc.add_constant_eta(1, eta_expr) # inflow
+bc.add_constant_eta(2, eta_expr) # outflow
+# comment if you want free slip:
+bc.add_noslip_u(3)               # coast
 config.params['bctype'] = 'strong_dirichlet'
 config.params['strong_bc'] = bc
 
@@ -65,22 +67,33 @@ config.params['depth'] = depth
 domains = MeshFunction("size_t", config.domain.mesh, "mesh/coast_idBoundary_utm_physical_region.xml")
 config.site_dx = Measure("dx")[domains]
 
+site_x_start = 491420
+site_y_end = 6.50241e6
+site_x_end = 493735
+site_y_start = 6.50201e6
+
+feasible_area = get_distance_function(config, domains)
+File("feasible_area.pvd") << feasible_area
+feasible_constraint = get_domain_constraints(config, feasible_area, attraction_center=(0.5*(site_x_start + site_x_end), 0.5*(site_y_start + site_y_end)))
+distance_constraint = get_minimum_distance_constraint_func(config)
+
+constraints = merge_constraints(feasible_constraint, distance_constraint)
 
 # Place some turbines 
-#deploy_turbines(config, nx = 32, ny = 8)
-#config.params["turbine_friction"] = 0.5*numpy.array(config.params["turbine_friction"]) 
+config.set_site_dimensions(site_x_start, site_x_end, site_y_start, site_y_end)
+deploy_turbines(config, nx = 8, ny = 2, friction=10.5)
 
 config.info()
-import sys; sys.exit(1)
 rf = ReducedFunctional(config)
+
+#m0 = rf.initial_control()
+#rf.update_turbine_cache(m0)
+#File("turbines.pvd") << config.turbine_cache.cache["turbine_field"]
+#import sys; sys.exit()
 
 # Load checkpoints if desired by the user
 if len(sys.argv) > 1 and sys.argv[1] == "--from-checkpoint":
   rf.load_checkpoint("checkpoint")
 
-# Get the upper and lower bounds for the turbine positions
-lb, ub = position_constraints(config) 
-ineq = get_minimum_distance_constraint_func(config)
-
 parameters['form_compiler']['cpp_optimize_flags'] = '-O3 -ffast-math -march=native'
-maximize(rf, bounds = [lb, ub], constraints = ineq, method = "SLSQP", options = {"maxiter": 300, "ftol": 1.0}) 
+maximize(rf, constraints = constraints, method = "SLSQP", options = {"maxiter": 300, "ftol": 1.0}) 
