@@ -92,11 +92,11 @@ def test_gradient_array(J, dJ, x, seed=0.01, perturbation_direction=None, plot_f
 
 class StateWriter:
     def __init__(self, config, optimisation_iteration):
+        self.config = config
         self.optimisation_iteration = optimisation_iteration
         self.u_out, self.p_out = self.output_files(config.finite_element.func_name)
         self.M_u_out, self.v_out, self.u_out_state = self.u_output_projector(config.function_space)
         self.M_p_out, self.q_out, self.p_out_state = self.p_output_projector(config.function_space)
-        self.config = config
 
     def write(self, state):
         rhs = assemble(inner(self.v_out, state.split()[0])*dx)
