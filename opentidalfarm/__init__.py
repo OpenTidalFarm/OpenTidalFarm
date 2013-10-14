@@ -18,7 +18,7 @@ import mini_model
 import initial_conditions
 from configuration import *
 
-from optimisation_helpers import friction_constraints, get_minimum_distance_constraint_func, get_domain_constraints, merge_contraints, deploy_turbines, position_constraints, generate_site_constraints, plot_site_constraints
+from optimisation_helpers import friction_constraints, get_minimum_distance_constraint_func, get_domain_constraints, merge_constraints, deploy_turbines, position_constraints, generate_site_constraints, plot_site_constraints, get_distance_function
 from reduced_functional import ReducedFunctional
 from dirichlet_bc import DirichletBCSet
 from initial_conditions import SinusoidalInitialCondition, BumpInitialCondition
