@@ -1,7 +1,8 @@
 import numpy
 from dolfin import info_blue, Constant
 import dolfin
-from helpers import info, info_green, info_red, info_blue
+from helpers import info, info_green, info_red, info_blue, function_eval
+import os.path
 
 # The wrapper class of the objective/constaint functions that as required by the ipopt package
 class  IPOptFunction(object):
@@ -142,7 +143,7 @@ def plot_site_constraints(config, vertices):
             value[0] = int(inside)
     
     f = dolfin.project(SiteConstraintExpr(), config.turbine_function_space)
-    out_file = dolfin.File("site_constraints.pvd", "compressed")
+    out_file = dolfin.File(config.params['base_path'] + os.path.sep + "site_constraints.pvd", "compressed")
     out_file << f
 
 def generate_site_constraints(config, vertices, penalty_factor=1e3, slack_eps=0):
@@ -233,7 +234,7 @@ class DomainRestrictionConstraints:
         x = m_pos[2*i]
         y = m_pos[2*i+1]
         try:
-          ieqcons.append(self.feasible_area((x, y)))
+          ieqcons.append(function_eval(self.feasible_area, (x, y)))
         except RuntimeError:
           print "Warning: a turbine is outside the domain"
           ieqcons.append((x-self.attraction_center[0])**2+(y-self.attraction_center[1])**2) # Point is outside domain

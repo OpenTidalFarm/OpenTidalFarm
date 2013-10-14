@@ -10,7 +10,8 @@ from dolfin_adjoint import *
 from turbines import *
 from numpy.linalg import norm
 from helpers import info, info_green, info_red, info_blue
-    
+import os.path
+
 class ReducedFunctionalNumPy:
 
     def __init__(self, config, scale=1.0, forward_model=sw_model.sw_solve,\
@@ -28,10 +29,10 @@ class ReducedFunctionalNumPy:
         self.last_state = None
         self.in_euclidian_space = False
         if self.__config__.params["dump_period"] > 0:
-            self.turbine_file = File("turbines.pvd", "compressed")
+            self.turbine_file = File(config.params['base_path'] + os.path.sep + "turbines.pvd", "compressed")
 
             if config.params['output_turbine_power']:
-                self.power_file = File("power.pvd", "compressed")
+                self.power_file = File(config.params['base_path'] + os.path.sep + "power.pvd", "compressed")
 
         class Parameter:
             def data(self):

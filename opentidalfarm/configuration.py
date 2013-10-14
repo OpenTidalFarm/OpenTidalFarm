@@ -9,6 +9,7 @@ from initial_conditions import *
 from domains import *
 from helpers import info, info_green, info_red, info_blue
 from functionals import DefaultFunctional
+import os
 
 class DefaultConfiguration(object):
   ''' A default configuration setup that is used by all tests. '''
@@ -62,8 +63,9 @@ class DefaultConfiguration(object):
         'automatic_scaling': False,
         'print_individual_turbine_power': False,
         'automatic_scaling_multiplier': 5,
-   		'output_turbine_power': True,
-   		'save_checkpoints': False
+        'output_turbine_power': True,
+        'save_checkpoints': False,
+        'base_path': os.curdir
         })
 
     params['dt'] = params['finish_time']/4000.

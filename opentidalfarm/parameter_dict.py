@@ -51,7 +51,8 @@ class ParameterDictionary(dict):
             'automatic_scaling_multiplier': 'defines the multiplier that determines the initial gradient length (= multiplier * turbine size)',
             'print_individual_turbine_power': 'print out the power output of each individual turbine',
             'output_turbine_power': 'output the power generation of the individual turbines',
-            'save_checkpoints': 'automatically store checkpoints after each optimisation iteration'
+            'save_checkpoints': 'automatically store checkpoints after each optimisation iteration',
+            'base_path': 'root directory for output'
             }
 
     def check(self):

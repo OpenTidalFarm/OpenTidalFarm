@@ -5,6 +5,7 @@ from dolfin_adjoint import *
 from numpy import array, dot, inf
 import pylab 
 import dolfin
+import os.path
 
 def info_green(*args, **kwargs):
     if MPI.process_number() == 0:
@@ -89,16 +90,13 @@ def test_gradient_array(J, dJ, x, seed=0.01, perturbation_direction=None, plot_f
 
   return min(convergence_order(with_gradient))
 
-def save_to_file_scalar(function, basename):
-    out_file = File(basename+".pvd", "compressed")
-    out_file << function 
-
 class StateWriter:
     def __init__(self, config, optimisation_iteration):
         self.optimisation_iteration = optimisation_iteration
         self.u_out, self.p_out = self.output_files(config.finite_element.func_name)
         self.M_u_out, self.v_out, self.u_out_state = self.u_output_projector(config.function_space)
         self.M_p_out, self.q_out, self.p_out_state = self.p_output_projector(config.function_space)
+        self.config = config
 
     def write(self, state):
         rhs = assemble(inner(self.v_out, state.split()[0])*dx)
@@ -136,8 +134,8 @@ class StateWriter:
     def output_files(self, basename):
             
         # Output file
-        u_out = File("iter_"+str(self.optimisation_iteration)+"/"+basename+"_u.pvd", "compressed")
-        p_out = File("iter_"+str(self.optimisation_iteration)+"/"+basename+"_p.pvd", "compressed")
+        u_out = File(self.config.params['base_path'] + os.path.sep + "iter_"+str(self.optimisation_iteration)+"/"+basename+"_u.pvd", "compressed")
+        p_out = File(self.config.params['base_path'] + os.path.sep + "iter_"+str(self.optimisation_iteration)+"/"+basename+"_p.pvd", "compressed")
 
         return u_out, p_out
 
