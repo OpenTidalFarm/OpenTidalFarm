@@ -364,6 +364,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
             j = 0.
             if params["print_individual_turbine_power"]:
                 j_individual = [0] * len(params["turbine_pos"])
+                force_individual = [0] * len(params["turbine_pos"])
  
         else:
             if functional_quadrature_degree == 0:
@@ -373,8 +374,10 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
             j =  dt * quad * assemble(functional.Jt(state, tf))
             if params["print_individual_turbine_power"]:
                 j_individual = []
+                force_individual = []
                 for i in range(len(params["turbine_pos"])):
                     j_individual.append(dt * quad * assemble(functional.Jt_individual(state, i))) 
+                    force_individual.append(dt * quad * assemble(functional.force_individual(state, i))) 
         
     print0("Starting time loop...")
     adjointer.time.start(t)
@@ -410,9 +413,10 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
           solver_parameters["newton_solver"]["relative_tolerance"] = 1e-16
 
           if not include_time_term:
-             info_red("Resetting the initial guess to 1 after timestep. Reason: You are running multiple steady state problems.")
+             info_red("Resetting the initial guess to the initial condition. Reason: You are running a multi steady state problem.")
              # Reset the initial guess after each timestep
-             state_new.vector()[:] = 1.
+             ic = config.params['initial_condition']
+             state_new.assign(ic, annotate=False)
 
           if bctype == 'strong_dirichlet':
               solve(F == 0, state_new, bcs=strong_bc.bcs, solver_parameters=solver_parameters, annotate=annotate)
@@ -501,14 +505,23 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
                 j += quad*assemble(functional.Jt(state, tf))
                 if params["print_individual_turbine_power"]:
                     info_green("Computing individual turbine power extraction contribution...")
-                    individual_contribution_list = ['x_pos', 'y_pos', 'turbine_power', 'turbine_friction']
+                    individual_contribution_list = ['x_pos', 'y_pos', 'turbine_power', 'total_force_on_turbine', 'turbine_friction']
                     fr_individual = range(len(params["turbine_pos"]))
                     for i in range(len(params["turbine_pos"])):
                         j_individual[i] += dt * quad * assemble(functional.Jt_individual(state, i))
+                        force_individual[i] += dt * quad * assemble(functional.force_individual(state, i))
+
                         if len(params["turbine_friction"]) > 0:
                             fr_individual[i] = params["turbine_friction"][i]
-                        else: fr_individual = [params["turbine_friction"]] * len(params["turbine_pos"])
-                        individual_contribution_list.append((params["turbine_pos"][i])[0]), individual_contribution_list.append((params["turbine_pos"][i])[1])  , individual_contribution_list.append(j_individual[i]), individual_contribution_list.append(fr_individual[i])
+                        else: 
+                           fr_individual = [params["turbine_friction"]] * len(params["turbine_pos"])
+
+                        individual_contribution_list.append((params["turbine_pos"][i])[0])
+                        individual_contribution_list.append((params["turbine_pos"][i])[1])
+                        individual_contribution_list.append(j_individual[i])
+                        individual_contribution_list.append(force_individual[i])
+                        individual_contribution_list.append(fr_individual[i])
+
                         print0("Contribution of turbine number %d at co-ordinates:" % (i+1), params["turbine_pos"][i], ' is: ', j_individual[i]*0.001, 'kW', 'with friction of', fr_individual[i])
 
         # Increase the adjoint timestep
@@ -520,14 +533,14 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
     if params['print_individual_turbine_power']:
         f = config.params['base_path'] + os.path.sep + "iter_"+str(config.optimisation_iteration)+'/'
         # Save the very first result in a different file
-        if os.path.isfile(f):
+        if config.optimisation_iteration == 0 and not os.path.isfile(f):
            f += 'initial_turbine_info.csv'
         else:
            f += 'turbine_info.csv'
 
         output_turbines = open(f, 'w')
-        for i in range(0, len(individual_contribution_list), 4):
-            print >> output_turbines, '%s, %s, %s, %s' % (individual_contribution_list[i], individual_contribution_list[i+1],individual_contribution_list[i+2], individual_contribution_list[i+3])
+        for i in range(0, len(individual_contribution_list), 5):
+            print >> output_turbines, '%s, %s, %s, %s, %s' % (individual_contribution_list[i], individual_contribution_list[i+1],individual_contribution_list[i+2], individual_contribution_list[i+3], individual_contribution_list[i+4])
         print 'Total of individual turbines is', sum(j_individual)   
 
     if functional is not None:
