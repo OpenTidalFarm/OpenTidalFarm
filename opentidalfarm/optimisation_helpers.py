@@ -217,6 +217,20 @@ class DomainRestrictionConstraints:
     ''' 
     self.config = config 
     self.feasible_area = feasible_area
+
+    # Compute the gradient of the feasible area
+    fs = dolfin.FunctionSpace(feasible_area.function_space().mesh(),
+                              "DG",
+                              feasible_area.function_space().ufl_element().degree()-1)
+
+    feasible_area_grad = (dolfin.Function(fs), 
+                          dolfin.Function(fs))
+    t = dolfin.TestFunction(fs)
+    for i in range(2):
+      form = dolfin.inner(feasible_area_grad[i], t)*dolfin.dx - dolfin.inner(feasible_area.dx(i), t)*dolfin.dx
+      dolfin.solve(form == 0, feasible_area_grad[i])
+    self.feasible_area_grad = feasible_area_grad
+
     self.attraction_center = attraction_center
 
   def generate(self):
@@ -242,7 +256,31 @@ class DomainRestrictionConstraints:
       print "Inequality constraints (should be > 0): ", -numpy.array(ieqcons)
       return -numpy.array(ieqcons)
 
-    return {'type': 'ineq', 'fun': f_ieqcons} 
+    def fprime_ieqcons(m):
+      ieqcons = []
+      if len(self.config.params['controls']) == 2:
+      # If the controls consists of the the friction and the positions, then we need to first extract the position part
+        assert(len(m)%3 == 0)
+        m_pos = m[len(m)/3:]
+      else:
+        m_pos = m
+
+      for i in range(len(m_pos)/2):
+        x = m_pos[2*i]
+        y = m_pos[2*i+1]
+        primes = numpy.zeros(len(m))
+        try:
+          primes[2*i] = function_eval(self.feasible_area_grad[0], (x, y))
+          primes[2*i+1] = function_eval(self.feasible_area_grad[1], (x, y))
+
+        except RuntimeError:
+          primes[2*i] = 2*(x-self.attraction_center[0])
+          primes[2*i+1] = 2*(y-self.attraction_center[1])
+        ieqcons.append(primes)
+
+      return -numpy.array(ieqcons)
+
+    return {'type': 'ineq', 'fun': f_ieqcons, 'jac': fprime_ieqcons} 
 
 def get_domain_constraints(config, feasible_area, attraction_center):
   return DomainRestrictionConstraints(config, feasible_area, attraction_center).generate()
