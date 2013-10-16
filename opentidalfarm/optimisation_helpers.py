@@ -288,7 +288,8 @@ def get_domain_constraints(config, feasible_area, attraction_center):
 def merge_constraints(ineq1, ineq2):
   assert(ineq1['type']=='ineq' and ineq2['type']=='ineq')
   ineq_fun = lambda m: numpy.array(list(ineq1['fun'](m))+list(ineq2['fun'](m)))
-  return {'type': 'ineq', 'fun': ineq_fun} 
+  prime_fun = lambda m: numpy.array(list(ineq1['jac'](m))+list(ineq2['jac'](m)))
+  return {'type': 'ineq', 'fun': ineq_fun, 'jac': prime_fun} 
 
 def get_distance_function(config, domains):
   V = dolfin.FunctionSpace(config.domain.mesh, "CG", 1)
