@@ -86,10 +86,10 @@ def get_minimum_distance_constraint_func(config, min_distance = None):
           m_pos = m
 
         for i in range(len(m_pos)/2):
-            for j in range(len(m_pos)/2):                                                                       
+            for j in range(len(m_pos)/2):
                 if i <= j:
                     continue
-                ieqcons.append(l2norm( [m_pos[2*i]-m_pos[2*j], m_pos[2*i+1]-m_pos[2*j+1]] ) - min_distance**2)              
+                ieqcons.append(l2norm( [m_pos[2*i]-m_pos[2*j], m_pos[2*i+1]-m_pos[2*j+1]] ) - min_distance**2)
         return numpy.array(ieqcons)
 
     def fprime_ieqcons(m):
@@ -121,7 +121,7 @@ def get_minimum_distance_constraint_func(config, min_distance = None):
     return {'type': 'ineq', 'fun': f_ieqcons, 'jac': fprime_ieqcons} 
 
 def plot_site_constraints(config, vertices):
-    
+
     ineqs = []
     for p in range(len(vertices)):
         # x1 and x2 are the two points that describe one of the sites edge 
@@ -132,16 +132,16 @@ def plot_site_constraints(config, vertices):
         n = [c[1], -c[0]]
 
         ineqs.append((x1, n))
-    
+
     class SiteConstraintExpr(dolfin.Expression):
         def eval(self, value, x):
             inside = True
             for x1, n in ineqs:
                 # The inequality for this edge is: g(x) := n^T.(x1-x) >= 0 
                 inside = inside and (numpy.dot(n, x1-x) >= 0)
-            
+
             value[0] = int(inside)
-    
+
     f = dolfin.project(SiteConstraintExpr(), config.turbine_function_space)
     out_file = dolfin.File(config.params['base_path'] + os.path.sep + "site_constraints.pvd", "compressed")
     out_file << f
@@ -163,7 +163,7 @@ def generate_site_constraints(config, vertices, penalty_factor=1e3, slack_eps=0)
         else:
           m_pos = m
 
-        for i in range(len(m_pos)/2):                                                                           
+        for i in range(len(m_pos)/2):
             for p in range(len(vertices)):
                 # x1 and x2 are the two points that describe one of the sites edge 
                 x1 = numpy.array(vertices[p])
@@ -211,11 +211,11 @@ def generate_site_constraints(config, vertices, penalty_factor=1e3, slack_eps=0)
 
 class DomainRestrictionConstraints:
   def __init__(self, config, feasible_area, attraction_center):
-    ''' 
+    '''
        Generates the inequality constraints to enforce the turbines in the feasible area.
-       If the turbine is outside the domain, the constraints is equal to the distance between the turbine and the attraction center. 
-    ''' 
-    self.config = config 
+       If the turbine is outside the domain, the constraints is equal to the distance between the turbine and the attraction center.
+    '''
+    self.config = config
     self.feasible_area = feasible_area
 
     # Compute the gradient of the feasible area
@@ -233,7 +233,10 @@ class DomainRestrictionConstraints:
 
     self.attraction_center = attraction_center
 
-  def generate(self):
+  def generate(self, jac=False):
+    ''' Returns a dictionar with the inequality constrains.
+       If :arg: jac is True, the return dictionary also contains the Jacobian function.
+    '''
 
     def f_ieqcons(m):
       ieqcons = []
@@ -280,16 +283,22 @@ class DomainRestrictionConstraints:
 
       return -numpy.array(ieqcons)
 
-    return {'type': 'ineq', 'fun': f_ieqcons, 'jac': fprime_ieqcons} 
+    if jac:
+      return {'type': 'ineq', 'fun': f_ieqcons, 'jac': fprime_ieqcons}
+    else:
+      return {'type': 'ineq', 'fun': f_ieqcons}
 
-def get_domain_constraints(config, feasible_area, attraction_center):
-  return DomainRestrictionConstraints(config, feasible_area, attraction_center).generate()
+def get_domain_constraints(config, feasible_area, attraction_center, jac=False):
+  return DomainRestrictionConstraints(config, feasible_area, attraction_center).generate(jac)
 
 def merge_constraints(ineq1, ineq2):
   assert(ineq1['type']=='ineq' and ineq2['type']=='ineq')
   ineq_fun = lambda m: numpy.array(list(ineq1['fun'](m))+list(ineq2['fun'](m)))
-  prime_fun = lambda m: numpy.array(list(ineq1['jac'](m))+list(ineq2['jac'](m)))
-  return {'type': 'ineq', 'fun': ineq_fun, 'jac': prime_fun} 
+  if ineq1.has_key('jac') and ineq2.has_key('jac'):
+    prime_fun = lambda m: numpy.array(list(ineq1['jac'](m))+list(ineq2['jac'](m)))
+    return {'type': 'ineq', 'fun': ineq_fun, 'jac': prime_fun}
+  else:
+    return {'type': 'ineq', 'fun': ineq_fun}
 
 def get_distance_function(config, domains):
   V = dolfin.FunctionSpace(config.domain.mesh, "CG", 1)
