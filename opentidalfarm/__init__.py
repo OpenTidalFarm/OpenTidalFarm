@@ -14,7 +14,7 @@ __email__ = 'simon.funke@gmail.com'
 import finite_elements
 import helpers
 import shallow_water_model
-import mini_model 
+import mini_model
 import initial_conditions
 from configuration import *
 

@@ -118,13 +118,13 @@ def get_minimum_distance_constraint_func(config, min_distance = None):
                 ieqcons.append(prime_ieqcons)
         return numpy.array(ieqcons)
 
-    return {'type': 'ineq', 'fun': f_ieqcons, 'jac': fprime_ieqcons} 
+    return {'type': 'ineq', 'fun': f_ieqcons, 'jac': fprime_ieqcons}
 
 def plot_site_constraints(config, vertices):
 
     ineqs = []
     for p in range(len(vertices)):
-        # x1 and x2 are the two points that describe one of the sites edge 
+        # x1 and x2 are the two points that describe one of the sites edge
         x1 = numpy.array(vertices[p])
         x2 = numpy.array(vertices[(p+1)%len(vertices)])
         c = x2-x1
@@ -137,7 +137,7 @@ def plot_site_constraints(config, vertices):
         def eval(self, value, x):
             inside = True
             for x1, n in ineqs:
-                # The inequality for this edge is: g(x) := n^T.(x1-x) >= 0 
+                # The inequality for this edge is: g(x) := n^T.(x1-x) >= 0
                 inside = inside and (numpy.dot(n, x1-x) >= 0)
 
             value[0] = int(inside)
@@ -147,8 +147,8 @@ def plot_site_constraints(config, vertices):
     out_file << f
 
 def generate_site_constraints(config, vertices, penalty_factor=1e3, slack_eps=0):
-    ''' Generates the inequality constraints for generic polygon constraints. The parameter polygon 
-        must be a list of point coordinates that describes the site edges in anti-clockwise order. 
+    ''' Generates the inequality constraints for generic polygon constraints. The parameter polygon
+        must be a list of point coordinates that describes the site edges in anti-clockwise order.
         The argument slack_eps is used to increase or decrease the site by an epsilon value - this is useful to avoid rounding problems. '''
 
     # To begin with, lets save a vtu that visualises the constraints
@@ -165,14 +165,14 @@ def generate_site_constraints(config, vertices, penalty_factor=1e3, slack_eps=0)
 
         for i in range(len(m_pos)/2):
             for p in range(len(vertices)):
-                # x1 and x2 are the two points that describe one of the sites edge 
+                # x1 and x2 are the two points that describe one of the sites edge
                 x1 = numpy.array(vertices[p])
                 x2 = numpy.array(vertices[(p+1)%len(vertices)])
                 c = x2-x1
                 # Normal vector of c
                 n = [c[1], -c[0]]
 
-                # The inequality for this edge is: g(x) := n^T.(x1-x) >= 0 
+                # The inequality for this edge is: g(x) := n^T.(x1-x) >= 0
                 x = m_pos[2*i:2*i+2]
                 ieqcons.append(penalty_factor*(numpy.dot(n, x1-x)+slack_eps))
 
@@ -191,7 +191,7 @@ def generate_site_constraints(config, vertices, penalty_factor=1e3, slack_eps=0)
 
         for i in range(len(m_pos)/2):
             for p in range(len(vertices)):
-                # x1 and x2 are the two points that describe one of the sites edge 
+                # x1 and x2 are the two points that describe one of the sites edge
                 x1 = numpy.array(vertices[p])
                 x2 = numpy.array(vertices[(p+1)%len(vertices)])
                 c = x2-x1
@@ -201,13 +201,13 @@ def generate_site_constraints(config, vertices, penalty_factor=1e3, slack_eps=0)
                 prime_ieqcons = numpy.zeros(len(m))
 
                 # The control vector contains the friction coefficients first, so we need to shift here
-                prime_ieqcons[mf_len + 2*i] = -penalty_factor*n[0] 
-                prime_ieqcons[mf_len + 2*i+1] = -penalty_factor*n[1] 
+                prime_ieqcons[mf_len + 2*i] = -penalty_factor*n[0]
+                prime_ieqcons[mf_len + 2*i+1] = -penalty_factor*n[1]
 
                 ieqcons.append(prime_ieqcons)
         return numpy.array(ieqcons)
 
-    return {'type': 'ineq', 'fun': f_ieqcons, 'jac': fprime_ieqcons} 
+    return {'type': 'ineq', 'fun': f_ieqcons, 'jac': fprime_ieqcons}
 
 class DomainRestrictionConstraints:
   def __init__(self, config, feasible_area, attraction_center):
@@ -223,7 +223,7 @@ class DomainRestrictionConstraints:
                               "DG",
                               feasible_area.function_space().ufl_element().degree()-1)
 
-    feasible_area_grad = (dolfin.Function(fs), 
+    feasible_area_grad = (dolfin.Function(fs),
                           dolfin.Function(fs))
     t = dolfin.TestFunction(fs)
     for i in range(2):
@@ -310,12 +310,12 @@ def get_distance_function(config, domains):
   domains_func.vector().set_local(domains.array().astype(numpy.float))
 
   def boundary(x):
-    eps_x = config.params["turbine_x"] 
-    eps_y = config.params["turbine_y"] 
+    eps_x = config.params["turbine_x"]
+    eps_y = config.params["turbine_y"]
 
     min_val = 1
     for e_x, e_y in [(-eps_x, 0), (eps_x, 0), (0, -eps_y), (0, eps_y)]:
-      try: 
+      try:
         min_val = min(min_val, domains_func((x[0]+e_x, x[1]+e_y)))
       except RuntimeError:
         pass

@@ -3,7 +3,7 @@ import numpy
 from parameter_dict import ParameterDictionary
 from dirichlet_bc import DirichletBCSet
 from turbines import TurbineCache
-from dolfin import * 
+from dolfin import *
 from math import exp, sqrt, pi
 from initial_conditions import *
 from domains import *
@@ -37,25 +37,25 @@ class DefaultConfiguration(object):
         'depth' : 50.0,
         'g' : 9.81,
         'dump_period' : 1,
-        'eta0' : 2, 
-        'quadratic_friction' : False, 
-        'friction' : Constant(0.0), 
+        'eta0' : 2,
+        'quadratic_friction' : False,
+        'friction' : Constant(0.0),
         'turbine_parametrisation' : 'individual',
         'turbine_pos' : [],
-        'turbine_x' : 20., 
-        'turbine_y' : 5., 
+        'turbine_x' : 20.,
+        'turbine_y' : 5.,
         'turbine_friction' : [],
-        'cost_coef': 0., 
+        'cost_coef': 0.,
         'turbine_thrust_parametrisation' : False,
         'implicit_turbine_thrust_parametrisation' : False,
         'rho' : 1000., # Use the density of water: 1000kg/m^3
         'controls' : ['turbine_pos', 'turbine_friction'],
-        'newton_solver': False, 
+        'newton_solver': False,
         'linear_solver' : 'mumps',
         'preconditioner' : 'default',
-        'picard_relative_tolerance': 1e-5, 
-        'picard_iterations': 3, 
-        'run_benchmark': False, 
+        'picard_relative_tolerance': 1e-5,
+        'picard_iterations': 3,
+        'run_benchmark': False,
         'solver_exclude': ['cg'],
         'start_time': 0.,
         'current_time': 0.,
@@ -98,9 +98,9 @@ class DefaultConfiguration(object):
       self.site_dx = Measure("dx")[domains] # The measure used to integrate the turbine friction
 
       V, H = self.finite_element(self.domain.mesh)
-      T = FunctionSpace(self.domain.mesh, 'CG', 2)              # Turbine space 
+      T = FunctionSpace(self.domain.mesh, 'CG', 2)              # Turbine space
 
-      self.turbine_function_space = T 
+      self.turbine_function_space = T
       self.function_space = MixedFunctionSpace([V, H])
       self.function_space_enriched = MixedFunctionSpace([V, H, T])
       self.function_space_2enriched = MixedFunctionSpace([V, H, T, T])
@@ -145,13 +145,13 @@ class DefaultConfiguration(object):
             print "Start time: %f s" % self.params["start_time"]
             print "Finish time: %f s" % self.params["finish_time"]
             print "Time step: %f s" % self.params["dt"]
-        print "Number of mesh elements: %i" % self.domain.mesh.num_cells() 
+        print "Number of mesh elements: %i" % self.domain.mesh.num_cells()
         print "Mesh element size: %f - %f" % (hmin, hmax)
         print "\n=== Optimisation settings ==="
-        print "Automatic functional rescaling: %s" % self.params["automatic_scaling"] 
+        print "Automatic functional rescaling: %s" % self.params["automatic_scaling"]
         if self.params["automatic_scaling"]:
-          print "Automatic functional rescaling multiplier: %s" % self.params["automatic_scaling_multiplier"] 
-        print "Automatic checkpoint generation: %s" % self.params["save_checkpoints"] 
+          print "Automatic functional rescaling multiplier: %s" % self.params["automatic_scaling_multiplier"]
+        print "Automatic checkpoint generation: %s" % self.params["save_checkpoints"]
         print ""
 
   def set_site_dimensions(self, site_x_start, site_x_end, site_y_start, site_y_end):
@@ -169,12 +169,12 @@ class SteadyConfiguration(DefaultConfiguration):
         # Model settings
         self.set_domain(GMeshDomain(mesh_file), warning=False)
         self.params['steady_state'] = True
-        self.params['initial_condition'] = ConstantFlowInitialCondition(self) 
+        self.params['initial_condition'] = ConstantFlowInitialCondition(self)
         self.params['include_advection'] = True
         self.params['include_diffusion'] = True
         self.params['diffusion_coef'] = 3.0
         self.params['quadratic_friction'] = True
-        self.params['newton_solver'] = True 
+        self.params['newton_solver'] = True
         self.params['friction'] = Constant(0.0025)
         self.params['theta'] = 1.0
 
@@ -193,11 +193,11 @@ class SteadyConfiguration(DefaultConfiguration):
         # Turbine settings
         self.params['turbine_pos'] = []
         self.params['turbine_friction'] = []
-        self.params['turbine_x'] = 20. 
-        self.params['turbine_y'] = 20. 
+        self.params['turbine_x'] = 20.
+        self.params['turbine_y'] = 20.
         self.params['controls'] = ['turbine_pos']
 
-        # Finally set some DOLFIN optimisation flags 
+        # Finally set some DOLFIN optimisation flags
         dolfin.parameters['form_compiler']['cpp_optimize'] = True
         dolfin.parameters['form_compiler']['cpp_optimize_flags'] = '-O3'
         dolfin.parameters['form_compiler']['optimize'] = True

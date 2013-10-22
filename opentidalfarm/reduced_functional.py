@@ -1,7 +1,7 @@
 import numpy
 import memoize
 import shallow_water_model as sw_model
-import helpers 
+import helpers
 import sys
 import dolfin_adjoint
 from animated_plot import AnimatedPlot
@@ -18,7 +18,7 @@ class ReducedFunctionalNumPy:
                  plot=False, save_functional_values=False):
         ''' If plot is True, the functional values will be automatically saved in a plot.
             scale is ignored if automatic_scaling is active. '''
-        # Hide the configuration since changes would break the memoize algorithm. 
+        # Hide the configuration since changes would break the memoize algorithm.
         self.__config__ = config
         self.scale = scale
         self.automatic_scaling_factor = None
@@ -64,7 +64,7 @@ class ReducedFunctionalNumPy:
             tf = config.turbine_cache.cache["turbine_field"]
             #info_green("Turbine integral: %f ", assemble(tf*dx))
             #info_green("The correct integral should be: %f ",  25.2771) # computed with wolfram alpha using:
-            # int 0.17353373* (exp(-1.0/(1-(x/10)**2)) * exp(-1.0/(1-(y/10)**2)) * exp(2)) dx dy, x=-10..10, y=-10..10 
+            # int 0.17353373* (exp(-1.0/(1-(x/10)**2)) * exp(-1.0/(1-(y/10)**2)) * exp(2)) dx dy, x=-10..10, y=-10..10
             #info_red("relative error: %f", (assemble(tf*dx)-25.2771)/25.2771)
 
             return compute_functional_from_tf(tf, return_final_state, annotate=annotate)
@@ -72,7 +72,7 @@ class ReducedFunctionalNumPy:
         def compute_functional_from_tf(tf, return_final_state, annotate = True):
             ''' Takes in the turbine friction field and computes the resulting functional of interest. '''
             adj_reset()
-            parameters["adjoint"]["record_all"] = True 
+            parameters["adjoint"]["record_all"] = True
 
             # Get initial conditions
             if config.params["implicit_turbine_thrust_parametrisation"]:
@@ -83,7 +83,7 @@ class ReducedFunctionalNumPy:
                 state = Function(config.function_space, name="Current_state")
 
             if config.params["steady_state"] and config.params["include_time_term"] and self.last_state != None:
-                # Speed up the nonlinear solves by starting the Newton solve with the most recent state solution               
+                # Speed up the nonlinear solves by starting the Newton solve with the most recent state solution
                 state.assign(self.last_state, annotate=False)
             else:
                 ic = config.params['initial_condition']
@@ -97,7 +97,7 @@ class ReducedFunctionalNumPy:
             if return_final_state:
                 return j, state
             else:
-                return j 
+                return j
 
         def compute_gradient(m, forget=True):
             ''' Takes in the turbine positions/frictions values and computes the resulting functional gradient. '''
@@ -110,7 +110,7 @@ class ReducedFunctionalNumPy:
             state = self.last_state
             functional = config.functional(config)
 
-            # Produce power plot 
+            # Produce power plot
             if config.params['output_turbine_power']:
                 if config.params['turbine_thrust_parametrisation'] or config.params["implicit_turbine_thrust_parametrisation"] or "dynamic_turbine_friction" in config.params["controls"]:
                     info_red("Turbine power VTU's is not yet implemented with thrust based turbines parameterisations and dynamic turbine friction control.")
@@ -125,14 +125,14 @@ class ReducedFunctionalNumPy:
             if config.params['steady_state'] or config.params["functional_final_time_only"]:
                 J = Functional(functional.Jt(state, dummy_tf)*dt[FINISH_TIME])
             elif config.params['functional_quadrature_degree'] == 0:
-                # Pseudo-redo the time loop to collect the necessary timestep information 
+                # Pseudo-redo the time loop to collect the necessary timestep information
                 timesteps = [0]
                 t = config.params["start_time"]
                 while (t < config.params["finish_time"]):
                     timesteps.append(timesteps[-1]+1)
-                    t += config.params["dt"] 
+                    t += config.params["dt"]
                 # Remove the functional contribution from the initial condition. I think this is a bug in dolfin-adjoint, since really I expected del(0) here - but the Taylor tests pass only with del(1)!
-                timesteps.remove(1) 
+                timesteps.remove(1)
 
                 # Construct the functional
                 J = Functional(sum(functional.Jt(state, dummy_tf)*dt[t] for t in timesteps))
@@ -143,7 +143,7 @@ class ReducedFunctionalNumPy:
                 parameters = [InitialConditionParameter("turbine_friction_cache_t_%i"%i) for i in range(len(config.params["turbine_friction"]))]
 
             else:
-                parameters = InitialConditionParameter("turbine_friction_cache") 
+                parameters = InitialConditionParameter("turbine_friction_cache")
 
             djdtf = dolfin_adjoint.compute_gradient(J, parameters, forget=forget)
             dolfin.parameters["adjoint"]["stop_annotating"] = False
@@ -152,18 +152,18 @@ class ReducedFunctionalNumPy:
             if config.params['turbine_parametrisation'] == 'smooth':
                 # We are looking for the gradient with respect to the friction
                 dj = dolfin_adjoint.optimization.get_global(djdtf)
-                
+
             else:
                 # Let J be the functional, m the parameter and u the solution of the PDE equation F(u) = 0.
-                # Then we have 
+                # Then we have
                 # dJ/dm = (\partial J)/(\partial u) * (d u) / d m + \partial J / \partial m
                 #               = adj_state * \partial F / \partial u + \partial J / \partial m
-                # In this particular case m = turbine_friction, J = \sum_t(ft) 
-                dj = [] 
+                # In this particular case m = turbine_friction, J = \sum_t(ft)
+                dj = []
 
                 if 'turbine_friction' in config.params["controls"]:
                     # Compute the derivatives with respect to the turbine friction
-                    for tfd in config.turbine_cache.cache["turbine_derivative_friction"]: 
+                    for tfd in config.turbine_cache.cache["turbine_derivative_friction"]:
                         config.turbine_cache.update(config)
                         dj.append( djdtf.vector().inner(tfd.vector()) )
 
@@ -182,9 +182,9 @@ class ReducedFunctionalNumPy:
                             tfd = d[var]
                             dj.append( djdtf.vector().inner(tfd.vector()) )
 
-                dj = numpy.array(dj)  
+                dj = numpy.array(dj)
 
-            return dj 
+            return dj
 
         def compute_hessian_action(m, m_dot):
             if numpy.any(m != self.last_m):
@@ -205,7 +205,7 @@ class ReducedFunctionalNumPy:
         self.compute_functional_mem = memoize.MemoizeMutable(compute_functional)
         self.compute_gradient_mem = memoize.MemoizeMutable(compute_gradient)
         self.compute_hessian_action_mem = memoize.MemoizeMutable(compute_hessian_action)
-    
+
     def update_turbine_cache(self, m):
         ''' Reconstructs the parameters from the flattened parameter array m and updates the configuration. '''
 
@@ -214,27 +214,27 @@ class ReducedFunctionalNumPy:
 
         else:
             shift = 0
-            if 'turbine_friction' in self.__config__.params['controls']: 
+            if 'turbine_friction' in self.__config__.params['controls']:
                 shift = len(self.__config__.params["turbine_friction"])
                 self.__config__.params["turbine_friction"] = m[:shift]
 
-            elif 'dynamic_turbine_friction' in self.__config__.params['controls']: 
+            elif 'dynamic_turbine_friction' in self.__config__.params['controls']:
                 shift = len(numpy.reshape(self.__config__.params["turbine_friction"], -1))
                 nb_turbines = len(self.__config__.params["turbine_pos"])
                 self.__config__.params["turbine_friction"] = numpy.reshape(m[:shift], (-1, nb_turbines)).tolist()
 
-            if 'turbine_pos' in self.__config__.params['controls']: 
+            if 'turbine_pos' in self.__config__.params['controls']:
                 mp = m[shift:]
                 self.__config__.params["turbine_pos"] = numpy.reshape(mp, (-1, 2)).tolist()
-        
-        # Set up the turbine field 
+
+        # Set up the turbine field
         self.__config__.turbine_cache.update(self.__config__)
-        
+
     def save_checkpoint(self, base_filename):
         ''' Checkpoint the reduceduced functional from which can be used to restart the turbine optimisation. '''
         self.compute_functional_mem.save_checkpoint(base_filename + "_fwd.dat")
         self.compute_gradient_mem.save_checkpoint(base_filename + "_adj.dat")
-        
+
     def load_checkpoint(self, base_filename='checkpoint'):
         ''' Checkpoint the reduceduced functional from which can be used to restart the turbine optimisation. '''
         self.compute_functional_mem.load_checkpoint(base_filename + "_fwd.dat")
@@ -243,8 +243,8 @@ class ReducedFunctionalNumPy:
     def j(self, m, annotate=True):
         ''' This memoised function returns the functional value for the parameter choice m. '''
         info_green('Start evaluation of j')
-        timer = dolfin.Timer("j evaluation") 
-        j = self.compute_functional_mem(m, annotate=annotate) 
+        timer = dolfin.Timer("j evaluation")
+        j = self.compute_functional_mem(m, annotate=annotate)
         timer.stop()
 
         if self.__config__.params["save_checkpoints"]:
@@ -256,7 +256,7 @@ class ReducedFunctionalNumPy:
 
         if self.__config__.params['automatic_scaling']:
             if not self.automatic_scaling_factor:
-                # Computing dj will set the automatic scaling factor. 
+                # Computing dj will set the automatic scaling factor.
                 info_blue("Computing derivative to determine the automatic scaling factor")
                 dj = self.dj(m, forget=False, optimisation_iteration=False)
             return j * self.scale * self.automatic_scaling_factor
@@ -266,23 +266,23 @@ class ReducedFunctionalNumPy:
     def dj(self, m, forget, optimisation_iteration=True):
         ''' This memoised function returns the gradient of the functional for the parameter choice m. '''
         info_green('Start evaluation of dj')
-        timer = dolfin.Timer("dj evaluation") 
+        timer = dolfin.Timer("dj evaluation")
         dj = self.compute_gradient_mem(m, forget)
 
         # We assume that the gradient is computed at and only at the beginning of each new optimisation iteration.
         # Hence, this is the right moment to store the turbine friction field and to increment the optimisation iteration
-        # counter. 
+        # counter.
         if optimisation_iteration:
-            self.__config__.optimisation_iteration += 1 
+            self.__config__.optimisation_iteration += 1
             if self.__config__.params["dump_period"] > 0:
-                # A cache hit skips the turbine cache update, so we need 
+                # A cache hit skips the turbine cache update, so we need
                 # trigger it manually.
                 if self.compute_gradient_mem.has_cache(m, forget):
                     self.update_turbine_cache(m)
                 if "dynamic_turbine_friction" in self.__config__.params["controls"]:
                     info_red("Turbine VTU output not yet implemented for dynamic turbine control")
-                else:    
-                    self.turbine_file << self.__config__.turbine_cache.cache["turbine_field"] 
+                else:
+                    self.turbine_file << self.__config__.turbine_cache.cache["turbine_field"]
                     # Compute the total amount of friction due to turbines
                     if self.__config__.params["turbine_parametrisation"]=="smooth":
                         print "Total amount of friction: ", assemble(self.__config__.turbine_cache.cache["turbine_field"]*dx)
@@ -340,7 +340,7 @@ class ReducedFunctionalNumPy:
 
     def initial_control(self):
         ''' This function returns the control variable array that derives from the initial configuration. '''
-        config = self.__config__ 
+        config = self.__config__
         res = []
         if config.params["turbine_parametrisation"]=="smooth":
             res = numpy.zeros(config.turbine_function_space.dim())

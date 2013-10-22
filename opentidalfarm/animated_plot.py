@@ -1,4 +1,4 @@
-import numpy 
+import numpy
 import pylab
 from helpers import cpu0only
 from dolfin import MPI
@@ -6,7 +6,7 @@ from dolfin import MPI
 class AnimatedPlot:
   ''' A class that implements animated plots with equidistant x values. New points are added by calling the addPoint function. '''
 
-  @cpu0only 
+  @cpu0only
   def __init__(self, xlabel=None, ylabel=None):
     self.datay = []
     pylab.ion() # animation on
@@ -16,20 +16,20 @@ class AnimatedPlot:
       pylab.xlabel(xlabel)
     if ylabel:
       pylab.ylabel(ylabel)
-  
-  @cpu0only 
+
+  @cpu0only
   def addPoint(self, value):
     ''' Adds a new point and updates the plot. '''
     datay = self.datay
     line = self.line
 
-    datay.append(value) 
+    datay.append(value)
     pylab.axis([0, len(datay), min(0, 1.1*min(datay)), max(0, 1.1*max(datay))])
     line.set_xdata(range(len(datay)))  # update the data
     line.set_ydata(datay)
     pylab.draw() # draw the points again
 
-  @cpu0only 
+  @cpu0only
   def savefig(self, name):
     pylab.savefig(name)
 

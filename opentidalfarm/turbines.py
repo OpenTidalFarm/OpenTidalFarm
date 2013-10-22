@@ -11,19 +11,19 @@ class Turbines(object):
 
     def __init__(self, V, params, derivative_index_selector=-1):
         self.params = ParameterDictionary(params)
-  
-        # Precompute some turbine parameters for efficiency. 
+
+        # Precompute some turbine parameters for efficiency.
         self.x = interpolate(Expression("x[0]"), V).vector().array()
         self.y = interpolate(Expression("x[1]"), V).vector().array()
         self.V = V
 
     def __call__(self, name="", derivative_index_selector=None, derivative_var_selector=None, timestep=None):
-        ''' If the derivative selector is i >= 0, the Expression will compute the derivative of the turbine with index i with respect 
+        ''' If the derivative selector is i >= 0, the Expression will compute the derivative of the turbine with index i with respect
           to either the x or y coorinate or its friction parameter. '''
         V = self.V
         params = self.params
-  
-        if derivative_index_selector == None: 
+
+        if derivative_index_selector == None:
           turbine_pos = params["turbine_pos"]
           turbine_friction = params["turbine_friction"] if timestep==None else params["turbine_friction"][timestep]
         else:
@@ -31,7 +31,7 @@ class Turbines(object):
           turbine_friction = [params["turbine_friction"][derivative_index_selector]] if timestep==None else [params["turbine_friction"][timestep][derivative_index_selector]]
 
         # Infeasible optimisation algorithms (such as SLSQP) may try to evaluate the functional with negative turbine_frictions.
-        # Since the forward model would crash in such cases, we project the turbine friction values to positive reals. 
+        # Since the forward model would crash in such cases, we project the turbine friction values to positive reals.
         turbine_friction = [max(0, f) for f in turbine_friction]
 
         ff = numpy.zeros(len(self.x))
@@ -39,27 +39,27 @@ class Turbines(object):
         numpy.seterr(divide = 'ignore')
         eps = 1e-12
         for (x_pos, y_pos), friction in zip(turbine_pos, turbine_friction):
-          x_unit = numpy.minimum(numpy.maximum((self.x - x_pos) / (0.5*self.params["turbine_x"]), -1+eps), 1-eps) 
-          y_unit = numpy.minimum(numpy.maximum((self.y - y_pos) / (0.5*self.params["turbine_y"]), -1+eps), 1-eps) 
+          x_unit = numpy.minimum(numpy.maximum((self.x - x_pos) / (0.5*self.params["turbine_x"]), -1+eps), 1-eps)
+          y_unit = numpy.minimum(numpy.maximum((self.y - y_pos) / (0.5*self.params["turbine_y"]), -1+eps), 1-eps)
 
-          # Apply chain rule to get the derivative with respect to the turbine friction 
+          # Apply chain rule to get the derivative with respect to the turbine friction
           e = numpy.exp(-1/(1-x_unit**2) - 1./(1-y_unit**2)+2)
           if derivative_index_selector == None:
             ff += e * friction
 
           elif derivative_var_selector == 'turbine_friction':
-            ff += e 
+            ff += e
 
           if derivative_var_selector == 'turbine_pos_x':
-            ff += e * (-2*x_unit / ((1.0-x_unit**2)**2)) * friction*(-1.0/(0.5*params["turbine_x"])) 
+            ff += e * (-2*x_unit / ((1.0-x_unit**2)**2)) * friction*(-1.0/(0.5*params["turbine_x"]))
 
           elif derivative_var_selector == 'turbine_pos_y':
-            ff += e * (-2*y_unit / ((1.0-y_unit**2)**2)) * friction*(-1.0/(0.5*params["turbine_y"])) 
+            ff += e * (-2*y_unit / ((1.0-y_unit**2)**2)) * friction*(-1.0/(0.5*params["turbine_y"]))
 
         numpy.seterr(divide = 'warn')
 
         f = Function(V, name=name, annotate = False)
-        f.vector().set_local(ff) 
+        f.vector().set_local(ff)
         f.vector().apply("insert")
         return f
 
@@ -67,16 +67,16 @@ class TurbineCache:
     def __init__(self):
         self.cache = {}
         self.params = None
-        self.dx = None 
+        self.dx = None
 
     def turbine_integral(self):
         ''' Computes the integral of the turbine '''
-        unit_bump_int = 1.45661 # The integral of the unit bump function computed with Wolfram Alpha: 
+        unit_bump_int = 1.45661 # The integral of the unit bump function computed with Wolfram Alpha:
                                 # integrate e^(-1/(1-x**2)-1/(1-y**2)+2) dx dy, x=-0.999..0.999, y=-0.999..0.999
         return unit_bump_int*self.params["turbine_x"]*self.params["turbine_y"]/4
 
     def update(self, config):
-        ''' Creates a list of all turbine function/derivative interpolations. This list is used as a cache 
+        ''' Creates a list of all turbine function/derivative interpolations. This list is used as a cache
           to avoid the recomputation of the expensive interpolation of the turbine expression. '''
 
         # If the parameters have not changed, then there is no need to do anything
@@ -106,9 +106,9 @@ class TurbineCache:
         turbines = Turbines(config.turbine_function_space, self.params)
 
         if "dynamic_turbine_friction" in self.params["controls"]:
-            # If the turbine friction is controlled dynamically, we need to cache the turbine 
+            # If the turbine friction is controlled dynamically, we need to cache the turbine
             # field for every timestep
-            self.cache["turbine_field"] = [] 
+            self.cache["turbine_field"] = []
             for t in range(len(self.params["turbine_friction"])):
                 tf = turbines(name="turbine_friction_cache_t_"+str(t), timestep=t)
                 self.cache["turbine_field"].append(tf)
@@ -119,22 +119,22 @@ class TurbineCache:
         # Precompute the interpolation of the friction function for each individual turbine
         if self.params["print_individual_turbine_power"]:
             info_green("Building individual turbine power friction functions for caching purposes...")
-            self.cache["turbine_field_individual"] = [] 
+            self.cache["turbine_field_individual"] = []
             for i in range(len(self.params["turbine_friction"])):
                 params_cpy = ParameterDictionary(self.params)
                 params_cpy["turbine_pos"] = [self.params["turbine_pos"][i]]
                 params_cpy["turbine_friction"] = [self.params["turbine_friction"][i]]
                 turbine = Turbines(config.turbine_function_space, params_cpy)
-                tf = turbine() 
+                tf = turbine()
                 self.cache["turbine_field_individual"].append(tf)
 
         # Precompute the derivatives with respect to the friction magnitude of each turbine
         if "turbine_friction" in self.params["controls"]:
             self.cache["turbine_derivative_friction"] = []
             for n in range(len(self.params["turbine_friction"])):
-                tfd = turbines(derivative_index_selector = n, 
-                               derivative_var_selector = 'turbine_friction', 
-                               name="turbine_friction_derivative_with_respect_friction_magnitude_of_turbine_" + str(n)) 
+                tfd = turbines(derivative_index_selector = n,
+                               derivative_var_selector = 'turbine_friction',
+                               name="turbine_friction_derivative_with_respect_friction_magnitude_of_turbine_" + str(n))
                 self.cache["turbine_derivative_friction"].append(tfd)
 
         elif "dynamic_turbine_friction" in self.params["controls"]:
@@ -143,10 +143,10 @@ class TurbineCache:
                 self.cache["turbine_derivative_friction"].append([])
 
                 for n in range(len(self.params["turbine_friction"][t])):
-                    tfd = turbines(derivative_index_selector=n, 
-                                   derivative_var_selector='turbine_friction', 
+                    tfd = turbines(derivative_index_selector=n,
+                                   derivative_var_selector='turbine_friction',
                                    name="turbine_friction_derivative_with_respect_friction_magnitude_of_turbine_"+str(n)+"t_"+str(t),
-                                   timestep=t) 
+                                   timestep=t)
                     self.cache["turbine_derivative_friction"][t].append(tfd)
 
 
@@ -158,7 +158,7 @@ class TurbineCache:
                 for n in range(len(self.params["turbine_pos"])):
                     self.cache["turbine_derivative_pos"].append({})
                     for var in ('turbine_pos_x', 'turbine_pos_y'):
-                        tfd = turbines(derivative_index_selector = n, 
+                        tfd = turbines(derivative_index_selector = n,
                                             derivative_var_selector = var,
                                             name = "turbine_friction_derivative_with_respect_position_of_turbine_" + str(n))
                         self.cache["turbine_derivative_pos"][-1][var] = tfd
@@ -171,7 +171,7 @@ class TurbineCache:
                     for n in range(len(self.params["turbine_pos"])):
                         self.cache["turbine_derivative_pos"][t].append({})
                         for var in ('turbine_pos_x', 'turbine_pos_y'):
-                            tfd = turbines(derivative_index_selector=n, 
+                            tfd = turbines(derivative_index_selector=n,
                                                 derivative_var_selector=var,
                                                 name="turbine_friction_derivative_with_respect_position_of_turbine_" + str(n),
                                                 timestep=t)
@@ -180,12 +180,12 @@ class TurbineCache:
 if __name__ == "__main__":
     mesh = RectangleMesh(-1, -1, 1, 1, 100, 100)
     V = FunctionSpace(mesh, "CG", 1)
-    
+
     #params = {"turbine_friction": [0.1, 0.2],
     params = {"turbine_friction": [[0.1, 0.2], [0.2, 0.3]],
               "turbine_pos": [[0.5, 0.5], [-0.5, -0.5]],
-              "turbine_x": 0.5, 
-              "turbine_y": 0.5, 
+              "turbine_x": 0.5,
+              "turbine_y": 0.5,
              }
 
     turbines = Turbines(V, params)

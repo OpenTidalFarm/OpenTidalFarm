@@ -6,7 +6,7 @@ def SinusoidalInitialCondition(config, eta0, k, depth):
     """Returns an expression that can be used as initial condition for a channel
     with a sinusoidal forcing"""
     params = config.params
-    
+
     class SinusoidalExpr(Expression):
         '''This class implements the Expression class for the shallow water initial condition.'''
         def __init__(self):
@@ -32,13 +32,13 @@ def BumpInitialCondition(config):
       def bump_function(self, x):
         '''The velocity is initially a bump function (a smooth function with limited support):
                    /  e**-1/(1-x**2)   for |x| < 1
-          psi(x) = |  
+          psi(x) = |
                    \  0   otherwise
           For more information see http://en.wikipedia.org/wiki/Bump_function
         '''
         if x[0]**2 < 1 and x[1]**2 < 1:
-            bump = exp(-1.0/(1.0-x[0]**2)) 
-            bump *= exp(-1.0/(1.0-x[1]**2)) 
+            bump = exp(-1.0/(1.0-x[0]**2))
+            bump *= exp(-1.0/(1.0-x[1]**2))
             bump /= exp(-1)**2
         else:
             bump = 0.0
@@ -48,13 +48,13 @@ def BumpInitialCondition(config):
         x_unit = 2*(config.domain.basin_x-X[0])/config.domain.basin_x-1.0
         y_unit = 2*(config.domain.basin_y-X[1])/config.domain.basin_y-1.0
 
-        values[0] = self.bump_function([x_unit, y_unit]) 
+        values[0] = self.bump_function([x_unit, y_unit])
         values[1] = 0
         values[2] = 0
         if config.params['turbine_thrust_parametrisation']:
-            values[3] = 0. 
+            values[3] = 0.
         if config.params['implicit_turbine_thrust_parametrisation']:
-            values[4] = 0. 
+            values[4] = 0.
 
       def value_shape(self):
         if config.params['implicit_turbine_thrust_parametrisation']:
@@ -69,13 +69,13 @@ def BumpInitialCondition(config):
 def ConstantFlowInitialCondition(config, val=[1e-19, 0, 0, 0]):
     class ConstantFlow(Expression):
         def eval(self, values, X):
-            values[0] = val[0] 
-            values[1] = val[1] 
-            values[2] = val[2] 
+            values[0] = val[0]
+            values[1] = val[1]
+            values[2] = val[2]
             if config.params['turbine_thrust_parametrisation']:
-                values[3] = val[3] 
+                values[3] = val[3]
             if config.params['implicit_turbine_thrust_parametrisation']:
-                values[4] = 0. 
+                values[4] = 0.
         def value_shape(self):
             if config.params['implicit_turbine_thrust_parametrisation']:
                 return (5,)

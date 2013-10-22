@@ -42,13 +42,13 @@ class RectangularDomain:
           mesh = RectangleMesh(0, 0, basin_x, basin_y, nx, ny)
       else:
           mesh = Rectangle(0, 0, basin_x, basin_y, nx, ny)
-          
+
       mesh.order()
       mesh.init()
       return mesh
 
 class LShapeDomain:
-    ''' This class implements the datastructures for a L shaped domain ''' 
+    ''' This class implements the datastructures for a L shaped domain '''
 
     def __init__(self, filename, length):
         ''' filename must be a valid mesh file that contains a L like geometry. '''
@@ -56,8 +56,8 @@ class LShapeDomain:
         self.mesh = Mesh(filename)
 
         # Extract the dimensions
-        basin_x = length 
-        basin_y = length 
+        basin_x = length
+        basin_y = length
 
         class Left(SubDomain):
               def inside(self, x, on_boundary):
@@ -69,7 +69,7 @@ class LShapeDomain:
 
         class Sides(SubDomain):
               def inside(self, x, on_boundary):
-                  return on_boundary and not (near(x[1], basin_y) or near(x[0], basin_x)) 
+                  return on_boundary and not (near(x[1], basin_y) or near(x[0], basin_x))
 
         # Initialize sub-domain instances
         left = Left()
@@ -85,7 +85,7 @@ class LShapeDomain:
         self.ds = Measure('ds')[self.boundaries]
 
 class GMeshDomain:
-    ''' This class represents a mesh from gmsh ''' 
+    ''' This class represents a mesh from gmsh '''
 
     def __init__(self, filename):
         ''' filename must be a valid gmesh file. '''

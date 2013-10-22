@@ -3,7 +3,7 @@ import ufl
 import operator
 
 def solver_parameters(solver_exclude, preconditioner_exclude):
-    linear_solver_set = ["lu"] 
+    linear_solver_set = ["lu"]
     linear_solver_set += [e[0] for e in dolfin.krylov_solver_methods()]
     preconditioner_set = [e[0] for e in dolfin.krylov_solver_preconditioners()]
 
@@ -21,12 +21,12 @@ def solver_parameters(solver_exclude, preconditioner_exclude):
 
 def print_benchmark_report(solver_timings, failed_solvers):
         # Let's analyse the result of the benchmark test:
-        solver_timings = sorted(solver_timings.iteritems(), key=operator.itemgetter(1)) 
-        failed_solvers = sorted(failed_solvers.iteritems(), key=operator.itemgetter(1)) 
+        solver_timings = sorted(solver_timings.iteritems(), key=operator.itemgetter(1))
+        failed_solvers = sorted(failed_solvers.iteritems(), key=operator.itemgetter(1))
 
-        dolfin.info_blue("***********************************************") 
+        dolfin.info_blue("***********************************************")
         dolfin.info_blue("********** Solver benchmark results: **********")
-        dolfin.info_blue("***********************************************") 
+        dolfin.info_blue("***********************************************")
         for solver, timing in solver_timings:
             dolfin.info_blue("%s: %.2f s" % (solver, timing))
         for solver, reason in failed_solvers:
@@ -36,11 +36,11 @@ def replace_solver_settings(args, kwargs, parameters):
     ''' Replace the arguments of a solve call and replace the solver settings with the ones given in solver_settings. '''
 
     # The way how to set the solver settings depends on how the system is solved:
-    #  Adaptive solve 
+    #  Adaptive solve
     if "tol" in kwargs:
         raise NotImplementedError, 'The benchmark solver is currently not implemented for adaptive solver calls.'
 
-    # Variational problem solver 
+    # Variational problem solver
     elif isinstance(args[0], ufl.classes.Equation):
         kwargs['solver_parameters'] = parameters
 
@@ -52,7 +52,7 @@ def replace_solver_settings(args, kwargs, parameters):
 
 
 def solve(*args, **kwargs):
-    ''' This function overwrites the dolfin.solve function but provides additional functionality to benchmark 
+    ''' This function overwrites the dolfin.solve function but provides additional functionality to benchmark
         different solver/preconditioner settings. The arguments of equivalent to dolfin.solve except some (optional) additional parameters:
         - benchmark = [True, False]: If True, the problem will be solved with all different solver/precondition combinations and the results reported.
                                      If False, the problem is solved using the default solver settings.
@@ -76,14 +76,14 @@ def solve(*args, **kwargs):
     if kwargs.has_key('solver_exclude'):
         solver_exclude = kwargs.pop('solver_exclude')
     else:
-        solver_exclude = [] 
+        solver_exclude = []
 
     if kwargs.has_key('preconditioner_exclude'):
         preconditioner_exclude = kwargs.pop('preconditioner_exclude')
     else:
-        preconditioner_exclude = [] 
+        preconditioner_exclude = []
 
-    if benchmark: 
+    if benchmark:
         dolfin.info_blue("Running solver benchmark...")
         solver_parameters_set = solver_parameters(solver_exclude, preconditioner_exclude)
         solver_timings = {}
@@ -94,7 +94,7 @@ def solve(*args, **kwargs):
         for parameters in solver_parameters_set:
             solver_failed = False
             # Replace the existing solver setting with the benchmark one's.
-            new_args, new_kwargs = replace_solver_settings(args, kwargs, parameters) 
+            new_args, new_kwargs = replace_solver_settings(args, kwargs, parameters)
 
             # Solve the problem
             timer = dolfin.Timer("Solver benchmark")
@@ -117,13 +117,13 @@ def solve(*args, **kwargs):
             parameters_str = parameters["linear_solver"] + ", " + parameters["preconditioner"]
             if solver_failed:
                 dolfin.info_red(parameters_str + ": solver failed.")
-                failed_solvers[parameters_str] = failure_reason 
+                failed_solvers[parameters_str] = failure_reason
             else:
                 dolfin.info(parameters_str + ": " + str(timer.value()) + "s.")
-                solver_timings[parameters_str] = timer.value() 
+                solver_timings[parameters_str] = timer.value()
 
         # Print the report
-        print_benchmark_report(solver_timings, failed_solvers) 
+        print_benchmark_report(solver_timings, failed_solvers)
 
     else:
         ret = solve(*args, **kwargs)

@@ -18,7 +18,7 @@ class FunctionalPrototype(object):
 class DefaultFunctional(FunctionalPrototype):
     ''' Implements a simple functional of the form:
           J(u, m) = rho * turbines(m) * (||u||**3)
-        where turbines(m) defines the friction function due to the turbines.  
+        where turbines(m) defines the friction function due to the turbines.
     '''
     def __init__(self, config):
         ''' Constructs a new DefaultFunctional. The turbine settings are derived from the settings params. '''
@@ -30,21 +30,21 @@ class DefaultFunctional(FunctionalPrototype):
     def cost_per_friction(self, turbines):
         if self.params['cost_coef'] <= 0:
             return Constant(0)
-        # Function spaces with polynomial degree >1 suffer from undershooting which can result in 
-        # negative cost values. 
+        # Function spaces with polynomial degree >1 suffer from undershooting which can result in
+        # negative cost values.
         if turbines.function_space().ufl_element().degree() > 1:
             raise ValueError, 'Costing only works if the function space for the turbine friction has polynomial degree < 2.'
         return Constant(self.params['cost_coef']) * (ln(turbines + 1) / ln(21))
-    
+
     def power(self, state, turbines):
-            return self.params['rho'] * turbines * (dot(state[0], state[0]) + dot(state[1], state[1]))**1.5 
+            return self.params['rho'] * turbines * (dot(state[0], state[0]) + dot(state[1], state[1]))**1.5
 
     def force(self, state, turbines):
             return self.params['rho'] * turbines * dot(state[0], state[0]) + dot(state[1], state[1])
 
     def Jt(self, state, tf):
         return (self.power(state, tf) - self.cost_per_friction(tf))*self.config.site_dx(1)
-    
+
     def Jt_individual(self, state, i):
         ''' Computes the power output of the i'th turbine. '''
         tf = self.config.turbine_cache.cache['turbine_field_individual'][i]
@@ -57,8 +57,8 @@ class DefaultFunctional(FunctionalPrototype):
 
 
 class PowerCurveFunctional(FunctionalPrototype):
-    ''' Implements a functional for the power with a given power curve 
-          J(u, m) = \int_\Omega power(u) 
+    ''' Implements a functional for the power with a given power curve
+          J(u, m) = \int_\Omega power(u)
         where m controls the strength of each turbine.
     '''
     def __init__(self, config):
@@ -74,7 +74,7 @@ class PowerCurveFunctional(FunctionalPrototype):
         ux = state[0]
 
         def power_function(u):
-            # A simple power function implementation. Could be replaced with a polynomial approximation. 
+            # A simple power function implementation. Could be replaced with a polynomial approximation.
             fac = Constant(1.5e6/(3**3))
             return shallow_water_model.smooth_uflmin(1.5e6, fac*u**3)
 

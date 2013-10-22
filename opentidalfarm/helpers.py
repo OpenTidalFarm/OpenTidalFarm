@@ -1,9 +1,9 @@
 from __future__ import print_function
 import random
-from dolfin import * 
+from dolfin import *
 from dolfin_adjoint import *
 from numpy import array, dot, inf
-import pylab 
+import pylab
 import dolfin
 import os.path
 
@@ -30,8 +30,8 @@ def print0(*args, **kwargs):
 def test_gradient_array(J, dJ, x, seed=0.01, perturbation_direction=None, plot_file=None):
   '''Checks the correctness of the derivative dJ.
      x must be an array that specifies at which point in the parameter space
-     the gradient is to be checked. The functions J(x) and dJ(x) must return 
-     the functional value and the functional derivative respectivaly. 
+     the gradient is to be checked. The functions J(x) and dJ(x) must return
+     the functional value and the functional derivative respectivaly.
 
      This function returns the order of convergence of the Taylor
      series remainder, which should be 2 if the gradient is correct.'''
@@ -59,7 +59,7 @@ def test_gradient_array(J, dJ, x, seed=0.01, perturbation_direction=None, plot_f
     perturbation = perturbation_direction.copy() * perturbation_size
     perturbations.append(perturbation)
 
-    perturbed_x = x.copy() + perturbation 
+    perturbed_x = x.copy() + perturbation
     functional_values.append(J(perturbed_x))
 
   # First-order Taylor remainders (not using adjoint)
@@ -82,7 +82,7 @@ def test_gradient_array(J, dJ, x, seed=0.01, perturbation_direction=None, plot_f
       second_order = [x**2 for x in perturbation_sizes]
 
       pylab.figure()
-      pylab.loglog(perturbation_sizes, first_order, 'b--', perturbation_sizes, second_order, 'g--', perturbation_sizes, no_gradient, 'bo-', perturbation_sizes, with_gradient, 'go-') 
+      pylab.loglog(perturbation_sizes, first_order, 'b--', perturbation_sizes, second_order, 'g--', perturbation_sizes, no_gradient, 'bo-', perturbation_sizes, with_gradient, 'go-')
       pylab.legend(('First order convergence', 'Second order convergence', 'Taylor remainder without gradient', 'Taylor remainder with gradient'), 'lower right', shadow=True, fancybox=True)
       pylab.xlabel("Perturbation size")
       pylab.ylabel("Taylor remainder")
@@ -100,7 +100,7 @@ class StateWriter:
 
     def write(self, state):
         rhs = assemble(inner(self.v_out, state.split()[0])*dx)
-        solve(self.M_u_out, self.u_out_state.vector(), rhs, "cg", "sor", annotate=False) 
+        solve(self.M_u_out, self.u_out_state.vector(), rhs, "cg", "sor", annotate=False)
         rhs = assemble(inner(self.q_out, state.split()[1])*dx)
         solve(self.M_p_out, self.p_out_state.vector(), rhs, "cg", "sor", annotate=False)
 
@@ -110,10 +110,10 @@ class StateWriter:
     def u_output_projector(self, W):
         # Projection operator for output.
         Output_V = VectorFunctionSpace(W.mesh(), 'CG', 1, dim=2)
-        
+
         u_out = TrialFunction(Output_V)
         v_out = TestFunction(Output_V)
-        
+
         M_out = assemble(inner(v_out,u_out)*dx)
         out_state = Function(Output_V)
 
@@ -122,17 +122,17 @@ class StateWriter:
     def p_output_projector(self, W):
         # Projection operator for output.
         Output_V = FunctionSpace(W.mesh(), 'CG', 1)
-        
+
         u_out = TrialFunction(Output_V)
         v_out = TestFunction(Output_V)
-        
+
         M_out = assemble(inner(v_out,u_out)*dx)
         out_state = Function(Output_V)
 
         return M_out, v_out, out_state
 
     def output_files(self, basename):
-            
+
         # Output file
         u_out = File(self.config.params['base_path'] + os.path.sep + "iter_"+str(self.optimisation_iteration)+"/"+basename+"_u.pvd", "compressed")
         p_out = File(self.config.params['base_path'] + os.path.sep + "iter_"+str(self.optimisation_iteration)+"/"+basename+"_p.pvd", "compressed")
@@ -148,7 +148,7 @@ def cpu0only(f):
 
   return decorator
 
-def function_eval(func, point): 
+def function_eval(func, point):
   ''' A parallel safe evaluation of dolfin functions '''
   try:
       val = func(point)

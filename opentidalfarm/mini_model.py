@@ -23,7 +23,7 @@ class MiniModel:
         self.config = config
 
     def __call__(self, state):
-        '''Solve (1+turbine)*M*state = M*old_state. 
+        '''Solve (1+turbine)*M*state = M*old_state.
            The solution is a x-velocity of old_state/(turbine_friction + 1) and a zero pressure value y-velocity.
         '''
 
@@ -34,7 +34,7 @@ class MiniModel:
         adjointer.time.start(0.0)
         tmpstate = Function(state.function_space(), name="tmp_state")
         rhs = action(self.M, state)
-        # Solve the mini model 
+        # Solve the mini model
         solver_parameters = {"linear_solver": "cg", "preconditioner": "sor"}
         solve(self.A == rhs, tmpstate, solver_parameters=solver_parameters, annotate=self.annotate)
 
@@ -45,9 +45,9 @@ class MiniModel:
 
         if self.functional is not None:
           if params["functional_final_time_only"]:
-            j = assemble(self.functional.Jt(state, self.tf)) 
+            j = assemble(self.functional.Jt(state, self.tf))
           else:
-            j += 0.5*params["dt"]*assemble(self.functional.Jt(state, self.tf)) 
+            j += 0.5*params["dt"]*assemble(self.functional.Jt(state, self.tf))
           return j
 
 def mini_model_solve(config, state, turbine_field, functional=None, annotate=True, linear_solver="default", preconditioner="default", u_source = None):
