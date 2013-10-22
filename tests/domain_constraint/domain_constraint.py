@@ -19,9 +19,9 @@ turbine_site.mark(domains, 1)
 
 feasible_area = get_distance_function(config, domains)
 
-ieq = get_domain_constraints(config, feasible_area, attraction_center=((1500, 500)))
+ieq = get_domain_constraints(config, feasible_area, attraction_center=((1500, 500)), jac=True)
 
-# Test the case where turbines are outside the domain 
+# Test the case where turbines are outside the domain
 ieqcons_J = lambda m: ieq['fun'](m)[0]
 ieqcons_dJ = lambda m, forget=False: ieq['jac'](m)[0]
 minconv = helpers.test_gradient_array(ieqcons_J, ieqcons_dJ, numpy.array([-10., -10., -100, 80]))
