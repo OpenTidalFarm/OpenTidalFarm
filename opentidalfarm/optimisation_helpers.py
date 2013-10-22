@@ -29,8 +29,8 @@ class  IPOptFunction(object):
 def deploy_turbines(config, nx, ny, friction=21.):
     ''' Generates an array of initial turbine positions with nx x ny turbines homonginuosly distributed over the site with the specified dimensions. '''
     turbine_pos = []
-    for x_r in numpy.linspace(config.domain.site_x_start + 0.5*config.params["turbine_x"], config.domain.site_x_end - 0.5*config.params["turbine_y"], nx):
-        for y_r in numpy.linspace(config.domain.site_y_start + 0.5*config.params["turbine_x"], config.domain.site_y_end - 0.5*config.params["turbine_y"], ny):
+    for x_r in numpy.linspace(config.domain.site_x_start + 0.5*config.params["turbine_x"], config.domain.site_x_end - 0.5*config.params["turbine_x"], nx):
+        for y_r in numpy.linspace(config.domain.site_y_start + 0.5*config.params["turbine_y"], config.domain.site_y_end - 0.5*config.params["turbine_y"], ny):
             turbine_pos.append((float(x_r), float(y_r)))
     config.set_turbine_pos(turbine_pos, friction)
     info_blue("Deployed " + str(len(turbine_pos)) + " turbines.")
@@ -41,30 +41,30 @@ def position_constraints(config):
 
     n = len(config.params["turbine_pos"])
     lc = []
-    lb_x = config.domain.site_x_start + config.params["turbine_x"]/2 
-    lb_y = config.domain.site_y_start + config.params["turbine_y"]/2 
-    ub_x = config.domain.site_x_end - config.params["turbine_x"]/2 
-    ub_y = config.domain.site_y_end - config.params["turbine_y"]/2 
+    lb_x = config.domain.site_x_start + config.params["turbine_x"]/2
+    lb_y = config.domain.site_y_start + config.params["turbine_y"]/2
+    ub_x = config.domain.site_x_end - config.params["turbine_x"]/2
+    ub_y = config.domain.site_y_end - config.params["turbine_y"]/2
 
     if not lb_x < ub_x or not lb_y < ub_y:
         raise ValueError, "Lower bound is larger than upper bound. Is your domain large enough?"
-  
+
     # The control variable is ordered as [t1_x, t1_y, t2_x, t2_y, t3_x, ...]
     lb = n * [Constant(lb_x), Constant(lb_y)]
     ub = n * [Constant(ub_x), Constant(ub_y)]
-    return lb, ub 
+    return lb, ub
 
 def friction_constraints(config, lb = 0.0, ub = None):
     ''' This function returns the constraints to ensure that the turbine friction controls remain reasonable. '''
 
     if ub != None and not lb < ub:
-        raise ValueError, "Lower bound is larger than upper bound."
-    
+        raise ValueError, "Lower bound is larger than upper bound"
+
     if ub == None:
       ub = 10**12
 
     n = len(config.params["turbine_pos"])
-    return n * [Constant(lb)], n * [Constant(ub)] 
+    return n * [Constant(lb)], n * [Constant(ub)]
 
 def get_minimum_distance_constraint_func(config, min_distance = None):
     if not 'turbine_pos' in config.params['controls']:
