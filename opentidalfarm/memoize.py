@@ -1,6 +1,6 @@
-import numpy
 import cPickle
 from helpers import cpu0only
+
 
 def to_tuple(obj):
     if hasattr(obj, '__iter__'):
@@ -8,15 +8,16 @@ def to_tuple(obj):
     else:
         return obj
 
-# Implement a memoization function to avoid duplicated functional (derivative) evaluations
+
 class MemoizeMutable:
+    ''' Implements a memoization function to avoid duplicated functional (derivative) evaluations '''
 
     def get_key(self, args, kwds):
         h1 = to_tuple(args)
         h2 = to_tuple(kwds.items())
         h = tuple([h1, h2])
         # h = hash(h)  # We could hash it, but it is often useful to have the
-                       # explicit turbine parameter -> functional value mapping
+        # explicit turbine parameter -> functional value mapping
         return h
 
     def __init__(self, fn):
@@ -26,7 +27,7 @@ class MemoizeMutable:
     def __call__(self, *args, **kwds):
         h = self.get_key(args, kwds)
 
-        if not self.memo.has_key(h):
+        if h not in self.memo:
             self.memo[h] = self.fn(*args, **kwds)
         return self.memo[h]
 

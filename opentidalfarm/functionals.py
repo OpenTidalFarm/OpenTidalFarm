@@ -1,19 +1,18 @@
-from dolfin import info
-import ufl
 from turbines import *
-from helpers import info, info_green, info_red, info_blue
 from parameter_dict import ParameterDictionary
 import shallow_water_model
+
 
 class FunctionalPrototype(object):
     ''' This prototype class should be overloaded for an actual functional implementation.  '''
 
     def __init__(self):
-        raise NotImplementedError, "FunctionalPrototyp.__init__ needs to be overloaded."
+        raise NotImplementedError("FunctionalPrototyp.__init__ needs to be overloaded.")
 
     def Jt(self):
         ''' This function should return the form that computes the functional's contribution for one timelevel.'''
-        raise NotImplementedError, "FunctionalPrototyp.__Jt__ needs to be overloaded."
+        raise NotImplementedError("FunctionalPrototyp.__Jt__ needs to be overloaded.")
+
 
 class DefaultFunctional(FunctionalPrototype):
     ''' Implements a simple functional of the form:
@@ -33,27 +32,27 @@ class DefaultFunctional(FunctionalPrototype):
         # Function spaces with polynomial degree >1 suffer from undershooting which can result in
         # negative cost values.
         if turbines.function_space().ufl_element().degree() > 1:
-            raise ValueError, 'Costing only works if the function space for the turbine friction has polynomial degree < 2.'
+            raise ValueError('Costing only works if the function space for the turbine friction has polynomial degree < 2.')
         return Constant(self.params['cost_coef']) * (ln(turbines + 1) / ln(21))
 
     def power(self, state, turbines):
-            return self.params['rho'] * turbines * (dot(state[0], state[0]) + dot(state[1], state[1]))**1.5
+            return self.params['rho'] * turbines * (dot(state[0], state[0]) + dot(state[1], state[1])) ** 1.5
 
     def force(self, state, turbines):
             return self.params['rho'] * turbines * dot(state[0], state[0]) + dot(state[1], state[1])
 
     def Jt(self, state, tf):
-        return (self.power(state, tf) - self.cost_per_friction(tf))*self.config.site_dx(1)
+        return (self.power(state, tf) - self.cost_per_friction(tf)) * self.config.site_dx(1)
 
     def Jt_individual(self, state, i):
         ''' Computes the power output of the i'th turbine. '''
         tf = self.config.turbine_cache.cache['turbine_field_individual'][i]
-        return (self.power(state, tf) - self.cost_per_friction(tf))*self.config.site_dx(1)
+        return (self.power(state, tf) - self.cost_per_friction(tf)) * self.config.site_dx(1)
 
     def force_individual(self, state, i):
         ''' Computes the total force on the i'th turbine. '''
         tf = self.config.turbine_cache.cache['turbine_field_individual'][i]
-        return (self.force(state, tf) - self.cost_per_friction(tf))*self.config.site_dx(1)
+        return (self.force(state, tf) - self.cost_per_friction(tf)) * self.config.site_dx(1)
 
 
 class PowerCurveFunctional(FunctionalPrototype):
@@ -71,15 +70,15 @@ class PowerCurveFunctional(FunctionalPrototype):
 
     def Jt(self, state, tf):
         up_u = state[3]
-        ux = state[0]
+        #ux = state[0]
 
         def power_function(u):
             # A simple power function implementation. Could be replaced with a polynomial approximation.
-            fac = Constant(1.5e6/(3**3))
-            return shallow_water_model.smooth_uflmin(1.5e6, fac*u**3)
+            fac = Constant(1.5e6 / (3 ** 3))
+            return shallow_water_model.smooth_uflmin(1.5e6, fac * u ** 3)
 
-        P = inner(Constant(1), power_function(up_u)*tf/self.config.turbine_cache.turbine_integral())*dx
+        P = inner(Constant(1), power_function(up_u) * tf / self.config.turbine_cache.turbine_integral()) * dx
 
         #print "Expected power: %f MW" % (power_function(ux((10, 160)))((0))/1e6)
-        print "Estimated power: %f MW" % (assemble(P)/1e6)
+        print "Estimated power: %f MW" % (assemble(P) / 1e6)
         return P

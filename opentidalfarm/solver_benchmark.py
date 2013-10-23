@@ -2,6 +2,7 @@ import dolfin
 import ufl
 import operator
 
+
 def solver_parameters(solver_exclude, preconditioner_exclude):
     linear_solver_set = ["lu"]
     linear_solver_set += [e[0] for e in dolfin.krylov_solver_methods()]
@@ -19,6 +20,7 @@ def solver_parameters(solver_exclude, preconditioner_exclude):
             solver_parameters_set.append({"linear_solver": l, "preconditioner": p})
     return solver_parameters_set
 
+
 def print_benchmark_report(solver_timings, failed_solvers):
         # Let's analyse the result of the benchmark test:
         solver_timings = sorted(solver_timings.iteritems(), key=operator.itemgetter(1))
@@ -32,13 +34,14 @@ def print_benchmark_report(solver_timings, failed_solvers):
         for solver, reason in failed_solvers:
             dolfin.info_red("%s: %s" % (solver, reason))
 
+
 def replace_solver_settings(args, kwargs, parameters):
     ''' Replace the arguments of a solve call and replace the solver settings with the ones given in solver_settings. '''
 
     # The way how to set the solver settings depends on how the system is solved:
     #  Adaptive solve
     if "tol" in kwargs:
-        raise NotImplementedError, 'The benchmark solver is currently not implemented for adaptive solver calls.'
+        raise NotImplementedError('The benchmark solver is currently not implemented for adaptive solver calls.')
 
     # Variational problem solver
     elif isinstance(args[0], ufl.classes.Equation):
@@ -63,22 +66,22 @@ def solve(*args, **kwargs):
     '''
 
     # Retrieve the extended benchmark arguments.
-    if kwargs.has_key('benchmark'):
+    if 'benchmark' in kwargs:
         benchmark = kwargs.pop('benchmark')
     else:
         benchmark = False
 
-    if kwargs.has_key('solve'):
+    if 'solve' in kwargs:
         solve = kwargs.pop('solve')
     else:
         solve = dolfin.fem.solving.solve
 
-    if kwargs.has_key('solver_exclude'):
+    if 'solver_exclude' in kwargs:
         solver_exclude = kwargs.pop('solver_exclude')
     else:
         solver_exclude = []
 
-    if kwargs.has_key('preconditioner_exclude'):
+    if 'preconditioner_exclude' in kwargs:
         preconditioner_exclude = kwargs.pop('preconditioner_exclude')
     else:
         preconditioner_exclude = []
@@ -128,4 +131,3 @@ def solve(*args, **kwargs):
     else:
         ret = solve(*args, **kwargs)
     return ret
-
