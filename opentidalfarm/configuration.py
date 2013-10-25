@@ -18,7 +18,6 @@ class DefaultConfiguration(object):
 
         # Initialize function space and the domain
         self.finite_element = finite_element
-        self.set_domain(RectangularDomain(basin_x, basin_y, nx, ny), warning=False)
 
         self.functional = DefaultFunctional
 
@@ -75,7 +74,7 @@ class DefaultConfiguration(object):
         # (See http://fenicsproject.org/documentation/dolfin/dev/python/demo/pde/navier-stokes/python/documentation.html)
         parameters['std_out_all_processes'] = False
 
-        params['k'] = pi / self.domain.basin_x
+        params['k'] = pi / basin_x
 
         # Store the result as class variables
         self.params = params
