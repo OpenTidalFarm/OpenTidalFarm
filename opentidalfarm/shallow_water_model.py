@@ -426,6 +426,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
                 ic = config.params['initial_condition']
                 state_new.assign(ic, annotate=False)
 
+            info_blue("Solving shallow water equations at time %s (Newton iteration) ..." % params["current_time"])
             if bctype == 'strong_dirichlet':
                 solve(F == 0, state_new, bcs=strong_bc.bcs, solver_parameters=solver_parameters, annotate=annotate)
             else:
@@ -453,6 +454,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
             # Solve the problem using a picard iteration
             iter_counter = 0
             while True:
+                info_blue("Solving shallow water equations at time %s (Picard iteration %d) ..." % (params["current_time"], iter_counter))
                 if bctype == 'strong_dirichlet':
                     solve(dolfin.lhs(F) == dolfin.rhs(F), state_new, bcs=strong_bc.bcs, solver_parameters=solver_parameters)
                 else:
@@ -478,6 +480,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
             dummy_term = Constant(0) * q * dx
             rhs_preass = assemble(dolfin.rhs(F + dummy_term))
             # Apply dirichlet boundary conditions
+            info_blue("Solving shallow water equations at time %s (preassembled matrices) ..." % (params["current_time"]))
             if bctype == 'strong_dirichlet':
                 [bc.apply(lhs_preass, rhs_preass) for bc in strong_bc.bcs]
             if use_lu_solver:

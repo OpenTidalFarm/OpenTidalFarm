@@ -106,6 +106,7 @@ class StateWriter:
         self.M_p_out, self.q_out, self.p_out_state = self.p_output_projector(config.function_space)
 
     def write(self, state):
+        info_blue("Projecting velocity and pressure to CG1 for visualisation ...")
         rhs = assemble(inner(self.v_out, state.split()[0]) * dx)
         solve(self.M_u_out, self.u_out_state.vector(), rhs, "cg", "sor", annotate=False)
         rhs = assemble(inner(self.q_out, state.split()[1]) * dx)

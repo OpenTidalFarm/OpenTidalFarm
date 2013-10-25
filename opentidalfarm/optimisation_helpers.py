@@ -94,6 +94,10 @@ def get_minimum_distance_constraint_func(config, min_distance=None):
                 if i <= j:
                     continue
                 ieqcons.append(l2norm([m_pos[2 * i] - m_pos[2 * j], m_pos[2 * i + 1] - m_pos[2 * j + 1]]) - min_distance ** 2)
+
+        arr = numpy.array(ieqcons)
+        if any(arr <= 0):
+          info_blue("Minimum distance inequality constraints (should be > 0): %s" % arr)
         return numpy.array(ieqcons)
 
     def fprime_ieqcons(m):
@@ -233,6 +237,7 @@ class DomainRestrictionConstraints:
         feasible_area_grad = (dolfin.Function(fs),
                               dolfin.Function(fs))
         t = dolfin.TestFunction(fs)
+        info_blue("Solving for gradient of feasible area")
         for i in range(2):
             form = dolfin.inner(feasible_area_grad[i], t) * dolfin.dx - dolfin.inner(feasible_area.dx(i), t) * dolfin.dx
             dolfin.solve(form == 0, feasible_area_grad[i])
@@ -263,8 +268,10 @@ class DomainRestrictionConstraints:
                     print "Warning: a turbine is outside the domain"
                     ieqcons.append((x - self.attraction_center[0]) ** 2 + (y - self.attraction_center[1]) ** 2)  # Point is outside domain
 
-            print "Inequality constraints (should be > 0): ", -numpy.array(ieqcons)
-            return -numpy.array(ieqcons)
+            arr = -numpy.array(ieqcons)
+            if any(arr <= 0):
+              info_blue("Domain restriction inequality constraints (should be > 0): %s" % arr)
+            return arr
 
         def fprime_ieqcons(m):
             ieqcons = []
@@ -335,6 +342,7 @@ def get_distance_function(config, domains):
     bc = dolfin.DirichletBC(V, 0.0, boundary)
 
     # Solve the diffusion problem with a constant source term
+    info_blue("Solving diffusion problem to identify feasible area ...")
     F = (dolfin.inner(dolfin.grad(d), dolfin.grad(v)) - dolfin.inner(s, v)) * dolfin.dx
     dolfin.solve(F == 0, d, bc)
 
