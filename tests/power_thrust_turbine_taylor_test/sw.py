@@ -14,6 +14,7 @@ config = SteadyConfiguration("mesh.xml", inflow_direction=inflow_direction)
 config.functional = PowerCurveFunctional
 config.params['turbine_thrust_parametrisation'] = True
 config.params['initial_condition'] = ConstantFlowInitialCondition(config)
+config.params['k'] = pi/basin_x
 
 # Place one turbine 
 turbine_pos = [[basin_x/3-25, basin_y/2], 
