@@ -1,6 +1,7 @@
 import sys
 from opentidalfarm import *
 from opentidalfarm.initial_conditions import SinusoidalInitialCondition
+import opentidalfarm.domains
 from dolfin_adjoint import adj_reset 
 from math import log
 
@@ -24,10 +25,12 @@ def error(config, eta0, k):
   e = state - exactstate
   return sqrt(assemble(dot(e,e)*dx))
 
-def test(refinment_level):
-  config = DefaultConfiguration(nx=2*2**refinment_level, ny=2, finite_element=finite_elements.p1dgp2) 
+def test(refinement_level):
+  config = DefaultConfiguration(nx=2*2**refinement_level, ny=2, finite_element=finite_elements.p1dgp2) 
+  config.set_domain(opentidalfarm.domains.RectangularDomain(3000, 1000, 2*2**refinement_level, 2))
   eta0 = 2.0
   k = pi/config.domain.basin_x
+  config.params['k'] = k
   config.params["finish_time"] = pi/(sqrt(config.params["g"]*config.params["depth"])*k)/10
   config.params["dt"] = config.params["finish_time"]/150
   config.params["dump_period"] = 100000
@@ -36,8 +39,8 @@ def test(refinment_level):
 
 errors = []
 tests = 5
-for refinment_level in range(1, tests):
-  errors.append(test(refinment_level))
+for refinement_level in range(1, tests):
+  errors.append(test(refinement_level))
 # Compute the order of convergence 
 conv = [] 
 for i in range(len(errors)-1):
