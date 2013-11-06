@@ -14,7 +14,7 @@ import os
 
 class DefaultConfiguration(object):
     ''' A default configuration setup that is used by all tests. '''
-    def __init__(self, nx=20, ny=3, basin_x=3000, basin_y=1000, finite_element=finite_elements.p2p1):
+    def __init__(self, nx=20, ny=3, finite_element=finite_elements.p2p1):
 
         # Initialize function space and the domain
         self.finite_element = finite_element
@@ -74,8 +74,6 @@ class DefaultConfiguration(object):
         # (See http://fenicsproject.org/documentation/dolfin/dev/python/demo/pde/navier-stokes/python/documentation.html)
         parameters['std_out_all_processes'] = False
 
-        params['k'] = pi / basin_x
-
         # Store the result as class variables
         self.params = params
 
@@ -88,7 +86,7 @@ class DefaultConfiguration(object):
         self.optimisation_iteration = 0
 
     def set_domain(self, domain, warning=True):
-        if warning:
+        if warning and hasattr(self, 'domain'):
             info_red("If you are overwriting the domain, make sure that you reapply the boundary conditions as well")
         self.domain = domain
 
