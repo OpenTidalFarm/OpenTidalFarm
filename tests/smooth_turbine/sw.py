@@ -2,9 +2,11 @@
 
 import sys
 from opentidalfarm import *
+import opentidalfarm.domains
 set_log_level(ERROR)
 
 config = DefaultConfiguration(nx=5, ny=5)
+config.set_domain(opentidalfarm.domains.RectangularDomain(3000, 1000, 5, 5))
 config.params['finish_time'] = config.params["start_time"] + 10*config.params["dt"]
 
 # Switch to a smooth turbine representation
@@ -15,6 +17,9 @@ site_x_start = 750
 site_x = 1500
 site_y_start = 250
 site_y = 500
+
+config.params['k'] = pi/site_x
+
 class Site(SubDomain):
     def inside(self, x, on_boundary):
         return (between(x[0], (site_x_start, site_x_start+site_x)) and
