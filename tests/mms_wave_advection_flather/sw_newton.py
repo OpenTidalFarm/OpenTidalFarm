@@ -1,6 +1,7 @@
 import sys
 from opentidalfarm import *
 from opentidalfarm.initial_conditions import SinusoidalInitialCondition
+import opentidalfarm.domains
 from dolfin_adjoint import adj_reset
 from math import log
 
@@ -34,8 +35,10 @@ def error(config, eta0, k):
 
 def test(refinement_level):
   config = configuration.DefaultConfiguration(nx=2*2**refinement_level, ny=2*2**refinement_level, finite_element = finite_elements.p1dgp2) 
+  config.set_domain(opentidalfarm.domains.RectangularDomain(3000, 1000, 2*2**refinement_level, 2*2**refinement_level))
   eta0 = 2.0
   k = pi/config.domain.basin_x
+  config.params['k'] = k
   config.params["finish_time"] = pi/(sqrt(config.params["g"]*config.params["depth"])*k)/10
   config.params["dt"] = config.params["finish_time"]/150
   config.params["dump_period"] = 100000
