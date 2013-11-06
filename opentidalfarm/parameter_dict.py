@@ -28,7 +28,7 @@ class ParameterDictionary(dict):
             'cost_coef': 'multiplicator that determines the cost per turbine friction',
             'depth': 'water depth at rest',
             'g': 'graviation',
-            'k': 'wave length paramter. If you want a wave lenght of l, then set k to 2*pi/l.',
+            'k': 'wave length paramter. If you want a wave length of l, then set k to 2*pi/l.',
             'eta0': 'amplitude of free surface elevation',
             'quadratic_friction': 'quadratic friction',
             'friction': 'friction term on',
