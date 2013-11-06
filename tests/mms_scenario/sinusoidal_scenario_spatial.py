@@ -45,6 +45,7 @@ def test(refinement_level):
 
   # Choose more appropriate timing settings for the mms test
   k = pi/config.domain.basin_x
+  config.params['k'] = k
   config.params["start_time"] = 0.0
   config.params["finish_time"] = pi/(sqrt(config.params["g"]*config.params["depth"])*k)/10.0
   config.params["dt"] = config.params["finish_time"]/300.0
