@@ -9,9 +9,11 @@ import sys
 from opentidalfarm import *
 from opentidalfarm.helpers import test_gradient_array
 from opentidalfarm.mini_model import mini_model_solve
+import opentidalfarm.domains
 
 def default_config():
   config = configuration.DefaultConfiguration(nx=40, ny=20, finite_element = finite_elements.p1dgp2)
+  config.set_domain(opentidalfarm.domains.RectangularDomain(3000, 1000, 40, 20))
   config.params["verbose"] = 0
 
   # dt is used in the functional only, so we set it here to 0.8
