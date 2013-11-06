@@ -3,10 +3,12 @@
 
 import sys
 from opentidalfarm import *
+import opentidalfarm.domains
 set_log_level(PROGRESS)
 
 # Create the model configuration
 config = configuration.DefaultConfiguration(nx=30, ny=15, finite_element = finite_elements.p1dgp2)
+config.set_domain(opentidalfarm.domains.RectangularDomain(3000, 1000, 30, 15))
 period = 1.24*60*60 # Wave period
 config.params["k"] = 2*pi/(period*sqrt(config.params["g"]*config.params["depth"]))
 # Start at rest state
