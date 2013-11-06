@@ -1,11 +1,13 @@
 #!/usr/bin/python
 ''' This test checks the derivatives of the inequality contraints for the minimal turbine distance constraint. '''
 from opentidalfarm import *
+import opentidalfarm.domains
 import numpy
 import sys
 import math
 
 config = configuration.DefaultConfiguration()
+config.set_domain(opentidalfarm.domains.RectangularDomain(3000, 1000, 20, 3))
 config.params["controls"] = ['turbine_pos']
 ieq = get_minimum_distance_constraint_func(config)
 
