@@ -13,10 +13,12 @@
 
 import sys
 from opentidalfarm import *
+import opentidalfarm.domains
 set_log_level(PROGRESS)
 
 def default_config():
   config = configuration.DefaultConfiguration(nx=20, ny=10, finite_element=finite_elements.p1dgp2)
+  config.set_domain(opentidalfarm.domains.RectangularDomain(3000, 1000, 20, 10))
   config.params["verbose"] = 0
 
   # dt is used in the functional only, so we set it here to 1.0
@@ -31,6 +33,7 @@ def default_config():
   config.params["functional_final_time_only"] = True
 
   k = pi/config.domain.basin_x
+  config.params['k'] = k
   config.params['initial_condition'] = SinusoidalInitialCondition(config, 2.0, k, config.params['depth'])
 
   return config
