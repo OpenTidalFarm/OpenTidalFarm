@@ -4,12 +4,14 @@
 
 import sys
 from opentidalfarm import *
+import opentidalfarm.domains
 import numpy
 import cProfile
 
 def default_config():
   # We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
   config = configuration.DefaultConfiguration(nx=600, ny=200, finite_element = finite_elements.p1dgp2)
+  config.set_domain(opentidalfarm.domains.RectangularDomain(3000, 1000, 600, 200))
   period = 1.24*60*60 # Wave period
   config.params["k"] = 2*pi/(period*sqrt(config.params["g"]*config.params["depth"]))
   config.params["finish_time"] = 2./4*period
