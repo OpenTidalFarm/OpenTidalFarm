@@ -1,12 +1,15 @@
 ''' This test checks the correctness of the gradient of the turbine position with respect to its position '''
 import sys
 from opentidalfarm import *
+import opentidalfarm.domains
 set_log_level(INFO)
 
 def default_config():
   config = configuration.DefaultConfiguration(nx=30, ny=10)
+  config.set_domain(opentidalfarm.domains.RectangularDomain(3000, 1000, 30, 10))
   period = 1.24*60*60 # Wave period
   k = 2*pi/(period*sqrt(config.params["g"]*config.params["depth"]))
+  config.params['k'] = k
   info("Wave period (in h): %f" % (period/60/60) )
   config.params["verbose"] = 0
 
