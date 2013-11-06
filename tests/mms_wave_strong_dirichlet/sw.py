@@ -3,6 +3,7 @@ from opentidalfarm import *
 from dolfin_adjoint import adj_reset 
 from math import log
 from opentidalfarm.helpers import cpu0only
+import opentidalfarm.domains
 import pylab
 
 set_log_level(ERROR)
@@ -25,10 +26,12 @@ def error(config,eta0,k):
   e = state - exactstate
   return sqrt(assemble(dot(e,e)*dx))
 
-def test(refinment_level):
-    config = configuration.DefaultConfiguration(nx=2**refinment_level, ny=2*2**refinment_level) 
+def test(refinement_level):
+    config = configuration.DefaultConfiguration(nx=2**refinement_level, ny=2*2**refinement_level) 
+    config.set_domain(opentidalfarm.domains.RectangularDomain(3000, 1000, 2**refinement_level, 2*2**refinement_level))
     eta0 = 2.0
     k = pi/config.domain.basin_x
+    config.params['k'] = k
     config.params["finish_time"] = pi/(sqrt(config.params["g"]*config.params["depth"])*k)/20
     config.params["dt"] = config.params["finish_time"]/100
     config.params["dump_period"] = 100000
@@ -44,8 +47,8 @@ def test(refinment_level):
 
 errors = []
 tests = 7
-for refinment_level in range(2, tests):
-  errors.append(test(refinment_level))
+for refinement_level in range(2, tests):
+  errors.append(test(refinement_level))
 # Compute the order of convergence 
 conv = [] 
 for i in range(len(errors)-1):
