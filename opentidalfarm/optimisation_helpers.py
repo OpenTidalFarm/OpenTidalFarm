@@ -40,7 +40,7 @@ def deploy_turbines(config, nx, ny, friction=21.):
 
 
 def position_constraints(config):
-    ''' This function returns the constraints to ensure that the turbine positions remain inside the domain plus an optional spacing. '''
+    ''' This function returns the constraints to ensure that the turbine positions remain inside the domain. '''
 
     n = len(config.params["turbine_pos"])
     lb_x = config.domain.site_x_start + config.params["turbine_x"] / 2
@@ -270,7 +270,7 @@ class DomainRestrictionConstraints:
 
             arr = -numpy.array(ieqcons)
             if any(arr <= 0):
-              info_blue("Domain restriction inequality constraints (should be > 0): %s" % arr)
+              info_blue("Domain restriction inequality constraints (should be >= 0): %s" % arr)
             return arr
 
         def fprime_ieqcons(m):
