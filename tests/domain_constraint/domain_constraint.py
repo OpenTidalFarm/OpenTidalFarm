@@ -1,11 +1,13 @@
 #!/usr/bin/python
 ''' This test checks the derivatives of the inequality contraints for the domain constraint. '''
 from opentidalfarm import *
+import opentidalfarm.domains
 import numpy
 import sys
 import math
 
 config = configuration.DefaultConfiguration(nx=100, ny=50)
+config.set_domain(opentidalfarm.domains.RectangularDomain(3000, 1000, 100, 50))
 config.params["controls"] = ['turbine_pos']
 
 class TurbineSite(SubDomain):
