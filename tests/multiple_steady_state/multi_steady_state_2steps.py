@@ -22,6 +22,7 @@ config.params['include_time_term'] = False
 config.params['diffusion_coef'] = 16
 config.params['functional_quadrature_degree'] = 0
 config.params["newton_solver"] = True
+config.params['k'] = pi/basin_x
 #config.params["linear_solver"] = "umfpack"
 
 # Work out the expected delta eta for a free-stream of 2.5 m/s (without turbines) 

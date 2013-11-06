@@ -1,4 +1,4 @@
-run: clean 
+run: clean mesh
 	unbuffer time mpirun -n 2 python multi_steady_state_2steps.py
 	unbuffer time mpirun -n 2 python multi_steady_state_1step.py 
 
