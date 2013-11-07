@@ -87,7 +87,7 @@ site_y_start = 6.52246e+06 - site_y
 config.set_site_dimensions(site_x_start, site_x_start + site_x, site_y_start, site_y_start + site_y)
 
 # Place 32 turbines in a regular grid, each with a maximum friction coefficient of 10.5
-deploy_turbines(config, nx = 8, ny = 4, friction=10.5)
+deploy_turbines(config, nx=8, ny=4, friction=10.5)
 
 # Define some constraints for the optimisation positions.
 # Constraint to keep the turbines within the site area 
@@ -96,8 +96,8 @@ lb, ub = position_constraints(config)
 ineq = get_minimum_distance_constraint_func(config)
 
 # Solve the optimisation problem
-rf = ReducedFunctional(config, plot = True)
-maximize(rf, bounds = [lb, ub], constraints = ineq, method = "SLSQP")
+rf = ReducedFunctional(config, plot=True)
+maximize(rf, bounds=[lb, ub], constraints=ineq, method="SLSQP")
 ```
 
 This example can be found in the `examples/tutorial` directory and can be executed by running `make mesh && make`.
@@ -108,7 +108,7 @@ The output files are:
 * p2p1_p.pvd: The free-surface displacement function for the most recent turbine position calculation.
 
 If you only want to compute the power production for the given layout (without optimising), replace the ast code line above with:
-```
+```python
 # Switch off the computation of the automatic scaling factor (requires one adjoint solve), as it is needed only for the optimisation
 config.params['automatic_scaling'] = False 
 
