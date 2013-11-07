@@ -321,10 +321,9 @@ def merge_constraints(ineq1, ineq2):
 def get_distance_function(config, domains):
     V = dolfin.FunctionSpace(config.domain.mesh, "CG", 1)
     v = dolfin.TestFunction(V)
+    w = dolfin.TrialFunction(V)
     d = dolfin.Function(V)
     s = dolfin.interpolate(Constant(1.0), V)
-    domains_func = dolfin.Function(dolfin.FunctionSpace(config.domain.mesh, "DG", 0))
-    domains_func.vector().set_local(domains.array().astype(numpy.float))
 
     def boundary(x):
         eps_x = config.params["turbine_x"]
@@ -333,7 +332,7 @@ def get_distance_function(config, domains):
         min_val = 1
         for e_x, e_y in [(-eps_x, 0), (eps_x, 0), (0, -eps_y), (0, eps_y)]:
             try:
-                min_val = min(min_val, domains_func((x[0] + e_x, x[1] + e_y)))
+                min_val = min(min_val, domains((x[0] + e_x, x[1] + e_y)))
             except RuntimeError:
                 pass
 
@@ -343,7 +342,7 @@ def get_distance_function(config, domains):
 
     # Solve the diffusion problem with a constant source term
     info_blue("Solving diffusion problem to identify feasible area ...")
-    F = (dolfin.inner(dolfin.grad(d), dolfin.grad(v)) - dolfin.inner(s, v)) * dolfin.dx
-    dolfin.solve(F == 0, d, bc)
+    F = (dolfin.inner(dolfin.grad(w), dolfin.grad(v)) - dolfin.inner(s, v)) * dolfin.dx
+    dolfin.solve(dolfin.lhs(F) == dolfin.rhs(F), d, bc)
 
     return d
