@@ -17,12 +17,12 @@ def error(config, eta0, k):
   # The source term
   source = Expression((ddu_exact, 
                        "0.0"), \
-                       eta0 = eta0, g = config.params["g"], \
-                       depth = config.params["depth"], t = config.params["current_time"], \
-                       k = k, diffusion_coef = config.params["diffusion_coef"])
+                       eta0=eta0, g=config.params["g"], \
+                       depth=config.params["depth"], t=config.params["current_time"], \
+                       k=k, diffusion_coef=config.params["diffusion_coef"])
 
   adj_reset()
-  shallow_water_model.sw_solve(config, state, annotate=False, u_source = source)
+  shallow_water_model.sw_solve(config, state, annotate=False, u_source=source)
 
   analytic_sol = Expression((u_exact, \
                              "0", \
@@ -39,12 +39,17 @@ def test(refinement_level):
   config.set_domain(opentidalfarm.domains.RectangularDomain(3000, 1000, 16*2**refinement_level, 2**refinement_level))
   eta0 = 2.0
   k = pi/config.domain.basin_x
-  config.params['k'] = k
   config.params["finish_time"] = pi/(sqrt(config.params["g"]*config.params["depth"])*k)/20
   config.params["dt"] = config.params["finish_time"]/100
   config.params["dump_period"] = 100000
   config.params["include_diffusion"] = True
   config.params["diffusion_coef"] = 10.0
+  config.params["flather_bc_expr"] = Expression(("2*eta0*sqrt(g/depth)*cos(-sqrt(g*depth)*k*t)", "0"), 
+                                                 eta0=eta0, 
+                                                 g=config.params["g"], 
+                                                 depth=config.params["depth"], 
+                                                 t=config.params["current_time"], 
+                                                 k=k)
 
   return error(config, eta0, k)
 

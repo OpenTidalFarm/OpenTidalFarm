@@ -30,6 +30,7 @@ class DefaultConfiguration(object):
             'bctype': 'flather',
             'strong_bc': None,
             'flather_bc_expr': None,
+            'weak_dirichlet_bc_expr': None,
             'free_slip_on_sides': False,
             'include_advection': False,
             'include_diffusion': False,

@@ -8,8 +8,6 @@ def default_config():
   config = configuration.DefaultConfiguration(nx=30, ny=10)
   config.set_domain(opentidalfarm.domains.RectangularDomain(3000, 1000, 30, 10))
   period = 1.24*60*60 # Wave period
-  k = 2*pi/(period*sqrt(config.params["g"]*config.params["depth"]))
-  config.params['k'] = k
   info("Wave period (in h): %f" % (period/60/60) )
   config.params["verbose"] = 0
 
@@ -27,7 +25,16 @@ def default_config():
   config.info()
   # Boundary condition settings
   config.params["bctype"] = "strong_dirichlet"
-  expression = Expression(("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0"), eta0 = config.params["eta0"], g = config.params["g"], depth = config.params["depth"], t = config.params["current_time"], k = config.params["k"])
+
+  k = 2*pi/(period*sqrt(config.params["g"]*config.params["depth"]))
+  eta0 = 2
+  expression = Expression(("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0"), 
+                          eta0=eta0, 
+                          g=config.params["g"], 
+                          depth=config.params["depth"], 
+                          t=config.params["current_time"], 
+                          k=k)
+
   bc = DirichletBCSet(config)
   bc.add_analytic_u(1, expression)
   bc.add_analytic_u(2, expression)
@@ -35,7 +42,7 @@ def default_config():
   config.params["strong_bc"] = bc
 
   # Initial condition
-  config.params["initial_condition"] = SinusoidalInitialCondition(config, config.params["eta0"], k, config.params["depth"])
+  config.params["initial_condition"] = SinusoidalInitialCondition(config, eta0, k, config.params["depth"])
 
 
   # Turbine settings

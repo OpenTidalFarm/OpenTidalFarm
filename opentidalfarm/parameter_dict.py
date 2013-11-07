@@ -20,6 +20,7 @@ class ParameterDictionary(dict):
             'bctype': 'type of boundary condition to be applied',
             'strong_bc': 'list of strong dirichlet boundary conditions to be applied',
             'flather_bc_expr': 'dolfin.Expression describing the flather boundary condition values',
+            'weak_dirichlet_bc_expr': 'dolfin.Expression describing the weak Dirichlet boundary condition values',
             'free_slip_on_sides': 'apply free slip boundary conditions on the sides (id=3)',
             'initial_condition': 'initial condition function',
             'include_advection': 'advection term on',
