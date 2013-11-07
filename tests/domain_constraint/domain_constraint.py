@@ -10,16 +10,15 @@ config = configuration.DefaultConfiguration(nx=100, ny=50)
 config.set_domain(opentidalfarm.domains.RectangularDomain(3000, 1000, 100, 50))
 config.params["controls"] = ['turbine_pos']
 
-class TurbineSite(SubDomain):
-  def inside(self, x, on_boundary):
-    return True if 1300 <= x[0] <= 1700 and 300 <= x[1] <= 700 else False
+class TurbineSiteExpr(Expression):
+  def eval(self, value, x):
+    if 1300 <= x[0] <= 1700 and 300 <= x[1] <= 700:
+      value[0] = 1
+    else:
+      value[0] = 0
 
-domains = MeshFunction('size_t', config.domain.mesh, 2)
-domains.set_all(0)
-turbine_site = TurbineSite()
-turbine_site.mark(domains, 1)
-
-feasible_area = get_distance_function(config, domains)
+turbine_site = TurbineSiteExpr()
+feasible_area = get_distance_function(config, turbine_site)
 
 ieq = get_domain_constraints(config, feasible_area, attraction_center=((1500, 500)), jac=True)
 
@@ -32,8 +31,8 @@ if minconv < 1.99:
     info_red("Convergence test for the minimum distance constraints failed")
     sys.exit(1)
 
-# Now test the case where the turbines are inside 
-# The normal Taylor test does not work here, so lets just compare the gradient with a finite difference approach
+# Now test the case where the turbines are inside the domain, but outside the farm
+# The normal Taylor test does not work here (why??), so lets just compare the gradient with a finite difference approach
 x = numpy.array([100., 900.])
 hx = numpy.array([1., 0.])
 eps = 2.
