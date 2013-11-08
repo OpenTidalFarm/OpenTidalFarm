@@ -36,7 +36,7 @@ class Model(object):
     """
     def __init__(self, model_type, flow_field, model_parameters):
         self.model_type = model_type
-        self.model_parameters = model_parameters
+        self.__model_parameters__ = model_parameters
         # for AD we need to split the flow field into two seperate x and y
         # fields -- if only one field then we get problems with performing
         # operations on arrays of ad.ADF objects
@@ -46,8 +46,8 @@ class Model(object):
 
     def __repr__(self):
         title = "%s model with the following parameters" % (self.model_type)
-        for key in self.model_parameters:
-            title += "\n%s = %s" % (key, self.model_parameters[key])
+        for key in self.__model_parameters__:
+            title += "\n%s = %s" % (key, self.__model_parameters__[key])
         return title
 
 
@@ -90,4 +90,4 @@ class Model(object):
         slope = flow[1]/(flow[0]+1e-16) # dy/dx; avoid zero division
         cross = turbine[1] - slope*turbine[0] # c = y - slope*x
         ret = (point[1] - slope*point[0] - cross)/((slope**2 + 1)**0.5)
-        return ad.admath.fabs(ret) if isinstance(ret, ad.ADF) else abs(ret)
+        return ret

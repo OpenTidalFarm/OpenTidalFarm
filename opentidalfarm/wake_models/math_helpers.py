@@ -63,11 +63,3 @@ def box_car(x, a, b, k=1):
     sharpness of k.
     """
     return heaviside(x, a, k) - heaviside(x, b, k)
-
-
-def k_fac(r, turbine_radius, max_wake_radius):
-    """
-    Returns a scaled value of k to be used with the heaviside
-    function
-    """
-    return 0.1 - 0.05*(r - turbine_radius)/(max_wake_radius - turbine_radius)

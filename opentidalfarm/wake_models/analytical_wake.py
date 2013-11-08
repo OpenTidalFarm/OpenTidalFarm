@@ -7,6 +7,7 @@ import sys
 import ad
 import ad.admath
 import itertools
+#from profilehooks import profile
 
 class AnalyticalWake(Expression):
     # TODO: sort out this docstring
@@ -28,14 +29,11 @@ class AnalyticalWake(Expression):
             turbine_radius = (config.params["turbine_x"] +
                               config.params["turbine_y"])/4.
             self.model = valid_models[model_type](flow_field, turbine_radius, model_params)
+
+        # flat to tell functions when to use ad.adnumber objects -- switched on
+        # and off in grad and hess
+        self.diff = False
         
-        if isinstance(config.params["turbine_pos"], numpy.ndarray):
-            self.turbines = config.params["turbine_pos"].flatten()
-        else:
-            self.turbines = numpy.array(config.params["turbine_pos"]).flatten()
-
-        self.config = config
-
 
     def eval(self, values, x):
         """
@@ -44,7 +42,6 @@ class AnalyticalWake(Expression):
         raise NotImplementedError("Since the restructure to take only take "
             "turbines within a certain radius to calculate the power, this has "
             "not been updated")
-        #factor = self._combined_factor(x, self.turbines)
         #values[:] = factor*numpy.array([self.model.flow_x(x), self.model.flow_y(x)])
 
 
@@ -55,44 +52,50 @@ class AnalyticalWake(Expression):
         return (2,)
 
 
-    def grad(self, turbines=None, acceptable_loss=2.5):
+    def use_ad(function):
         """
-        Returns the gradient of the power wrt to turbine coordinates
+        Decorator function to make a function switch on the self.diff flag (to
+        use ad.adnumber objects) before calling the wrapped function then
+        switching off the flag after
         """
-        # update the turbines if provided   
-        if turbines is not None: 
-            self.update_turbines(turbines)
+        def wrapped(self, *args, **kwargs):
+            self.diff=True
+            ret = function(self, *args, **kwargs)
+            self.diff=False
+            return ret
+        return wrapped
+
+
+    @use_ad
+    def grad(self, turbines, acceptable_loss=2.5):
+        """
+        Returns the gradient of the power wrt to turbine coordinates. Turbines
+        should be a flattened numpy array.
+        """
         turbines = ad.adnumber(turbines)
         tot_pow = self._total_power(turbines, acceptable_loss=acceptable_loss)
         return numpy.array(tot_pow.gradient(turbines))
 
 
+    @use_ad
     def hess(self, turbines=None, acceptable_loss=2.5):
         """
         Returns the hessian of the power wrt to turbine coordinates
         """
-        # update the turbines if provided   
-        if turbines is not None: 
-            self.update_turbines(turbines)
         turbines = ad.adnumber(turbines)
         tot_pow = self._total_power(turbines, acceptable_loss=acceptable_loss)
         return numpy.array(tot_pow.hessian(turbines))
 
 
-    def update_turbines(self, turbines):
-        """
-        Updates the turbines stored in self.turbines
-        """
-        self.turbines = numpy.array(turbines).flatten()
-
-
-    def _individual_power(self, point, turbines):
+    def _individual_power(self, turbines, index, indices_to_check):
         """
         Returns the individual power of a turbine at point; turbines should be a
         flattened array
         """
-        flow_velocity = self._flow_magnitude_at(point)
-        reduction_factor = self._combined_factor(point, turbines)
+        turbines_to_check = [turbines[i] for i in indices_to_check]
+        flow_velocity = self._flow_magnitude_at(turbines[index])
+        reduction_factor = self._combined_factor(turbines[index],
+                                                 turbines_to_check)
         return self._power_of(flow_velocity*reduction_factor)
 
     
@@ -101,25 +104,34 @@ class AnalyticalWake(Expression):
         Returns the total power output of the turbine array; turbines should be
         a flattened array
         """
-        # update turbines with the given turbines and then turn the list into
-        # tuples for convenience
-        self.update_turbines(turbines)
-        turbines = numpy.array([(self.turbines[i*2], self.turbines[i*2+1])
-                                for i in range(len(self.turbines)/2)])
+        def _tupleize(turbines):
+            """
+            Convenience function; turns a flattened array into tuples
+            """
+            return [(turbines[i*2], turbines[i*2+1]) for i in range(len(turbines)/2)]
 
+        if self.diff:
+            # create non-ad list of turbines
+            non_ad = numpy.array([t.x for t in turbines])
+            non_ad = _tupleize(non_ad)
+            turbines = _tupleize(turbines)
+        else:
+            turbines = _tupleize(turbines)
+            non_ad = turbines
+            
         # get a search radius based on an acceptable recovery loss percentage
         radius = self.model.get_search_radius(acceptable_loss)
         # get the indicies of turbines within the search radius
-        indices = self._compute_within_radius(turbines, radius) 
+        in_radius_indices = self._compute_within_radius(non_ad, radius) 
         # generate a list of turbines to check each turbine against based on
         # whether or not they are in wake
-        to_check = self._compute_within_wake(indices)
+        to_check = self._compute_within_wake(non_ad, in_radius_indices)
         total = 0.0
         for i in range(len(to_check)):
             # if the turbines[i] is in the wake of other turbines, calculate the
             # power at that point due to the combined wakes
             if to_check[i] is not None:
-                total += self._individual_power(turbines[i], to_check[i])
+                total += self._individual_power(turbines, i, to_check[i])
             # else there is no reduction factor so we can take the power of the
             # flow magnitude at that point
             else:
@@ -142,8 +154,9 @@ class AnalyticalWake(Expression):
 
         # if downstream, compare distance from centerline of wake to wake radius
         if _is_downstream(self, turbine, point):
-            dist_from_wake_center = self.model.dist_from_wake_center(turbine, point)
-            return dist_from_wake_center < self.model.wake_radius(turbine, point)
+            y0 = abs(self.model.dist_from_wake_center(turbine, point))
+            x0 = self.model.distance_between(turbine, point)
+            return y0 < self.model.wake_radius(x0)
         # if not downstream, then not in wake
         else:
             return False
@@ -156,7 +169,13 @@ class AnalyticalWake(Expression):
         """
         factor = 0.0
         for t in turbines:
-            factor += (1. - self.model.individual_factor(t, point))**2
+            x0 = self.model.distance_between(t, point)
+            # Jensen doesn't depend on y0 
+            if self.model.model_type=="Jensen":
+                factor += (1. - self.model.individual_factor(x0))**2
+            else:
+                y0 = self.model.dist_from_wake_center(t, point)
+                factor += (1. - self.model.individual_factor(x0, y0))**2
         return 1 - factor**0.5
     
 
@@ -202,10 +221,11 @@ class AnalyticalWake(Expression):
                 return self._within_radius(turbine_tuples[index[0]], 
                                            turbine_tuples[index[1]], 
                                            radius)
+
             return list(itertools.ifilter(_filter, ind))
 
 
-    def _compute_within_wake(self, ind):
+    def _compute_within_wake(self, turbine_tuples, ind):
         """
         Returns a list whose values represent which turbines to check when
         calculating an individual reduction factor.
@@ -221,18 +241,18 @@ class AnalyticalWake(Expression):
         # when checking the individual factor of a point we want to be able to
         # iterate over a list which contains lists of turbines to check -- None
         # indicates that this turbine is not in the wake of any others
-        to_check = [None]*(len(self.turbines)/2)
+        to_check = [None]*len(turbine_tuples)
         for i in range(len(ind)):
             # now working with a flattened list of turbine positions so need to
             # create tuples
-            t0 = (self.turbines[ind[i][0]*2], self.turbines[ind[i][0]*2+1])
-            t1 = (self.turbines[ind[i][1]*2], self.turbines[ind[i][1]*2+1])
-            if self._is_in_wake(t0, t1):
+            t0 = ind[i][0]
+            t1 = ind[i][1]
+            if self._is_in_wake(turbine_tuples[t0], turbine_tuples[t1]):
                 if to_check[ind[i][1]] is None:
                     to_check[ind[i][1]] = [t0]
                 else:
                     to_check[ind[i][1]].append(t0)
-            elif self._is_in_wake(t1, t0):
+            elif self._is_in_wake(turbine_tuples[t1], turbine_tuples[t0]):
                 if to_check[ind[i][0]] is None:
                     to_check[ind[i][0]] = [t1]
                 else:

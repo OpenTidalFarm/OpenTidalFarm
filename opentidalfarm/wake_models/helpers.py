@@ -1,4 +1,4 @@
-from dolfin import VectorFunctionSpace, project
+import dolfin
 import numpy
 import ad
 
@@ -17,9 +17,9 @@ class ADDolfinVec(object):
         order = f.function_space().element().cell_shape()
         con = "DG" if "Discontinuous" in str(f.function_space()) else "CG"
 
-        V = VectorFunctionSpace(self.f.function_space().mesh(), con, order)
-        self.dx = project(self.f.dx(0), V)
-        self.dy = project(self.f.dx(1), V)
+        V = dolfin.VectorFunctionSpace(self.f.function_space().mesh(), con, order)
+        self.dx = dolfin.project(self.f.dx(0), V)
+        self.dy = dolfin.project(self.f.dx(1), V)
         self.grad = [self.dx, self.dy]
         self.ind = ind
 

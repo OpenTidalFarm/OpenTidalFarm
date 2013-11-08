@@ -15,7 +15,7 @@ import finite_elements
 import helpers
 import shallow_water_model
 import mini_model
-from wake_models.wake_model import AnalyticalWakeModel
+from wake_models.analytical_wake import AnalyticalWake
 import initial_conditions
 from configuration import *
 

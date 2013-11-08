@@ -9,9 +9,9 @@ from dolfin import *
 from dolfin_adjoint import *
 from turbines import *
 from helpers import info_green, info_red, info_blue
-from wake_models.wake_model import AnalyticalWakeModel
+from wake_models.analytical_wake import AnalyticalWake
 import os.path
-
+from profilehooks import profile
 
 class ReducedFunctionalNumPy:
 
@@ -25,7 +25,7 @@ class ReducedFunctionalNumPy:
         self.automatic_scaling_factor = None
         self.plot = plot
         self.save_functional_values = save_functional_values
-        if isinstance(forward_model, AnalyticalWakeModel):
+        if isinstance(forward_model, AnalyticalWake):
             self.is_wake_model = True
             self.forward_model = forward_model
         else:
@@ -64,7 +64,6 @@ class ReducedFunctionalNumPy:
 
         def compute_functional(m, return_final_state=False, annotate=True):
             ''' Takes in the turbine positions/frictions values and computes the resulting functional of interest. '''
-            
             self.last_m = m
 
             self.update_turbine_cache(m)
@@ -76,7 +75,7 @@ class ReducedFunctionalNumPy:
 
             return compute_functional_from_tf(tf, return_final_state,
                     annotate=annotate) if not self.is_wake_model else\
-                    forward_model.compute_functional(m)
+                    forward_model._total_power(m, 2.5)
 
         def compute_functional_from_tf(tf, return_final_state, annotate=True):
             ''' Takes in the turbine friction field and computes the resulting functional of interest. '''
@@ -116,8 +115,7 @@ class ReducedFunctionalNumPy:
                 compute_functional(m, annotate=True)
 
             if self.is_wake_model:
-                return self.forward_model.compute_gradient(m)
-
+                return self.forward_model.grad(m, 2.5)
 
             state = self.last_state
             functional = config.functional(config)

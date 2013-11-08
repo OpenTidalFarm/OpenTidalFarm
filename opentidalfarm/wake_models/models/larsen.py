@@ -86,36 +86,33 @@ class Larsen(Model):
         super(Larsen, self).__init__("Larsen", flow_field, model_parameters)
 
 
-    def wake_radius(self, turbine, point):
+    def wake_radius(self, x0):
         """
         Returns the wake radius at point given that point is in the wake of
         turbine
         """
-        dist = self.distance_between(turbine, point)
-        mp = self.model_parameters
+        mp = self.__model_parameters__
         return ((35./(2*numpy.pi))**(1/5.)*
                 (3*(mp["prandtl_mixing"]**2))**(1/5.)*
                 (mp["thrust_coeff"]*mp["rotor_disc_area"]*
-                    (dist + mp["x0"]))**(1/3.))
+                    (x0 + mp["x0"]))**(1/3.))
 
 
-    def individual_factor(self, turbine, point):
+    def individual_factor(self, x0, y0):
         """
         Returns the individual velocity reduction factor
         """
-        mp = self.model_parameters
-        x = self.distance_between(turbine, point) 
-        r = self.dist_from_wake_center(turbine, point)
-        xx0 = x + mp["x0"]
+        mp = self.__model_parameters__
+        xx0 = x0 + mp["x0"]
         bracket1 = mp["thrust_coeff"]*mp["rotor_disc_area"]*xx0**(-2.)
         bracket2 = (3*(mp["prandtl_mixing"]**2)*mp["thrust_coeff"]*
                     mp["rotor_disc_area"]*xx0)
         bracket3 = (17.5/numpy.pi)
         bracket4 = 3*(mp["prandtl_mixing"]**2)
         try:
-            ret = 1. - (1./9)*(bracket1**(1./3))*(r**(1.5)*bracket2**(-0.5) -
+            ret = 1. - (1./9)*(bracket1**(1./3))*(y0**(1.5)*bracket2**(-0.5) -
                 (bracket3**0.3)*(bracket4**-0.2))**2
-        # caused when finding derivatives when r=0 so remove r
+        # caused when finding derivatives when y0=0 so remove y0
         except ZeroDivisionError: 
             ret = 1. - ((1./9)*(bracket1**(1./3))*
                         (-(bracket3**0.3)*(bracket4**-0.2))**2)
