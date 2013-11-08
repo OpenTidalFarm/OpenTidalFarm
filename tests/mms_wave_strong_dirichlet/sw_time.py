@@ -31,14 +31,20 @@ def test(refinement_level):
     config.set_domain(opentidalfarm.domains.RectangularDomain(3000, 1000, 2**7, 2**4))
     eta0 = 2.0
     k = pi/config.domain.basin_x
-    config.params['k'] = k
     config.params["finish_time"] = 2*pi/(sqrt(config.params["g"]*config.params["depth"])*k)
     config.params["dt"] = config.params["finish_time"]/(2*2**refinement_level)
     config.params["theta"] = 0.5
     config.params["dump_period"] = 100000
     config.params["bctype"] = "strong_dirichlet"
-    expression = Expression(("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0"), eta0 = config.params["eta0"], g = config.params["g"], depth = config.params["depth"], t = config.params["current_time"], k = config.params["k"])
     bc = DirichletBCSet(config)
+
+    expression = Expression(("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0"), 
+                            eta0=eta0, 
+                            g=config.params["g"], 
+                            depth=config.params["depth"], 
+                            t=config.params["current_time"], 
+                            k=k)
+
     bc.add_analytic_u(1, expression)
     bc.add_analytic_u(2, expression)
     bc.add_analytic_u(3, expression)

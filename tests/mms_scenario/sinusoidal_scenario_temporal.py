@@ -29,7 +29,7 @@ def error(config, eta0, k):
   analytic_sol = Expression((u_exact, \
                              "0", \
                              eta_exact), \
-                             eta0 = eta0, g = config.params["g"], \
+                             eta0=eta0, g=config.params["g"], \
                              depth=config.params["depth"], t=config.params["current_time"], k=k)
   exactstate = Function(config.function_space)
   exactstate.interpolate(analytic_sol)
@@ -45,18 +45,22 @@ def test(refinement_level):
 
   # Choose more appropriate timing settings for the mms test
   k = pi/config.domain.basin_x
-  config.params['k'] = k
   config.params["start_time"] = 0
   config.params["finish_time"] = pi/(sqrt(config.params["g"]*config.params["depth"])*k)
   config.params["dt"] = config.params["finish_time"]/(2*2**refinement_level)
 
   # Make sure that we apply the analytical boundary conditions
   eta0 = 2.0
-  config.params['initial_condition'] = SinusoidalInitialCondition(config, eta0, k, config.params["depth"])
+  config.params['initial_condition'] = SinusoidalInitialCondition(config, eta0, k, config.params['depth'])
   config.params["dump_period"] = 100000
-  config.params["eta0"] = 2.
   config.params["bctype"] = "strong_dirichlet"
-  expression = Expression(("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0"), eta0 = eta0, g = config.params["g"], depth = config.params["depth"], t = config.params["current_time"], k = k)
+  expression = Expression(("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0"), 
+                          eta0=eta0, 
+                          g=config.params["g"], 
+                          depth=config.params["depth"], 
+                          t=config.params["current_time"], 
+                          k=k)
+
   bc = DirichletBCSet(config)
   bc.add_analytic_u(1, expression)
   bc.add_analytic_u(2, expression)

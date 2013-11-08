@@ -24,7 +24,7 @@ config.params['turbine_x'] = 50.
 config.params['turbine_y'] = 50. 
 config.params['controls'] = ["dynamic_turbine_friction"]
 config.params["automatic_scaling"] = False
-config.params['k'] = pi / basin_x
+#config.params['k'] = pi / basin_x
 
 for x_r in numpy.linspace(site_x_start, site_x_start + site_x, 2):
     for y_r in numpy.linspace(site_y_start, site_y_start + site_y, 2):

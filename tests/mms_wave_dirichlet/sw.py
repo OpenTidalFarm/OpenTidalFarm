@@ -31,11 +31,16 @@ def test(refinement_level):
   config.set_domain(opentidalfarm.domains.RectangularDomain(3000, 1000, 2*2**refinement_level, 2))
   eta0 = 2.0
   k = pi/config.domain.basin_x
-  config.params['k'] = k
   config.params["finish_time"] = pi/(sqrt(config.params["g"]*config.params["depth"])*k)/10
   config.params["dt"] = config.params["finish_time"]/100
   config.params["dump_period"] = 100000
   config.params["bctype"] = "dirichlet"
+  config.params["weak_dirichlet_bc_expr"] = Expression(("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0"), 
+                                                       eta0=eta0, 
+                                                       g=config.params["g"], 
+                                                       depth=config.params["depth"], 
+                                                       t=config.params["current_time"], 
+                                                       k=k)
 
   return error(config, eta0, k)
 

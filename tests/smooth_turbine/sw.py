@@ -18,7 +18,13 @@ site_x = 1500
 site_y_start = 250
 site_y = 500
 
-config.params['k'] = pi/site_x
+k = pi/site_x
+config.params["flather_bc_expr"] = Expression(("2*eta0*sqrt(g/depth)*cos(-sqrt(g*depth)*k*t)", "0"), 
+                                 eta0=2., 
+                                 g=config.params["g"], 
+                                 depth=config.params["depth"], 
+                                 t=config.params["current_time"], 
+                                 k=k)
 
 class Site(SubDomain):
     def inside(self, x, on_boundary):

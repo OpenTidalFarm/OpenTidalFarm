@@ -9,7 +9,7 @@ parameters["std_out_all_processes"] = False;
 
 def error(config, eta0, k):
   state = Function(config.function_space)
-  state.interpolate(SinusoidalInitialCondition(config,eta0,k,config.params["depth"]))
+  state.interpolate(SinusoidalInitialCondition(config, eta0, k, config.params["depth"]))
   u_exact = "eta0*sqrt(g/depth) * cos(k*x[0]-sqrt(g*depth)*k*t)" 
   du_exact = "(- eta0*sqrt(g/depth) * sin(k*x[0]-sqrt(g*depth)*k*t) * k)"
   ddu_exact = "(diffusion_coef * eta0*sqrt(g/depth) * cos(k*x[0]-sqrt(g*depth)*k*t) * k*k)"
@@ -20,7 +20,7 @@ def error(config, eta0, k):
                              "0.0"), \
                              eta0 = eta0, g = config.params["g"], \
                              depth = config.params["depth"], t = config.params["current_time"], \
-                             k = k,  diffusion_coef = config.params["diffusion_coef"],
+                             k = k, diffusion_coef = config.params["diffusion_coef"],
                              friction = config.params["friction"])
 
   adj_reset()
@@ -45,7 +45,6 @@ def test(refinement_level):
 
   # Choose more appropriate timing settings for the mms test
   k = pi/config.domain.basin_x
-  config.params['k'] = k
   config.params["start_time"] = 0.0
   config.params["finish_time"] = pi/(sqrt(config.params["g"]*config.params["depth"])*k)/10.0
   config.params["dt"] = config.params["finish_time"]/300.0
@@ -55,7 +54,13 @@ def test(refinement_level):
   config.params['initial_condition'] = SinusoidalInitialCondition(config, eta0, k, config.params['depth'])
   config.params["dump_period"] = 100000
   config.params["bctype"] = "strong_dirichlet"
-  expression = Expression(("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0"), eta0 = eta0, g = config.params["g"], depth = config.params["depth"], t = config.params["current_time"], k = k)
+  expression = Expression(("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0"), 
+                          eta0=eta0, 
+                          g=config.params["g"], 
+                          depth=config.params["depth"], 
+                          t=config.params["current_time"], 
+                          k=k)
+
   bc = DirichletBCSet(config)
   bc.add_analytic_u(1, expression)
   bc.add_analytic_u(2, expression)

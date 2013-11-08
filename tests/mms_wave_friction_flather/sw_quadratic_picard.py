@@ -18,7 +18,7 @@ def error(config,eta0,k):
   source = Expression(("friction/depth * " + u_exact + "*pow(pow(" + u_exact + ", 2), 0.5)",  
                        "0.0"), \
                        eta0=eta0, g=config.params["g"], \
-                       depth=config.params["depth"], t=config.params["current_time"], k=k, friction = config.params["friction"])
+                       depth=config.params["depth"], t=config.params["current_time"], k=k, friction=config.params["friction"])
 
   adj_reset()
   shallow_water_model.sw_solve(config, state, annotate=False, u_source = source)
@@ -38,13 +38,18 @@ def test(refinement_level):
   config.set_domain(opentidalfarm.domains.RectangularDomain(3000, 1000, 2*2**refinement_level, 2*2**refinement_level))
   eta0 = 2.0
   k = pi/config.domain.basin_x
-  config.params['k'] = k
-  config.params["finish_time"] = pi/(sqrt(config.params["g"]*config.params["depth"])*config.params["k"])/10
+  config.params["finish_time"] = pi/(sqrt(config.params["g"]*config.params["depth"])*k)/10
   config.params["dt"] = config.params["finish_time"]/150
   config.params["dump_period"] = 100000
   config.params["friction"] = 0.25 
   config.params["quadratic_friction"] = True
-  config.params["newton_solver"] = False 
+  config.params["newton_solver"] = False
+  config.params["flather_bc_expr"] = Expression(("2*eta0*sqrt(g/depth)*cos(-sqrt(g*depth)*k*t)", "0"), 
+                                                 eta0=eta0, 
+                                                 g=config.params["g"], 
+                                                 depth=config.params["depth"], 
+                                                 t=config.params["current_time"], 
+                                                 k=k)
 
   return error(config, eta0, k)
 

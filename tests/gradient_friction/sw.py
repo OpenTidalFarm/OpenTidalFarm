@@ -10,7 +10,6 @@ set_log_level(PROGRESS)
 config = configuration.DefaultConfiguration(nx=30, ny=15, finite_element = finite_elements.p1dgp2)
 config.set_domain(opentidalfarm.domains.RectangularDomain(3000, 1000, 30, 15))
 period = 1.24*60*60 # Wave period
-config.params["k"] = 2*pi/(period*sqrt(config.params["g"]*config.params["depth"]))
 # Start at rest state
 config.params["start_time"] = period/4 
 config.params["finish_time"] = 2./4*period
@@ -25,6 +24,14 @@ config.params["turbine_pos"] = [[1000., 500.], [1600, 300], [2500, 700]]
 config.params["turbine_friction"] = 12.0*numpy.random.rand(len(config.params["turbine_pos"]))
 config.params["turbine_x"] = 200
 config.params["turbine_y"] = 400
+
+k = 2*pi/(period*sqrt(config.params["g"]*config.params["depth"]))
+config.params["flather_bc_expr"] = Expression(("2*eta0*sqrt(g/depth)*cos(-sqrt(g*depth)*k*t)", "0"), 
+                                 eta0=2., 
+                                 g=config.params["g"], 
+                                 depth=config.params["depth"], 
+                                 t=config.params["current_time"], 
+                                 k=k)
 
 # Set up the model 
 model = ReducedFunctional(config)
