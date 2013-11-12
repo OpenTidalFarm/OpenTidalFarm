@@ -26,7 +26,7 @@ class Jensen(Model):
         return mp["radius"]*(1. + 2*mp["wake_decay"]*(x0/(2*mp["radius"])))
 
 
-    def individual_factor(self, x0):
+    def individual_factor(self, x0, y0):
         """
         Returns the individual velocity reduction factor
         """

@@ -8,7 +8,7 @@ class Simple(Model):
     def __init__(self, flow_field, turbine_radius, model_parameters=None):
         # set the default required parameters
         default_parameters = {"recovery_distance": 30*turbine_radius,
-                              "f0": 1.2,
+                              "f0": 1.3,
                               "f1": 0.2, 
                               "f2": 0.45}
         default_parameters.update({"max_wake_radius": 

@@ -28,12 +28,14 @@ class AnalyticalWake(Expression):
         else:
             turbine_radius = (config.params["turbine_x"] +
                               config.params["turbine_y"])/4.
-            self.model = valid_models[model_type](flow_field, turbine_radius, model_params)
+            self.model = valid_models[model_type](flow_field,
+                                                  turbine_radius,
+                                                  model_params)
 
         # flat to tell functions when to use ad.adnumber objects -- switched on
         # and off in grad and hess
         self.diff = False
-        
+
 
     def eval(self, values, x):
         """
@@ -78,7 +80,7 @@ class AnalyticalWake(Expression):
 
 
     @use_ad
-    def hess(self, turbines=None, acceptable_loss=2.5):
+    def hess(self, turbines, acceptable_loss=2.5):
         """
         Returns the hessian of the power wrt to turbine coordinates
         """
@@ -98,7 +100,7 @@ class AnalyticalWake(Expression):
                                                  turbines_to_check)
         return self._power_of(flow_velocity*reduction_factor)
 
-    
+
     def _total_power(self, turbines, acceptable_loss=2.5):
         """
         Returns the total power output of the turbine array; turbines should be
@@ -118,11 +120,11 @@ class AnalyticalWake(Expression):
         else:
             turbines = _tupleize(turbines)
             non_ad = turbines
-            
+
         # get a search radius based on an acceptable recovery loss percentage
         radius = self.model.get_search_radius(acceptable_loss)
         # get the indicies of turbines within the search radius
-        in_radius_indices = self._compute_within_radius(non_ad, radius) 
+        in_radius_indices = self._compute_within_radius(non_ad, radius)
         # generate a list of turbines to check each turbine against based on
         # whether or not they are in wake
         to_check = self._compute_within_wake(non_ad, in_radius_indices)
@@ -135,7 +137,8 @@ class AnalyticalWake(Expression):
             # else there is no reduction factor so we can take the power of the
             # flow magnitude at that point
             else:
-                total +=  self._power_of(self._flow_magnitude_at(turbines[i]))
+                total += self._power_of(self._flow_magnitude_at(turbines[i])
+                                       *self.model.individual_factor(0,0))
         return total
 
 
@@ -161,23 +164,29 @@ class AnalyticalWake(Expression):
         else:
             return False
 
-    
+
     def _combined_factor(self, point, turbines):
         """
         Returns the combined factor of a model at point due to the wake from
         turbines
         """
         factor = 0.0
+        #for t in turbines:
+            #x0 = self.model.distance_between(t, point)
+            ## Jensen doesn't depend on y0
+            #if self.model.model_type=="Jensen":
+                #factor += (1. - self.model.individual_factor(x0))**2
+            #else:
+                #y0 = self.model.dist_from_wake_center(t, point)
+                #factor += (1. - self.model.individual_factor(x0, y0))**2
+        #return 1 - factor**0.5
         for t in turbines:
             x0 = self.model.distance_between(t, point)
-            # Jensen doesn't depend on y0 
-            if self.model.model_type=="Jensen":
-                factor += (1. - self.model.individual_factor(x0))**2
-            else:
-                y0 = self.model.dist_from_wake_center(t, point)
-                factor += (1. - self.model.individual_factor(x0, y0))**2
-        return 1 - factor**0.5
-    
+            y0 = self.model.dist_from_wake_center(t, point)
+            factor += self.model.individual_factor(x0, y0)
+        return factor/len(turbines)
+
+
 
     def _flow_magnitude_at(self, x):
         """
@@ -195,7 +204,7 @@ class AnalyticalWake(Expression):
         power = fac*speed**3
         return power if power < 1.5e6 else 1.5e6
 
-   
+
     def _within_radius(self, turbine, point, radius):
         """
         Returns true if point lies within the radius of turbine
@@ -203,7 +212,7 @@ class AnalyticalWake(Expression):
         diff = vector_difference(point, turbine)
         return l2_norm(diff) < radius
 
-    
+
     def _compute_within_radius(self, turbine_tuples, radius=300.):
         """
         Returns a list of indices for turbine pairs within a given radius of
@@ -218,8 +227,8 @@ class AnalyticalWake(Expression):
                 Convenience method so we can use itertools.ifilter with a single
                 argument
                 """
-                return self._within_radius(turbine_tuples[index[0]], 
-                                           turbine_tuples[index[1]], 
+                return self._within_radius(turbine_tuples[index[0]],
+                                           turbine_tuples[index[1]],
                                            radius)
 
             return list(itertools.ifilter(_filter, ind))
