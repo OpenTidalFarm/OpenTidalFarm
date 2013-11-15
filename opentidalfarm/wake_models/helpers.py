@@ -18,9 +18,16 @@ class ADDolfinVec(object):
         con = "DG" if "Discontinuous" in str(f.function_space()) else "CG"
 
         V = dolfin.VectorFunctionSpace(self.f.function_space().mesh(), con, order)
+        # get first order derivatives
         self.dx = dolfin.project(self.f.dx(0), V)
         self.dy = dolfin.project(self.f.dx(1), V)
         self.grad = [self.dx, self.dy]
+        # second order derivatives and second order cross derivatives
+        self.d2xx = dolfin.project(self.grad[0].dx(0), V)
+        self.d2yy = dolfin.project(self.grad[1].dx(1), V)
+        self.d2xy = dolfin.project(self.grad[0].dx(1), V)
+        self.grad2 = [self.d2xx, self.d2yy]
+
         self.ind = ind
 
     def __call__(self, x):
@@ -29,10 +36,10 @@ class ADDolfinVec(object):
             ad_funcs = list(map(ad.to_auto_diff,x))
             val = self.f(x)[self.ind]
             variables = ad_funcs[0]._get_variables(ad_funcs)
+            # take gradient wrt ind
             lc_wrt_args = numpy.array([self.grad[0](x)[self.ind], self.grad[1](x)[self.ind]])
-            #TODO: look into why these qc and cp choices work
-            qc_wrt_args = numpy.zeros(numpy.shape(lc_wrt_args))
-            cp_wrt_args = 0.0
+            qc_wrt_args = numpy.array([self.grad2[0](x)[self.ind], self.grad2[1](x)[self.ind]])
+            cp_wrt_args = self.d2xy(x)[self.ind]
 
             lc_wrt_vars, qc_wrt_vars, cp_wrt_vars = ad._apply_chain_rule(
                     ad_funcs, variables, lc_wrt_args, qc_wrt_args, cp_wrt_args)
@@ -62,11 +69,18 @@ class ADDolfinExpression(object):
         V = dolfin.VectorFunctionSpace(self.f.function_space().mesh(),
                                        con, order)
 
-        gradf = dolfin.Function(V)
-        t = dolfin.TestFunction(V)
-        F = (dolfin.inner(dolfin.grad(f), t) - dolfin.inner(gradf, t))*dolfin.dx
-        dolfin.solve(F == 0, gradf)
-        self.gradf = gradf
+        # (df/dx, df/dy)
+        self.first_deriv = dolfin.project(dolfin.grad(self.f), V)
+        # split to get df/dx and df/dy
+        dfdx, dfdy = self.first_deriv.split()
+        # get second derivative in x and y
+        second_deriv_x = dolfin.project(dolfin.grad(dfdx), V)
+        second_deriv_y = dolfin.project(dolfin.grad(dfdy), V)
+        # get cross derivative; [df/(dxdy) = df/(dydx)]
+        self.cross_deriv = second_deriv_x.split()[1]
+        # split second derivatives to avoid cross products
+        self.second_deriv_x = second_deriv_x.split()[0]
+        self.second_deriv_y = second_deriv_y.split()[1]
 
 
     def __call__(self, x):
@@ -74,10 +88,10 @@ class ADDolfinExpression(object):
             ad_funcs = list(map(ad.to_auto_diff,x))
             val = self.f(x)
             variables = ad_funcs[0]._get_variables(ad_funcs)
-            lc_wrt_args = self.gradf(x)
-            #TODO: look into why these qc and cp choices work
-            qc_wrt_args = numpy.zeros(numpy.shape(lc_wrt_args))
-            cp_wrt_args = 0.0
+            lc_wrt_args = self.first_deriv(x)
+            qc_wrt_args = numpy.array([self.second_deriv_x(x),
+                                       self.second_deriv_y(x)])
+            cp_wrt_args = self.cross_deriv(x)
 
             lc_wrt_vars, qc_wrt_vars, cp_wrt_vars = ad._apply_chain_rule(
                     ad_funcs, variables, lc_wrt_args, qc_wrt_args, cp_wrt_args)

@@ -183,8 +183,9 @@ class AnalyticalWake(Expression):
         for t in turbines:
             x0 = self.model.distance_between(t, point)
             y0 = self.model.dist_from_wake_center(t, point)
-            factor += self.model.individual_factor(x0, y0)
-        return factor/len(turbines)
+            indf = self.model.individual_factor(x0,y0)
+            factor += indf
+        return (factor+self.model.individual_factor(0,0))/(len(turbines)+1)
 
 
 
@@ -247,10 +248,25 @@ class AnalyticalWake(Expression):
         ind is a list of index tuples of turbines that are within a given radius
         of each other
         """
+        to_check = [None]*len(turbine_tuples)
+        if self.model.model_type=="ApproximateShallowWater":
+            for i in range(len(ind)):
+                t0 = ind[i][0]
+                t1 = ind[i][1]
+                if to_check[ind[i][1]] is None:
+                    to_check[ind[i][1]] = [t0]
+                else:
+                    to_check[ind[i][1]].append(t0)
+                if to_check[ind[i][0]] is None:
+                    to_check[ind[i][0]] = [t1]
+                else:
+                    to_check[ind[i][0]].append(t1)
+            return to_check
+
+
         # when checking the individual factor of a point we want to be able to
         # iterate over a list which contains lists of turbines to check -- None
         # indicates that this turbine is not in the wake of any others
-        to_check = [None]*len(turbine_tuples)
         for i in range(len(ind)):
             # now working with a flattened list of turbine positions so need to
             # create tuples
