@@ -95,6 +95,7 @@ class DefaultConfiguration(object):
         domains = CellFunction("size_t", self.domain.mesh)
         domains.set_all(1)
         self.site_dx = Measure("dx")[domains]  # The measure used to integrate the turbine friction
+        self.functional_dx = None  # By default the functional uses site_dx as measure. This behaviour can be overwritten here. 
 
         V, H = self.finite_element(self.domain.mesh)
         T = FunctionSpace(self.domain.mesh, 'CG', 2)              # Turbine space

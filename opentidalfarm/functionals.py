@@ -42,17 +42,26 @@ class DefaultFunctional(FunctionalPrototype):
             return self.params['rho'] * turbines * dot(state[0], state[0]) + dot(state[1], state[1])
 
     def Jt(self, state, tf):
-        return (self.power(state, tf) - self.cost_per_friction(tf)) * self.config.site_dx(1)
+        if self.config.functional_dx is None:
+            return (self.power(state, tf) - self.cost_per_friction(tf)) * self.config.site_dx(1)
+        else:
+            return (self.power(state, tf) - self.cost_per_friction(tf)) * self.config.functional_dx(1)
 
     def Jt_individual(self, state, i):
         ''' Computes the power output of the i'th turbine. '''
         tf = self.config.turbine_cache.cache['turbine_field_individual'][i]
-        return (self.power(state, tf) - self.cost_per_friction(tf)) * self.config.site_dx(1)
+        if self.config.functional_dx is None:
+            return (self.power(state, tf) - self.cost_per_friction(tf)) * self.config.site_dx(1)
+        else:
+            return (self.power(state, tf) - self.cost_per_friction(tf)) * self.config.functional_dx(1)
 
     def force_individual(self, state, i):
         ''' Computes the total force on the i'th turbine. '''
         tf = self.config.turbine_cache.cache['turbine_field_individual'][i]
-        return (self.force(state, tf) - self.cost_per_friction(tf)) * self.config.site_dx(1)
+        if self.config.functional_dx is None:
+            return (self.force(state, tf) - self.cost_per_friction(tf)) * self.config.site_dx(1)
+        else:
+            return (self.force(state, tf) - self.cost_per_friction(tf)) * self.config.functional_dx(1)
 
 
 class PowerCurveFunctional(FunctionalPrototype):
