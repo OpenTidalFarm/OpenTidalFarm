@@ -18,3 +18,5 @@ config.params['controls'] = ['turbine_friction']
 # Use a negative scaling factor as we want to maximise the power output
 rf = ReducedFunctional(config)
 maximize(rf)
+
+print "The optimal turbine friction is ", config.params["turbine_friction"][0]
