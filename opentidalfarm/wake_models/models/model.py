@@ -1,4 +1,5 @@
-from ..math_helpers import l2_norm, vector_difference
+from ..math_helpers import l2_norm, vector_difference, angle_between_vectors,\
+                           normalize_vector
 from .. import helpers
 import numpy
 import ad
@@ -71,14 +72,12 @@ class Model(object):
         Returns distance between turbine and point parallel to the direction of
         flow at turbine
         """
-        diff = l2_norm(vector_difference(point, turbine))
-        dist = self.dist_from_wake_center(turbine, point)
-        if isinstance(dist, ad.ADF):
-            # ad can't deal with derivative of sqrt(0)
-            ret = (pow(diff, 2) - pow(dist, 2) + 1e-8)**0.5
-        else:
-            ret = (pow(diff, 2) - pow(dist, 2))**0.5
-        return ret
+        diff = vector_difference(point, turbine)
+        flow = numpy.array([self.flow_x(turbine), self.flow_y(turbine)])
+        v1 = normalize_vector(diff)
+        v2 = normalize_vector(flow)
+        cos_theta = (v1[0]*v2[0] + v1[1]*v2[1])
+        return l2_norm(diff)*cos_theta
 
 
     def dist_from_wake_center(self, turbine, point):

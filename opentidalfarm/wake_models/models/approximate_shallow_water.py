@@ -33,7 +33,7 @@ class ApproximateShallowWater(Model):
             config.params['theta'] = 1.0
             config.params["dump_period"] = 0
 
-            mesh = dolfin.RectangleMesh(-1500, -1500, 1500, 1500, 100, 100)
+            mesh = dolfin.RectangleMesh(-800, -800, 800, 800, 100, 100)
             V, H = config.finite_element(mesh)
             config.function_space = dolfin.MixedFunctionSpace([V, H])
             config.turbine_function_space = dolfin.FunctionSpace(mesh, 'CG', 2)
@@ -45,11 +45,11 @@ class ApproximateShallowWater(Model):
                 def __init__(self, mesh):
                     class InFlow(dolfin.SubDomain):
                         def inside(self, x, on_boundary):
-                            return dolfin.near(x[0], -1500)
+                            return dolfin.near(x[0], -800)
 
                     class OutFlow(dolfin.SubDomain):
                         def inside(self, x, on_boundary):
-                            return dolfin.near(x[0], 1500)
+                            return dolfin.near(x[0], 800)
 
                     inflow = InFlow()
                     outflow = OutFlow()
@@ -100,7 +100,7 @@ class ApproximateShallowWater(Model):
             # get state
             state = rf.last_state
             V = dolfin.VectorFunctionSpace(config.function_space.mesh(),
-                                           "CG", 1, dim=2)
+                                           "CG", 2, dim=2)
             u_out = dolfin.TrialFunction(V)
             v_out = dolfin.TestFunction(V)
             M_out = dolfin_adjoint.assemble(dolfin.inner(v_out, u_out)*dolfin.dx)
@@ -121,7 +121,7 @@ class ApproximateShallowWater(Model):
         """
         Fixed value
         """
-        return 1500.
+        return 800.
 
 
     def individual_factor(self, x0, y0):
@@ -135,4 +135,4 @@ class ApproximateShallowWater(Model):
         """
         Fixed value
         """
-        return 1500.
+        return 800.

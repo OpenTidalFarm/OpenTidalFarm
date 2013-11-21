@@ -11,13 +11,24 @@ class ADDolfinVec(object):
 
     Class layout is largely based on most ad.admath functions.
     """
+    def element_order(self, V):
+        """
+        Returns the element polynomial order
+        """
+        return dolfin.TestFunction(V).element().degree()
+
+
     def __init__(self, f, ind=None):
         self.f = f
+        order = self.element_order(f.function_space())
 
-        order = f.function_space().element().cell_shape()
-        con = "DG" if "Discontinuous" in str(f.function_space()) else "CG"
+        if order < 2:
+            raise ValueError("For AD, the dolfin function must be of polynomial degree > 1")
 
-        V = dolfin.VectorFunctionSpace(self.f.function_space().mesh(), con, order)
+        # The gradient is always in DG and of one order less
+        V = dolfin.VectorFunctionSpace(self.f.function_space().mesh(),
+                                       "DG", order - 1)
+
         # get first order derivatives
         self.dx = dolfin.project(self.f.dx(0), V)
         self.dy = dolfin.project(self.f.dx(1), V)
@@ -61,15 +72,28 @@ class ADDolfinVecY(ADDolfinVec):
 
 
 class ADDolfinExpression(object):
+    def element_order(self, V):
+        """
+        Returns the element polynomial order
+        """
+        return dolfin.TestFunction(V).element().degree()
+
+
     def __init__(self, f):
+        """
+        Calculate the first and second derivatives of f across the function
+        space
+        """
         self.f = f
+        order = self.element_order(f.function_space())
 
-        order = f.function_space().element().cell_shape()
-        con = "DG" if "Discontinuous" in str(f.function_space()) else "CG"
+        if order < 2:
+            raise ValueError("For AD, the dolfin function must be of polynomial degree > 1")
+
+        # The gradient is always in DG and of one order less
         V = dolfin.VectorFunctionSpace(self.f.function_space().mesh(),
-                                       con, order)
+                                       "DG", order - 1)
 
-        # (df/dx, df/dy)
         self.first_deriv = dolfin.project(dolfin.grad(self.f), V)
         # split to get df/dx and df/dy
         dfdx, dfdy = self.first_deriv.split()
@@ -84,13 +108,15 @@ class ADDolfinExpression(object):
 
 
     def __call__(self, x):
+        """
+        Returns f(x) as an ad.ADF object if x is an adnumber, else returns f(x)
+        """
         if isinstance(x[0], ad.ADF) and isinstance(x[1], ad.ADF):
             ad_funcs = list(map(ad.to_auto_diff,x))
             val = self.f(x)
             variables = ad_funcs[0]._get_variables(ad_funcs)
             lc_wrt_args = self.first_deriv(x)
-            qc_wrt_args = numpy.array([self.second_deriv_x(x),
-                                       self.second_deriv_y(x)])
+            qc_wrt_args = numpy.array([self.second_deriv_x(x), self.second_deriv_y(x)])
             cp_wrt_args = self.cross_deriv(x)
 
             lc_wrt_vars, qc_wrt_vars, cp_wrt_vars = ad._apply_chain_rule(

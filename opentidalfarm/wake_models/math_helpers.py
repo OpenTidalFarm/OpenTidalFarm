@@ -36,6 +36,9 @@ def normalize_vector(x):
     """
     norm = l2_norm(x)
     y = numpy.array([v/norm for v in x])
+    if isinstance(y[0], ad.ADF):
+        if numpy.isnan(y[0].x) or numpy.isnan(y[1].x):
+            y = numpy.array([0., 0.])
     return y
 
 

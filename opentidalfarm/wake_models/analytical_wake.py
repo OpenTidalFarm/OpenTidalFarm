@@ -158,7 +158,7 @@ class AnalyticalWake(Expression):
         # if downstream, compare distance from centerline of wake to wake radius
         if _is_downstream(self, turbine, point):
             y0 = abs(self.model.dist_from_wake_center(turbine, point))
-            x0 = self.model.distance_between(turbine, point)
+            x0 = abs(self.model.distance_between(turbine, point))
             return y0 < self.model.wake_radius(x0)
         # if not downstream, then not in wake
         else:
@@ -170,23 +170,26 @@ class AnalyticalWake(Expression):
         Returns the combined factor of a model at point due to the wake from
         turbines
         """
-        factor = 0.0
-        #for t in turbines:
-            #x0 = self.model.distance_between(t, point)
-            ## Jensen doesn't depend on y0
-            #if self.model.model_type=="Jensen":
-                #factor += (1. - self.model.individual_factor(x0))**2
-            #else:
-                #y0 = self.model.dist_from_wake_center(t, point)
-                #factor += (1. - self.model.individual_factor(x0, y0))**2
-        #return 1 - factor**0.5
+        def _combine(factors):
+            """
+            Combines factors using a modified sum of squares which allows for
+            factors greater than 1
+            """
+            max_factor = max(factors)
+            fac = max_factor if max_factor > 1 else 1.
+            for i in range(len(factors)):
+                factors[i] = (fac - (factors[i]/fac))**2
+            return (fac**2 - sum(factors)**0.5)
+
+        factors = []
         for t in turbines:
             x0 = self.model.distance_between(t, point)
             y0 = self.model.dist_from_wake_center(t, point)
-            indf = self.model.individual_factor(x0,y0)
-            factor += indf
-        return (factor+self.model.individual_factor(0,0))/(len(turbines)+1)
-
+            factors.append(self.model.individual_factor(x0,y0))
+        # include the factor of the turbine we're looking at
+        factors.append(self.model.individual_factor(0,0))
+        # combine using modified sum of squares
+        return _combine(factors)
 
 
     def _flow_magnitude_at(self, x):
