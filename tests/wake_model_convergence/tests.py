@@ -1,4 +1,4 @@
-from opentidalfarm import *
+from opentidalfarm
 
 def _setup_config(model, flow, nx=3, ny=3, turbines=None):
     basin_x = 640.                   # some mesh metadata
@@ -20,7 +20,7 @@ def _setup_config(model, flow, nx=3, ny=3, turbines=None):
     if model=="ApproximateShallowWater":
         model_parameters = {"wake": approx_wake}
     else:
-        model_parameters = {}
+        model_parameters = None
     wake = AnalyticalWake(config, flow, model_type=model, model_params=model_parameters)
     rf = ReducedFunctional(config, forward_model=wake)
     return rf
@@ -33,7 +33,7 @@ def _setup(models, flows):
     return results
 
 
-def perform_tests(models, flows, nx=4, ny=2, turbines=None):
+def perform_tests(models, flows, nx=2, ny=2, turbines=None):
     results = _setup(models, flows)
     for flow in flows:
         for model in models:
@@ -43,6 +43,7 @@ def perform_tests(models, flows, nx=4, ny=2, turbines=None):
             info(" Testing the %s model with %s flow ".center(80, "-") % (model, flow))
             info("")
             minconv = helpers.test_gradient_array(rf.j, rf.dj, m0, seed=0.5)
+
             descriptor = "The gradient taylor remainder test"
             info_str = "%s model with %s flow" % (model, flow)
             if minconv < 1.9 or minconv > 2.1 or numpy.isnan(minconv) or numpy.isinf(minconv):
@@ -94,10 +95,10 @@ def make_wake(turbine_radius):
     config.params['theta'] = 1.0
     config.params["dump_period"] = 0
 
-    mesh = RectangleMesh(-200, -500, 1500, 500, 50, 50)
+    mesh = RectangleMesh(-800, -800, 800, 800, 100, 100)
     V, H = config.finite_element(mesh)
     config.function_space = MixedFunctionSpace([V, H])
-    config.turbine_function_space = FunctionSpace(mesh, 'CG', 2)
+    config.turbine_function_space = FunctionSpace(mesh, 'CG', 3)
 
     class Domain(object):
         """
@@ -106,11 +107,11 @@ def make_wake(turbine_radius):
         def __init__(self, mesh):
             class InFlow(SubDomain):
                 def inside(self, x, on_boundary):
-                    return near(x[0], -200)
+                    return near(x[0], -800)
 
             class OutFlow(SubDomain):
                 def inside(self, x, on_boundary):
-                    return near(x[0], 1500)
+                    return near(x[0], 800)
 
             inflow = InFlow()
             outflow = OutFlow()
@@ -160,8 +161,7 @@ def make_wake(turbine_radius):
     rf.j(rf.initial_control())
     # get state
     state = rf.last_state
-    V = VectorFunctionSpace(config.function_space.mesh(),
-                                   "CG", 1, dim=2)
+    V = VectorFunctionSpace(config.function_space.mesh(), "CG", 3, dim=2)
     u_out = TrialFunction(V)
     v_out = TestFunction(V)
     M_out = assemble(inner(v_out, u_out)*dx)
@@ -197,18 +197,16 @@ if __name__=='__main__':
              }
 
     # wake models to test
-    #models = ["Jensen", "Simple"]
     models = ["ApproximateShallowWater"]
     # make some wake so it doesn't have to be done each time a model is
     # initialised
     approx_wake = make_wake(10)
 
-
     # normally deploy turbines
-    normal_results = perform_tests(models, flows, 2, 2)
+    normal_results = perform_tests(models, flows, 1, 2)
     # randomly deployed turbines
     import numpy
-    turbines = numpy.random.rand(9, 2)*160
+    turbines = numpy.random.rand(4, 2)*160
     for i in range(len(turbines)):
         if i%2==0:
             turbines[i] += 160.
