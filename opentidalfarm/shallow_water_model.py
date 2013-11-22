@@ -361,7 +361,12 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
     ############################### Perform the simulation ###########################
 
     if params["dump_period"] > 0:
-        writer = StateWriter(config, optimisation_iteration=config.optimisation_iteration)
+        try:
+            statewriter_cb = config.statewriter_callback
+        except AttributeError:
+            statewriter_cb = None 
+
+        writer = StateWriter(config, optimisation_iteration=config.optimisation_iteration, callback=statewriter_cb)
         print0("Writing state to disk...")
         writer.write(state)
 
