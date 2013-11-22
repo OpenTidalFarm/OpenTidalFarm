@@ -367,8 +367,9 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
             statewriter_cb = None 
 
         writer = StateWriter(config, optimisation_iteration=config.optimisation_iteration, callback=statewriter_cb)
-        print0("Writing state to disk...")
-        writer.write(state)
+        if not steady_state:
+            print0("Writing state to disk...")
+            writer.write(state)
 
     step = 0
 
