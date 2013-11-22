@@ -98,12 +98,14 @@ def test_gradient_array(J, dJ, x, seed=0.01, perturbation_direction=None, plot_f
 
 
 class StateWriter:
-    def __init__(self, config, optimisation_iteration):
+    def __init__(self, config, optimisation_iteration, callback=None):
+        self.timestep = 0
         self.config = config
         self.optimisation_iteration = optimisation_iteration
         self.u_out, self.p_out = self.output_files(config.finite_element.func_name)
         self.M_u_out, self.v_out, self.u_out_state = self.u_output_projector(config.function_space)
         self.M_p_out, self.q_out, self.p_out_state = self.p_output_projector(config.function_space)
+        self.callback = callback
 
     def write(self, state):
         info_blue("Projecting velocity and pressure to CG1 for visualisation ...")
@@ -114,6 +116,11 @@ class StateWriter:
 
         self.u_out << self.u_out_state
         self.p_out << self.p_out_state
+
+        if self.callback is not None:
+            self.callback(self.u_out_state, self.p_out_state, self.timestep, self.optimisation_iteration)
+
+        self.timestep += 1
 
     def u_output_projector(self, W):
         # Projection operator for output.
