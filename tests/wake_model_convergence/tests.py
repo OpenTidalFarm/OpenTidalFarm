@@ -1,6 +1,6 @@
-from opentidalfarm
+from opentidalfarm import *
 
-def _setup_config(model, flow, nx=3, ny=3, turbines=None):
+def _setup_config(model, flow, nx, ny, turbines=None):
     basin_x = 640.                   # some mesh metadata
     basin_y = 320.
     site_x = 320.
@@ -33,16 +33,17 @@ def _setup(models, flows):
     return results
 
 
-def perform_tests(models, flows, nx=2, ny=2, turbines=None):
+def perform_tests(models, flows, nx, ny, turbines=None):
     results = _setup(models, flows)
     for flow in flows:
         for model in models:
             rf = _setup_config(model, flows[flow], nx=nx, ny=ny, turbines=turbines)
             m0 = rf.initial_control()
+            print "Turbine positions:", m0
             info("")
             info(" Testing the %s model with %s flow ".center(80, "-") % (model, flow))
             info("")
-            minconv = helpers.test_gradient_array(rf.j, rf.dj, m0, seed=0.5)
+            minconv = helpers.test_gradient_array(rf.j, rf.dj, m0, seed=0.05)
 
             descriptor = "The gradient taylor remainder test"
             info_str = "%s model with %s flow" % (model, flow)
@@ -95,7 +96,7 @@ def make_wake(turbine_radius):
     config.params['theta'] = 1.0
     config.params["dump_period"] = 0
 
-    mesh = RectangleMesh(-800, -800, 800, 800, 100, 100)
+    mesh = RectangleMesh(-500, -500, 500, 500, 200, 200)
     V, H = config.finite_element(mesh)
     config.function_space = MixedFunctionSpace([V, H])
     config.turbine_function_space = FunctionSpace(mesh, 'CG', 3)
@@ -107,11 +108,11 @@ def make_wake(turbine_radius):
         def __init__(self, mesh):
             class InFlow(SubDomain):
                 def inside(self, x, on_boundary):
-                    return near(x[0], -800)
+                    return near(x[0], -500)
 
             class OutFlow(SubDomain):
                 def inside(self, x, on_boundary):
-                    return near(x[0], 800)
+                    return near(x[0], 500)
 
             inflow = InFlow()
             outflow = OutFlow()
@@ -191,33 +192,42 @@ if __name__=='__main__':
     flows = {"constant": flow_const,
              "varying x due to x": flow_var_xx,
              "varying x due to y": flow_var_xy,
-             "varying y due to x": flow_var_yx,
-             "varying y due to y": flow_var_yy,
+             #"varying y due to x": flow_var_yx,
+             #"varying y due to y": flow_var_yy,
              "fully varying": flow_var
              }
+
+    flows = {"varying x due to x": flow_var_xx}
+
+    for flow in flows:
+        outfile = File(flow+".pvd")
+        outfile << flows[flow]
 
     # wake models to test
     models = ["ApproximateShallowWater"]
     # make some wake so it doesn't have to be done each time a model is
     # initialised
     approx_wake = make_wake(10)
+    wake_x = approx_wake.split()[0]
+    outfile = File("WAKE.pvd")
+    outfile << wake_x
 
     # normally deploy turbines
-    normal_results = perform_tests(models, flows, 1, 2)
-    # randomly deployed turbines
-    import numpy
-    turbines = numpy.random.rand(4, 2)*160
-    for i in range(len(turbines)):
-        if i%2==0:
-            turbines[i] += 160.
-        else:
-            turbines[i] += 80.
-    random_results = perform_tests(models, flows, turbines=turbines)
+    normal_results = perform_tests(models, flows, 2, 1)
+#    # randomly deployed turbines
+#    import numpy
+#    turbines = numpy.random.rand(4, 2)*160
+#    for i in range(len(turbines)):
+#        if i%2==0:
+#            turbines[i] += 160.
+#        else:
+#            turbines[i] += 80.
+#    random_results = perform_tests(models, flows, turbines=turbines)
 
     info("")
     info_blue(" Normally deployed turbines ".center(40, "="))
     print_results(normal_results)
     info("")
-    info_blue(" Randomly deployed turbines ".center(40, "="))
-    print_results(random_results)
-    info("")
+#    info_blue(" Randomly deployed turbines ".center(40, "="))
+#    print_results(random_results)
+#    info("")
