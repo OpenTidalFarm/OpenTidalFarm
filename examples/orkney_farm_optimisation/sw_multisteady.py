@@ -71,6 +71,4 @@ else:
   # c_B = c_T*A_Cross / (2*A) = 0.6*pi*D**2/(2*9D**2) 
   max_ct = 0.6*pi/2/9
   print "Maximum turbine friction: %f." % max_ct
-
-  rf = ReducedFunctional(config, scale=-1e-6)
   m_opt = maximize(rf, bounds = [0, max_ct], options = {"maxiter": 300})
