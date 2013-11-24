@@ -1,8 +1,14 @@
+from dolfin import *
+from dolfin_adjoint import *
+from opentidalfarm import print0
 from uptide.netcdf_reader import NetCDFInterpolator
 import utm
 import uptide
 import uptide.tidal_netcdf
 import datetime
+
+utm_zone = 30
+utm_band = 'V'
 
 # We need to store tnci_time as a non-class variable, otherwise 
 # dolfin-adjoint tries to be clever restore its values during the 
