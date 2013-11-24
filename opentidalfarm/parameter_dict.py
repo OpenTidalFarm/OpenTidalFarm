@@ -53,7 +53,8 @@ class ParameterDictionary(dict):
             'print_individual_turbine_power': 'print out the power output of each individual turbine',
             'output_turbine_power': 'output the power generation of the individual turbines',
             'save_checkpoints': 'automatically store checkpoints after each optimisation iteration',
-            'base_path': 'root directory for output'
+            'cache_forward_state': 'caches the forward state for all timesteps and reuses them as initial guess for the next optimisation iteration',
+            'base_path': 'root directory for output',
              }
 
     def check(self):

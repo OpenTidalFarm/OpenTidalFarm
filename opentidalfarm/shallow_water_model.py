@@ -5,6 +5,10 @@ from dolfin_adjoint import *
 from helpers import info, info_green, info_red, info_blue, print0, StateWriter
 import ufl
 
+# If cache_for_nonlinear_initial_guess is true, then we store all intermediate
+# state variables in this dictionary to be used for the next solve
+state_cache = {}
+
 # Some global variables for plotting the thurst plot - just for testing purposes
 us = []
 thrusts = []
@@ -127,6 +131,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
     is_nonlinear = (include_advection or quadratic_friction)
     turbine_thrust_parametrisation = params["turbine_thrust_parametrisation"]
     implicit_turbine_thrust_parametrisation = params["implicit_turbine_thrust_parametrisation"]
+    cache_forward_state = params["cache_forward_state"]
 
     if not 0 <= functional_quadrature_degree <= 1:
         raise ValueError("functional_quadrature_degree must be 0 or 1.")
@@ -426,7 +431,11 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
             solver_parameters["newton_solver"]["convergence_criterion"] = "incremental"
             solver_parameters["newton_solver"]["relative_tolerance"] = 1e-16
 
-            if not include_time_term:
+            if cache_forward_state and state_cache.has_key(t):
+                print0("Loading initial guess from cache from key " + str(t))
+                # Load initial guess for solver from cache
+                state_new.assign(state_cache[t], annotate=False)
+            elif not include_time_term:
                 print0("Resetting the initial guess for the nonlinear solver to the initial condition, because you are running a multi steady state problem.")
                 # Reset the initial guess after each timestep
                 ic = config.params['initial_condition']
@@ -497,6 +506,12 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
 
         # After the timestep solve, update state
         state.assign(state_new)
+        if cache_forward_state:
+            # Save state for initial guess cache
+            print0("Adding new initial guess to key " + str(t))
+            if not state_cache.has_key(t):
+                state_cache[t] = Function(state_new.function_space())
+            state_cache[t].assign(state_new, annotate=False)
 
         # Set the control function for the upcoming timestep.
         if turbine_field:

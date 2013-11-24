@@ -66,6 +66,7 @@ class DefaultConfiguration(object):
             'automatic_scaling_multiplier': 5,
             'output_turbine_power': True,
             'save_checkpoints': False,
+            'cache_forward_state': False,
             'base_path': os.curdir
             })
 
