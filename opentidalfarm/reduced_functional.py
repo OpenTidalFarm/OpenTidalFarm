@@ -123,6 +123,7 @@ class ReducedFunctionalNumPy:
 
             if config.params['steady_state'] or config.params["functional_final_time_only"]:
                 J = Functional(functional.Jt(state, dummy_tf) * dt[FINISH_TIME])
+
             elif config.params['functional_quadrature_degree'] == 0:
                 # Pseudo-redo the time loop to collect the necessary timestep information
                 t = config.params["start_time"]
@@ -130,12 +131,17 @@ class ReducedFunctionalNumPy:
                 while (t < config.params["finish_time"]):
                     t += config.params["dt"]
                     timesteps.append(t)
-                # Remove the initial condition. I think this is a bug in dolfin-adjoint, since really I expected pop(0) here - but the Taylor tests pass only with pop(1)!
-                timesteps.pop(1)
+
+                if not config.params["include_time_term"]:
+                    # Remove the initial condition. I think this is a bug in dolfin-adjoint, since really I expected pop(0) here - but the Taylor tests pass only with pop(1)!
+                    timesteps.pop(1)
 
                 # Construct the functional
                 J = Functional(sum(functional.Jt(state, dummy_tf) * dt[t] for t in timesteps))
+
             else:
+                if not config.params["include_time_term"]:
+                    raise NotImplementedError, "Multi-steady state simulations only work with 'functional_quadrature_degree=0' or 'functional_final_time_only=True'" 
                 J = Functional(functional.Jt(state, dummy_tf) * dt)
 
             if 'dynamic_turbine_friction' in config.params["controls"]:
