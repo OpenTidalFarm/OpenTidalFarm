@@ -201,9 +201,13 @@ class ReducedFunctionalNumPy:
             m_dot = project(Constant(1), config.turbine_function_space)
             return H(m_dot)
 
-        self.compute_functional_mem = memoize.MemoizeMutable(compute_functional)
-        self.compute_gradient_mem = memoize.MemoizeMutable(compute_gradient)
-        self.compute_hessian_action_mem = memoize.MemoizeMutable(compute_hessian_action)
+        # For smooth turbine parametrisations we only want to store the 
+        # hash of the control values into the pickle datastructure
+        hash_keys = (config.params["turbine_parametrisation"] == "smooth")
+
+        self.compute_functional_mem = memoize.MemoizeMutable(compute_functional, hash_keys)
+        self.compute_gradient_mem = memoize.MemoizeMutable(compute_gradient, hash_keys)
+        self.compute_hessian_action_mem = memoize.MemoizeMutable(compute_hessian_action, hash_keys)
 
     def update_turbine_cache(self, m):
         ''' Reconstructs the parameters from the flattened parameter array m and updates the configuration. '''
