@@ -372,7 +372,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
             statewriter_cb = None 
 
         writer = StateWriter(config, optimisation_iteration=config.optimisation_iteration, callback=statewriter_cb)
-        if not steady_state:
+        if not steady_state and include_time_term:
             print0("Writing state to disk...")
             writer.write(state)
 
@@ -432,11 +432,11 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
             solver_parameters["newton_solver"]["relative_tolerance"] = 1e-16
 
             if cache_forward_state and state_cache.has_key(t):
-                print0("Loading initial guess from cache from key " + str(t))
+                print0("Loading initial guess from cache for time=%f." % t)
                 # Load initial guess for solver from cache
                 state_new.assign(state_cache[t], annotate=False)
             elif not include_time_term:
-                print0("Resetting the initial guess for the nonlinear solver to the initial condition, because you are running a multi steady state problem.")
+                print0("Setting the initial guess for the nonlinear solver to the initial condition.")
                 # Reset the initial guess after each timestep
                 ic = config.params['initial_condition']
                 state_new.assign(ic, annotate=False)
@@ -508,7 +508,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
         state.assign(state_new)
         if cache_forward_state:
             # Save state for initial guess cache
-            print0("Adding new initial guess to key " + str(t))
+            print0("Caching initial guess for time=%f." % t)
             if not state_cache.has_key(t):
                 state_cache[t] = Function(state_new.function_space())
             state_cache[t].assign(state_new, annotate=False)
@@ -557,7 +557,6 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
 
         # Increase the adjoint timestep
         adj_inc_timestep(time=t, finished=(not t < params["finish_time"]))
-        print0("New timestep t = %f" % t)
     print0("Ending time loop.")
 
     # Write the turbine positions, power extraction and friction to a .csv file named turbine_info.csv
