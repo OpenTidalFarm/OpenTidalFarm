@@ -235,13 +235,15 @@ class ReducedFunctionalNumPy:
 
     def save_checkpoint(self, base_filename):
         ''' Checkpoint the reduceduced functional from which can be used to restart the turbine optimisation. '''
-        self.compute_functional_mem.save_checkpoint(base_filename + "_fwd.dat")
-        self.compute_gradient_mem.save_checkpoint(base_filename + "_adj.dat")
+        base_path = os.path.join(self.__config__.params["base_path"], base_filename)
+        self.compute_functional_mem.save_checkpoint(base_path + "_fwd.dat")
+        self.compute_gradient_mem.save_checkpoint(base_path + "_adj.dat")
 
     def load_checkpoint(self, base_filename='checkpoint'):
         ''' Checkpoint the reduceduced functional from which can be used to restart the turbine optimisation. '''
-        self.compute_functional_mem.load_checkpoint(base_filename + "_fwd.dat")
-        self.compute_gradient_mem.load_checkpoint(base_filename + "_adj.dat")
+        base_path = os.path.join(self.__config__.params["base_path"], base_filename)
+        self.compute_functional_mem.load_checkpoint(base_path + "_fwd.dat")
+        self.compute_gradient_mem.load_checkpoint(base_path + "_adj.dat")
 
     def j(self, m, annotate=True):
         ''' This memoised function returns the functional value for the parameter choice m. '''
