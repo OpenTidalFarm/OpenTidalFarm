@@ -2,8 +2,6 @@ from opentidalfarm import *
 from common import TidalForcing, BathymetryDepthExpression
 from math import pi
 import os.path
-utm_zone = 30
-utm_band = 'V'
 forward_only = False
 test_gradient = False
 
@@ -14,14 +12,14 @@ config.params["controls"] = ["turbine_friction"]
 config.params["turbine_parametrisation"] = "smooth"
 config.params["automatic_scaling"] = False 
 config.params['friction'] = Constant(0.0025)
-config.params['cache_forward_state'] = True 
+config.params['cache_forward_state'] = True
 config.params['base_path'] = "results_multisteady"
 
 # Perform only two timesteps
 config.params['include_time_term'] = False
-config.params['start_time'] = -1*16*600 
-config.params['dt'] = 2*16*600 
-config.params['finish_time'] = 3*16*600 
+config.params['start_time'] = -1 * 16 * 600 
+config.params['dt'] = 2 * 16 * 600 
+config.params['finish_time'] = 3 * 16 * 600 
 config.params['theta'] = 1.0 
 config.params['functional_quadrature_degree'] = 0
 
