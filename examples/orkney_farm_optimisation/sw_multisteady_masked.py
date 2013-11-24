@@ -17,9 +17,9 @@ config.params['base_path'] = "results_multisteady_masked"
 
 # Perform only two timesteps
 config.params['include_time_term'] = False
-config.params['start_time'] = -1*16*600 
-config.params['dt'] = 2*16*600 
-config.params['finish_time'] = 3*16*600 
+config.params['start_time'] = -1 * 16 * 600 
+config.params['dt'] = 2 * 16 * 600 
+config.params['finish_time'] = 3 * 16 * 600 
 config.params['theta'] = 1.0 
 config.params['functional_quadrature_degree'] = 0
 

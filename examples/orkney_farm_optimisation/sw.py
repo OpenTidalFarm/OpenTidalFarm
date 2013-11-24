@@ -16,8 +16,8 @@ config.params['cache_forward_state'] = True
 config.params['base_path'] = "results_unsteady"
 
 config.params['start_time'] = 0 
-config.params['dt'] = 600 
-config.params['finish_time'] = 12.5*60*60 
+config.params['dt'] = 600 * 3 * 2
+config.params['finish_time'] = 12.5 * 60 * 60 / 2 
 config.params['theta'] = 1.0 
 
 # Tidal boundary forcing
@@ -46,7 +46,7 @@ config.turbine_function_space = V_dg0
 domains = MeshFunction("size_t", config.domain.mesh, "mesh/coast_idBoundary_utm_physical_region.xml")
 #plot(domains, interactive=True)
 config.site_dx = Measure("dx")[domains]
-f = File("turbine_farms.pvd")
+f = File(os.path.join(config.params["base_path"], "turbine_farms.pvd"))
 f << domains
 
 config.params["save_checkpoints"] = True
