@@ -74,7 +74,7 @@ def plot(hs, errors, file_name):
 
 hs = [1./2**h for h in range(len(errors))]
 
-plot(hs, errors, "spatial_convergence.pdf")
+#plot(hs, errors, "spatial_convergence.pdf")
 
 info_green("Absolute error values: %s" % str(errors))
 info_green("Spatial order of convergence (expecting 2.0): %s" % str(conv))

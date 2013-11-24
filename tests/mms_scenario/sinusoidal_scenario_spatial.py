@@ -82,7 +82,7 @@ for i in range(len(errors)-1):
   conv.append(abs(math.log(errors[i+1]/errors[i], 2)))
 
 # Plot the results
-save_convergence_plot(errors, element_sizes, "Spatial rate of convergence", "Spatial error", order = 2.0, show_title = False, xlabel = "Element size [m]")
+#save_convergence_plot(errors, element_sizes, "Spatial rate of convergence", "Spatial error", order = 2.0, show_title = False, xlabel = "Element size [m]")
 
 info_green("Errors: %s.", str(errors))
 info_green("Spatial order of convergence (expecting 2.0): %s.", str(conv))
