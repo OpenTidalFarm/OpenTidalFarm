@@ -254,7 +254,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
             tf = Function(turbine_field, name="turbine_friction", annotate=annotate)
 
         if turbine_thrust_parametrisation or implicit_turbine_thrust_parametrisation:
-            print "Adding thrust force"
+            print0("Adding thrust force")
             # Compute the upstream velocities
 
             if implicit_turbine_thrust_parametrisation:
@@ -354,7 +354,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
     # Do some parameter checking:
     if "dynamic_turbine_friction" in params["controls"]:
         if len(config.params["turbine_friction"]) != (params["finish_time"] - t) / dt + 1:
-            print "You control the turbine friction dynamically, but your turbine friction parameter is not an array of length 'number of timesteps' (here: %i)." % ((params["finish_time"] - t) / dt + 1)
+            print0("You control the turbine friction dynamically, but your turbine friction parameter is not an array of length 'number of timesteps' (here: %i)." % ((params["finish_time"] - t) / dt + 1))
             import sys
             sys.exit(1)
 
@@ -427,7 +427,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
             solver_parameters["newton_solver"]["relative_tolerance"] = 1e-16
 
             if not include_time_term:
-                info_red("Resetting the initial guess to the initial condition. Reason: You are running a multi steady state problem.")
+                print0("Resetting the initial guess for the nonlinear solver to the initial condition, because you are running a multi steady state problem.")
                 # Reset the initial guess after each timestep
                 ic = config.params['initial_condition']
                 state_new.assign(ic, annotate=False)
@@ -439,10 +439,10 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
                 solve(F == 0, state_new, solver_parameters=solver_parameters, annotate=annotate)
 
             if turbine_thrust_parametrisation or implicit_turbine_thrust_parametrisation:
-                print "Inflow velocity: ", u[0]((10, 160))
-                print "Estimated upstream velocity: ", up_u((640. / 3, 160))
-                print "Expected thrust force: ", thrust_force(u[0]((10, 160)), min=min)((0))
-                print "Total amount of thurst force applied: ", assemble(inner(Constant(1), thrust_force(up_u) * tf / config.turbine_cache.turbine_integral()) * dx)
+                print0("Inflow velocity: ", u[0]((10, 160)))
+                print0("Estimated upstream velocity: ", up_u((640. / 3, 160)))
+                print0("Expected thrust force: ", thrust_force(u[0]((10, 160)), min=min)((0)))
+                print0("Total amount of thurst force applied: ", assemble(inner(Constant(1), thrust_force(up_u) * tf / config.turbine_cache.turbine_integral()) * dx))
 
                 us.append(u[0]((10, 160)))
                 thrusts.append(thrust_force(u[0]((10, 160)))((0)))

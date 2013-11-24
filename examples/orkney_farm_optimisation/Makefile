@@ -1,7 +1,13 @@
 .PHONY: mesh 
 
-run: clean 
-	python sw.py
+unsteady: clean
+	unbuffer mpirun -n 8 python sw.py > unsteady_output.txt
+
+multisteady: clean
+	unbuffer mpirun -n 8 python sw_multisteady.py > multisteady_output.txt
+
+multisteady_masked: clean
+	unbuffer mpirun -n 8 python sw_multisteady_masked.py > multisteady_masked_output.txt
 
 mesh:	
 	cd mesh; make mesh

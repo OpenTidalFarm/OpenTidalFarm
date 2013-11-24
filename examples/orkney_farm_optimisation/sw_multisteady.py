@@ -1,14 +1,14 @@
 from opentidalfarm import *
-import ipopt
 import utm
 import uptide
 import uptide.tidal_netcdf
 from uptide.netcdf_reader import NetCDFInterpolator
 from math import pi
 import datetime
+import os.path
 utm_zone = 30
 utm_band = 'V'
-forward_only = True
+forward_only = False
 
 config = UnsteadyConfiguration("mesh/coast_idBoundary_utm.xml", [1, 1]) 
 config.params['initial_condition'] = ConstantFlowInitialCondition(config) 
@@ -72,29 +72,29 @@ V_dg0 = FunctionSpace(config.domain.mesh, 'DG', 0)
 
 bexpr = BathymetryDepthExpression('bathymetry.nc')
 depth = interpolate(bexpr, V_cg1) 
-depth_pvd = File("bathymetry.pvd")
+depth_pvd = File(os.path.join(config.params["base_path"], "bathymetry.pvd"))
 depth_pvd << depth
 
 config.params['depth'] = depth
-
 config.turbine_function_space = V_dg0 
 
 domains = MeshFunction("size_t", config.domain.mesh, "mesh/coast_idBoundary_utm_physical_region.xml")
 #plot(domains, interactive=True)
 config.site_dx = Measure("dx")[domains]
-f = File("turbine_farms.pvd")
+f = File(os.path.join(config.params["base_path"], "turbine_farms.pvd"))
 f << domains
 
 config.params["save_checkpoints"] = True
 config.info()
 
 rf = ReducedFunctional(config, scale=-1e-6)
+rf.load_checkpoint()
 
 if forward_only:
     print "Running forward model"
     m0 = rf.initial_control()
     j = rf.j(m0, annotate=False)
-    print "Finaly power: ", j
+    print "Power: ", j
 
 else:
   # The maximum friction is given by:
@@ -102,22 +102,5 @@ else:
   max_ct = 0.6*pi/2/9
   print "Maximum turbine friction: %f." % max_ct
 
-  class Problem(object):
-      def __init__(self, rf):
-          self.rf = rf
-
-      def objective(self, x):
-          return self.rf.j(x)
-
-      def gradient(self, x):
-          return self.rf.dj(x, forget=False)
-
-  m0 = rf.initial_control()
-  nlp = ipopt.problem(n=len(m0), 
-                      m=0, 
-                      problem_obj=Problem(rf),
-                      lb=[0]*len(m0),
-                      ub=[max_ct]*len(m0))
-
-  nlp.addOption("hessian_approximation", "limited-memory")
-  nlp.solve(m0)
+  rf = ReducedFunctional(config, scale=-1e-6)
+  m_opt = maximize(rf, bounds = [0, max_ct], options = {"maxiter": 300})
