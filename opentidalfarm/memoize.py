@@ -1,5 +1,5 @@
 import cPickle
-from helpers import cpu0only, info_red
+from helpers import cpu0only, info_red, print0
 import signal
 import os
 
@@ -36,7 +36,7 @@ class MemoizeMutable:
         if h not in self.memo:
             self.memo[h] = self.fn(*args, **kwds)
         else:
-            print "Using checkpoint value."
+            print0("Use checkpoint value.")
         return self.memo[h]
 
     def has_cache(self, *args, **kwds):
@@ -57,7 +57,7 @@ class MemoizeMutable:
             os._exit(sig)
 
         # Make sure we save successfully, even if the user sends a signal
-        print "Saving checkpoint..."
+        print "Save checkpoint."
         old_handler = signal.signal(signal.SIGINT, sig_save)
         cPickle.dump(self.memo, open(filename, "wb"))
         signal.signal(signal.SIGINT, old_handler)
