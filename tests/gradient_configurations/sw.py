@@ -58,7 +58,8 @@ for c in [DefaultConfiguration, SteadyConfiguration]:
 
     p = numpy.random.rand(len(m0))
     seed = 0.1
-    minconv = helpers.test_gradient_array(model.j, model.dj, m0, seed = seed, perturbation_direction = p, plot_file = "convergence_" + c.__name__ + ".pdf")
+    #minconv = helpers.test_gradient_array(model.j, model.dj, m0, seed = seed, perturbation_direction = p, plot_file = "convergence_" + c.__name__ + ".pdf")
+    minconv = helpers.test_gradient_array(model.j, model.dj, m0, seed = seed, perturbation_direction = p)
     if minconv < 1.9:
         info_red("The gradient taylor remainder test failed for the " + c.__name__ + " configuration.")
         sys.exit(1)
