@@ -114,6 +114,7 @@ class DefaultConfiguration(object):
         hmin = MPI.min(self.domain.mesh.hmin())
         hmax = MPI.max(self.domain.mesh.hmax())
         if MPI.process_number() == 0:
+            # Physical parameters
             print "\n=== Physical parameters ==="
             if isinstance(self.params["depth"], float):
                 print "Water depth: %f m" % self.params["depth"]
@@ -129,6 +130,8 @@ class DefaultConfiguration(object):
             print "Advection term: %s" % self.params["include_advection"]
             print "Diffusion term: %s" % self.params["include_diffusion"]
             print "Steady state: %s" % self.params["steady_state"]
+
+            # Turbine settings 
             print "\n=== Turbine settings ==="
             print "Number of turbines: %i" % len(self.params["turbine_pos"])
             print "Turbines parametrisation: %s" % self.params["turbine_parametrisation"]
@@ -137,6 +140,8 @@ class DefaultConfiguration(object):
             print "Control parameters: %s" % ', '.join(self.params["controls"])
             if len(self.params["turbine_friction"]) > 0:
                 print "Turbines frictions: %f - %f" % (min(self.params["turbine_friction"]), max(self.params["turbine_friction"]))
+
+            # Discretisation settings
             print "\n=== Discretisation settings ==="
             print "Finite element pair: ", self.finite_element.func_name
             print "Steady state: ", self.params["steady_state"]
@@ -147,11 +152,18 @@ class DefaultConfiguration(object):
                 print "Time step: %f s" % self.params["dt"]
             print "Number of mesh elements: %i" % self.domain.mesh.num_cells()
             print "Mesh element size: %f - %f" % (hmin, hmax)
+
+            # Optimisation settings
             print "\n=== Optimisation settings ==="
             print "Automatic functional rescaling: %s" % self.params["automatic_scaling"]
             if self.params["automatic_scaling"]:
                 print "Automatic functional rescaling multiplier: %s" % self.params["automatic_scaling_multiplier"]
             print "Automatic checkpoint generation: %s" % self.params["save_checkpoints"]
+            print ""
+
+            # Other 
+            print "\n=== Other ==="
+            print "Cache forward solution for initial solver guess: %s" % self.params["cache_forward_state"]
             print ""
 
     def set_site_dimensions(self, site_x_start, site_x_end, site_y_start, site_y_end):
@@ -220,8 +232,6 @@ class UnsteadyConfiguration(SteadyConfiguration):
 
         # Initial condition
         k = 2 * pi / (period * sqrt(self.params['g'] * self.params['depth']))
-        info('Wave period (in h): %f' % (period / 60 / 60))
-        info('Approximate CFL number (assuming a velocity of 2): ' + str(2 * self.params['dt'] / self.domain.mesh.hmin()))
         self.params['initial_condition'] = SinusoidalInitialCondition(self, eta0, k, self.params['depth'])
 
         # Boundary conditions
