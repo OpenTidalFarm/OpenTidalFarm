@@ -398,7 +398,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
                     j_individual.append(dt * quad * assemble(functional.Jt_individual(state, i)))
                     force_individual.append(dt * quad * assemble(functional.force_individual(state, i)))
 
-    print0("Starting time loop...")
+    print0("Start of time loop")
     adjointer.time.start(t)
     timestep = 0
     while (t < params["finish_time"]):
@@ -432,16 +432,16 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
             solver_parameters["newton_solver"]["relative_tolerance"] = 1e-16
 
             if cache_forward_state and state_cache.has_key(t):
-                print0("Loading initial guess from cache for time=%f." % t)
+                print0("Load initial guess from cache for time %f." % t)
                 # Load initial guess for solver from cache
                 state_new.assign(state_cache[t], annotate=False)
             elif not include_time_term:
-                print0("Setting the initial guess for the nonlinear solver to the initial condition.")
+                print0("Set the initial guess for the nonlinear solver to the initial condition.")
                 # Reset the initial guess after each timestep
                 ic = config.params['initial_condition']
                 state_new.assign(ic, annotate=False)
 
-            info_blue("Solving shallow water equations at time %s (Newton iteration) ..." % params["current_time"])
+            info_blue("Solve shallow water equations at time %s (Newton iteration) ..." % params["current_time"])
             if bctype == 'strong_dirichlet':
                 solve(F == 0, state_new, bcs=strong_bc.bcs, solver_parameters=solver_parameters, annotate=annotate)
             else:
@@ -508,7 +508,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
         state.assign(state_new)
         if cache_forward_state:
             # Save state for initial guess cache
-            print0("Caching initial guess for time=%f." % t)
+            print0("Cache initial guess for time %f." % t)
             if not state_cache.has_key(t):
                 state_cache[t] = Function(state_new.function_space())
             state_cache[t].assign(state_new, annotate=False)
@@ -521,7 +521,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
                 tf.assign(turbine_field)
 
         if params["dump_period"] > 0 and step % params["dump_period"] == 0:
-            print0("Writing state to disk...")
+            print0("Write state to disk...")
             writer.write(state)
 
         if functional is not None:
@@ -557,7 +557,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
 
         # Increase the adjoint timestep
         adj_inc_timestep(time=t, finished=(not t < params["finish_time"]))
-    print0("Ending time loop.")
+    print0("End of time loop.")
 
     # Write the turbine positions, power extraction and friction to a .csv file named turbine_info.csv
     if params['print_individual_turbine_power']:
