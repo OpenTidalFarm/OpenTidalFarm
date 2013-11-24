@@ -16,19 +16,25 @@ class MemoizeMutable:
         h1 = to_tuple(args)
         h2 = to_tuple(kwds.items())
         h = tuple([h1, h2])
-        # h = hash(h)  # We could hash it, but it is often useful to have the
-        # explicit turbine parameter -> functional value mapping
+        # Often useful to have a explicit 
+        # turbine parameter -> functional value mapping,
+        # i.e. no hashing on the key
+        if self.hash_keys:
+            h = hash(h)  
         return h
 
-    def __init__(self, fn):
+    def __init__(self, fn, hash_keys=False):
         self.fn = fn
         self.memo = {}
+        self.hash_keys = hash_keys
 
     def __call__(self, *args, **kwds):
         h = self.get_key(args, kwds)
 
         if h not in self.memo:
             self.memo[h] = self.fn(*args, **kwds)
+        else:
+            print "Using checkpoint value."
         return self.memo[h]
 
     def has_cache(self, *args, **kwds):
@@ -45,4 +51,7 @@ class MemoizeMutable:
         cPickle.dump(self.memo, open(filename, "wb"))
 
     def load_checkpoint(self, filename):
-        self.memo = cPickle.load(open(filename, "rb"))
+        try:
+            self.memo = cPickle.load(open(filename, "rb"))
+        except IOError:
+            info_red("Checkpoint file not found.")
