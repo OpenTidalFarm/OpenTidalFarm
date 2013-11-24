@@ -125,13 +125,13 @@ class ReducedFunctionalNumPy:
                 J = Functional(functional.Jt(state, dummy_tf) * dt[FINISH_TIME])
             elif config.params['functional_quadrature_degree'] == 0:
                 # Pseudo-redo the time loop to collect the necessary timestep information
-                timesteps = [0]
                 t = config.params["start_time"]
+                timesteps = [t]
                 while (t < config.params["finish_time"]):
-                    timesteps.append(timesteps[-1] + 1)
                     t += config.params["dt"]
-                # Remove the functional contribution from the initial condition. I think this is a bug in dolfin-adjoint, since really I expected del(0) here - but the Taylor tests pass only with del(1)!
-                timesteps.remove(1)
+                    timesteps.append(t)
+                # Remove the initial condition. I think this is a bug in dolfin-adjoint, since really I expected pop(0) here - but the Taylor tests pass only with pop(1)!
+                timesteps.pop(1)
 
                 # Construct the functional
                 J = Functional(sum(functional.Jt(state, dummy_tf) * dt[t] for t in timesteps))
