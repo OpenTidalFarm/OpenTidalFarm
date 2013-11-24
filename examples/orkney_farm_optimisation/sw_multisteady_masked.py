@@ -4,9 +4,11 @@ import utm
 import uptide
 import uptide.tidal_netcdf
 from uptide.netcdf_reader import NetCDFInterpolator
+from math import pi
 import datetime
 utm_zone = 30
 utm_band = 'V'
+forward_only = False
 
 config = UnsteadyConfiguration("mesh/coast_idBoundary_utm.xml", [1, 1]) 
 config.params['initial_condition'] = ConstantFlowInitialCondition(config) 
@@ -15,6 +17,7 @@ config.params["controls"] = ["turbine_friction"]
 config.params["turbine_parametrisation"] = "smooth"
 config.params["automatic_scaling"] = False 
 config.params['friction'] = Constant(0.0025)
+config.params['base_path'] = "results_multisteady_masked"
 
 # Perform only two timesteps
 config.params['include_time_term'] = False
@@ -92,8 +95,9 @@ indic_arr = vjump(depth_grad.vector().get_local())
 indic_arr *= domains.array() 
 
 domains.set_values(numpy.array(indic_arr, dtype=numpy.uintp))
+#plot(domains, interactive=True)
 config.site_dx = Measure("dx")[domains]
-f = File("turbine_mask.pvd")
+f = File("turbine_farms.pvd")
 f << domains
 
 config.params["save_checkpoints"] = True
@@ -101,31 +105,34 @@ config.info()
 
 rf = ReducedFunctional(config, scale=-1e-6)
 
-class Problem(object):
-    def __init__(self, rf):
-        self.rf = rf
+if forward_only:
+    print "Running forward model"
+    m0 = rf.initial_control()
+    j = rf.j(m0, annotate=False)
+    print "Finaly power: ", j
 
-    def objective(self, x):
-        return self.rf.j(x)
+else:
+  # The maximum friction is given by:
+  # c_B = c_T*A_Cross / (2*A) = 0.6*pi*D**2/(2*9D**2) 
+  max_ct = 0.6*pi/2/9
+  print "Maximum turbine friction: %f." % max_ct
 
-    def gradient(self, x):
-        return self.rf.dj(x, forget=False)
+  class Problem(object):
+      def __init__(self, rf):
+          self.rf = rf
 
-    def constraints(self, x):
-        return [sum(x)]
+      def objective(self, x):
+          return self.rf.j(x)
 
-    def jacobian(self, x):
-        return [[1]*len(x)]
+      def gradient(self, x):
+          return self.rf.dj(x, forget=False)
 
+  m0 = rf.initial_control()
+  nlp = ipopt.problem(n=len(m0), 
+                      m=0, 
+                      problem_obj=Problem(rf),
+                      lb=[0]*len(m0),
+                      ub=[max_ct]*len(m0))
 
-m0 = rf.initial_control()
-nlp = ipopt.problem(n=len(m0), 
-                    m=0, 
-                    problem_obj=Problem(rf),
-                    lb=[0]*len(m0),
-                    ub=[1]*len(m0),
-                    cl=[0],
-                    cu=[1000])
-
-nlp.addOption("hessian_approximation", "limited-memory")
-nlp.solve(m0)
+  nlp.addOption("hessian_approximation", "limited-memory")
+  nlp.solve(m0)
