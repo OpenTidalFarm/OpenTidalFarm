@@ -1,11 +1,13 @@
 #!/usr/bin/python
 ''' This test checks the derivatives of the inequality contraints for the domain constraint. '''
 from opentidalfarm import *
+import opentidalfarm.domains
 import numpy
 import sys
 import math
 
 config = configuration.DefaultConfiguration(nx=100, ny=50)
+config.set_domain(opentidalfarm.domains.RectangularDomain(3000, 1000, 100, 50))
 config.params["controls"] = ['turbine_pos']
 
 class TurbineSite(SubDomain):
@@ -44,4 +46,4 @@ eps = 2.
 grad = ieqcons_dJ(x)
 assert (((ieqcons_J(x+eps*hy) - ieqcons_J(x))/eps) - grad[1])/grad[1] < 1e-10
 
-info_green("Test passed")    
+info_green("Test passed")

@@ -1,12 +1,14 @@
 from opentidalfarm import *
-#import ipopt
+import ipopt
 import utm
 import uptide
 import uptide.tidal_netcdf
 from uptide.netcdf_reader import NetCDFInterpolator
+from math import pi
 import datetime
 utm_zone = 30
 utm_band = 'V'
+forward_only = True
 
 config = UnsteadyConfiguration("mesh/coast_idBoundary_utm.xml", [1, 1]) 
 config.params['initial_condition'] = ConstantFlowInitialCondition(config) 
@@ -15,6 +17,7 @@ config.params["controls"] = ["turbine_friction"]
 config.params["turbine_parametrisation"] = "smooth"
 config.params["automatic_scaling"] = False 
 config.params['friction'] = Constant(0.0025)
+config.params['base_path'] = "results_unsteady"
 
 config.params['start_time'] = 0 
 config.params['dt'] = 600 
@@ -61,56 +64,57 @@ class BathymetryDepthExpression(Expression):
     latlon = utm.to_latlon(x[0], x[1], utm_zone, utm_band)
     values[0] = max(10, -self.nci.get_val(latlon))
 
+V_cg1 = FunctionSpace(config.domain.mesh, "CG", 1)
+V_dg0 = FunctionSpace(config.domain.mesh, 'DG', 0)
+
 bexpr = BathymetryDepthExpression('bathymetry.nc')
-depth = interpolate(bexpr, FunctionSpace(config.domain.mesh, "CG", 1))
+depth = interpolate(bexpr, V_cg1) 
 depth_pvd = File("bathymetry.pvd")
 depth_pvd << depth
 
 config.params['depth'] = depth
 
-config.turbine_function_space = FunctionSpace(config.domain.mesh, 'DG', 0)
+config.turbine_function_space = V_dg0 
 
 domains = MeshFunction("size_t", config.domain.mesh, "mesh/coast_idBoundary_utm_physical_region.xml")
 #plot(domains, interactive=True)
 config.site_dx = Measure("dx")[domains]
+f = File("turbine_farms.pvd")
+f << domains
 
+config.params["save_checkpoints"] = True
 config.info()
 
 rf = ReducedFunctional(config, scale=-1e-6)
 
-print "Running forward model"
-m0 = rf.initial_control()
-rf.j(m0, annotate=False)
-print "Finished"
-import sys; sys.exit(1)
+if forward_only:
+    print "Running forward model"
+    m0 = rf.initial_control()
+    j = rf.j(m0, annotate=False)
+    print "Finaly power: ", j
 
-#maximize(rf, bounds=(0, 1))
+else:
+  # The maximum friction is given by:
+  # c_B = c_T*A_Cross / (2*A) = 0.6*pi*D**2/(2*9D**2) 
+  max_ct = 0.6*pi/2/9
+  print "Maximum turbine friction: %f." % max_ct
 
-#class Problem(object):
-#    def __init__(self, rf):
-#        self.rf = rf
-#
-#    def objective(self, x):
-#        return self.rf.j(x)
-#
-#    def gradient(self, x):
-#        return self.rf.dj(x, forget=False)
-#
-#    def constraints(self, x):
-#        return [sum(x)]
-#
-#    def jacobian(self, x):
-#        return [[1]*len(x)]
-#
-#
-#
-#nlp = ipopt.problem(n=len(m0), 
-#                    m=0, 
-#                    problem_obj=Problem(rf),
-#                    lb=[0]*len(m0),
-#                    ub=[1]*len(m0),
-#                    cl=[0],
-#                    cu=[1000])
-#
-#nlp.addOption("hessian_approximation", "limited-memory")
-#nlp.solve(m0)
+  class Problem(object):
+      def __init__(self, rf):
+          self.rf = rf
+
+      def objective(self, x):
+          return self.rf.j(x)
+
+      def gradient(self, x):
+          return self.rf.dj(x, forget=False)
+
+  m0 = rf.initial_control()
+  nlp = ipopt.problem(n=len(m0), 
+                      m=0, 
+                      problem_obj=Problem(rf),
+                      lb=[0]*len(m0),
+                      ub=[max_ct]*len(m0))
+
+  nlp.addOption("hessian_approximation", "limited-memory")
+  nlp.solve(m0)

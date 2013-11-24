@@ -14,6 +14,13 @@ config = SteadyConfiguration("mesh.xml", inflow_direction=inflow_direction)
 config.functional = PowerCurveFunctional
 config.params['turbine_thrust_parametrisation'] = True
 config.params['initial_condition'] = ConstantFlowInitialCondition(config)
+k = pi/basin_x
+config.params["flather_bc_expr"] = Expression(("2*eta0*sqrt(g/depth)*cos(-sqrt(g*depth)*k*t)", "0"), 
+                                 eta0=2., 
+                                 g=config.params["g"], 
+                                 depth=config.params["depth"], 
+                                 t=config.params["current_time"], 
+                                 k=k)
 
 # Place one turbine 
 turbine_pos = [[basin_x/3-25, basin_y/2], 

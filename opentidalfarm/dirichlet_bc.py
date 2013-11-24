@@ -1,5 +1,5 @@
 from dolfin import *
-from helpers import info, info_green, info_red, info_blue
+
 
 class DirichletBCSet:
 
@@ -28,19 +28,19 @@ class DirichletBCSet:
 
     def add_analytic_u(self, label, expression):
         if self.config.params['steady_state']:
-            raise ValueError, 'Can not apply a time dependent boundary condition for a steady state simulation.'
+            raise ValueError('Can not apply a time dependent boundary condition for a steady state simulation.')
         self.expressions.append(expression)
 
         self.bcs.append(DirichletBC(self.function_space.sub(0), expression, self.config.domain.boundaries, label))
 
-    def add_constant_flow(self, label, magnitude, direction = [1, 0]):
-        norm = sqrt(direction[0]**2 + direction[1]**2)
-        self.constant_inflow_bcs.append(Expression(("ux","uy"), ux=direction[0]*magnitude/norm, uy=direction[1]*magnitude/norm))
+    def add_constant_flow(self, label, magnitude, direction=[1, 0]):
+        norm = sqrt(direction[0] ** 2 + direction[1] ** 2)
+        self.constant_inflow_bcs.append(Expression(("ux", "uy"), ux=direction[0] * magnitude / norm, uy=direction[1] * magnitude / norm))
         self.bcs.append(DirichletBC(self.function_space.sub(0), self.constant_inflow_bcs[-1], self.config.domain.boundaries, label))
 
     def add_analytic_eta(self, label, expression):
         if self.config.params['steady_state']:
-            raise ValueError, 'Can not apply a time dependent boundary condition for a steady state simulation.'
+            raise ValueError('Can not apply a time dependent boundary condition for a steady state simulation.')
         self.expressions.append(expression)
         self.bcs.append(DirichletBC(self.function_space.sub(1), expression, self.config.domain.boundaries, label))
 
@@ -57,7 +57,7 @@ class DirichletBCSet:
                 return bool(x[1] < DOLFIN_EPS and x[1] > -DOLFIN_EPS and on_boundary)
 
             def map(self, x, y):
-                y[1] = x[1] - config.domain.basin_y 
+                y[1] = x[1] - config.domain.basin_y
                 y[0] = x[0]
 
         pbc = PeriodicBoundary()

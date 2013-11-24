@@ -2,6 +2,7 @@
 
 import sys
 from opentidalfarm import *
+import opentidalfarm.domains
 set_log_level(ERROR)
 
 for c in [DefaultConfiguration, SteadyConfiguration]:
@@ -10,7 +11,15 @@ for c in [DefaultConfiguration, SteadyConfiguration]:
         config = c("mesh.xml", inflow_direction = [1, 1])
     else:
         config = c(nx = 15, ny = 15)
+        config.set_domain(opentidalfarm.domains.RectangularDomain(3000, 1000, 15, 15))
     config.params['finish_time'] = config.params["start_time"] + 2*config.params["dt"]
+
+    config.params["flather_bc_expr"] = Expression(("2*eta0*sqrt(g/depth)*cos(-sqrt(g*depth)*k*t)", "0"), 
+                                     eta0=2., 
+                                     g=config.params["g"], 
+                                     depth=config.params["depth"], 
+                                     t=config.params["current_time"], 
+                                     k=pi / 3000)
 
     # Deploy some turbines 
     turbine_pos = [] 

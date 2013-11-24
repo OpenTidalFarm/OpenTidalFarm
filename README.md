@@ -39,7 +39,7 @@ Note: This installation procedure assumes that you are running the [Ubuntu](http
 The installation consists of following steps
 
 1. Download and install the dependencies:
-    - [FEniCS project >=1.2](http://fenicsproject.org/download/) 
+    - [FEniCS project >=1.2](http://fenicsproject.org/download/) (Follow the Ubuntu PPA installation order to get a recent installation)
     - [dolfin-adjoint](http://dolfin-adjoint.org/download/index.html).
     - [SciPy Version >=0.11](https://github.com/scipy/scipy) - e.g. with `pip install scipy`.
 2. [Download OpenTidalFarm](https://github.com/funsim/OpenTidalFarm/zipball/master) and extract it.
@@ -72,7 +72,7 @@ Following example code shows how to optimise the position of 32 turbines in a me
 ```python
 from opentidalfarm import *
 
-config = SteadyConfiguration("mesh/earth_orkney_converted_coarse.xml", inflow_direction=[0.9865837220518425, -0.16325611591095968])
+config = SteadyConfiguration("mesh/earth_orkney_converted.xml", inflow_direction=[0.9865837220518425, -0.16325611591095968])
 config.params['diffusion_coef'] = 90.0
 config.params['turbine_x'] = 40.
 config.params['turbine_y'] = 40.
@@ -87,7 +87,7 @@ site_y_start = 6.52246e+06 - site_y
 config.set_site_dimensions(site_x_start, site_x_start + site_x, site_y_start, site_y_start + site_y)
 
 # Place 32 turbines in a regular grid, each with a maximum friction coefficient of 10.5
-deploy_turbines(config, nx = 8, ny = 4, friction=10.5)
+deploy_turbines(config, nx=8, ny=4, friction=10.5)
 
 # Define some constraints for the optimisation positions.
 # Constraint to keep the turbines within the site area 
@@ -96,8 +96,8 @@ lb, ub = position_constraints(config)
 ineq = get_minimum_distance_constraint_func(config)
 
 # Solve the optimisation problem
-rf = ReducedFunctional(config, plot = True)
-maximize(rf, bounds = [lb, ub], constraints = ineq, method = "SLSQP")
+rf = ReducedFunctional(config, plot=True)
+maximize(rf, bounds=[lb, ub], constraints=ineq, method="SLSQP")
 ```
 
 This example can be found in the `examples/tutorial` directory and can be executed by running `make mesh && make`.
@@ -106,6 +106,23 @@ The output files are:
 * turbine.pvd: The turbine positions at each optimisation step
 * p2p1_u.pvd: The velocity function for the most recent turbine position calculation. 
 * p2p1_p.pvd: The free-surface displacement function for the most recent turbine position calculation.
+
+If you only want to compute the power production for the given layout (without optimising), replace the ast code line above with:
+```python
+# Switch off the computation of the automatic scaling factor (requires one adjoint solve), as it is needed only for the optimisation
+config.params['automatic_scaling'] = False 
+
+# Retrieve the initial control values (here: turbine positions) 
+m0 = rf.initial_control()  
+
+# Store the turbine positions as a pvd file 
+rf.update_turbine_cache(m0)
+File("turbines.pvd") << config.turbine_cache.cache["turbine_field"]
+
+# Compute the extracted power from the flow
+print "Power extraction: %f MW" % rf.j(m0)
+```
+
 
 Documentation
 =============

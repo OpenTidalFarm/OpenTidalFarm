@@ -1,6 +1,7 @@
 import sys
 from opentidalfarm import *
 from opentidalfarm.initial_conditions import SinusoidalInitialCondition
+import opentidalfarm.domains
 from dolfin_adjoint import adj_reset
 from math import log
 
@@ -17,7 +18,7 @@ def error(config, eta0, k):
   source = Expression(("friction/depth * " + u_exact, 
                        "0.0"), \
                        eta0=eta0, g=config.params["g"], \
-                       depth=config.params["depth"], t=config.params["current_time"], k=k, friction = config.params["friction"])
+                       depth=config.params["depth"], t=config.params["current_time"], k=k, friction=config.params["friction"])
 
   adj_reset()
   shallow_water_model.sw_solve(config, state, annotate=False, u_source = source)
@@ -25,15 +26,16 @@ def error(config, eta0, k):
   analytic_sol = Expression((u_exact, \
                              "0", \
                              eta_exact), \
-                             eta0=config.params["eta0"], g=config.params["g"], \
-                             depth=config.params["depth"], t=config.params["current_time"], k=config.params["k"])
+                             eta0=eta0, g=config.params["g"], \
+                             depth=config.params["depth"], t=config.params["current_time"], k=k)
   exactstate = Function(config.function_space)
   exactstate.interpolate(analytic_sol)
   e = state - exactstate
   return sqrt(assemble(dot(e,e)*dx))
 
-def test(refinment_level):
-  config = configuration.DefaultConfiguration(nx=2*2**refinment_level, ny=2*2**refinment_level, finite_element = finite_elements.p1dgp2) 
+def test(refinement_level):
+  config = configuration.DefaultConfiguration(nx=2*2**refinement_level, ny=2*2**refinement_level, finite_element = finite_elements.p1dgp2) 
+  config.set_domain(opentidalfarm.domains.RectangularDomain(3000, 1000, 2*2**refinement_level, 2*2**refinement_level))
   eta0 = 2.0
   k = pi/config.domain.basin_x
   config.params["finish_time"] = pi/(sqrt(config.params["g"]*config.params["depth"])*k)/10
@@ -41,13 +43,19 @@ def test(refinment_level):
   config.params["dump_period"] = 100000
   config.params["friction"] = 0.25 
   config.params["quadratic_friction"] = False
+  config.params["flather_bc_expr"] = Expression(("2*eta0*sqrt(g/depth)*cos(-sqrt(g*depth)*k*t)", "0"), 
+                                                 eta0=eta0, 
+                                                 g=config.params["g"], 
+                                                 depth=config.params["depth"], 
+                                                 t=config.params["current_time"], 
+                                                 k=k)
 
   return error(config, eta0, k)
 
 errors = []
 tests = 5
-for refinment_level in range(1, tests):
-  errors.append(test(refinment_level))
+for refinement_level in range(1, tests):
+  errors.append(test(refinement_level))
 # Compute the order of convergence 
 conv = [] 
 for i in range(len(errors)-1):
