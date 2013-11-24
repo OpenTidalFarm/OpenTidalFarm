@@ -1,6 +1,7 @@
 import cPickle
-from helpers import cpu0only
-
+from helpers import cpu0only, info_red
+import signal
+import os
 
 def to_tuple(obj):
     if hasattr(obj, '__iter__'):
@@ -24,6 +25,7 @@ class MemoizeMutable:
         return h
 
     def __init__(self, fn, hash_keys=False):
+        ''' sigint_save: Create a checkpoint file in case a sigint signal is received. '''
         self.fn = fn
         self.memo = {}
         self.hash_keys = hash_keys
@@ -48,10 +50,20 @@ class MemoizeMutable:
 
     @cpu0only
     def save_checkpoint(self, filename):
+        def sig_save(sig, stack):
+            print "Received signal %i. Writing final checkpoint to disk before exiting..." % sig
+            cPickle.dump(self.memo, open(filename, "wb"))
+            print "Checkpoint writing finished. Bye."
+            os._exit(sig)
+
+        # Make sure we save successfully, even if the user sends a signal
+        print "Saving checkpoint..."
+        old_handler = signal.signal(signal.SIGINT, sig_save)
         cPickle.dump(self.memo, open(filename, "wb"))
+        signal.signal(signal.SIGINT, old_handler)
 
     def load_checkpoint(self, filename):
         try:
             self.memo = cPickle.load(open(filename, "rb"))
         except IOError:
-            info_red("Checkpoint file not found.")
+            info_red("Warning: Checkpoint file '%s' not found." % filename)
