@@ -98,7 +98,6 @@ class AnalyticalWake(Expression):
         flow_velocity = self._flow_magnitude_at(turbines[index])
         reduction_factor = self._combined_factor(turbines[index],
                                                  turbines_to_check)
-        return reduction_factor
         return self._power_of(flow_velocity*reduction_factor)
 
 
@@ -134,22 +133,13 @@ class AnalyticalWake(Expression):
             # if the turbines[i] is in the wake of other turbines, calculate the
             # power at that point due to the combined wakes
             if to_check[i] is not None:
-                ind = self._individual_power(turbines, i, to_check[i])
-                if self.diff:
-                    import IPython as ip
-                    ip.embed()
-                total += ind
+                total += self._individual_power(turbines, i, to_check[i])
                 #total += self._individual_power(turbines, i, to_check[i])
             # else there is no reduction factor so we can take the power of the
             # flow magnitude at that point
             else:
-                ind = self.model.individual_factor(0,0)
-                if self.diff:
-                    import IPython as ip
-                    ip.embed()
-                total += ind
-                #total += self._power_of(self._flow_magnitude_at(turbines[i])
-                                       #*self.model.individual_factor(0,0))
+                total += self._power_of(self._flow_magnitude_at(turbines[i])
+                                       *self.model.individual_factor(0,0))
         return total
 
 
@@ -186,11 +176,10 @@ class AnalyticalWake(Expression):
             Combines factors using a modified sum of squares which allows for
             factors greater than 1
             """
-            return sum(factors)
-            #ret = 1.
-            #for f in factors:
-                #ret = ret*f
-            #return ret
+            ret = 1.
+            for f in factors:
+                ret = ret*f
+            return ret
             #max_factor = max(factors)
             #fac = max_factor if max_factor > 1 else 1.
             #for i in range(len(factors)):
@@ -203,12 +192,8 @@ class AnalyticalWake(Expression):
             y0 = self.model.dist_from_wake_center(t, point)
             factors.append(self.model.individual_factor(x0,y0))
 
-        ret = _combine(factors)
-        ret = ret*self.model.individual_factor(0,0)
-        return ret
-        # include the factor of the turbine we're looking at
-        #factors.append(self.model.individual_factor(0,0))
-        # combine using modified sum of squares
+        # include the effect a turbine has on itself
+        factors.append(self.model.individual_factor(0,0))
         return _combine(factors)
 
 
@@ -224,9 +209,8 @@ class AnalyticalWake(Expression):
         """
         Returns the power given the speed
         """
-        fac = 1.5e6/(3**3)
-        power = fac*speed**3
-        return power if power < 1.5e6 else 1.5e6
+        fac = 7327469.66
+        return fac*speed**3
 
 
     def _within_radius(self, turbine, point, radius):
