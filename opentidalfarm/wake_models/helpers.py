@@ -30,10 +30,12 @@ class ADDolfinVec(object):
                                        "DG", order - 1)
 
         # get first order derivatives
+        dolfin.info("Calculating first order derivatives ...")
         self.dx = dolfin.project(self.f.dx(0), V)
         self.dy = dolfin.project(self.f.dx(1), V)
         self.grad = [self.dx, self.dy]
         # second order derivatives and second order cross derivatives
+        dolfin.info("Calculating second order derivatives ...")
         self.d2xx = dolfin.project(self.grad[0].dx(0), V)
         self.d2yy = dolfin.project(self.grad[1].dx(1), V)
         self.d2xy = dolfin.project(self.grad[0].dx(1), V)
@@ -94,10 +96,12 @@ class ADDolfinExpression(object):
         V = dolfin.VectorFunctionSpace(self.f.function_space().mesh(),
                                        "DG", order - 1)
 
+        dolfin.info("Calculating first order derivatives ...")
         self.first_deriv = dolfin.project(dolfin.grad(self.f), V)
         # split to get df/dx and df/dy
         dfdx, dfdy = self.first_deriv.split()
         # get second derivative in x and y
+        dolfin.info("Calculating second order derivatives ...")
         second_deriv_x = dolfin.project(dolfin.grad(dfdx), V)
         second_deriv_y = dolfin.project(dolfin.grad(dfdy), V)
         # get cross derivative; [df/(dxdy) = df/(dydx)]
