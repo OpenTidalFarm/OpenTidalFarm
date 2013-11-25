@@ -33,7 +33,8 @@ class ApproximateShallowWater(Model):
             config.params['theta'] = 1.0
             config.params["dump_period"] = 0
 
-            mesh = dolfin.RectangleMesh(-800, -800, 800, 800, 100, 100)
+            b = 500.
+            mesh = dolfin.RectangleMesh(-b, -b, b, b, 100, 100)
             V, H = config.finite_element(mesh)
             config.function_space = dolfin.MixedFunctionSpace([V, H])
             config.turbine_function_space = dolfin.FunctionSpace(mesh, 'CG', 2)
@@ -121,7 +122,7 @@ class ApproximateShallowWater(Model):
         """
         Fixed value
         """
-        return 800.
+        return 500.
 
 
     def individual_factor(self, x0, y0):
@@ -135,4 +136,4 @@ class ApproximateShallowWater(Model):
         """
         Fixed value
         """
-        return 800.
+        return 500.
