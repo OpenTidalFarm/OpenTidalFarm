@@ -5,6 +5,10 @@ from dolfin_adjoint import *
 from helpers import info, info_green, info_red, info_blue, print0, StateWriter
 import ufl
 
+# If cache_for_nonlinear_initial_guess is true, then we store all intermediate
+# state variables in this dictionary to be used for the next solve
+state_cache = {}
+
 # Some global variables for plotting the thurst plot - just for testing purposes
 us = []
 thrusts = []
@@ -127,6 +131,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
     is_nonlinear = (include_advection or quadratic_friction)
     turbine_thrust_parametrisation = params["turbine_thrust_parametrisation"]
     implicit_turbine_thrust_parametrisation = params["implicit_turbine_thrust_parametrisation"]
+    cache_forward_state = params["cache_forward_state"]
 
     if not 0 <= functional_quadrature_degree <= 1:
         raise ValueError("functional_quadrature_degree must be 0 or 1.")
@@ -254,7 +259,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
             tf = Function(turbine_field, name="turbine_friction", annotate=annotate)
 
         if turbine_thrust_parametrisation or implicit_turbine_thrust_parametrisation:
-            print "Adding thrust force"
+            print0("Adding thrust force")
             # Compute the upstream velocities
 
             if implicit_turbine_thrust_parametrisation:
@@ -354,7 +359,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
     # Do some parameter checking:
     if "dynamic_turbine_friction" in params["controls"]:
         if len(config.params["turbine_friction"]) != (params["finish_time"] - t) / dt + 1:
-            print "You control the turbine friction dynamically, but your turbine friction parameter is not an array of length 'number of timesteps' (here: %i)." % ((params["finish_time"] - t) / dt + 1)
+            print0("You control the turbine friction dynamically, but your turbine friction parameter is not an array of length 'number of timesteps' (here: %i)." % ((params["finish_time"] - t) / dt + 1))
             import sys
             sys.exit(1)
 
@@ -367,8 +372,9 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
             statewriter_cb = None 
 
         writer = StateWriter(config, optimisation_iteration=config.optimisation_iteration, callback=statewriter_cb)
-        print0("Writing state to disk...")
-        writer.write(state)
+        if not steady_state and include_time_term:
+            print0("Writing state to disk...")
+            writer.write(state)
 
     step = 0
 
@@ -392,7 +398,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
                     j_individual.append(dt * quad * assemble(functional.Jt_individual(state, i)))
                     force_individual.append(dt * quad * assemble(functional.force_individual(state, i)))
 
-    print0("Starting time loop...")
+    print0("Start of time loop")
     adjointer.time.start(t)
     timestep = 0
     while (t < params["finish_time"]):
@@ -425,23 +431,27 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
             solver_parameters["newton_solver"]["convergence_criterion"] = "incremental"
             solver_parameters["newton_solver"]["relative_tolerance"] = 1e-16
 
-            if not include_time_term:
-                info_red("Resetting the initial guess to the initial condition. Reason: You are running a multi steady state problem.")
+            if cache_forward_state and state_cache.has_key(t):
+                print0("Load initial guess from cache for time %f." % t)
+                # Load initial guess for solver from cache
+                state_new.assign(state_cache[t], annotate=False)
+            elif not include_time_term:
+                print0("Set the initial guess for the nonlinear solver to the initial condition.")
                 # Reset the initial guess after each timestep
                 ic = config.params['initial_condition']
                 state_new.assign(ic, annotate=False)
 
-            info_blue("Solving shallow water equations at time %s (Newton iteration) ..." % params["current_time"])
+            info_blue("Solve shallow water equations at time %s (Newton iteration) ..." % params["current_time"])
             if bctype == 'strong_dirichlet':
                 solve(F == 0, state_new, bcs=strong_bc.bcs, solver_parameters=solver_parameters, annotate=annotate)
             else:
                 solve(F == 0, state_new, solver_parameters=solver_parameters, annotate=annotate)
 
             if turbine_thrust_parametrisation or implicit_turbine_thrust_parametrisation:
-                print "Inflow velocity: ", u[0]((10, 160))
-                print "Estimated upstream velocity: ", up_u((640. / 3, 160))
-                print "Expected thrust force: ", thrust_force(u[0]((10, 160)), min=min)((0))
-                print "Total amount of thurst force applied: ", assemble(inner(Constant(1), thrust_force(up_u) * tf / config.turbine_cache.turbine_integral()) * dx)
+                print0("Inflow velocity: ", u[0]((10, 160)))
+                print0("Estimated upstream velocity: ", up_u((640. / 3, 160)))
+                print0("Expected thrust force: ", thrust_force(u[0]((10, 160)), min=min)((0)))
+                print0("Total amount of thurst force applied: ", assemble(inner(Constant(1), thrust_force(up_u) * tf / config.turbine_cache.turbine_integral()) * dx))
 
                 us.append(u[0]((10, 160)))
                 thrusts.append(thrust_force(u[0]((10, 160)))((0)))
@@ -496,6 +506,12 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
 
         # After the timestep solve, update state
         state.assign(state_new)
+        if cache_forward_state:
+            # Save state for initial guess cache
+            print0("Cache initial guess for time %f." % t)
+            if not state_cache.has_key(t):
+                state_cache[t] = Function(state_new.function_space())
+            state_cache[t].assign(state_new, annotate=False)
 
         # Set the control function for the upcoming timestep.
         if turbine_field:
@@ -505,7 +521,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
                 tf.assign(turbine_field)
 
         if params["dump_period"] > 0 and step % params["dump_period"] == 0:
-            print0("Writing state to disk...")
+            print0("Write state to disk...")
             writer.write(state)
 
         if functional is not None:
@@ -541,8 +557,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
 
         # Increase the adjoint timestep
         adj_inc_timestep(time=t, finished=(not t < params["finish_time"]))
-        print0("New timestep t = %f" % t)
-    print0("Ending time loop.")
+    print0("End of time loop.")
 
     # Write the turbine positions, power extraction and friction to a .csv file named turbine_info.csv
     if params['print_individual_turbine_power']:

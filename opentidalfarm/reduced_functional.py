@@ -134,19 +134,25 @@ class ReducedFunctionalNumPy:
 
             if config.params['steady_state'] or config.params["functional_final_time_only"]:
                 J = Functional(functional.Jt(state, dummy_tf) * dt[FINISH_TIME])
+
             elif config.params['functional_quadrature_degree'] == 0:
                 # Pseudo-redo the time loop to collect the necessary timestep information
-                timesteps = [0]
                 t = config.params["start_time"]
+                timesteps = [t]
                 while (t < config.params["finish_time"]):
-                    timesteps.append(timesteps[-1] + 1)
                     t += config.params["dt"]
-                # Remove the functional contribution from the initial condition. I think this is a bug in dolfin-adjoint, since really I expected del(0) here - but the Taylor tests pass only with del(1)!
-                timesteps.remove(1)
+                    timesteps.append(t)
+
+                if not config.params["include_time_term"]:
+                    # Remove the initial condition. I think this is a bug in dolfin-adjoint, since really I expected pop(0) here - but the Taylor tests pass only with pop(1)!
+                    timesteps.pop(1)
 
                 # Construct the functional
                 J = Functional(sum(functional.Jt(state, dummy_tf) * dt[t] for t in timesteps))
+
             else:
+                if not config.params["include_time_term"]:
+                    raise NotImplementedError, "Multi-steady state simulations only work with 'functional_quadrature_degree=0' or 'functional_final_time_only=True'" 
                 J = Functional(functional.Jt(state, dummy_tf) * dt)
 
             if 'dynamic_turbine_friction' in config.params["controls"]:
@@ -212,9 +218,13 @@ class ReducedFunctionalNumPy:
             m_dot = project(Constant(1), config.turbine_function_space)
             return H(m_dot)
 
-        self.compute_functional_mem = memoize.MemoizeMutable(compute_functional)
-        self.compute_gradient_mem = memoize.MemoizeMutable(compute_gradient)
-        self.compute_hessian_action_mem = memoize.MemoizeMutable(compute_hessian_action)
+        # For smooth turbine parametrisations we only want to store the 
+        # hash of the control values into the pickle datastructure
+        hash_keys = (config.params["turbine_parametrisation"] == "smooth")
+
+        self.compute_functional_mem = memoize.MemoizeMutable(compute_functional, hash_keys)
+        self.compute_gradient_mem = memoize.MemoizeMutable(compute_gradient, hash_keys)
+        self.compute_hessian_action_mem = memoize.MemoizeMutable(compute_hessian_action, hash_keys)
 
     def update_turbine_cache(self, m):
         ''' Reconstructs the parameters from the flattened parameter array m and updates the configuration. '''
@@ -242,13 +252,15 @@ class ReducedFunctionalNumPy:
 
     def save_checkpoint(self, base_filename):
         ''' Checkpoint the reduceduced functional from which can be used to restart the turbine optimisation. '''
-        self.compute_functional_mem.save_checkpoint(base_filename + "_fwd.dat")
-        self.compute_gradient_mem.save_checkpoint(base_filename + "_adj.dat")
+        base_path = os.path.join(self.__config__.params["base_path"], base_filename)
+        self.compute_functional_mem.save_checkpoint(base_path + "_fwd.dat")
+        self.compute_gradient_mem.save_checkpoint(base_path + "_adj.dat")
 
     def load_checkpoint(self, base_filename='checkpoint'):
         ''' Checkpoint the reduceduced functional from which can be used to restart the turbine optimisation. '''
-        self.compute_functional_mem.load_checkpoint(base_filename + "_fwd.dat")
-        self.compute_gradient_mem.load_checkpoint(base_filename + "_adj.dat")
+        base_path = os.path.join(self.__config__.params["base_path"], base_filename)
+        self.compute_functional_mem.load_checkpoint(base_path + "_fwd.dat")
+        self.compute_gradient_mem.load_checkpoint(base_path + "_adj.dat")
 
     def j(self, m, annotate=True):
         ''' This memoised function returns the functional value for the parameter choice m. '''

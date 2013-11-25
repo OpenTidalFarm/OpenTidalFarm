@@ -82,7 +82,7 @@ for i in range(len(errors)-1):
   conv.append(abs(math.log(errors[i+1]/errors[i], 2)))
 
 # Plot the result
-save_convergence_plot(errors, dts, "Temporal rate of convergence", "Temporal error", order = 1.0, show_title = False, xlabel = "Time step [s]")
+#save_convergence_plot(errors, dts, "Temporal rate of convergence", "Temporal error", order = 1.0, show_title = False, xlabel = "Time step [s]")
 
 info_green("Errors: %s.", str(errors))
 info_green("Temporal order of convergence (expecting 1.0): %s" % str(conv))

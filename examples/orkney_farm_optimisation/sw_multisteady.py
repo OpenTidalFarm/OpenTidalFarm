@@ -7,18 +7,21 @@ test_gradient = False
 
 config = UnsteadyConfiguration("mesh/coast_idBoundary_utm.xml", [1, 1]) 
 config.params['initial_condition'] = ConstantFlowInitialCondition(config) 
-config.params['diffusion_coef'] = 180.0
+config.params['diffusion_coef'] = Constant(250.0)
 config.params["controls"] = ["turbine_friction"]
 config.params["turbine_parametrisation"] = "smooth"
 config.params["automatic_scaling"] = False 
 config.params['friction'] = Constant(0.0025)
 config.params['cache_forward_state'] = True
-config.params['base_path'] = "results_unsteady"
+config.params['base_path'] = "results_multisteady"
 
-config.params['start_time'] = 0 
-config.params['dt'] = 600 * 3 * 2
-config.params['finish_time'] = 12.5 * 60 * 60 / 2 
+# Perform only two timesteps
+config.params['include_time_term'] = False
+config.params['start_time'] = -1 * 16 * 600 
+config.params['dt'] = 2 * 16 * 600 
+config.params['finish_time'] = 3 * 16 * 600 
 config.params['theta'] = 1.0 
+config.params['functional_quadrature_degree'] = 0
 
 # Tidal boundary forcing
 bc = DirichletBCSet(config)
@@ -27,7 +30,7 @@ eta_expr = TidalForcing()
 bc.add_analytic_eta(1, eta_expr)
 bc.add_analytic_eta(2, eta_expr)
 # comment out if you want free slip:
-#bc.add_noslip_u(3)
+bc.add_noslip_u(3)
 config.params['bctype'] = 'strong_dirichlet'
 config.params['strong_bc'] = bc
 

@@ -42,7 +42,8 @@ rf.j(m0)
 
 p = numpy.random.rand(len(m0))
 seed = 0.1
-minconv = helpers.test_gradient_array(rf.j, rf.dj, m0, seed=seed, perturbation_direction=p, plot_file="convergence.pdf")
+#minconv = helpers.test_gradient_array(rf.j, rf.dj, m0, seed=seed, perturbation_direction=p, plot_file="convergence.pdf")
+minconv = helpers.test_gradient_array(rf.j, rf.dj, m0, seed=seed, perturbation_direction=p)
 if minconv < 1.9:
     info_red("The gradient taylor remainder test failed.")
     sys.exit(1)
