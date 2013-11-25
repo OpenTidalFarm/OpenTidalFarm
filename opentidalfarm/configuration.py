@@ -92,7 +92,7 @@ class DefaultConfiguration(object):
             info_red("If you are overwriting the domain, make sure that you reapply the boundary conditions as well")
         self.domain = domain
 
-        # Define the subdomain for the turbine site. The default value should only be changed for smooth turbine representations.
+        # Define the subdomain for the turbine site. The default value should only be changed for smeared turbine representations.
         domains = CellFunction("size_t", self.domain.mesh)
         domains.set_all(1)
         self.site_dx = Measure("dx")[domains]  # The measure used to integrate the turbine friction
