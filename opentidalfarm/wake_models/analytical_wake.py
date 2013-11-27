@@ -7,7 +7,7 @@ import sys
 import ad
 import ad.admath
 import itertools
-#from profilehooks import profile
+
 
 class AnalyticalWake(Expression):
     # TODO: sort out this docstring
@@ -91,8 +91,8 @@ class AnalyticalWake(Expression):
 
     def _individual_power(self, turbines, index, indices_to_check):
         """
-        Returns the individual power of a turbine at point; turbines should be a
-        flattened array
+        Returns the power of turbines[index] due to the wake of the turbines at
+        the indices_to_check
         """
         turbines_to_check = [turbines[i] for i in indices_to_check]
         flow_velocity = self._flow_magnitude_at(turbines[index])
@@ -134,7 +134,6 @@ class AnalyticalWake(Expression):
             # power at that point due to the combined wakes
             if to_check[i] is not None:
                 total += self._individual_power(turbines, i, to_check[i])
-                #total += self._individual_power(turbines, i, to_check[i])
             # else there is no reduction factor so we can take the power of the
             # flow magnitude at that point
             else:
