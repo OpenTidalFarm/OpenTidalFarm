@@ -7,7 +7,6 @@ import pylab
 import dolfin
 import os.path
 
-
 def info_green(*args, **kwargs):
     if MPI.process_number() == 0:
         dolfin.info_green(*args, **kwargs)
@@ -177,3 +176,28 @@ def function_eval(func, point):
         raise RuntimeError("Point is outside the domain")
     else:
         return maxval
+
+
+def get_ambient_flow(config):
+    """
+    Returns the ambient flow field
+    """
+    from reduced_functional import ReducedFunctional
+    def state_writer(u, p, it, optit):
+        config.params.update({"ambient_flow": u})
+
+    bkp_scaling = config.params["automatic_scaling"]
+    bkp_turbines = config.params["turbine_pos"]
+
+    config.params["automatic_scaling"] = False
+    config.statewriter_callback = state_writer
+
+    rf = ReducedFunctional(config)
+    rf.j([])
+
+    config.params["automatic_scaling"] = bkp_scaling
+    config.params["turbine_pos"] = bkp_turbines
+
+    config.statewriter_callback = None
+    flow = config.params.pop("ambient_flow")
+    return flow

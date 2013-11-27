@@ -11,7 +11,6 @@ from turbines import *
 from helpers import info_green, info_red, info_blue
 from wake_models.analytical_wake import AnalyticalWake
 import os.path
-from profilehooks import profile
 
 class ReducedFunctionalNumPy:
 
