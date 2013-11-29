@@ -183,21 +183,27 @@ def get_ambient_flow(config):
     Returns the ambient flow field
     """
     from reduced_functional import ReducedFunctional
-    def state_writer(u, p, it, optit):
-        config.params.update({"ambient_flow": u})
-
     bkp_scaling = config.params["automatic_scaling"]
     bkp_turbines = config.params["turbine_pos"]
-
     config.params["automatic_scaling"] = False
-    config.statewriter_callback = state_writer
-
+    config.params["turbine_pos"] = []
+    info_blue("Generating an ambient flow field...")
     rf = ReducedFunctional(config)
     rf.j([])
+    state = rf.last_state
+
+    V = VectorFunctionSpace(config.function_space.mesh(), "CG", 2, dim=2)
+    u_out = TrialFunction(V)
+    v_out = TestFunction(V)
+    M_out = assemble(inner(v_out, u_out)*dx)
+    out_state = Function(V)
+
+    rhs = assemble(inner(v_out, state.split()[0])*dx)
+    solve(M_out, out_state.vector(), rhs, "cg", "sor", annotate=False)
+
+    info_green("Finished generating an ambient flow field")
 
     config.params["automatic_scaling"] = bkp_scaling
     config.params["turbine_pos"] = bkp_turbines
 
-    config.statewriter_callback = None
-    flow = config.params.pop("ambient_flow")
-    return flow
+    return out_state
