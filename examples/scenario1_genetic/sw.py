@@ -10,6 +10,7 @@ site_x_start = (basin_x - site_x)/2
 site_y_start = (basin_y - site_y)/2 
 config = SteadyConfiguration("mesh.xml", inflow_direction = [1, 0])
 config.set_site_dimensions(site_x_start, site_x_start + site_x, site_y_start, site_y_start + site_y)
+config.params["automatic_scaling"] = False
 
 # set some genetic optimisation options
 population_size = 60

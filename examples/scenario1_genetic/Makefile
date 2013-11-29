@@ -1,5 +1,5 @@
 run: clean 
-	unbuffer time mpirun -n 2 python sw.py > output.txt
+	python sw.py > output.txt
 
 coarse: clean 
 	python sw_coarse.py 
