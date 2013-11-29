@@ -12,7 +12,8 @@ from helpers import info_green, info_red, info_blue
 from wake_models.analytical_wake import AnalyticalWake
 import os.path
 
-class ReducedFunctionalNumPy:
+
+class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
 
     def __init__(self, config, scale=1.0, forward_model=sw_model.sw_solve,
                  plot=False, save_functional_values=False):
@@ -29,7 +30,6 @@ class ReducedFunctionalNumPy:
             self.forward_model = forward_model
         else:
             self.is_wake_model = False
-
         # Caching variables that store which controls the last forward run was performed
         self.last_m = None
         self.last_state = None
@@ -40,10 +40,15 @@ class ReducedFunctionalNumPy:
             if config.params['output_turbine_power']:
                 self.power_file = File(config.params['base_path'] + os.path.sep + "power.pvd", "compressed")
 
+        class Variable:
+            name = ""
+
         class Parameter:
+            var = Variable()
+
             def data(self):
                 m = []
-                if config.params["turbine_parametrisation"] == "smooth":
+                if config.params["turbine_parametrisation"] == "smeared":
                     if len(config.params["turbine_friction"]) == 0:
                         # If the user has not set the turbine friction it is initialised here
                         m = numpy.zeros(config.turbine_function_space.dim())
@@ -63,6 +68,7 @@ class ReducedFunctionalNumPy:
 
         def compute_functional(m, return_final_state=False, annotate=True):
             ''' Takes in the turbine positions/frictions values and computes the resulting functional of interest. '''
+
             self.last_m = m
 
             self.update_turbine_cache(m)
@@ -164,7 +170,7 @@ class ReducedFunctionalNumPy:
             dolfin.parameters["adjoint"]["stop_annotating"] = False
 
             # Decide if we need to apply the chain rule to get the gradient of interest
-            if config.params['turbine_parametrisation'] == 'smooth':
+            if config.params['turbine_parametrisation'] == 'smeared':
                 # We are looking for the gradient with respect to the friction
                 dj = dolfin_adjoint.optimization.get_global(djdtf)
 
@@ -217,9 +223,9 @@ class ReducedFunctionalNumPy:
             m_dot = project(Constant(1), config.turbine_function_space)
             return H(m_dot)
 
-        # For smooth turbine parametrisations we only want to store the 
+        # For smeared turbine parametrisations we only want to store the 
         # hash of the control values into the pickle datastructure
-        hash_keys = (config.params["turbine_parametrisation"] == "smooth")
+        hash_keys = (config.params["turbine_parametrisation"] == "smeared")
 
         self.compute_functional_mem = memoize.MemoizeMutable(compute_functional, hash_keys)
         self.compute_gradient_mem = memoize.MemoizeMutable(compute_gradient, hash_keys)
@@ -228,7 +234,7 @@ class ReducedFunctionalNumPy:
     def update_turbine_cache(self, m):
         ''' Reconstructs the parameters from the flattened parameter array m and updates the configuration. '''
 
-        if self.__config__.params["turbine_parametrisation"] == "smooth":
+        if self.__config__.params["turbine_parametrisation"] == "smeared":
             self.__config__.params["turbine_friction"] = m
 
         else:
@@ -305,7 +311,7 @@ class ReducedFunctionalNumPy:
                 else:
                     self.turbine_file << self.__config__.turbine_cache.cache["turbine_field"]
                     # Compute the total amount of friction due to turbines
-                    if self.__config__.params["turbine_parametrisation"] == "smooth":
+                    if self.__config__.params["turbine_parametrisation"] == "smeared":
                         print "Total amount of friction: ", assemble(self.__config__.turbine_cache.cache["turbine_field"] * dx)
 
         if self.save_functional_values and MPI.process_number() == 0:
@@ -363,7 +369,7 @@ class ReducedFunctionalNumPy:
         ''' This function returns the control variable array that derives from the initial configuration. '''
         config = self.__config__
         res = []
-        if config.params["turbine_parametrisation"] == "smooth":
+        if config.params["turbine_parametrisation"] == "smeared":
             res = numpy.zeros(config.turbine_function_space.dim())
 
         else:

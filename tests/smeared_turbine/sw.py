@@ -9,9 +9,9 @@ config = DefaultConfiguration(nx=5, ny=5)
 config.set_domain(opentidalfarm.domains.RectangularDomain(3000, 1000, 5, 5))
 config.params['finish_time'] = config.params["start_time"] + 10*config.params["dt"]
 
-# Switch to a smooth turbine representation
+# Switch to a smeared turbine representation
 config.params["controls"] = ["turbine_friction"]
-config.params["turbine_parametrisation"] = "smooth"
+config.params["turbine_parametrisation"] = "smeared"
 
 site_x_start = 750
 site_x = 1500
