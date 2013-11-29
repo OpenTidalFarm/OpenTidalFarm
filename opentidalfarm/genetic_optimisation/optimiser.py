@@ -273,7 +273,6 @@ class GeneticOptimisation(object):
         pylab.ylabel("Normalised Fitness")
         pylab.grid()
         pylab.savefig(self.options["plot_file"])
-        pylab.show()
 
 
     def exit_criteria_met(self):
