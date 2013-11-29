@@ -11,6 +11,7 @@ from turbines import *
 from helpers import info_green, info_red, info_blue
 from wake_models.analytical_wake import AnalyticalWake
 import os.path
+import csv
 
 
 class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
@@ -315,8 +316,10 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
                         print "Total amount of friction: ", assemble(self.__config__.turbine_cache.cache["turbine_field"] * dx)
 
         if self.save_functional_values and MPI.process_number() == 0:
-            with open("functional_values.txt", "a") as functional_values:
-                functional_values.write(str(self.last_j) + "\n")
+            with open("functional_values.csv", "a") as csvfile:
+                import time
+                csvwriter = csv.writer(csvfile)
+                csvwriter.writerow([self.last_j, time.time()])
 
         if self.plot:
             self.plotter.addPoint(self.last_j)
