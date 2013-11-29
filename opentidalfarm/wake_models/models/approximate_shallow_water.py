@@ -15,10 +15,16 @@ class ApproximateShallowWater(Model):
             model_parameters = {"radius": turbine_radius}
         else:
             model_parameters.update({"radius": turbine_radius})
+        # check if gradient required
+        if "compute_gradient" in model_parameters:
+            compute_gradient = model_parameters["compute_gradient"]
+        else:
+            compute_gradient = True
         # check if a wake is provided
         if "wake" in model_parameters:
-            # remove wake from model params, and take the x component
-            self.wake = ADDolfinExpression((model_parameters["wake"]).split()[0])
+            self.wake = ADDolfinExpression(model_parameters["wake"],
+                                           compute_gradient)
+
         else:
             # mimic a SteadyConfiguration but change a few things along the way
             config = otf.DefaultConfiguration()
@@ -33,8 +39,12 @@ class ApproximateShallowWater(Model):
             config.params['theta'] = 1.0
             config.params["dump_period"] = 0
 
-            b = 500.
-            mesh = dolfin.RectangleMesh(-b, -b, b, b, 100, 100)
+            xmin, ymin = -100, -200
+            xsize, ysize = 1000, 400
+            xcells, ycells = 200, 80
+            mesh = dolfin.RectangleMesh(xmin, ymin, xmin+xsize, ymin+ysize,
+                                        xcells, ycells)
+
             V, H = config.finite_element(mesh)
             config.function_space = dolfin.MixedFunctionSpace([V, H])
             config.turbine_function_space = dolfin.FunctionSpace(mesh, 'CG', 2)
@@ -46,11 +56,11 @@ class ApproximateShallowWater(Model):
                 def __init__(self, mesh):
                     class InFlow(dolfin.SubDomain):
                         def inside(self, x, on_boundary):
-                            return dolfin.near(x[0], -800)
+                            return dolfin.near(x[0], -100)
 
                     class OutFlow(dolfin.SubDomain):
                         def inside(self, x, on_boundary):
-                            return dolfin.near(x[0], 800)
+                            return dolfin.near(x[0], 900)
 
                     inflow = InFlow()
                     outflow = OutFlow()
@@ -111,7 +121,8 @@ class ApproximateShallowWater(Model):
             dolfin_adjoint.solve(M_out, out_state.vector(), rhs, "cg", "sor",
                                  annotate=False)
             dolfin.info_green("Wake model generated.")
-            self.wake = ADDolfinExpression(out_state.split()[0])
+            self.wake = ADDolfinExpression(out_state.split()[0],
+                                           compute_gradient)
 
         super(ApproximateShallowWater, self).__init__("ApproximateShallowWater",
                                                       flow_field,
@@ -122,7 +133,14 @@ class ApproximateShallowWater(Model):
         """
         Fixed value
         """
-        return 500.
+        return 200.
+
+
+    def _upstream_wake(self):
+        """
+        Fixed value
+        """
+        return 100.
 
 
     def individual_factor(self, x0, y0):
@@ -136,4 +154,4 @@ class ApproximateShallowWater(Model):
         """
         Fixed value
         """
-        return 500.
+        return 900.
