@@ -185,11 +185,6 @@ class AnalyticalWake(Expression):
             for f in factors:
                 ret = ret*f
             return ret
-            #max_factor = max(factors)
-            #fac = max_factor if max_factor > 1 else 1.
-            #for i in range(len(factors)):
-                #factors[i] = (fac - (factors[i]/fac))**2
-            #return (fac**2 - sum(factors)**0.5)
 
         factors = []
         for t in turbines:

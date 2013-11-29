@@ -41,7 +41,7 @@ class ApproximateShallowWater(Model):
 
             xmin, ymin = -100, -200
             xsize, ysize = 1000, 400
-            xcells, ycells = 200, 80
+            xcells, ycells = 400, 160
             mesh = dolfin.RectangleMesh(xmin, ymin, xmin+xsize, ymin+ysize,
                                         xcells, ycells)
 
