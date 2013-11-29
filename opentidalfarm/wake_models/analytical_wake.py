@@ -160,6 +160,12 @@ class AnalyticalWake(Expression):
             y0 = abs(self.model.dist_from_wake_center(turbine, point))
             x0 = abs(self.model.distance_between(turbine, point))
             return y0 < self.model.wake_radius(x0)
+        # Approximate shallow water model causes wake upstream too
+        elif self.model.model_type == "ApproximateShallowWater":
+            x0 = abs(self.model.distance_between(turbine, point))
+            y0 = abs(self.model.dist_from_wake_center(turbine, point))
+            return ((x0 < self.model._upstream_wake()) and
+                    (y0 < self.model.wake_radius(x0)))
         # if not downstream, then not in wake
         else:
             return False
@@ -255,21 +261,6 @@ class AnalyticalWake(Expression):
         of each other
         """
         to_check = [None]*len(turbine_tuples)
-        if self.model.model_type=="ApproximateShallowWater":
-            for i in range(len(ind)):
-                t0 = ind[i][0]
-                t1 = ind[i][1]
-                if to_check[ind[i][1]] is None:
-                    to_check[ind[i][1]] = [t0]
-                else:
-                    to_check[ind[i][1]].append(t0)
-                if to_check[ind[i][0]] is None:
-                    to_check[ind[i][0]] = [t1]
-                else:
-                    to_check[ind[i][0]].append(t1)
-            return to_check
-
-
         # when checking the individual factor of a point we want to be able to
         # iterate over a list which contains lists of turbines to check -- None
         # indicates that this turbine is not in the wake of any others
