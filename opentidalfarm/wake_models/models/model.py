@@ -1,8 +1,6 @@
-from ..math_helpers import l2_norm, vector_difference, angle_between_vectors,\
-                           normalize_vector
+from ..math_helpers import l2_norm, vector_difference, normalize_vector
 from .. import helpers
 import numpy
-import ad
 
 class Model(object):
     """
@@ -41,8 +39,14 @@ class Model(object):
         # for AD we need to split the flow field into two seperate x and y
         # fields -- if only one field then we get problems with performing
         # operations on arrays of ad.ADF objects
-        self.flow_x = helpers.ADDolfinVecX(flow_field)
-        self.flow_y = helpers.ADDolfinVecY(flow_field)
+        if "compute_gradient" in self.__model_parameters__:
+            self.flow_x = helpers.ADDolfinVecX(flow_field,
+                                  self.__model_parameters__["compute_gradient"])
+            self.flow_y = helpers.ADDolfinVecY(flow_field,
+                                  self.__model_parameters__["compute_gradient"])
+        else:
+            self.flow_x = helpers.ADDolfinVecX(flow_field)
+            self.flow_y = helpers.ADDolfinVecY(flow_field)
         
 
     def __repr__(self):
