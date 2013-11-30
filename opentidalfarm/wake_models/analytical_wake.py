@@ -209,7 +209,7 @@ class AnalyticalWake(Expression):
         """
         Returns the power given the speed
         """
-        fac = 7327469.66
+        fac = 3663734.83
         return fac*speed**3
 
 
