@@ -164,10 +164,10 @@ class GeneticOptimisation(object):
         """
         stats = self._get_stats()
         str_iter = ("| %8i" % (iteration))
-        str_power = (" | %11.2f / %11.2f / %11.2f (Min/Mean/Max) " %
+        str_power = (" | %16.2f / %16.2f / %16.2f (Min/Mean/Max) " %
                      (stats["min"], stats["avg"], stats["max"]))
-        str_global = ("| Global Max: %11.2f" % (stats["best"]))
-        str_std = (" | Std: %11.2f" % (stats["std"]))
+        str_global = ("| Global Max: %16.2f" % (stats["best"]))
+        str_std = (" | Std: %16.2f" % (stats["std"]))
         print_string = str_iter + str_power + str_global + str_std
         if self.options["predict_time"] and iteration > 0:
             elapsed = time.time() - self._start_time
