@@ -27,6 +27,7 @@ class GeneticOptimisation(object):
                  options=None):
 
         default_options = {"jump_start": False,
+                           "initial_population_seed": None,
                            "disp": True,
                            "update_every": 10,
                            "predict_time": True,
@@ -42,6 +43,11 @@ class GeneticOptimisation(object):
         # jump_start: reinitialize a population but with a chromosome that has
         #             fittest solution from the previous population, set to an
         #             int for the number of times to jump start
+        # initial_population_seed: a list of flattened arrays of turbine
+        #                          positions to seed the initial population
+        #                          with, if there are fewer seeds than the given
+        #                          population size then the remaining
+        #                          chromosomes will be randomized
         # disp: print info
         # update_every: print info every <iterations>
         # predict_time: print a prediction of the time left before iteration
@@ -79,7 +85,8 @@ class GeneticOptimisation(object):
             wake_model_parameters = {"compute_gradient": False}
         self.population = Population(config, population_size,
                                      number_of_turbines, ambient_flow,
-                                     wake_model_type, wake_model_parameters)
+                                     wake_model_type, wake_model_parameters,
+                                     self.options["initial_population_seed"])
         # initialize a generator
         self.generator = Generate(self.population, survival_rate,
                                   crossover_type, mutation_type, selection_type,

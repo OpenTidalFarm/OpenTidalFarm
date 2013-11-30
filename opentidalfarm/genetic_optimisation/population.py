@@ -1,10 +1,12 @@
 from chromosome import Chromosome, ChromosomeContainer
+import numpy
 import operator
 import copy
 
 class Population(object):
     def __init__(self, config, population_size, number_of_turbines,
-                 ambient_flow, wake_model_type, wake_model_parameters):
+                 ambient_flow, wake_model_type, wake_model_parameters,
+                 turbine_positions=None):
 
         self._population_size = population_size
         self._n_turbines = number_of_turbines
@@ -14,6 +16,17 @@ class Population(object):
                         self._config.domain.site_y_start,
                         self._config.domain.site_x_end,
                         self._config.domain.site_y_end]
+
+        # check number of seeds and length of each seed
+        if turbine_positions is not None:
+            if len(turbine_positions) > self._population_size:
+                raise RuntimeError("More initial guesses than population size")
+            for i in range(len(turbine_positions)):
+                if len(turbine_positions[i])!=self._n_turbines:
+                    raise RuntimeError("More turbines in seed than specified")
+                else:
+                    turbine_positions[i] = (numpy.array(turbine_positions[i])).flatten()
+        self.seeds = turbine_positions
 
         # initialize a chromosome container -- i.e. the wake model and other
         # shared parameters
@@ -41,9 +54,15 @@ class Population(object):
         site limits
         """
         population = []
-        for i in range(self._population_size):
+        for i in range(self._population_size - len(self.seeds)):
             population.append(Chromosome(self.container, self._n_turbines))
+        for i in range(len(self.seeds)):
+            population.append(Chromosome(self.container, self._n_turbines,
+                              self.seeds[i]))
+        if len(population)!=self._population_size:
+            raise RuntimeError("Population size does not match expected size")
         return population
+        
 
 
     def get_fitnesses(self):

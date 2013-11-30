@@ -11,13 +11,16 @@ class ChromosomeContainer(object):
 
 
 class Chromosome(object):
-    def __init__(self, container, n_turbines):
+    def __init__(self, container, n_turbines, turbines=None):
         self._container = container
         self._limits = self._container._limits
         self._turbine_radius = self._container._turbine_radius
         self._n_turbines = n_turbines
         self.model = self._container.model
-        self.turbine = self._initialize_chromosome()
+        if turbines is None:
+            self.turbine = self._initialize_chromosome()
+        else:
+            self.turbine = turbines
         self.current_fitness = None
         self.update_fitness()
 
