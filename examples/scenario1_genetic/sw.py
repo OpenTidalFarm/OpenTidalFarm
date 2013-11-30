@@ -26,7 +26,14 @@ mutation_type = "fitness_proportionate"
 selection_type = "best"
 mutation_probability = 0.07
 selection_options = None
-options = {"jump_start": False,
+# generate a number of random turbine positions for random seeding
+generator = PositionGenerator(config, number_of_turbines)
+initial_population_seed = generator.get_all()
+
+# we also set a number of extra options -- see the GeneticOptimisation class
+# documentation for more information on the options
+options = {"jump_start": 3,
+           "initial_population_seed": initial_population_seed,
            "disp": True,
            "update_every": 10,
            "predict_time": True,
@@ -37,6 +44,7 @@ options = {"jump_start": False,
            "fitness_file": "optimisation_fitness.csv",
            "plot": True,
            "plot_file": "population_fitness.png"}
+
 
 # initialize a genetic problem
 problem = GeneticOptimisation(config, 
@@ -60,5 +68,5 @@ optimized_turbines = maximize_genetic(problem)
 # its often good to then check the power of the best state using the full
 # shallow water model
 config.set_turbine_pos(optimized_turbines)
-rf = ReducedFunctional(config)
+rf = ReducedFunctional(config, save_functional_values=True)
 rf.j(rf.initial_control())

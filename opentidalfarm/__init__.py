@@ -28,7 +28,7 @@ from functionals import DefaultFunctional, PowerCurveFunctional
 
 from dolfin import *
 from dolfin_adjoint import minimize, maximize, Function
-from genetic_optimisation import GeneticOptimisation, maximize_genetic
+from genetic_optimisation import GeneticOptimisation, maximize_genetic, PositionGenerator
 from helpers import info_green, info_red, info_blue, info, print0
 
 # We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
