@@ -245,7 +245,7 @@ class DomainRestrictionConstraints:
 
         self.attraction_center = attraction_center
 
-    def generate(self, jac=False):
+    def generate(self, jac=True):
         ''' Returns a dictionar with the inequality constrains.
            If :arg: jac is True, the return dictionary also contains the Jacobian function.
         '''
@@ -303,7 +303,7 @@ class DomainRestrictionConstraints:
             return {'type': 'ineq', 'fun': f_ieqcons}
 
 
-def get_domain_constraints(config, feasible_area, attraction_center, jac=False):
+def get_domain_constraints(config, feasible_area, attraction_center, jac=True):
     return DomainRestrictionConstraints(config, feasible_area, attraction_center).generate(jac)
 
 
