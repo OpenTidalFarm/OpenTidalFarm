@@ -4,8 +4,15 @@ from math import pi
 import os.path
 forward_only = False
 test_gradient = False
+farm_selector = None  # If None, all farms are optimised. 
+                      # If between 1 and 4, the only the selected farm is optimised
 
-config = UnsteadyConfiguration("mesh/coast_idBoundary_utm.xml", [1, 1]) 
+if farm_selector is None:
+    mesh_basefile = "mesh/coast_idBoundary_utm_no_islands"
+else:
+    mesh_basefile = "mesh/coast_idBoundary_utm_no_islands_individual_farm_ids"
+
+config = UnsteadyConfiguration(mesh_basefile + ".xml", [1, 1]) 
 config.params['initial_condition'] = ConstantFlowInitialCondition(config) 
 config.params['diffusion_coef'] = 180.0
 config.params["controls"] = ["turbine_friction"]
@@ -13,7 +20,10 @@ config.params["turbine_parametrisation"] = "smeared"
 config.params["automatic_scaling"] = False 
 config.params['friction'] = Constant(0.0025)
 config.params['cache_forward_state'] = True
-config.params['base_path'] = "results_unsteady"
+if farm_selector is None:
+    config.params['base_path'] = "results_unsteady"
+else:
+    config.params['base_path'] = "results_unsteady_farm_%i_only" % farm_selector
 
 config.params['start_time'] = 0 
 config.params['dt'] = 600 * 3 * 2
@@ -43,7 +53,11 @@ depth_pvd << depth
 config.params['depth'] = depth
 config.turbine_function_space = V_dg0 
 
-domains = MeshFunction("size_t", config.domain.mesh, "mesh/coast_idBoundary_utm_physical_region.xml")
+domains = MeshFunction("size_t", config.domain.mesh, mesh_basefile + "_physical_region.xml")
+if farm_selector is not None:
+  domains_ids = MeshFunction("size_t", config.domain.mesh, mesh_basefile + "_physical_region.xml")
+  domains.set_all(0)
+  domains.array()[domains_ids.array() == farm_selector] = 1
 #plot(domains, interactive=True)
 config.site_dx = Measure("dx")[domains]
 f = File(os.path.join(config.params["base_path"], "turbine_farms.pvd"))
