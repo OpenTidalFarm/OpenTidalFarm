@@ -14,7 +14,7 @@ else:
 
 config = UnsteadyConfiguration(mesh_basefile + ".xml", [1, 1]) 
 config.params['initial_condition'] = ConstantFlowInitialCondition(config) 
-config.params['diffusion_coef'] = 180.0
+config.params['diffusion_coef'] = 90.0
 config.params["controls"] = ["turbine_friction"]
 config.params["turbine_parametrisation"] = "smeared"
 config.params["automatic_scaling"] = False 
@@ -26,9 +26,9 @@ else:
     config.params['base_path'] = "results_unsteady_farm_%i_only" % farm_selector
 
 config.params['start_time'] = 0 
-config.params['dt'] = 600 * 3 * 2
-config.params['finish_time'] = 12.5 * 60 * 60 / 2 
-config.params['theta'] = 1.0 
+config.params['dt'] = 60 * 10 * 3
+config.params['finish_time'] = 12.5 * 60 * 60
+config.params['theta'] = 0.5
 
 # Tidal boundary forcing
 bc = DirichletBCSet(config)
@@ -82,4 +82,4 @@ else:
   # c_B = c_T*A_Cross / (2*A) = 0.6*pi*D**2/(2*9D**2) 
   max_ct = 0.6*pi/2/9
   print "Maximum turbine friction: %f." % max_ct
-  m_opt = maximize(rf, bounds = [0, max_ct], options = {"maxiter": 300})
+  m_opt = maximize(rf, bounds = [0, max_ct], options = {"maxiter": 600})
