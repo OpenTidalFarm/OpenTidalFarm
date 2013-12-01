@@ -7,7 +7,7 @@ test_gradient = False
 
 config = UnsteadyConfiguration("mesh/coast_idBoundary_utm.xml", [1, 1]) 
 config.params['initial_condition'] = ConstantFlowInitialCondition(config) 
-config.params['diffusion_coef'] = 180.0
+config.params['diffusion_coef'] = 90.0
 config.params["controls"] = ["turbine_friction"]
 config.params["turbine_parametrisation"] = "smeared"
 config.params["automatic_scaling"] = False 
@@ -16,9 +16,9 @@ config.params['cache_forward_state'] = True
 config.params['base_path'] = "results_unsteady"
 
 config.params['start_time'] = 0 
-config.params['dt'] = 600 * 3 * 2
-config.params['finish_time'] = 12.5 * 60 * 60 / 2 
-config.params['theta'] = 1.0 
+config.params['dt'] = 60 * 10 * 3
+config.params['finish_time'] = 12.5 * 60 * 60
+config.params['theta'] = 0.5
 
 # Tidal boundary forcing
 bc = DirichletBCSet(config)
