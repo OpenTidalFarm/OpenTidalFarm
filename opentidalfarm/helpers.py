@@ -2,7 +2,7 @@ from __future__ import print_function
 import random
 from dolfin import *
 from dolfin_adjoint import *
-from numpy import dot, inf
+from numpy import dot, inf, array
 import pylab
 import dolfin
 import os.path
@@ -178,7 +178,7 @@ def function_eval(func, point):
         return maxval
 
 
-def get_ambient_flow(config):
+def get_ambient_flow(config, include_turbines=False):
     """
     Returns the ambient flow field
     """
@@ -189,9 +189,17 @@ def get_ambient_flow(config):
     config.params["turbine_pos"] = []
     info_blue("Generating an ambient flow field...")
     rf = ReducedFunctional(config)
-    rf.j([])
-    state = rf.last_state
+    if isinstance(include_turbines, bool):
+        if include_turbines:
+            rf.j(rf.initial_control())
+        else:
+            rf.j([])
+    # vector of turbine positions given
+    else:
+        m = (array(include_turbines)).flatten()
+        rf.j(m)
 
+    state = rf.last_state
     V = VectorFunctionSpace(config.function_space.mesh(), "CG", 2, dim=2)
     u_out = TrialFunction(V)
     v_out = TestFunction(V)
