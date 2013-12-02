@@ -210,7 +210,7 @@ class AnalyticalWake(Expression):
         """
         Returns the power given the speed
         """
-        fac = 403980.21238875
+        fac = 3.9e5
         power = fac*speed**3
         rated_power = 3.5e6
         # limit turbine power to rated_power
