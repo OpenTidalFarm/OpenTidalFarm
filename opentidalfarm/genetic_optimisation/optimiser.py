@@ -382,10 +382,18 @@ class GeneticOptimisation(object):
                 self.iterations += 1
                 info_blue("Reinitializing the population...")
                 # get best solution turbines
-                best_solution = self.population.global_maximum[0]
+                best_solution = numpy.array(self.population.global_maximum[0])
+                # set the other seed solutions
+                if len(self.population.seeds)-1 < self.population._population_size:
+                    for i in range(len(self.population.seeds)-1):
+                        self.population.population[i](self.population.seeds[i])
+                    for i in range(len(self.population.seeds)-1,
+                                   self.population._population_size):
+                        self.population.population[i]._randomize_chromosome()
                 # randomize all chromosomes apart from the first
-                for i in range(len(self.population.population)-1):
-                    self.population.population[i+1]._randomize_chromosome()
+                else:
+                    for i in range(len(self.population.population)-1):
+                        self.population.population[i+1]._randomize_chromosome()
                 # set the first chromosome to the best solution (also updates
                 # fitness)
                 self.population.population[0](best_solution)
