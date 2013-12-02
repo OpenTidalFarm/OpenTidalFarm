@@ -8,37 +8,92 @@ import csv
 
 class GeneticOptimisation(object):
     """
-    A genetic optimisation algorithm class
+    Genetic optimisation for wake models.
     """
-    def __init__(self, 
-                 config, 
-                 population_size, 
+
+    def __init__(self,
+                 config,
+                 population_size,
                  maximum_iterations,
-                 number_of_turbines, 
-                 ambient_flow, 
+                 number_of_turbines,
+                 ambient_flow,
                  wake_model_type="ApproximateShallowWater",
-                 wake_model_parameters=None, 
+                 wake_model_parameters=None,
                  survival_rate=0.7,
                  crossover_type="uniform",
-                 mutation_type="fitness_proportionate", 
+                 mutation_type="fitness_proportionate",
                  selection_type="best",
                  mutation_probability=0.07,
-                 selection_options=None, 
+                 selection_options=None,
                  options=None):
+        """
+        Initializes the GeneticOptimisation problem
 
+        Args:
+            config: an OpenTidalFarm configuration
+            population_size: the number of solutions in the population
+            maximum_iterations: maximum number of iterations (generations)
+            number_of_turbines: number of turbines to optimise
+            ambient_flow: the background flow field (can be generated in
+                OpenTidalFarm with a call to helpers.get_ambient_flow(config))
+            wake_model_type: with the name of the wake model to use
+            wake_model_parameters: a dictionary ofparameters to use with the
+                wake model, see individual models for more info on the
+                parameters assoicated with each
+            survival_rate: the proportion of the population that will be kept
+                (and potentially mutated) in the next generation
+            crossover_type: string, type of crossover to use
+            mutation_type: string, type of mutation to use
+            selection_type: string, type of selection to use
+            mutation_probability: float, probability of a mutation (with
+                fitness_proportionate mutation this is the maximum probability
+                of mutation)
+            selection_options: any options associated with the selection type
+            options: dict, any other options, descritpions given below:
+                default = {"jump_start": <False> - reinitialize a population but
+                                with a chromosome that has the solution of the
+                                fittest solution in the previous population. If
+                                given an <int>, the population will be jump
+                                started this many times
+                           "initial_population_seed": <None> - a list of turbine
+                                position vectors to see the initial population
+                                with
+                           "disp": <True> - print stats during the optimisation
+                           "disp_normalized": <False> - normalize stats to the
+                                mean fitness of the first population
+                           "update_every": <int=10> - print stats every int
+                                iterations
+                           "predict_time": <True> - predict time until the
+                                iteration limit is exceeded
+                           "save_stats": <True> - save statistice to a file
+                           "save_fitness": <False> - save the fitness values of
+                                each solution to a file
+                           "save_every": <int=1> - save stats every int
+                                iterations
+                           "stats_file": <string="optimisation_stats.csv"> -
+                                save stats to string
+                           "fitness_file": <string="optimisation_fitness.csv"> -
+                                save fitness values to string
+                           "plot": <True> - save a plot of the statistics
+                           "plot_file": <string="population_fitness.png"> - save
+                                the plot to string}
+
+        """
         default_options = {"jump_start": False,
                            "initial_population_seed": None,
                            "disp": True,
+                           "disp_normalized": False,
                            "update_every": 10,
                            "predict_time": True,
                            "save_stats": True,
-                           "save_fitness": True,
+                           "save_fitness": False,
                            "save_every": 1,
                            "stats_file": "optimisation_stats.csv",
                            "fitness_file": "optimisation_fitness.csv",
                            "plot": True,
                            "plot_file": "population_fitness.png"
                           }
+
         ### default_options:
         # jump_start: reinitialize a population but with a chromosome that has
         #             fittest solution from the previous population, set to an
@@ -49,6 +104,8 @@ class GeneticOptimisation(object):
         #                          population size then the remaining
         #                          chromosomes will be randomized
         # disp: print info
+        # disp_normalized: normalize the power and standard deviation of the
+        #                  output to the average power of the initial population
         # update_every: print info every <iterations>
         # predict_time: print a prediction of the time left before iteration
         #               limit
@@ -165,9 +222,12 @@ class GeneticOptimisation(object):
         stats = self._get_stats()
         str_iter = ("| %8i" % (iteration))
         str_power = (" | %16.2f / %16.2f / %16.2f (Min/Mean/Max) " %
-                     (stats["min"], stats["avg"], stats["max"]))
-        str_global = ("| Global Max: %16.2f" % (stats["best"]))
-        str_std = (" | Std: %16.2f" % (stats["std"]))
+                     (stats["min"]/self._normalize_fac,
+                      stats["avg"]/self._normalize_fac,
+                      stats["max"]/self._normalize_fac))
+        str_global = ("| Global Max: %16.2f" %
+                     (stats["best"]/self._normalize_fac))
+        str_std = (" | Std: %16.2f" % (stats["std"]/self._normalize_fac))
         print_string = str_iter + str_power + str_global + str_std
         if self.options["predict_time"] and iteration > 0:
             elapsed = time.time() - self._start_time
@@ -294,7 +354,7 @@ class GeneticOptimisation(object):
 
     def run(self):
         """
-        Run the genetic algorithm
+        Run the genetic algorithm.
         """
         start_message = (" Starting the optimisation problem ").center(80, "-")
         warning_message = ("(this could take a while so you might want to get "
@@ -328,7 +388,7 @@ class GeneticOptimisation(object):
                     self.population.population[i+1]._randomize_chromosome()
                 # set the first chromosome to the best solution (also updates
                 # fitness)
-                self.population.population[0](best_solution) 
+                self.population.population[0](best_solution)
                 # update the population fitnesses
                 self.population.update_fitnesses()
                 self._optimise()
@@ -356,6 +416,11 @@ class GeneticOptimisation(object):
         """
         Performs the actual optimization
         """
+        if self.options["disp_normalized"]:
+            self._normalize_fac = self._get_stats()["avg"]
+        else:
+            self._normalize_fac = 1.
+
         # check for options before running to minimise checking if statements
         if self.options["disp"] and self.options["save_stats"]:
             while not self.exit_criteria_met():
@@ -393,7 +458,7 @@ class GeneticOptimisation(object):
         else:
             while not self.exit_criteria_met():
                 self.generator.generate()
-        
+
 
     def get_turbine_pos(self):
         """
