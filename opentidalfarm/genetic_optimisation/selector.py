@@ -132,3 +132,27 @@ class Selector(object):
             selected.append(sorted_fitness[i][0])
         # return list of selected chromosome indices
         return selected
+
+
+    def stochastic_universal(self):
+        """
+        The stochastic universal sampling technique, see Baker 1987, "Reducing
+        Bias and Inefficiency in the Selection Algorithm"
+        """
+        sorted_fitnesses = self.population.get_sorted_fitnesses()
+        max_fitness = sorted_fitnesses[0][1]
+        accumulated = [max_fitness]
+        for i in xrange(1, len(sorted_fitnesses)):
+            accumulated.append(accumulated[i-1]+sorted_fitnesses[i][1])
+        accumulated = numpy.array(accumulated)/accumulated[-1]
+        spacing = 1./self.proportion_size
+        start = numpy.random.random()*spacing
+        picking_points = [start+spacing*i for i in xrange(self.proportion_size)]
+        picked = []
+        for i in xrange(len(accumulated)):
+            while (len(picked) < self.proportion_size and
+                   picking_points[len(picked)] < accumulated[i]):
+                picked.append(sorted_fitnesses[i][0])
+            else:
+                pass
+        return picked

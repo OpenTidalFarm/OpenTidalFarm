@@ -47,7 +47,7 @@ class Chromosome(object):
         """
         Evaluates and sets the current fitness
         """
-        self.current_fitness = (self.model._total_power(self.turbine)).tolist()
+        self.current_fitness = self.model._total_power(self.turbine)
 
 
     def fitness(self):

@@ -347,7 +347,7 @@ class GeneticOptimisation(object):
         Exit criteria
         """
         stats = self._get_stats()
-        has_converged = ((stats["max"]-stats["min"]) < 1e-4)
+        has_converged = (stats["max"]/stats["min"] - 1) < 1e-3
         iteration_limit_reached = (self.iterations > self.maximum_iterations)
         return has_converged or iteration_limit_reached
 
@@ -380,7 +380,8 @@ class GeneticOptimisation(object):
         if self.options["jump_start"]:
             for i in range(self.options["jump_start"]):
                 self.iterations += 1
-                info_blue("Reinitializing the population...")
+                info_blue("Reinitializing the population...(%i/%i)"
+                           % (i+1, self.options["jump_start"]))
                 # get best solution turbines
                 best_solution = numpy.array(self.population.global_maximum[0])
                 # set the other seed solutions
