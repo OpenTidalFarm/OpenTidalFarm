@@ -14,7 +14,7 @@ class AnalyticalWake(Expression):
     """
     An Analytical Wake class.
     """
-    def __init__(self, config, flow_field, model_type='Jensen',
+    def __init__(self, config, flow_field, model_type='ApproximateShallowWater',
                  model_params=None):
 
         # make a dict of the available model types: {"model_name": model_obj}
@@ -132,8 +132,9 @@ class AnalyticalWake(Expression):
         for i in range(len(to_check)):
             # if the turbines[i] is in the wake of other turbines, calculate the
             # power at that point due to the combined wakes
-            if to_check[i] is not None:
+            if len(to_check[i]) > 0:
                 total += self._individual_power(turbines, i, to_check[i])
+
             # else there is no reduction factor so we can take the power of the
             # flow magnitude at that point
             else:
@@ -209,8 +210,11 @@ class AnalyticalWake(Expression):
         """
         Returns the power given the speed
         """
-        fac = 3663734.83
-        return fac*speed**3
+        fac = 403980.21238875
+        power = fac*speed**3
+        rated_power = 3.5e6
+        # limit turbine power to rated_power
+        return power if power < rated_power else rated_power
 
 
     def _within_radius(self, turbine, point, radius):
@@ -249,31 +253,28 @@ class AnalyticalWake(Expression):
 
         I.e. for a list of turbines we return the turbines to check at each
              corresponding index:
-                turbines =   t0,   t1,      t2, ...,   tn
-                to_check = None, [t0], [t1,t3], ..., None
+                turbines =  t0,   t1,      t2, ..., tn
+                to_check =  [], [t0], [t1,t3], ..., []
 
         ind is a list of index tuples of turbines that are within a given radius
         of each other
         """
-        to_check = [None]*len(turbine_tuples)
+        to_check = [[] for i in range(len(turbine_tuples))]
         # when checking the individual factor of a point we want to be able to
         # iterate over a list which contains lists of turbines to check -- None
         # indicates that this turbine is not in the wake of any others
         for i in range(len(ind)):
-            # now working with a flattened list of turbine positions so need to
-            # create tuples
             t0 = ind[i][0]
             t1 = ind[i][1]
+            # t1 in wake of t0
             if self._is_in_wake(turbine_tuples[t0], turbine_tuples[t1]):
-                if to_check[ind[i][1]] is None:
-                    to_check[ind[i][1]] = [t0]
-                else:
-                    to_check[ind[i][1]].append(t0)
-            elif self._is_in_wake(turbine_tuples[t1], turbine_tuples[t0]):
-                if to_check[ind[i][0]] is None:
-                    to_check[ind[i][0]] = [t1]
-                else:
+                to_check[ind[i][1]].append(t0)
+                # also possible for t0 to be in wake of t1
+                if self._is_in_wake(turbine_tuples[t1], turbine_tuples[t0]):
                     to_check[ind[i][0]].append(t1)
+            # t0 in wake of t1
+            elif self._is_in_wake(turbine_tuples[t1], turbine_tuples[t0]):
+                to_check[ind[i][0]].append(t1)
             else:
                 pass
         return to_check
