@@ -3,6 +3,9 @@ import numpy
 
 
 class ChromosomeContainer(object):
+    """
+    Stores shard values used for each chromosome
+    """
     def __init__(self, config, flow, limits, model_type, model_parameters):
         self._limits = limits
         self._turbine_radius = (config.params["turbine_x"] +
