@@ -12,10 +12,11 @@ class Population(object):
         self._n_turbines = number_of_turbines
         self._flow = ambient_flow
         self._config = config
-        self._limits = [self._config.domain.site_x_start,
-                        self._config.domain.site_y_start,
-                        self._config.domain.site_x_end,
-                        self._config.domain.site_y_end]
+        # adjust limits to account for turbine size
+        self._limits = [self._config.domain.site_x_start+config.params["turbine_x"]*0.5,
+                        self._config.domain.site_y_start+config.params["turbine_y"]*0.5,
+                        self._config.domain.site_x_end-config.params["turbine_x"]*0.5,
+                        self._config.domain.site_y_end-config.params["turbine_y"]*0.5]
 
         # check number of seeds and length of each seed
         if turbine_positions is not None:
