@@ -75,3 +75,33 @@ class Mutator(object):
                 else:
                     pass
         return mutated_indices
+
+
+    def fitness_proportionate_sq(self):
+        """
+        Variable rate mutation -- the fittest chromosomes are less likely to be
+        mutated. Probability inversely proportional to the square of fitness.
+        """
+        max_probability = self.mutation_probability
+        # get a copy of fitnesses and normalize
+        fitnesses = numpy.array(self.population.get_fitnesses())
+        max_fitness = max(fitnesses)
+        fitnesses /= max_fitness
+        # get a list of mutation probabilities - probability of fittest
+        # chromosome being mutated is 1/20*max_probability
+        mutate = [max_probability-(19.*max_probability/20)*f**2 for f in fitnesses]
+        mutated_indices = set([])
+        for i in range(self.population._population_size):
+            for j in range(self.population._n_turbines*2):
+                beta = numpy.random.random()
+                # mutate
+                if beta < mutate[i]:
+                    mutated_indices.add(i)
+                    lower = self.population._limits[(j%2)]
+                    upper = self.population._limits[(j%2)+2]
+                    self.population.population[i].turbine[j] = ((upper-lower)*
+                                                                beta + lower)
+                # dont mutate
+                else:
+                    pass
+        return mutated_indices

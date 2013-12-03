@@ -94,29 +94,6 @@ class GeneticOptimisation(object):
                            "plot_file": "population_fitness.png"
                           }
 
-        ### default_options:
-        # jump_start: reinitialize a population but with a chromosome that has
-        #             fittest solution from the previous population, set to an
-        #             int for the number of times to jump start
-        # initial_population_seed: a list of flattened arrays of turbine
-        #                          positions to seed the initial population
-        #                          with, if there are fewer seeds than the given
-        #                          population size then the remaining
-        #                          chromosomes will be randomized
-        # disp: print info
-        # disp_normalized: normalize the power and standard deviation of the
-        #                  output to the average power of the initial population
-        # update_every: print info every <iterations>
-        # predict_time: print a prediction of the time left before iteration
-        #               limit
-        # save_stats: write stats to a file
-        # save_fitness: save the fitness of each chromosome to file
-        # save_every: save info every <iterations>
-        # stats_file: where to save stats
-        # fitness_file: where to save fitness
-        # plot: plot stats upon optimisation completion
-        # plot_file: save plot to file
-
         # check if options are given
         if options is None:
             self.options = default_options
@@ -385,16 +362,20 @@ class GeneticOptimisation(object):
                 # get best solution turbines
                 best_solution = numpy.array(self.population.global_maximum[0])
                 # set the other seed solutions
-                if len(self.population.seeds)-1 < self.population._population_size:
-                    for i in range(len(self.population.seeds)-1):
-                        self.population.population[i](self.population.seeds[i])
-                    for i in range(len(self.population.seeds)-1,
-                                   self.population._population_size):
-                        self.population.population[i]._randomize_chromosome()
-                # randomize all chromosomes apart from the first
-                else:
+                try:
+                    if len(self.population.seeds)-1 < self.population._population_size:
+                        for i in range(len(self.population.seeds)-1):
+                            self.population.population[i](self.population.seeds[i])
+                        for i in range(len(self.population.seeds)-1,
+                                       self.population._population_size):
+                            self.population.population[i]._randomize_chromosome()
+                    else:
+                        for i in range(len(self.population.population)-1):
+                            self.population.population[i+1]._randomize_chromosome()
+                except TypeError:
                     for i in range(len(self.population.population)-1):
                         self.population.population[i+1]._randomize_chromosome()
+
                 # set the first chromosome to the best solution (also updates
                 # fitness)
                 self.population.population[0](best_solution)

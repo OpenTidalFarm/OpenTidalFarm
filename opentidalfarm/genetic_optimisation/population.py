@@ -55,11 +55,16 @@ class Population(object):
         site limits
         """
         population = []
-        for i in range(self._population_size - len(self.seeds)):
-            population.append(Chromosome(self.container, self._n_turbines))
-        for i in range(len(self.seeds)):
-            population.append(Chromosome(self.container, self._n_turbines,
-                              self.seeds[i]))
+        try:
+            for i in range(self._population_size - len(self.seeds)):
+                population.append(Chromosome(self.container, self._n_turbines))
+            for i in range(len(self.seeds)):
+                population.append(Chromosome(self.container, self._n_turbines,
+                                  self.seeds[i]))
+        except TypeError:
+            for i in range(self._population_size):
+                population.append(Chromosome(self.container, self._n_turbines))
+
         if len(population)!=self._population_size:
             raise RuntimeError("Population size does not match expected size")
         return population
