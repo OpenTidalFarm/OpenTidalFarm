@@ -98,6 +98,7 @@ class AnalyticalWake(Expression):
         flow_velocity = self._flow_magnitude_at(turbines[index])
         reduction_factor = self._combined_factor(turbines[index],
                                                  turbines_to_check)
+
         return self._power_of(flow_velocity*reduction_factor)
 
 
@@ -133,13 +134,14 @@ class AnalyticalWake(Expression):
             # if the turbines[i] is in the wake of other turbines, calculate the
             # power at that point due to the combined wakes
             if len(to_check[i]) > 0:
-                total += self._individual_power(turbines, i, to_check[i])
+                ind = self._individual_power(turbines, i, to_check[i])
 
             # else there is no reduction factor so we can take the power of the
             # flow magnitude at that point
             else:
-                total += self._power_of(self._flow_magnitude_at(turbines[i])
+                ind = self._power_of(self._flow_magnitude_at(turbines[i])
                                        *self.model.individual_factor(0,0))
+            total += ind
         return total
 
 
@@ -185,7 +187,8 @@ class AnalyticalWake(Expression):
             ret = 1.
             for f in factors:
                 ret = ret*f
-            return ret
+            # stop turbines piling up to create an artifically high factor
+            return min([ret, 1.25])
 
         factors = []
         for t in turbines:
@@ -194,8 +197,7 @@ class AnalyticalWake(Expression):
             factors.append(self.model.individual_factor(x0,y0))
 
         # include the effect a turbine has on itself
-        factors.append(self.model.individual_factor(0,0))
-        return _combine(factors)
+        return _combine(factors)*self.model.individual_factor(0,0)
 
 
     def _flow_magnitude_at(self, x):
@@ -210,11 +212,12 @@ class AnalyticalWake(Expression):
         """
         Returns the power given the speed
         """
-        fac = 3.9e5
-        power = fac*speed**3
+        velocity_for_rated_power = 3.5
+        reduced_velocity = velocity_for_rated_power*self.model.individual_factor(0,0)
         rated_power = 3.5e6
-        # limit turbine power to rated_power
-        return power if power < rated_power else rated_power
+        factor = rated_power/reduced_velocity**3
+        power = factor*speed**3
+        return power 
 
 
     def _within_radius(self, turbine, point, radius):
