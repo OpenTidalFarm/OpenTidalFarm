@@ -183,6 +183,7 @@ class PositionGenerator(object):
                        ([i,n//i] for i in range(1, int(n**0.5) + 1) if n%i==0)))
         return list(factors)
 
+
     def get_all_normal_deploy(self):
         """
         Get a list of turbine positions for all possibilities using the normal
@@ -196,11 +197,91 @@ class PositionGenerator(object):
         return seeds
 
 
+    def _bottom_left_to_top_right(self, n):
+        """
+        Returns all turbines aligned along a diagonal from bottom left to top
+        right
+        """
+        try:
+            dx = self.x_range/(n - 1.)
+        except ZeroDivisionError:
+            dx = self.x_range/2.
+        try:
+            dy = self.y_range/(n - 1.)
+        except ZeroDivisionError:
+            dy = self.y_range/2.
+        start = (self.minx, self.miny)
+        return [(start[0]+i*dx, start[1]+i*dy) for i in xrange(n)]
+
+
+    def _top_left_to_bottom_right(self, n):
+        """
+        Returns all turbines aligned along a diagonal from top left to bottom
+        right
+        """
+        try:
+            dx = self.x_range/(n - 1.)
+        except ZeroDivisionError:
+            dx = self.x_range/2.
+        try:
+            dy = self.y_range/(n - 1.)
+        except ZeroDivisionError:
+            dy = self.y_range/2.
+        start = (self.minx, self.maxy)
+        return [(start[0]+i*dx, start[1]-i*dy) for i in xrange(n)]
+
+
+    def _crossed_diagonals(self):
+        """
+        Makes a cross along the diagonals
+        """
+        n = self.number_of_turbines/2
+        n1 = n if n%2==0 else n+1
+        n2 = self.number_of_turbines - n1
+        bl2tr = self._bottom_left_to_top_right(n1)
+        tl2br = self._top_left_to_bottom_right(n2)
+        return bl2tr+tl2br
+
+
+    def _crossed_centre(self):
+        """
+        Makes a cross along the centres
+        """
+        n = self.number_of_turbines/2
+        n1 = n if n%2==0 else n+1
+        n2 = self.number_of_turbines - n1
+        try:
+            dx = self.x_range/(n1 - 1.)
+        except ZeroDivisionError:
+            dx = self.x_range/2.
+        along_x = [(self.minx+i*dx, (self.maxy+self.miny)*0.5) for i in xrange(n1)]
+        try:
+            dy = self.y_range/(n2 - 1.)
+        except ZeroDivisionError:
+            dy = self.y_range/2.
+        along_y = [((self.maxx+self.miny)*0.5, self.miny+i*dy) for i in xrange(n2)]
+        return along_x+along_y
+
+
+    def get_diagonals(self):
+        """
+        Returns all diagonalpositions
+        """
+        bl2tr = self._bottom_left_to_top_right(self.number_of_turbines)
+        tl2br = self._top_left_to_bottom_right(self.number_of_turbines)
+        diag_cross = self._crossed_diagonals()
+        cent_cross = self._crossed_centre()
+        return [bl2tr, tl2br, diag_cross, cent_cross]
+
+
+
     def get_all(self):
         """
         Return a list of all possible turbine positions
         """
         positions = self.get_all_normal_deploy()
+        diags = self.get_diagonals()
+        positions += diags
         positions.append(self.along_x_lower())
         positions.append(self.along_x_centre())
         positions.append(self.along_x_upper())
