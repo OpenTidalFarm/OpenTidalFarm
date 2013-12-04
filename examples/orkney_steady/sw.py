@@ -77,7 +77,7 @@ File("feasible_area.pvd") << feasible_area
 feasible_constraint = get_domain_constraints(config, feasible_area, attraction_center=(0.5*(site_x_start + site_x_end), 0.5*(site_y_start + site_y_end)))
 distance_constraint = get_minimum_distance_constraint_func(config)
 
-constraints = merge_constraints(feasible_constraint, distance_constraint)
+constraints = [feasible_constraint, distance_constraint]
 
 # Place some turbines 
 config.set_site_dimensions(site_x_start, site_x_end, site_y_start, site_y_end)

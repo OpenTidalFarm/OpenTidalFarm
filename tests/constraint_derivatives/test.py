@@ -12,8 +12,8 @@ config.params["controls"] = ['turbine_pos']
 ieq = get_minimum_distance_constraint_func(config)
 
 # Only test the correctness of the first inequality constraint for simplicity
-ieqcons_J = lambda m: ieq['fun'](m)[0]
-ieqcons_dJ = lambda m, forget=False: ieq['jac'](m)[0]
+ieqcons_J = lambda m: ieq.function(m)[0]
+ieqcons_dJ = lambda m, forget=False: ieq.jacobian(m)[0]
 minconv = helpers.test_gradient_array(ieqcons_J, ieqcons_dJ, numpy.array([1., 2., 3., 4., 7., 1., 6., 9.]))
 if minconv < 1.99:
     info_red("Convergence test for the minimum distance constraints failed")
@@ -22,8 +22,8 @@ info_green("Test passed")
 
 ieq = generate_site_constraints(config, [[0, 0], [10, 0], [10, 10]], penalty_factor=1)
 # Only test the correctness of the first inequality constraint for simplicity
-ieqcons_J = lambda m: ieq['fun'](m)[0]
-ieqcons_dJ = lambda m, forget=False: ieq['jac'](m)[0]
+ieqcons_J = lambda m: ieq.function(m)[0]
+ieqcons_dJ = lambda m, forget=False: ieq.jacobian(m)[0]
 
 minconv = helpers.test_gradient_array(ieqcons_J, 
              ieqcons_dJ, 
