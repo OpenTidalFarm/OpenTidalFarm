@@ -259,7 +259,7 @@ class PositionGenerator(object):
             dy = self.y_range/(n2 - 1.)
         except ZeroDivisionError:
             dy = self.y_range/2.
-        along_y = [((self.maxx+self.miny)*0.5, self.miny+i*dy) for i in xrange(n2)]
+        along_y = [((self.maxx+self.minx)*0.5, self.miny+i*dy) for i in xrange(n2)]
         return along_x+along_y
 
 
@@ -273,6 +273,51 @@ class PositionGenerator(object):
         cent_cross = self._crossed_centre()
         return [bl2tr, tl2br, diag_cross, cent_cross]
 
+
+    def lines_with_optimal_spacing_x(self):
+        spacing = max([self.tx, self.ty])
+        n_total = self.number_of_turbines
+        n_per_line = int(numpy.floor(self.y_range/spacing))
+        full_lines, remaining = divmod(n_total, n_per_line) 
+        if remaining==0:
+            dx = self.x_range/(full_lines-1)
+        else:
+            dx = self.x_range/full_lines
+        dy = spacing
+        y_padding = (self.y_range-((n_per_line-1)*spacing))*0.5
+        turbines = []
+        for i in range(full_lines):
+            for j in range(n_per_line):
+                turbines.append((self.minx+i*dx, self.miny+y_padding+j*dy))
+        if remaining > 0:
+            for j in range(remaining):
+                turbines.append((self.minx+full_lines*dx, self.miny+y_padding+j*dy))
+        return turbines
+
+
+    def lines_with_optimal_spacing_y(self):
+        spacing = max([self.tx, self.ty])
+        n_total = self.number_of_turbines
+        n_per_line = int(numpy.floor(self.x_range/spacing))
+        full_lines, remaining = divmod(n_total, n_per_line) 
+        if remaining==0:
+            dy = self.y_range/(full_lines-1)
+        else:
+            try:
+                dy = self.y_range/full_lines
+            # no full lines - so put the line in the middle of the domain
+            except ZeroDivisionError:
+                dy = self.y_range/2
+        dx = spacing
+        x_padding = (self.x_range-((n_per_line-1)*spacing))*0.5
+        turbines = []
+        for i in range(full_lines):
+            for j in range(n_per_line):
+                turbines.append((self.minx+x_padding+j*dx, self.miny+i*dy))
+        if remaining > 0:
+            for j in range(remaining):
+                turbines.append((self.minx+x_padding+j*dx, self.miny+full_lines*dy))
+        return turbines
 
 
     def get_all(self):
@@ -291,4 +336,6 @@ class PositionGenerator(object):
         positions.append(self.one_circle())
         positions.append(self.two_circles_x())
         positions.append(self.two_circles_y())
+        positions.append(self.lines_with_optimal_spacing_x())
+        positions.append(self.lines_with_optimal_spacing_y())
         return positions

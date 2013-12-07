@@ -10,7 +10,8 @@ class ChromosomeContainer(object):
         self._limits = limits
         self._turbine_radius = (config.params["turbine_x"] +
                                 config.params["turbine_y"])/4.
-        self.model = AnalyticalWake(config, flow, model_type, model_parameters)
+        self.model = AnalyticalWake(config, flow, model_type, model_parameters,
+                                 penalise_proximity=config.params["turbine_x"])
 
 
 class Chromosome(object):

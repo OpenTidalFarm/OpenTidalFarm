@@ -97,14 +97,3 @@ class Population(object):
         sorted_fitness = sorted(fitness, key=operator.itemgetter(1),
                                 reverse=True)
         return sorted_fitness
-
-
-# TODO: if crossover < 0.5; randomize remaining population
-    def randomize(self):
-        """
-        Randomizes the remaining chromosomes
-        """
-        for i in range(self.n_crossover, self.population_size):
-            seed = self.population_size*self.random_count + i
-            self.population[i].randomize_m(seed)
-        self.random_count += 1

@@ -15,7 +15,7 @@ class AnalyticalWake(Expression):
     An Analytical Wake class.
     """
     def __init__(self, config, flow_field, model_type='ApproximateShallowWater',
-                 model_params=None):
+                 model_params=None, penalise_proximity=False):
 
         # make a dict of the available model types: {"model_name": model_obj}
         # gets data from looking for classses in the models submodule
@@ -35,6 +35,9 @@ class AnalyticalWake(Expression):
         # flat to tell functions when to use ad.adnumber objects -- switched on
         # and off in grad and hess
         self.diff = False
+        # penalise a turbines power if its within this proximity of another
+        # turbine
+        self.proximity = penalise_proximity
 
 
     def eval(self, values, x):
@@ -98,7 +101,6 @@ class AnalyticalWake(Expression):
         flow_velocity = self._flow_magnitude_at(turbines[index])
         reduction_factor = self._combined_factor(turbines[index],
                                                  turbines_to_check)
-
         return self._power_of(flow_velocity*reduction_factor)
 
 
@@ -194,7 +196,11 @@ class AnalyticalWake(Expression):
         for t in turbines:
             x0 = self.model.distance_between(t, point)
             y0 = self.model.dist_from_wake_center(t, point)
-            factors.append(self.model.individual_factor(x0,y0))
+            if self.proximity:
+                factors.append(self.model.individual_factor(x0,y0)*
+                               self._proximity_penalty(t, point))
+            else:
+                factors.append(self.model.individual_factor(x0,y0))
 
         # include the effect a turbine has on itself
         return _combine(factors)*self.model.individual_factor(0,0)
@@ -281,3 +287,11 @@ class AnalyticalWake(Expression):
             else:
                 pass
         return to_check
+
+
+    def _proximity_penalty(self, turbine1, turbine2, penalty_factor=0.0):
+        """
+        Returns a penalty factor if turbine1 and turbine2 are within
+        self.proximity. Else returns 1.
+        """
+        return penalty_factor if self._within_radius(turbine1, turbine2, self.proximity) else 1.
