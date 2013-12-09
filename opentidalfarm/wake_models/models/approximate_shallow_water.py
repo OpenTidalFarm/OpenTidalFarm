@@ -20,11 +20,16 @@ class ApproximateShallowWater(Model):
             compute_gradient = model_parameters["compute_gradient"]
         else:
             compute_gradient = True
-        # check if a wake is provided
+        # check if a wake and wake gradients are provided
         if "wake" in model_parameters:
+            if "wake_gradients" in model_parameters:
+                wake_gradients = model_parameters["wake_gradients"]
+            else:
+                wake_gradients = None
             self.wake = ADDolfinExpression(model_parameters["wake"],
-                                           compute_gradient)
-
+                                           compute_gradient=compute_gradient,
+                                           gradients=wake_gradients)
+        # compute wake and gradients
         else:
             # mimic a SteadyConfiguration but change a few things along the way
             config = otf.DefaultConfiguration()

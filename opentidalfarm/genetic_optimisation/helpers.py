@@ -282,7 +282,10 @@ class PositionGenerator(object):
         if remaining==0:
             dx = self.x_range/(full_lines-1)
         else:
-            dx = self.x_range/full_lines
+            try:
+                dx = self.x_range/full_lines
+            except ZeroDivisionError:
+                dx = self.x_range/2
         dy = spacing
         y_padding = (self.y_range-((n_per_line-1)*spacing))*0.5
         turbines = []

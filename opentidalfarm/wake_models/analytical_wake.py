@@ -221,7 +221,7 @@ class AnalyticalWake(Expression):
         velocity_for_rated_power = 3.5
         reduced_velocity = velocity_for_rated_power*self.model.individual_factor(0,0)
         rated_power = 3.5e6
-        factor = rated_power/reduced_velocity**3
+        factor = rated_power/reduced_velocity**3 / 0.20
         power = factor*speed**3
         return power 
 

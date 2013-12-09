@@ -119,16 +119,21 @@ class ADDolfinExpression(object):
         dolfin.info_green("Second order derivatives calculated")
 
 
-    def __init__(self, f, compute_gradient=True):
+    def __init__(self, f, compute_gradient=True, gradients=None):
         """
         Calculate the first and second derivatives of f across the function
         space
         """
         self.f = f
         self.has_gradient = compute_gradient
-        if compute_gradient:
+        if compute_gradient and gradients is None:
             self.calculate_first_order()
             self.calculate_second_order()
+        if compute_gradient and gradients is not None:
+            self.first_deriv = gradients["df"]
+            self.second_deriv_x = gradients["d2fx"]
+            self.second_deriv_y = gradients["d2fy"]
+            self.cross_deriv = gradients["d2fc"]
 
 
     def __call__(self, x):

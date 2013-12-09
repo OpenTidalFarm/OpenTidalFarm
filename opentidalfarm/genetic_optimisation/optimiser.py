@@ -106,6 +106,7 @@ class GeneticOptimisation(object):
 
         # termination info
         self.iterations = 0
+        self.jump_iterations = 0
         self.maximum_iterations = maximum_iterations
 
         # for timing prediction
@@ -324,9 +325,15 @@ class GeneticOptimisation(object):
         Exit criteria
         """
         stats = self._get_stats()
-        has_converged = (stats["max"]/stats["min"] - 1) < 1e-3
-        iteration_limit_reached = (self.iterations > self.maximum_iterations)
-        return has_converged or iteration_limit_reached
+        try:
+            has_converged = (stats["max"]/stats["min"] - 1) < 1e-3
+        except ZeroDivisionError:
+            has_converged = False
+        iteration_limit_reached = (self.iterations >= self.maximum_iterations)
+        exit = has_converged or iteration_limit_reached
+        if exit:
+            info_red("Congergence criteria met") if has_converged else info_red("Iteration limit exceeded")
+        return exit
 
 
     def run(self):
@@ -356,9 +363,9 @@ class GeneticOptimisation(object):
         # that contains the fittest solution from the previous population
         if self.options["jump_start"]:
             for i in range(self.options["jump_start"]):
-                self.iterations += 1
+                self.jump_iterations += 1
                 info_blue("Reinitializing the population...(%i/%i)"
-                           % (i+1, self.options["jump_start"]))
+                           % (self.jump_iterations, self.options["jump_start"]))
                 # get best solution turbines
                 best_solution = numpy.array(self.population.global_maximum[0])
                 # set the other seed solutions
@@ -420,9 +427,10 @@ class GeneticOptimisation(object):
                     self._save_stats(self.iterations)
                 self.generator.generate()
                 self.iterations += 1
-            # save and print final stats
-            self._print_stats(self.iterations)
-            self._save_stats(self.iterations)
+            if self.jump_iterations==self.options["jump_start"]:
+                # save and print final stats
+                self._print_stats(self.iterations)
+                self._save_stats(self.iterations)
 
         # only print updates
         elif self.options["disp"]:
@@ -431,8 +439,9 @@ class GeneticOptimisation(object):
                     self._print_stats(self.iterations)
                 self.generator.generate()
                 self.iterations += 1
-            # print final stats
-            self._print_stats(self.iterations)
+            if self.jump_iterations==self.options["jump_start"]:
+                # print final stats
+                self._print_stats(self.iterations)
 
         # only save data
         elif self.options["save_stats"]:
@@ -441,8 +450,9 @@ class GeneticOptimisation(object):
                     self._save_stats(self.iterations)
                 self.generator.generate()
                 self.iterations += 1
-            # save final step
-            self._save_stats(self.iterations)
+            if self.jump_iterations==self.options["jump_start"]:
+                # save final step
+                self._save_stats(self.iterations)
 
         # neither print not save data
         else:
