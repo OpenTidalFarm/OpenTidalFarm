@@ -9,7 +9,7 @@ class ApproximateShallowWater(Model):
     Approximates the shallow water equations by using the wake of a single
     turbine in 1m/s flow as a wake model.
     """
-    def __init__(self, flow_field, turbine_radius, model_parameters=None):
+    def __init__(self, flow_field, turbine_radius, model_parameters):
         # add radius to model params
         if model_parameters is None:
             model_parameters = {"radius": turbine_radius}
@@ -23,12 +23,12 @@ class ApproximateShallowWater(Model):
         # check if a wake and wake gradients are provided
         if "wake" in model_parameters:
             if "wake_gradients" in model_parameters:
-                wake_gradients = model_parameters["wake_gradients"]
+                gradients = model_parameters["wake_gradients"]
             else:
-                wake_gradients = None
+                gradients = None
             self.wake = ADDolfinExpression(model_parameters["wake"],
                                            compute_gradient=compute_gradient,
-                                           gradients=wake_gradients)
+                                           gradients=gradients)
         # compute wake and gradients
         else:
             # mimic a SteadyConfiguration but change a few things along the way

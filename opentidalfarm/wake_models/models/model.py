@@ -40,10 +40,16 @@ class Model(object):
         # fields -- if only one field then we get problems with performing
         # operations on arrays of ad.ADF objects
         if "compute_gradient" in self.__model_parameters__:
+            if "flow_gradient" in self.__model_parameters__:
+                flow_gradient = self.__model_parameters__["flow_gradient"]
+            else:
+                flow_gradient = None
             self.flow_x = helpers.ADDolfinVecX(flow_field,
-                                  self.__model_parameters__["compute_gradient"])
+                                  self.__model_parameters__["compute_gradient"],
+                                  flow_gradient)
             self.flow_y = helpers.ADDolfinVecY(flow_field,
-                                  self.__model_parameters__["compute_gradient"])
+                                  self.__model_parameters__["compute_gradient"],
+                                  flow_gradient)
         else:
             self.flow_x = helpers.ADDolfinVecX(flow_field)
             self.flow_y = helpers.ADDolfinVecY(flow_field)

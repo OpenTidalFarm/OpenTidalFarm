@@ -18,7 +18,7 @@ class ADDolfinVec(object):
         return dolfin.TestFunction(V).element().degree()
 
 
-    def __init__(self, f, compute_gradient, ind=None):
+    def __init__(self, f, compute_gradient, ind=None, gradients=None):
         self.f = f
         self.has_gradient = compute_gradient
         if compute_gradient:
@@ -44,6 +44,11 @@ class ADDolfinVec(object):
             self.d2xy = dolfin.project(self.grad[0].dx(1), V)
             self.grad2 = [self.d2xx, self.d2yy]
 
+        elif compute_gradient and gradients is not None:
+            self.grad  = [gradients["dfx"], gradients["dfy"]]
+            self.grad2 = [gradients["d2fx"], gradients["d2fy"]]
+            self.d2xy = gradients["d2fc"]
+
         self.ind = ind
 
     def __call__(self, x):
@@ -68,13 +73,15 @@ class ADDolfinVec(object):
 
 class ADDolfinVecX(ADDolfinVec):
     __doc__ = ADDolfinVec.__doc__
-    def __init__(self, f, compute_gradient=True):
-        super(ADDolfinVecX, self).__init__(f, compute_gradient=compute_gradient, ind=0)
+    def __init__(self, f, compute_gradient=True, gradients=None):
+        super(ADDolfinVecX, self).__init__(f, compute_gradient=compute_gradient,
+                ind=0, gradients=gradients)
 
 class ADDolfinVecY(ADDolfinVec):
     __doc__ = ADDolfinVec.__doc__
-    def __init__(self, f, compute_gradient=True):
-        super(ADDolfinVecY, self).__init__(f, compute_gradient=compute_gradient, ind=1)
+    def __init__(self, f, compute_gradient=True, gradients=None):
+        super(ADDolfinVecY, self).__init__(f, compute_gradient=compute_gradient,
+                ind=1, gradients=gradients)
 
 
 class ADDolfinExpression(object):
