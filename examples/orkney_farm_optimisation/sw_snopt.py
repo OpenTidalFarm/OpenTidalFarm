@@ -22,9 +22,9 @@ config.params["automatic_scaling"] = False
 config.params['friction'] = Constant(0.0025)
 config.params['cache_forward_state'] = True
 if farm_selector is None:
-    config.params['base_path'] = "results_unsteady"
+    config.params['base_path'] = "results_snopt_unsteady"
 else:
-    config.params['base_path'] = "results_unsteady_farm_%i_only" % farm_selector
+    config.params['base_path'] = "results_snopt_unsteady_farm_%i_only" % farm_selector
 
 config.params['start_time'] = 0 
 config.params['dt'] = 60 * 10 * 3
