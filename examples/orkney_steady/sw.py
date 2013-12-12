@@ -1,5 +1,4 @@
 from opentidalfarm import *
-import ipopt
 import utm
 import uptide
 import uptide.tidal_netcdf
