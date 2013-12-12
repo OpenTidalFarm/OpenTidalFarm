@@ -98,5 +98,5 @@ if len(sys.argv) > 1 and sys.argv[1] == "--from-checkpoint":
 parameters['form_compiler']['cpp_optimize_flags'] = '-O3 -ffast-math -march=native'
 
 nlp, grad = rf.pyopt_problem(constraints=constraints)
-slsqp = SLSQP(options={"MAXIT": 300, "ACC": 1.0})
+slsqp = SLSQP(options={"MAXIT": 300})
 res = slsqp(nlp, sens_type=grad)
