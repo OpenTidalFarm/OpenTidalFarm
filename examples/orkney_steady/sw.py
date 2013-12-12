@@ -1,10 +1,10 @@
 from opentidalfarm import *
-import ipopt
 import utm
 import uptide
 import uptide.tidal_netcdf
 from uptide.netcdf_reader import NetCDFInterpolator
 import datetime
+from pyOpt import SLSQP
 
 utm_zone = 30
 utm_band = 'V'
@@ -96,4 +96,7 @@ if len(sys.argv) > 1 and sys.argv[1] == "--from-checkpoint":
   rf.load_checkpoint("checkpoint")
 
 parameters['form_compiler']['cpp_optimize_flags'] = '-O3 -ffast-math -march=native'
-maximize(rf, constraints = constraints, method = "SLSQP", options = {"maxiter": 300, "ftol": 1.0}) 
+
+nlp, grad = rf.pyopt_problem(constraints=constraints)
+slsqp = SLSQP(options={"MAXIT": 300, "ACC": 1.0})
+res = slsqp(nlp, sens_type=grad)
