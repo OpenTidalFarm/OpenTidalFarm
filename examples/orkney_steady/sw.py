@@ -4,6 +4,7 @@ import uptide
 import uptide.tidal_netcdf
 from uptide.netcdf_reader import NetCDFInterpolator
 import datetime
+from pyOpt import SLSQP
 
 utm_zone = 30
 utm_band = 'V'
@@ -76,7 +77,7 @@ File("feasible_area.pvd") << feasible_area
 feasible_constraint = get_domain_constraints(config, feasible_area, attraction_center=(0.5*(site_x_start + site_x_end), 0.5*(site_y_start + site_y_end)))
 distance_constraint = get_minimum_distance_constraint_func(config)
 
-constraints = merge_constraints(feasible_constraint, distance_constraint)
+constraints = [feasible_constraint, distance_constraint]
 
 # Place some turbines 
 config.set_site_dimensions(site_x_start, site_x_end, site_y_start, site_y_end)
@@ -95,4 +96,7 @@ if len(sys.argv) > 1 and sys.argv[1] == "--from-checkpoint":
   rf.load_checkpoint("checkpoint")
 
 parameters['form_compiler']['cpp_optimize_flags'] = '-O3 -ffast-math -march=native'
-maximize(rf, constraints = constraints, method = "SLSQP", options = {"maxiter": 300, "ftol": 1.0}) 
+
+nlp, grad = rf.pyopt_problem(constraints=constraints)
+slsqp = SLSQP(options={"MAXIT": 300})
+res = slsqp(nlp, sens_type=grad)
