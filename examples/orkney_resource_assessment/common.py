@@ -1,11 +1,13 @@
 from dolfin import *
 from dolfin_adjoint import *
 from opentidalfarm import print0
-from uptide.netcdf_reader import NetCDFInterpolator
+# this imports NetCDFFile from netCDF4, Scientific.IO.NetCDF or scipy.io.netcdf (whichever is available)
+from uptide.netcdf_reader import NetCDFFile
 import utm
 import uptide
 import uptide.tidal_netcdf
 import datetime
+import scipy.interpolate
 
 utm_zone = 30
 utm_band = 'V'
@@ -39,10 +41,13 @@ class TidalForcing(Expression):
 
 class BathymetryDepthExpression(Expression):
   def __init__(self, filename):
-    self.nci = NetCDFInterpolator(filename, ('lat', 'lon'), ('lat', 'lon'))
-    self.nci.set_field("z")
+    nc = NetCDFFile(filename, 'r')
+    lat = nc.variables['lat']
+    lon = nc.variables['lon']
+    values = nc.variables['z']
+    self.interpolator = scipy.interpolate.RectBivariateSpline(lat, lon, values)
 
   def eval(self, values, x):
-    latlon = utm.to_latlon(x[0], x[1], utm_zone, utm_band)
-    values[0] = max(10, -self.nci.get_val(latlon))
+    lat,lon = utm.to_latlon(x[0], x[1], utm_zone, utm_band)
+    values[0] = max(10, -self.interpolator(lat, lon))
 
