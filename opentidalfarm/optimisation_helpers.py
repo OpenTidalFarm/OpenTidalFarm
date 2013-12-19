@@ -21,6 +21,9 @@ def position_constraints(config):
     ''' This function returns the constraints to ensure that the turbine positions remain inside the domain. '''
 
     n = len(config.params["turbine_pos"])
+    if n == 0:
+          raise ValueError("You need to deploy the turbines before computing the position constraints.")
+
     lb_x = config.domain.site_x_start + config.params["turbine_x"] / 2
     lb_y = config.domain.site_y_start + config.params["turbine_y"] / 2
     ub_x = config.domain.site_x_end - config.params["turbine_x"] / 2
