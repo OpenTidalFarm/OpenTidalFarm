@@ -29,7 +29,7 @@ def error(config, eta0, k):
   analytic_sol = Expression((u_exact, \
                              "0", \
                              eta_exact), \
-                             eta0 = eta0, g = config.params["g"], \
+                             eta0=eta0, g=config.params["g"], \
                              depth=config.params["depth"], t=config.params["current_time"], k=k)
   exactstate = Function(config.function_space)
   exactstate.interpolate(analytic_sol)
@@ -51,11 +51,16 @@ def test(refinement_level):
 
   # Make sure that we apply the analytical boundary conditions
   eta0 = 2.0
-  config.params['initial_condition'] = SinusoidalInitialCondition(config, eta0, k, config.params["depth"])
+  config.params['initial_condition'] = SinusoidalInitialCondition(config, eta0, k, config.params['depth'])
   config.params["dump_period"] = 100000
-  config.params["eta0"] = 2.
   config.params["bctype"] = "strong_dirichlet"
-  expression = Expression(("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0"), eta0 = eta0, g = config.params["g"], depth = config.params["depth"], t = config.params["current_time"], k = k)
+  expression = Expression(("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0"), 
+                          eta0=eta0, 
+                          g=config.params["g"], 
+                          depth=config.params["depth"], 
+                          t=config.params["current_time"], 
+                          k=k)
+
   bc = DirichletBCSet(config)
   bc.add_analytic_u(1, expression)
   bc.add_analytic_u(2, expression)
@@ -77,7 +82,7 @@ for i in range(len(errors)-1):
   conv.append(abs(math.log(errors[i+1]/errors[i], 2)))
 
 # Plot the result
-save_convergence_plot(errors, dts, "Temporal rate of convergence", "Temporal error", order = 1.0, show_title = False, xlabel = "Time step [s]")
+#save_convergence_plot(errors, dts, "Temporal rate of convergence", "Temporal error", order = 1.0, show_title = False, xlabel = "Time step [s]")
 
 info_green("Errors: %s.", str(errors))
 info_green("Temporal order of convergence (expecting 1.0): %s" % str(conv))

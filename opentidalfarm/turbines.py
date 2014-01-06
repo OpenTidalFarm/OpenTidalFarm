@@ -88,7 +88,7 @@ class TurbineCache:
                (self.params["turbine_pos"] == config.params["turbine_pos"]).all()):
                 return
 
-        if config.params["turbine_parametrisation"] == "smooth":
+        if config.params["turbine_parametrisation"] == "smeared":
             tf = Function(config.turbine_function_space, name="turbine_friction_cache")
 
             optimization.set_local(tf, config.params["turbine_friction"])

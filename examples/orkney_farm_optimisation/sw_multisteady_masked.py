@@ -2,33 +2,26 @@ from opentidalfarm import *
 from common import TidalForcing, BathymetryDepthExpression
 from math import pi
 import os.path
-forward_only = False
-test_gradient = False
-farm_selector = None  # If None, all farms are optimised. 
-                      # If between 1 and 4, the only the selected farm is optimised
+forward_only = True
+test_gradient = True
 
-if farm_selector is None:
-    mesh_basefile = "mesh/coast_idBoundary_utm_no_islands"
-else:
-    mesh_basefile = "mesh/coast_idBoundary_utm_no_islands_individual_farm_ids"
-
-config = UnsteadyConfiguration(mesh_basefile + ".xml", [1, 1]) 
+config = UnsteadyConfiguration("mesh/coast_idBoundary_utm.xml", [1, 1]) 
 config.params['initial_condition'] = ConstantFlowInitialCondition(config) 
-config.params['diffusion_coef'] = 90.0
+config.params['diffusion_coef'] = Constant(250.0)
 config.params["controls"] = ["turbine_friction"]
 config.params["turbine_parametrisation"] = "smeared"
 config.params["automatic_scaling"] = False 
 config.params['friction'] = Constant(0.0025)
 config.params['cache_forward_state'] = True
-if farm_selector is None:
-    config.params['base_path'] = "results_unsteady"
-else:
-    config.params['base_path'] = "results_unsteady_farm_%i_only" % farm_selector
+config.params['base_path'] = "results_multisteady_masked"
 
-config.params['start_time'] = 0 
-config.params['dt'] = 60 * 10 * 3
-config.params['finish_time'] = 12.5 * 60 * 60
-config.params['theta'] = 0.5
+# Perform only two timesteps
+config.params['include_time_term'] = False
+config.params['start_time'] = -1 * 16 * 600 
+config.params['dt'] = 2 * 16 * 600 
+config.params['finish_time'] = 3 * 16 * 600 
+config.params['theta'] = 1.0 
+config.params['functional_quadrature_degree'] = 0
 
 # Tidal boundary forcing
 bc = DirichletBCSet(config)
@@ -37,7 +30,7 @@ eta_expr = TidalForcing()
 bc.add_analytic_eta(1, eta_expr)
 bc.add_analytic_eta(2, eta_expr)
 # comment out if you want free slip:
-#bc.add_noslip_u(3)
+bc.add_noslip_u(3)
 config.params['bctype'] = 'strong_dirichlet'
 config.params['strong_bc'] = bc
 
@@ -53,11 +46,22 @@ depth_pvd << depth
 config.params['depth'] = depth
 config.turbine_function_space = V_dg0 
 
-domains = MeshFunction("size_t", config.domain.mesh, mesh_basefile + "_physical_region.xml")
-if farm_selector is not None:
-  domains_ids = MeshFunction("size_t", config.domain.mesh, mesh_basefile + "_physical_region.xml")
-  domains.set_all(0)
-  domains.array()[domains_ids.array() == farm_selector] = 1
+domains = MeshFunction("size_t", config.domain.mesh, "mesh/coast_idBoundary_utm_physical_region.xml")
+
+# Compute gradient of the batyhmetry
+depth_grad = Function(V_dg0)
+F = inner(TrialFunction(V_dg0) - (depth.dx(0)**2 + depth.dx(1)**2)**0.5, TestFunction(V_dg0))*dx
+solve(lhs(F) == rhs(F), depth_grad)
+
+# The maximum gradient in which turbines can be deployed
+grad_limit = 0.015
+jump = lambda x: 1 if x < grad_limit else 0 
+vjump = numpy.vectorize(jump)
+
+indic_arr = vjump(depth_grad.vector().get_local())
+indic_arr *= domains.array() 
+
+domains.set_values(numpy.array(indic_arr, dtype=numpy.uintp))
 #plot(domains, interactive=True)
 config.site_dx = Measure("dx")[domains]
 f = File(os.path.join(config.params["base_path"], "turbine_farms.pvd"))
@@ -82,4 +86,4 @@ else:
   # c_B = c_T*A_Cross / (2*A) = 0.6*pi*D**2/(2*9D**2) 
   max_ct = 0.6*pi/2/9
   print "Maximum turbine friction: %f." % max_ct
-  m_opt = maximize(rf, bounds = [0, max_ct], options = {"maxiter": 600})
+  m_opt = maximize(rf, bounds = [0, max_ct], options = {"maxiter": 300})

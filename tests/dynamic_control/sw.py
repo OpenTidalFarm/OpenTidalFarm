@@ -24,6 +24,7 @@ config.params['turbine_x'] = 50.
 config.params['turbine_y'] = 50. 
 config.params['controls'] = ["dynamic_turbine_friction"]
 config.params["automatic_scaling"] = False
+#config.params['k'] = pi / basin_x
 
 for x_r in numpy.linspace(site_x_start, site_x_start + site_x, 2):
     for y_r in numpy.linspace(site_y_start, site_y_start + site_y, 2):
@@ -41,7 +42,8 @@ rf.j(m0)
 
 p = numpy.random.rand(len(m0))
 seed = 0.1
-minconv = helpers.test_gradient_array(rf.j, rf.dj, m0, seed=seed, perturbation_direction=p, plot_file="convergence.pdf")
+#minconv = helpers.test_gradient_array(rf.j, rf.dj, m0, seed=seed, perturbation_direction=p, plot_file="convergence.pdf")
+minconv = helpers.test_gradient_array(rf.j, rf.dj, m0, seed=seed, perturbation_direction=p)
 if minconv < 1.9:
     info_red("The gradient taylor remainder test failed.")
     sys.exit(1)

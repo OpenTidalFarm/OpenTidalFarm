@@ -1,6 +1,7 @@
 from opentidalfarm import *
 from common import TidalForcing, BathymetryDepthExpression
 from math import pi
+from pyOpt import SNOPT
 import os.path
 forward_only = False
 test_gradient = False
@@ -21,9 +22,9 @@ config.params["automatic_scaling"] = False
 config.params['friction'] = Constant(0.0025)
 config.params['cache_forward_state'] = True
 if farm_selector is None:
-    config.params['base_path'] = "results_unsteady"
+    config.params['base_path'] = "results_snopt_unsteady"
 else:
-    config.params['base_path'] = "results_unsteady_farm_%i_only" % farm_selector
+    config.params['base_path'] = "results_snopt_unsteady_farm_%i_only" % farm_selector
 
 config.params['start_time'] = 0 
 config.params['dt'] = 60 * 10 * 3
@@ -66,7 +67,7 @@ f << domains
 config.params["save_checkpoints"] = True
 config.info()
 
-rf = ReducedFunctional(config, scale=-1e-6)
+rf = ReducedFunctional(config, scale=-1e-9)
 rf.load_checkpoint()
 
 if forward_only or test_gradient:
@@ -82,4 +83,9 @@ else:
   # c_B = c_T*A_Cross / (2*A) = 0.6*pi*D**2/(2*9D**2) 
   max_ct = 0.6*pi/2/9
   print "Maximum turbine friction: %f." % max_ct
-  m_opt = maximize(rf, bounds = [0, max_ct], options = {"maxiter": 600})
+  nlp, grad = rf.pyopt_problem(bounds=(0, max_ct))
+  snopt = SNOPT(options={"Major feasibility tolerance": 1e-6,
+                         "Major optimality tolerance": 1e-6,
+                         "Minor feasibility tolerance": 1e-6,
+                         "Iterations limit": 30000})
+  res = snopt(nlp, sens_type=grad)

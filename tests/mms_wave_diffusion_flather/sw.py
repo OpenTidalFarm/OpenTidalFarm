@@ -1,6 +1,7 @@
 import sys
 from opentidalfarm import *
 from opentidalfarm.initial_conditions import SinusoidalInitialCondition
+import opentidalfarm.domains
 from dolfin_adjoint import adj_reset 
 from math import log
 
@@ -16,12 +17,12 @@ def error(config, eta0, k):
   # The source term
   source = Expression((ddu_exact, 
                        "0.0"), \
-                       eta0 = eta0, g = config.params["g"], \
-                       depth = config.params["depth"], t = config.params["current_time"], \
-                       k = k, diffusion_coef = config.params["diffusion_coef"])
+                       eta0=eta0, g=config.params["g"], \
+                       depth=config.params["depth"], t=config.params["current_time"], \
+                       k=k, diffusion_coef=config.params["diffusion_coef"])
 
   adj_reset()
-  shallow_water_model.sw_solve(config, state, annotate=False, u_source = source)
+  shallow_water_model.sw_solve(config, state, annotate=False, u_source=source)
 
   analytic_sol = Expression((u_exact, \
                              "0", \
@@ -33,8 +34,9 @@ def error(config, eta0, k):
   e = state - exactstate
   return sqrt(assemble(dot(e,e)*dx))
 
-def test(refinment_level):
-  config = configuration.DefaultConfiguration(nx=16*2**refinment_level, ny=2**refinment_level) 
+def test(refinement_level):
+  config = configuration.DefaultConfiguration(nx=16*2**refinement_level, ny=2**refinement_level) 
+  config.set_domain(opentidalfarm.domains.RectangularDomain(3000, 1000, 16*2**refinement_level, 2**refinement_level))
   eta0 = 2.0
   k = pi/config.domain.basin_x
   config.params["finish_time"] = pi/(sqrt(config.params["g"]*config.params["depth"])*k)/20
@@ -42,13 +44,19 @@ def test(refinment_level):
   config.params["dump_period"] = 100000
   config.params["include_diffusion"] = True
   config.params["diffusion_coef"] = 10.0
+  config.params["flather_bc_expr"] = Expression(("2*eta0*sqrt(g/depth)*cos(-sqrt(g*depth)*k*t)", "0"), 
+                                                 eta0=eta0, 
+                                                 g=config.params["g"], 
+                                                 depth=config.params["depth"], 
+                                                 t=config.params["current_time"], 
+                                                 k=k)
 
   return error(config, eta0, k)
 
 errors = []
 tests = 4
-for refinment_level in range(1, tests):
-  errors.append(test(refinment_level))
+for refinement_level in range(1, tests):
+  errors.append(test(refinement_level))
 # Compute the order of convergence 
 conv = [] 
 for i in range(len(errors)-1):

@@ -14,7 +14,7 @@ import os
 
 class DefaultConfiguration(object):
     ''' A default configuration setup that is used by all tests. '''
-    def __init__(self, nx=20, ny=3, basin_x=3000, basin_y=1000, finite_element=finite_elements.p2p1):
+    def __init__(self, nx=20, ny=3, finite_element=finite_elements.p2p1):
 
         # Initialize function space and the domain
         self.finite_element = finite_element
@@ -29,6 +29,8 @@ class DefaultConfiguration(object):
             'functional_quadrature_degree': 1,
             'bctype': 'flather',
             'strong_bc': None,
+            'flather_bc_expr': None,
+            'weak_dirichlet_bc_expr': None,
             'free_slip_on_sides': False,
             'include_advection': False,
             'include_diffusion': False,
@@ -37,7 +39,6 @@ class DefaultConfiguration(object):
             'depth': 50.0,
             'g': 9.81,
             'dump_period': 1,
-            'eta0': 2,
             'quadratic_friction': False,
             'friction': Constant(0.0),
             'turbine_parametrisation': 'individual',
@@ -65,6 +66,7 @@ class DefaultConfiguration(object):
             'automatic_scaling_multiplier': 5,
             'output_turbine_power': True,
             'save_checkpoints': False,
+            'cache_forward_state': False,
             'base_path': os.curdir
             })
 
@@ -73,8 +75,6 @@ class DefaultConfiguration(object):
         # Print log messages only from the root process in parallel
         # (See http://fenicsproject.org/documentation/dolfin/dev/python/demo/pde/navier-stokes/python/documentation.html)
         parameters['std_out_all_processes'] = False
-
-        params['k'] = pi / basin_x
 
         # Store the result as class variables
         self.params = params
@@ -88,11 +88,11 @@ class DefaultConfiguration(object):
         self.optimisation_iteration = 0
 
     def set_domain(self, domain, warning=True):
-        if warning:
+        if warning and hasattr(self, 'domain'):
             info_red("If you are overwriting the domain, make sure that you reapply the boundary conditions as well")
         self.domain = domain
 
-        # Define the subdomain for the turbine site. The default value should only be changed for smooth turbine representations.
+        # Define the subdomain for the turbine site. The default value should only be changed for smeared turbine representations.
         domains = CellFunction("size_t", self.domain.mesh)
         domains.set_all(1)
         self.site_dx = Measure("dx")[domains]  # The measure used to integrate the turbine friction
@@ -113,7 +113,9 @@ class DefaultConfiguration(object):
     def info(self):
         hmin = MPI.min(self.domain.mesh.hmin())
         hmax = MPI.max(self.domain.mesh.hmax())
+        num_cells = MPI.sum(self.domain.mesh.num_cells())
         if MPI.process_number() == 0:
+            # Physical parameters
             print "\n=== Physical parameters ==="
             if isinstance(self.params["depth"], float):
                 print "Water depth: %f m" % self.params["depth"]
@@ -129,6 +131,8 @@ class DefaultConfiguration(object):
             print "Advection term: %s" % self.params["include_advection"]
             print "Diffusion term: %s" % self.params["include_diffusion"]
             print "Steady state: %s" % self.params["steady_state"]
+
+            # Turbine settings 
             print "\n=== Turbine settings ==="
             print "Number of turbines: %i" % len(self.params["turbine_pos"])
             print "Turbines parametrisation: %s" % self.params["turbine_parametrisation"]
@@ -137,6 +141,8 @@ class DefaultConfiguration(object):
             print "Control parameters: %s" % ', '.join(self.params["controls"])
             if len(self.params["turbine_friction"]) > 0:
                 print "Turbines frictions: %f - %f" % (min(self.params["turbine_friction"]), max(self.params["turbine_friction"]))
+
+            # Discretisation settings
             print "\n=== Discretisation settings ==="
             print "Finite element pair: ", self.finite_element.func_name
             print "Steady state: ", self.params["steady_state"]
@@ -145,13 +151,20 @@ class DefaultConfiguration(object):
                 print "Start time: %f s" % self.params["start_time"]
                 print "Finish time: %f s" % self.params["finish_time"]
                 print "Time step: %f s" % self.params["dt"]
-            print "Number of mesh elements: %i" % self.domain.mesh.num_cells()
+            print "Number of mesh elements: %i" % num_cells
             print "Mesh element size: %f - %f" % (hmin, hmax)
+
+            # Optimisation settings
             print "\n=== Optimisation settings ==="
             print "Automatic functional rescaling: %s" % self.params["automatic_scaling"]
             if self.params["automatic_scaling"]:
                 print "Automatic functional rescaling multiplier: %s" % self.params["automatic_scaling_multiplier"]
             print "Automatic checkpoint generation: %s" % self.params["save_checkpoints"]
+            print ""
+
+            # Other 
+            print "\n=== Other ==="
+            print "Cache forward solution for initial solver guess: %s" % self.params["cache_forward_state"]
             print ""
 
     def set_site_dimensions(self, site_x_start, site_x_end, site_y_start, site_y_end):
@@ -220,8 +233,6 @@ class UnsteadyConfiguration(SteadyConfiguration):
 
         # Initial condition
         k = 2 * pi / (period * sqrt(self.params['g'] * self.params['depth']))
-        info('Wave period (in h): %f' % (period / 60 / 60))
-        info('Approximate CFL number (assuming a velocity of 2): ' + str(2 * self.params['dt'] / self.domain.mesh.hmin()))
         self.params['initial_condition'] = SinusoidalInitialCondition(self, eta0, k, self.params['depth'])
 
         # Boundary conditions

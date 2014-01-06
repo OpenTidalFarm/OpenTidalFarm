@@ -19,10 +19,17 @@ config.params['start_time'] = 0
 config.params['dt'] = 1 
 config.params['finish_time'] = 1 
 config.params['include_time_term'] = False
-config.params['diffusion_coef'] = 8
+config.params['diffusion_coef'] = 16
 config.params['functional_quadrature_degree'] = 0
 config.params["newton_solver"] = True
-#config.params["linear_solver"] = "umfpack"
+config.params['cache_forward_state'] = True
+k = pi/basin_x
+config.params["flather_bc_expr"] = Expression(("2*eta0*sqrt(g/depth)*cos(-sqrt(g*depth)*k*t)", "0"), 
+                                 eta0=2., 
+                                 g=config.params["g"], 
+                                 depth=config.params["depth"], 
+                                 t=config.params["current_time"], 
+                                 k=k)
 
 # Work out the expected delta eta for a free-stream of 2.5 m/s (without turbines) 
 # by assuming balance between the pressure and friction terms

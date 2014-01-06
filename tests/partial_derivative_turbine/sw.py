@@ -7,10 +7,12 @@ import sys
 from dolfin_adjoint import adj_reset
 from opentidalfarm import *
 from opentidalfarm.helpers import test_gradient_array
+import opentidalfarm.domains
 set_log_level(PROGRESS)
 
 def default_config():
   config = configuration.DefaultConfiguration(nx=40, ny=20, finite_element = finite_elements.p1dgp2)
+  config.set_domain(opentidalfarm.domains.RectangularDomain(3000, 1000, 40, 20))
   config.params["dump_period"] = 1000
   config.params["verbose"] = 0
 

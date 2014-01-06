@@ -12,7 +12,7 @@ site_y_start = (basin_y - site_y)/2
 config = SteadyConfiguration("mesh.xml", inflow_direction = [1, 0])
 config.set_site_dimensions(site_x_start, site_x_start + site_x, site_y_start, site_y_start + site_y)
 config.params["controls"] = ["turbine_friction"]
-config.params["turbine_parametrisation"] = "smooth"
+config.params["turbine_parametrisation"] = "smeared"
 config.params["automatic_scaling"] = False 
 
 config.turbine_function_space = FunctionSpace(config.domain.mesh, 'DG', 0)

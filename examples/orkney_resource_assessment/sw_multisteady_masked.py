@@ -1,43 +1,40 @@
 from opentidalfarm import *
 from common import TidalForcing, BathymetryDepthExpression
+import distance
 from math import pi
 import os.path
-forward_only = False
-test_gradient = False
-farm_selector = None  # If None, all farms are optimised. 
-                      # If between 1 and 4, the only the selected farm is optimised
+forward_only = True
+test_gradient = True
 
-if farm_selector is None:
-    mesh_basefile = "mesh/coast_idBoundary_utm_no_islands"
-else:
-    mesh_basefile = "mesh/coast_idBoundary_utm_no_islands_individual_farm_ids"
-
-config = UnsteadyConfiguration(mesh_basefile + ".xml", [1, 1]) 
+config = UnsteadyConfiguration("mesh/orkney.xml", [1, 1]) 
 config.params['initial_condition'] = ConstantFlowInitialCondition(config) 
-config.params['diffusion_coef'] = 90.0
+config.params['diffusion_coef'] = Constant(250.0)
 config.params["controls"] = ["turbine_friction"]
 config.params["turbine_parametrisation"] = "smeared"
 config.params["automatic_scaling"] = False 
 config.params['friction'] = Constant(0.0025)
 config.params['cache_forward_state'] = True
-if farm_selector is None:
-    config.params['base_path'] = "results_unsteady"
-else:
-    config.params['base_path'] = "results_unsteady_farm_%i_only" % farm_selector
+config.params['base_path'] = "results_multisteady_masked"
 
-config.params['start_time'] = 0 
-config.params['dt'] = 60 * 10 * 3
-config.params['finish_time'] = 12.5 * 60 * 60
-config.params['theta'] = 0.5
+# Perform only two timesteps
+config.params['include_time_term'] = True
+config.params['start_time'] = 0
+config.params['dt'] = 3600.
+config.params['finish_time'] = 48.*3600.
+config.params['theta'] = 1.0 
+config.params['functional_quadrature_degree'] = 0
+
+#config.params['newton_solver'] = False
+#config.params['picard_iterations'] = 2
 
 # Tidal boundary forcing
 bc = DirichletBCSet(config)
 
 eta_expr = TidalForcing() 
-bc.add_analytic_eta(1, eta_expr)
-bc.add_analytic_eta(2, eta_expr)
+for boundary_id in range(2,7):
+  bc.add_analytic_eta(boundary_id, eta_expr)
 # comment out if you want free slip:
-#bc.add_noslip_u(3)
+bc.add_noslip_u(1)
 config.params['bctype'] = 'strong_dirichlet'
 config.params['strong_bc'] = bc
 
@@ -46,6 +43,7 @@ V_dg0 = FunctionSpace(config.domain.mesh, 'DG', 0)
 
 # Bathymetry
 bexpr = BathymetryDepthExpression('bathymetry.nc')
+#bexpr = Constant(50.0)
 depth = interpolate(bexpr, V_cg1) 
 depth_pvd = File(os.path.join(config.params["base_path"], "bathymetry.pvd"))
 depth_pvd << depth
@@ -53,11 +51,18 @@ depth_pvd << depth
 config.params['depth'] = depth
 config.turbine_function_space = V_dg0 
 
-domains = MeshFunction("size_t", config.domain.mesh, mesh_basefile + "_physical_region.xml")
-if farm_selector is not None:
-  domains_ids = MeshFunction("size_t", config.domain.mesh, mesh_basefile + "_physical_region.xml")
-  domains.set_all(0)
-  domains.array()[domains_ids.array() == farm_selector] = 1
+cell_depth = interpolate(depth, V_dg0).vector().get_local()
+cell_x = interpolate(Expression("x[0]"), V_dg0).vector().get_local()
+cell_y = interpolate(Expression("x[1]"), V_dg0).vector().get_local()
+cell_distance_to_boundary = interpolate(distance.DistanceToCoast(config), V_dg0).vector().get_local()
+
+# where to allow turbines:
+min_depth = 20.0
+max_depth = 1000.0 # this is not reached, so no maximum is applied
+wh  = (min_depth < cell_depth) & (cell_depth < max_depth) & (cell_distance_to_boundary<10*1.e3) & \
+                                                            (cell_x > 468000.) & (cell_y > 6480000.)
+domains = MeshFunction('size_t', config.domain.mesh, 2)
+domains.set_values(numpy.array(wh, dtype=numpy.uintp))
 #plot(domains, interactive=True)
 config.site_dx = Measure("dx")[domains]
 f = File(os.path.join(config.params["base_path"], "turbine_farms.pvd"))
@@ -67,7 +72,7 @@ config.params["save_checkpoints"] = True
 config.info()
 
 rf = ReducedFunctional(config, scale=-1e-6)
-rf.load_checkpoint()
+#rf.load_checkpoint()
 
 if forward_only or test_gradient:
     print "Running forward model"
@@ -82,4 +87,4 @@ else:
   # c_B = c_T*A_Cross / (2*A) = 0.6*pi*D**2/(2*9D**2) 
   max_ct = 0.6*pi/2/9
   print "Maximum turbine friction: %f." % max_ct
-  m_opt = maximize(rf, bounds = [0, max_ct], options = {"maxiter": 600})
+  m_opt = maximize(rf, bounds = [0, max_ct], options = {"maxiter": 300})

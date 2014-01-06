@@ -9,7 +9,7 @@ parameters["std_out_all_processes"] = False;
 
 def error(config, eta0, k):
   state = Function(config.function_space)
-  state.interpolate(SinusoidalInitialCondition(config,eta0,k,config.params["depth"]))
+  state.interpolate(SinusoidalInitialCondition(config, eta0, k, config.params["depth"]))
   u_exact = "eta0*sqrt(g/depth) * cos(k*x[0]-sqrt(g*depth)*k*t)" 
   du_exact = "(- eta0*sqrt(g/depth) * sin(k*x[0]-sqrt(g*depth)*k*t) * k)"
   ddu_exact = "(diffusion_coef * eta0*sqrt(g/depth) * cos(k*x[0]-sqrt(g*depth)*k*t) * k*k)"
@@ -20,7 +20,7 @@ def error(config, eta0, k):
                              "0.0"), \
                              eta0 = eta0, g = config.params["g"], \
                              depth = config.params["depth"], t = config.params["current_time"], \
-                             k = k,  diffusion_coef = config.params["diffusion_coef"],
+                             k = k, diffusion_coef = config.params["diffusion_coef"],
                              friction = config.params["friction"])
 
   adj_reset()
@@ -54,7 +54,13 @@ def test(refinement_level):
   config.params['initial_condition'] = SinusoidalInitialCondition(config, eta0, k, config.params['depth'])
   config.params["dump_period"] = 100000
   config.params["bctype"] = "strong_dirichlet"
-  expression = Expression(("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0"), eta0 = eta0, g = config.params["g"], depth = config.params["depth"], t = config.params["current_time"], k = k)
+  expression = Expression(("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0"), 
+                          eta0=eta0, 
+                          g=config.params["g"], 
+                          depth=config.params["depth"], 
+                          t=config.params["current_time"], 
+                          k=k)
+
   bc = DirichletBCSet(config)
   bc.add_analytic_u(1, expression)
   bc.add_analytic_u(2, expression)
@@ -76,7 +82,7 @@ for i in range(len(errors)-1):
   conv.append(abs(math.log(errors[i+1]/errors[i], 2)))
 
 # Plot the results
-save_convergence_plot(errors, element_sizes, "Spatial rate of convergence", "Spatial error", order = 2.0, show_title = False, xlabel = "Element size [m]")
+#save_convergence_plot(errors, element_sizes, "Spatial rate of convergence", "Spatial error", order = 2.0, show_title = False, xlabel = "Element size [m]")
 
 info_green("Errors: %s.", str(errors))
 info_green("Spatial order of convergence (expecting 2.0): %s.", str(conv))
