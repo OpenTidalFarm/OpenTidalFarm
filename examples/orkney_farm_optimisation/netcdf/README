@@ -1,0 +1,3 @@
+This directory contains the NetCDF files for this example. 
+Due to its size there are stored in the separate repository:
+ssh://git@bitbucket.org/simon_funke/opentidalfarm-data-files.git

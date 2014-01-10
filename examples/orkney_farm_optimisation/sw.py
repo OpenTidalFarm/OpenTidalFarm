@@ -34,8 +34,8 @@ config.params['theta'] = 0.5
 
 # Tidal boundary forcing
 bc = DirichletBCSet(config)
-eta_expr = TidalForcing(grid_file_name='gridES2008.nc',
-                        data_file_name='hf.ES2008.nc',
+eta_expr = TidalForcing(grid_file_name='netcdf/gridES2008.nc',
+                        data_file_name='netcdf/hf.ES2008.nc',
                         ranges=((-4.0,0.0), (58.0,61.0)),
                         utm_zone=utm_zone, 
                         utm_band=utm_band, 
@@ -53,7 +53,7 @@ V_cg1 = FunctionSpace(config.domain.mesh, "CG", 1)
 V_dg0 = FunctionSpace(config.domain.mesh, 'DG', 0)
 
 # Bathymetry
-bexpr = BathymetryDepthExpression('bathymetry.nc', utm_zone=utm_zone, utm_band=utm_band)
+bexpr = BathymetryDepthExpression('netcdf/bathymetry.nc', utm_zone=utm_zone, utm_band=utm_band)
 depth = interpolate(bexpr, V_cg1) 
 depth_pvd = File(os.path.join(config.params["base_path"], "bathymetry.pvd"))
 depth_pvd << depth
