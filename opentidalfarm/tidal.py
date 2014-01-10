@@ -10,8 +10,8 @@ import datetime
 import scipy.interpolate
 
 # We need to store tnci_time as a non-class variable, otherwise 
-# dolfin-adjoint tries to be clever restore its values during the 
-# adjoint runs which yields into unexpected behaviours in 
+# dolfin-adjoint tries to be clever and restores its values during the
+# adjoint runs which yields an wrong behaviour for
 # the "tnci_time != self.t" statement below
 tnci_time = None
 class TidalForcing(Expression):
