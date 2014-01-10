@@ -1,9 +1,4 @@
 from opentidalfarm import *
-#import ipopt
-import utm
-import uptide
-import uptide.tidal_netcdf
-from uptide.netcdf_reader import NetCDFInterpolator
 import datetime
 utm_zone = 30
 utm_band = 'V'
@@ -15,6 +10,7 @@ config.params["controls"] = ["turbine_friction"]
 config.params["turbine_parametrisation"] = "smeared"
 config.params["automatic_scaling"] = False 
 config.params['friction'] = Constant(0.0025)
+config.params['base_path'] = "forward_only"
 
 config.params['start_time'] = 0 
 config.params['dt'] = 600 
@@ -23,27 +19,14 @@ config.params['theta'] = 1.0
 
 # Tidal boundary forcing
 bc = DirichletBCSet(config)
-class TidalForcing(Expression):
-    def __init__(self):
-        self.t = None
-        self.tnci_time = None
+eta_expr = TidalForcing(grid_file_name='gridES2008.nc',
+						data_file_name='hf.ES2008.nc',
+						ranges=((-4.0,0.0), (58.0,61.0)),
+						utm_zone=utm_zone, 
+		                utm_band=utm_band, 
+						initial_time=datetime.datetime(2001, 9, 18, 0),
+						constituents=['Q1', 'O1', 'P1', 'K1', 'N2', 'M2', 'S2', 'K2'])
 
-        constituents = ['Q1', 'O1', 'P1', 'K1', 'N2', 'M2', 'S2', 'K2']
-        tide = uptide.Tides(constituents)
-        tide.set_initial_time(datetime.datetime(2001,9,18,0,0,0))
-        self.tnci = uptide.tidal_netcdf.OTPSncTidalInterpolator(tide,
-                    'gridES2008.nc', 'hf.ES2008.nc', ranges=((-4.0,0.0),(58.0,61.0)))
-
-    def eval(self, values, X):
-        if self.tnci_time != self.t:    
-            self.tnci.set_time(self.t)
-            self.tnci_time = self.t
-
-        latlon = utm.to_latlon(X[0], X[1], utm_zone, utm_band)
-        # OTPS has lon, lat coordinates!
-        values[0] = self.tnci.get_val((latlon[1], latlon[0]), allow_extrapolation=True)
-
-eta_expr = TidalForcing() 
 bc.add_analytic_eta(1, eta_expr)
 bc.add_analytic_eta(2, eta_expr)
 # comment out if you want free slip:
@@ -52,16 +35,7 @@ config.params['bctype'] = 'strong_dirichlet'
 config.params['strong_bc'] = bc
 
 # Bathymetry
-class BathymetryDepthExpression(Expression):
-  def __init__(self, filename):
-    self.nci = NetCDFInterpolator(filename, ('lat', 'lon'), ('lat', 'lon'))
-    self.nci.set_field("z")
-
-  def eval(self, values, x):
-    latlon = utm.to_latlon(x[0], x[1], utm_zone, utm_band)
-    values[0] = max(10, -self.nci.get_val(latlon))
-
-bexpr = BathymetryDepthExpression('bathymetry.nc')
+bexpr = BathymetryDepthExpression('bathymetry.nc', utm_zone=utm_zone, utm_band=utm_band)
 depth = interpolate(bexpr, FunctionSpace(config.domain.mesh, "CG", 1))
 depth_pvd = File("bathymetry.pvd")
 depth_pvd << depth
