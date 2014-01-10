@@ -1,10 +1,12 @@
 from opentidalfarm import *
-from common import TidalForcing, BathymetryDepthExpression
+import datetime
 import distance
 from math import pi
 import os.path
 forward_only = True
 test_gradient = True
+utm_zone = 30
+utm_band = 'V'
 
 config = UnsteadyConfiguration("mesh/orkney.xml", [1, 1]) 
 config.params['initial_condition'] = ConstantFlowInitialCondition(config) 
@@ -29,8 +31,14 @@ config.params['functional_quadrature_degree'] = 0
 
 # Tidal boundary forcing
 bc = DirichletBCSet(config)
+eta_expr = TidalForcing(grid_file_name='gridES2008.nc',
+                        data_file_name='hf.ES2008.nc',
+                        ranges=((-4.0,0.0), (58.0,61.0)),
+                        utm_zone=utm_zone, 
+                        utm_band=utm_band, 
+                        initial_time=datetime.datetime(2001, 9, 18, 0),
+                        constituents=['Q1', 'O1', 'P1', 'K1', 'N2', 'M2', 'S2', 'K2'])
 
-eta_expr = TidalForcing() 
 for boundary_id in range(2,7):
   bc.add_analytic_eta(boundary_id, eta_expr)
 # comment out if you want free slip:
@@ -42,7 +50,7 @@ V_cg1 = FunctionSpace(config.domain.mesh, "CG", 1)
 V_dg0 = FunctionSpace(config.domain.mesh, 'DG', 0)
 
 # Bathymetry
-bexpr = BathymetryDepthExpression('bathymetry.nc')
+bexpr = BathymetryDepthExpression('bathymetry.nc', utm_zone=utm_zone, utm_band=utm_band)
 #bexpr = Constant(50.0)
 depth = interpolate(bexpr, V_cg1) 
 depth_pvd = File(os.path.join(config.params["base_path"], "bathymetry.pvd"))
