@@ -3,6 +3,7 @@ import datetime
 from math import pi
 from pyOpt import SNOPT
 import os.path
+import sys
 forward_only = False
 test_gradient = False
 utm_zone = 30
@@ -15,8 +16,10 @@ else:
     farm_selector = None
 
 if farm_selector is None:
+    print "Optimising all farms."
     mesh_basefile = "mesh/coast_idBoundary_utm_no_islands"
 else:
+    print "Optimising farm %i only." % farm_selector
     mesh_basefile = "mesh/coast_idBoundary_utm_no_islands_individual_farm_ids"
 
 config = UnsteadyConfiguration(mesh_basefile + ".xml", [1, 1]) 

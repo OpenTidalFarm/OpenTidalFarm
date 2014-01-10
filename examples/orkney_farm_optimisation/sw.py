@@ -9,10 +9,10 @@ utm_zone = 30
 utm_band = 'V'
 # If farmselector is None, all farms are optimised. 
 # If farmselector is between 1 and 4, only the selected farm is optimised
-if len(sys.argv) > 1: 
+if len(sys.argv) > 1:
     farm_selector = int(sys.argv[1])
 else:
-    farm_selector = None  
+    farm_selector = None
 
 if farm_selector is None:
     print "Optimising all farms."
