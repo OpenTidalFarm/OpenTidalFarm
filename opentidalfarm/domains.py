@@ -1,4 +1,5 @@
 from dolfin import *
+import os.path
 
 
 class RectangularDomain:
@@ -95,5 +96,5 @@ class GMeshDomain:
 
         self.mesh = Mesh(filename)
 
-        self.boundaries = MeshFunction('size_t', self.mesh, filename[0:-4] + "_facet_region.xml")
+        self.boundaries = MeshFunction('size_t', self.mesh, os.path.splitext(filename)[0] + "_facet_region.xml")
         self.ds = Measure('ds')[self.boundaries]
