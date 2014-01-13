@@ -20,7 +20,7 @@ class TidalForcing(Expression):
        fields). The actual data is read from a seperate file with hRe and hIm
        fields. """
     def __init__(self, grid_file_name, data_file_name, ranges, utm_zone, utm_band, initial_time, constituents):
-        self.t = None
+        self.t = 0
         self.utm_zone = utm_zone
         self.utm_band = utm_band
 
