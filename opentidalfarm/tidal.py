@@ -46,9 +46,16 @@ class BathymetryDepthExpression(Expression):
        the depth values stored as "z" field. """
     def __init__(self, filename, utm_zone, utm_band):
         nc = NetCDFFile(filename, 'r')
+
         lat = nc.variables['lat']
         lon = nc.variables['lon']
         values = nc.variables['z']
+
+        # work around incompatibilities in different netcdf libraries
+        if hasattr(lat, 'data'): lat = lat.data
+        if hasattr(lon, 'data'): lon = lon.data
+        if hasattr(values, 'data'): values = values.data
+
         self.utm_zone = utm_zone
         self.utm_band = utm_band
         self.interpolator = scipy.interpolate.RectBivariateSpline(lat, lon, values)
