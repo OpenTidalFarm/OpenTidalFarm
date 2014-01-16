@@ -111,10 +111,19 @@ class DefaultConfiguration(object):
         self.params['turbine_friction'] = friction * numpy.ones(len(positions))
 
     def info(self):
-        hmin = MPI.min(self.domain.mesh.hmin())
-        hmax = MPI.max(self.domain.mesh.hmax())
-        num_cells = MPI.sum(self.domain.mesh.num_cells())
-        if MPI.process_number() == 0:
+        if dolfin.__version__ >= '1.3.0+':
+          # I *hate* unannounced and intrusive API changes with no support for a transition.
+          hmin = MPI.min(self.domain.mesh.mpi_comm(), self.domain.mesh.hmin())
+          hmax = MPI.max(self.domain.mesh.mpi_comm(), self.domain.mesh.hmax())
+          num_cells = MPI.sum(self.domain.mesh.mpi_comm(), self.domain.mesh.num_cells())
+          rank = MPI.process_number(self.domain.mesh.mpi_comm())
+        else:
+          hmin = MPI.min(self.domain.mesh.hmin())
+          hmax = MPI.max(self.domain.mesh.hmax())
+          num_cells = MPI.sum(self.domain.mesh.num_cells())
+          rank = MPI.process_number()
+
+        if rank == 0:
             # Physical parameters
             print "\n=== Physical parameters ==="
             if isinstance(self.params["depth"], float):
