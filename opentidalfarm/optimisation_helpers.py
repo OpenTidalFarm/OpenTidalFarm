@@ -247,7 +247,10 @@ class DomainRestrictionConstraints(InequalityConstraint):
         info_blue("Solving for gradient of feasible area")
         for i in range(2):
             form = dolfin.inner(feasible_area_grad[i], t) * dolfin.dx - dolfin.inner(feasible_area.dx(i), t) * dolfin.dx
-            dolfin.solve(form == 0, feasible_area_grad[i], solver_parameters={"newton_solver": {"linear_solver": "cg", "preconditioner": "amg"}})
+            if dolfin.NonlinearVariationalSolver.default_parameters().has_parameter("linear_solver"):
+                dolfin.solve(form == 0, feasible_area_grad[i], solver_parameters={"linear_solver": "cg", "preconditioner": "amg"})
+            else:
+                dolfin.solve(form == 0, feasible_area_grad[i], solver_parameters={"newton_solver": {"linear_solver": "cg", "preconditioner": "amg"}})
         self.feasible_area_grad = feasible_area_grad
 
         self.attraction_center = attraction_center
