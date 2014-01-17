@@ -165,7 +165,7 @@ class StateWriter:
 def cpu0only(f):
     ''' A decorator class that only evaluates on the first CPU in a parallel environment. '''
     def decorator(self, *args, **kw):
-        myid = MPI.process_number()
+        myid = get_rank()
         if myid == 0:
             f(self, *args, **kw)
 
@@ -179,7 +179,11 @@ def function_eval(func, point):
     except RuntimeError:
         val = -inf
 
-    maxval = MPI.max(val)
+    if dolfin.__version__ >= '1.3.0+':
+      maxval = MPI.max(mpi_comm_world(), val)
+    else:
+      maxval = MPI.max(val)
+
     if maxval == -inf:
         raise RuntimeError("Point is outside the domain")
     else:
