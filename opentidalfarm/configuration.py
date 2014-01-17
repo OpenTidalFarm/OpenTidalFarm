@@ -113,10 +113,11 @@ class DefaultConfiguration(object):
     def info(self):
         if dolfin.__version__ >= '1.3.0+':
           # I *hate* unannounced and intrusive API changes with no support for a transition.
-          hmin = MPI.min(self.domain.mesh.mpi_comm(), self.domain.mesh.hmin())
-          hmax = MPI.max(self.domain.mesh.mpi_comm(), self.domain.mesh.hmax())
-          num_cells = MPI.sum(self.domain.mesh.mpi_comm(), self.domain.mesh.num_cells())
-          rank = MPI.process_number(self.domain.mesh.mpi_comm())
+          comm = mpi_comm_world() # self.domain.mesh.mpi_comm() when it works
+          hmin = MPI.min(comm, self.domain.mesh.hmin())
+          hmax = MPI.max(comm, self.domain.mesh.hmax())
+          num_cells = MPI.sum(comm, self.domain.mesh.num_cells())
+          rank = MPI.process_number(comm)
         else:
           hmin = MPI.min(self.domain.mesh.hmin())
           hmax = MPI.max(self.domain.mesh.hmax())

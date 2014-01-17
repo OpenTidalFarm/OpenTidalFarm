@@ -7,29 +7,36 @@ import pylab
 import dolfin
 import os.path
 
+def get_rank():
+  if dolfin.__version__ >= '1.3.0+':
+    rank = MPI.process_number(mpi_comm_world())
+  else:
+    rank = MPI.process_number()
+
+  return rank
 
 def info_green(*args, **kwargs):
-    if MPI.process_number() == 0:
+    if get_rank() == 0:
         dolfin.info_green(*args, **kwargs)
 
 
 def info_red(*args, **kwargs):
-    if MPI.process_number() == 0:
+    if get_rank() == 0:
         dolfin.info_red(*args, **kwargs)
 
 
 def info_blue(*args, **kwargs):
-    if MPI.process_number() == 0:
+    if get_rank() == 0:
         dolfin.info_blue(*args, **kwargs)
 
 
 def info(*args, **kwargs):
-    if MPI.process_number() == 0:
+    if get_rank() == 0:
         dolfin.info(*args, **kwargs)
 
 
 def print0(*args, **kwargs):
-    if MPI.process_number() == 0:
+    if get_rank() == 0:
         print(*args, **kwargs)
 
 
