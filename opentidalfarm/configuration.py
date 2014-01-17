@@ -52,7 +52,7 @@ class DefaultConfiguration(object):
             'rho': 1000.,  # Use the density of water: 1000kg/m^3
             'controls': ['turbine_pos', 'turbine_friction'],
             'newton_solver': False,
-            'linear_solver': 'mumps',
+            'linear_solver': ('mumps' if ('mumps' in map(lambda x: x[0], linear_solver_methods())) else 'default'),
             'preconditioner': 'default',
             'picard_relative_tolerance': 1e-5,
             'picard_iterations': 3,
@@ -172,8 +172,15 @@ class DefaultConfiguration(object):
             print "Automatic checkpoint generation: %s" % self.params["save_checkpoints"]
             print ""
 
+            # Solver settings
+            print "\n=== Solver settings ==="
+            print "Nonlinear solver: %s" % ("Newton" if self.params["newton_solver"] else "Picard")
+            print "Linear solver: %s" % self.params["linear_solver"]
+            print "Preconditioner: %s" % self.params["preconditioner"]
+
             # Other 
             print "\n=== Other ==="
+            print "Dolfin version: %s" % dolfin.__version__
             print "Cache forward solution for initial solver guess: %s" % self.params["cache_forward_state"]
             print ""
 
