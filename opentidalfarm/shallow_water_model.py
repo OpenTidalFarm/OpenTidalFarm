@@ -3,7 +3,6 @@ import os.path
 from dolfin import *
 from dolfin_adjoint import *
 from helpers import info, info_green, info_red, info_blue, print0, StateWriter
-from distutils.version import LooseVersion
 import ufl
 
 # If cache_for_nonlinear_initial_guess is true, then we store all intermediate
@@ -419,12 +418,13 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
         if is_nonlinear and newton_solver:
             # Use a Newton solver to solve the nonlinear problem.
             solver_parameters = {"newton_solver": {}}
-            if LooseVersion(dolfin.__version__) > LooseVersion("1.2.0"):
-                solver_parameters["newton_solver"]["linear_solver"] = linear_solver
-                solver_parameters["newton_solver"]["preconditioner"] = preconditioner
-            else:
+            # Older version of Dolfin (<= 1.2.0) have a different structure for the solver parameters...
+            if NonlinearVariationalSolver.default_parameters().has_parameter("linear_solver"):
                 solver_parameters["linear_solver"] = linear_solver
                 solver_parameters["preconditioner"] = preconditioner
+            else:
+                solver_parameters["newton_solver"]["linear_solver"] = linear_solver
+                solver_parameters["newton_solver"]["preconditioner"] = preconditioner
             solver_parameters["newton_solver"]["error_on_nonconvergence"] = True
             solver_parameters["newton_solver"]["maximum_iterations"] = 20
             solver_parameters["newton_solver"]["convergence_criterion"] = "incremental"
