@@ -2,7 +2,7 @@
 
 import sys
 from opentidalfarm import *
-set_log_level(ERROR)
+set_log_level(PROGRESS)
 
 config = UnsteadyConfiguration("mesh.xml", inflow_direction = [1, 1])
 config.params['finish_time'] = config.params["start_time"] + 2*config.params["dt"]

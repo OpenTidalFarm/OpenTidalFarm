@@ -31,7 +31,6 @@ def default_solver_parameters(newton):
             solver_parameters["newton_solver"]["linear_solver"] = linear_solver
             solver_parameters["newton_solver"]["preconditioner"] = preconditioner
         solver_parameters["newton_solver"]["maximum_iterations"] = 20
-        solver_parameters["newton_solver"]["relative_tolerance"] = 1e-16
 
     else:
         solver_parameters = {"linear_solver": linear_solver,
