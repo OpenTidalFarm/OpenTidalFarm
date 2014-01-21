@@ -7,7 +7,7 @@ from dolfin import *
 from math import sqrt, pi
 from initial_conditions import *
 from domains import *
-from helpers import info, info_red
+from helpers import info, info_red, get_rank
 from functionals import DefaultFunctional
 import os
 
@@ -117,7 +117,7 @@ class DefaultConfiguration(object):
           hmin = MPI.min(comm, self.domain.mesh.hmin())
           hmax = MPI.max(comm, self.domain.mesh.hmax())
           num_cells = MPI.sum(comm, self.domain.mesh.num_cells())
-          rank = MPI.process_number(comm)
+          rank = get_rank()
         else:
           hmin = MPI.min(self.domain.mesh.hmin())
           hmax = MPI.max(self.domain.mesh.hmax())

@@ -9,7 +9,7 @@ import os.path
 
 def get_rank():
   if dolfin.__version__ >= '1.3.0+':
-    rank = MPI.process_number(mpi_comm_world())
+    rank = MPI.rank(mpi_comm_world())
   else:
     rank = MPI.process_number()
 
