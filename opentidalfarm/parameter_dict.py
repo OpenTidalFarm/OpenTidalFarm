@@ -55,6 +55,8 @@ class ParameterDictionary(dict):
             'save_checkpoints': 'automatically store checkpoints after each optimisation iteration',
             'cache_forward_state': 'caches the forward state for all timesteps and reuses them as initial guess for the next optimisation iteration',
             'base_path': 'root directory for output',
+            'include_cable_cost': 'include the cable costs in the optimisation',
+            'cable_cost_params': 'adjust cable routing parameters from run-file'
              }
 
     def check(self):

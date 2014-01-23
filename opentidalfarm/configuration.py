@@ -7,7 +7,7 @@ from dolfin import *
 from math import sqrt, pi
 from initial_conditions import *
 from domains import *
-from helpers import info, info_red
+from helpers import info, info_green, info_red, info_blue
 from functionals import DefaultFunctional
 import os
 
@@ -35,6 +35,10 @@ class DefaultConfiguration(object):
             'include_advection': False,
             'include_diffusion': False,
             'include_time_term': True,
+            'include_cable_cost': False,
+            'cable_cost_params': ['substation_location =', [[0,0]], 'capacity =',
+                7, 'pop_size = ', 8000, 'num_iter =', 2200, 'convergence =',
+                50, 'scaling_factor =', 3900],
             'diffusion_coef': 0.0,
             'depth': 50.0,
             'g': 9.81,
@@ -52,7 +56,7 @@ class DefaultConfiguration(object):
             'rho': 1000.,  # Use the density of water: 1000kg/m^3
             'controls': ['turbine_pos', 'turbine_friction'],
             'newton_solver': False,
-            'linear_solver': 'mumps',
+            'linear_solver': ('mumps' if ('mumps' in map(lambda x: x[0], linear_solver_methods())) else 'default'),
             'preconditioner': 'default',
             'picard_relative_tolerance': 1e-5,
             'picard_iterations': 3,
@@ -111,10 +115,20 @@ class DefaultConfiguration(object):
         self.params['turbine_friction'] = friction * numpy.ones(len(positions))
 
     def info(self):
-        hmin = MPI.min(self.domain.mesh.hmin())
-        hmax = MPI.max(self.domain.mesh.hmax())
-        num_cells = MPI.sum(self.domain.mesh.num_cells())
-        if MPI.process_number() == 0:
+        if dolfin.__version__ >= '1.3.0+':
+          # I *hate* unannounced and intrusive API changes with no support for a transition.
+          comm = mpi_comm_world() # self.domain.mesh.mpi_comm() when it works
+          hmin = MPI.min(comm, self.domain.mesh.hmin())
+          hmax = MPI.max(comm, self.domain.mesh.hmax())
+          num_cells = MPI.sum(comm, self.domain.mesh.num_cells())
+          rank = MPI.process_number(comm)
+        else:
+          hmin = MPI.min(self.domain.mesh.hmin())
+          hmax = MPI.max(self.domain.mesh.hmax())
+          num_cells = MPI.sum(self.domain.mesh.num_cells())
+          rank = MPI.process_number()
+
+        if rank == 0:
             # Physical parameters
             print "\n=== Physical parameters ==="
             if isinstance(self.params["depth"], float):
@@ -125,7 +139,7 @@ class DefaultConfiguration(object):
             if isinstance(self.params["friction"], dolfin.functions.constant.Constant):
                 print "Bottom friction: %s" % (self.params["friction"](0))
             else:
-                print "Bottom fruction: %f - %f" %\
+                print "Bottom friction: %f - %f" %\
                     (self.params["friction"].vector().array().min(),
                      self.params["friction"].vector().array().max())
             print "Advection term: %s" % self.params["include_advection"]
@@ -162,8 +176,15 @@ class DefaultConfiguration(object):
             print "Automatic checkpoint generation: %s" % self.params["save_checkpoints"]
             print ""
 
+            # Solver settings
+            print "\n=== Solver settings ==="
+            print "Nonlinear solver: %s" % ("Newton" if self.params["newton_solver"] else "Picard")
+            print "Linear solver: %s" % self.params["linear_solver"]
+            print "Preconditioner: %s" % self.params["preconditioner"]
+
             # Other 
             print "\n=== Other ==="
+            print "Dolfin version: %s" % dolfin.__version__
             print "Cache forward solution for initial solver guess: %s" % self.params["cache_forward_state"]
             print ""
 

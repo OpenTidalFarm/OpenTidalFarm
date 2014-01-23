@@ -10,6 +10,7 @@ from dolfin_adjoint import *
 from turbines import *
 from helpers import info_green, info_red, info_blue
 import os.path
+from cable_costing import CableCostGA
 
 
 class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
@@ -56,6 +57,12 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
                 return numpy.array(m)
 
         self.parameter = [Parameter()]
+        cc_params = config.params["cable_cost_params"]
+        self.cable_cost_ga = CableCostGA(substation_location = cc_params[1],
+                capacity = cc_params[3], pop_size = cc_params[5], num_iter =
+                cc_params[7], convergence_definition = cc_params[9],
+                scaling_factor = cc_params[11])
+        self.prev_cable_routing = None
 
         if plot:
             self.plotter = AnimatedPlot(xlabel="Iteration", ylabel="Functional value")
@@ -72,7 +79,23 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
             # int 0.17353373* (exp(-1.0/(1-(x/10)**2)) * exp(-1.0/(1-(y/10)**2)) * exp(2)) dx dy, x=-10..10, y=-10..10
             #info_red("relative error: %f", (assemble(tf*dx)-25.2771)/25.2771)
 
-            return compute_functional_from_tf(tf, return_final_state, annotate=annotate)
+            if config.params["include_cable_cost"]:
+                info("Previous cable routing = %s" %
+                        (str(self.prev_cable_routing)))
+                info("Optimising cable routing for turbine positions: %s " %
+                        (str(self.__config__.params["turbine_pos"])))
+                timer = dolfin.Timer("Cable Length Evaluation")
+                cabling = self.cable_cost_ga.compute_cable_cost(self.__config__.params["turbine_pos"], self.prev_cable_routing)
+                timer.stop()
+                cable_cost = cabling[0]
+                self.prev_cable_routing = cabling[1]
+                info('Cable length evaluation runtime: %2f s.' %
+                        (timer.value()))
+                return compute_functional_from_tf(tf, return_final_state,
+                        annotate=annotate) - cable_cost
+
+            else: 
+                return compute_functional_from_tf(tf, return_final_state, annotate=annotate)
 
         def compute_functional_from_tf(tf, return_final_state, annotate=True):
             ''' Takes in the turbine friction field and computes the resulting functional of interest. '''
@@ -194,7 +217,17 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
 
                 dj = numpy.array(dj)
 
-            return dj
+            if self.__config__.params["include_cable_cost"]:
+                # Compute the derivative of the cable costing algorithm
+                timer = dolfin.Timer("Cable Length Evaluation")
+                cable_cost_deriv = self.cable_cost_ga.compute_cable_cost_derivative(self.__config__.params["turbine_pos"])
+                timer.stop()
+                info("Cable length derivative evaluated in %2f s." %
+                        (timer.value())) 
+                cable_cost_deriv = numpy.reshape(cable_cost_deriv, len(dj))
+                return -cable_cost_deriv + dj
+            else:
+                return dj 
 
         def compute_hessian_action(m, m_dot):
             if numpy.any(m != self.last_m):
