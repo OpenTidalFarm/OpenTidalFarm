@@ -354,8 +354,6 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
             lu_solver = LUSolver(lhs_preass)
             lu_solver.parameters["reuse_factorization"] = True
 
-    solver_parameters = {"linear_solver": linear_solver, "preconditioner": preconditioner}
-
     # Do some parameter checking:
     if "dynamic_turbine_friction" in params["controls"]:
         if len(config.params["turbine_friction"]) != (params["finish_time"] - t) / dt + 1:
@@ -419,13 +417,14 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
         # Solve non-linear system with a Newton sovler
         if is_nonlinear and newton_solver:
             # Use a Newton solver to solve the nonlinear problem.
-            #solver_parameters["linear_solver"] = "gmres"
-            #solver_parameters["linear_solver"] = "superlu_dist"
-            #solver_parameters["preconditioner"] = "ilu" # does not work in parallel
-            #solver_parameters["preconditioner"] = "amg"
-            #solver_parameters["linear_solver"] = "mumps"
-            #solver_parameters["linear_solver"] = "umfpack"
-            solver_parameters["newton_solver"] = {}
+            solver_parameters = {"newton_solver": {}}
+            # Older version of Dolfin (<= 1.2.0) have a different structure for the solver parameters...
+            if NonlinearVariationalSolver.default_parameters().has_parameter("linear_solver"):
+                solver_parameters["linear_solver"] = linear_solver
+                solver_parameters["preconditioner"] = preconditioner
+            else:
+                solver_parameters["newton_solver"]["linear_solver"] = linear_solver
+                solver_parameters["newton_solver"]["preconditioner"] = preconditioner
             solver_parameters["newton_solver"]["error_on_nonconvergence"] = True
             solver_parameters["newton_solver"]["maximum_iterations"] = 20
             solver_parameters["newton_solver"]["convergence_criterion"] = "incremental"
@@ -470,6 +469,8 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
             iter_counter = 0
             while True:
                 info_blue("Solving shallow water equations at time %s (Picard iteration %d) ..." % (params["current_time"], iter_counter))
+                solver_parameters = {"linear_solver": linear_solver,
+                                     "preconditioner": preconditioner}
                 if bctype == 'strong_dirichlet':
                     solve(dolfin.lhs(F) == dolfin.rhs(F), state_new, bcs=strong_bc.bcs, solver_parameters=solver_parameters)
                 else:
@@ -502,7 +503,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
                 info("Using a LU solver to solve the linear system.")
                 lu_solver.solve(state.vector(), rhs_preass, annotate=annotate)
             else:
-                solve(lhs_preass, state_new.vector(), rhs_preass, solver_parameters["linear_solver"], solver_parameters["preconditioner"], annotate=annotate)
+                solve(lhs_preass, state_new.vector(), rhs_preass, linear_solver, preconditioner, annotate=annotate)
 
         # After the timestep solve, update state
         state.assign(state_new)

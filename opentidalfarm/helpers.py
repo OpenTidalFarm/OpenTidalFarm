@@ -7,29 +7,36 @@ import pylab
 import dolfin
 import os.path
 
+def get_rank():
+  if dolfin.__version__ >= '1.3.0+':
+    rank = MPI.process_number(mpi_comm_world())
+  else:
+    rank = MPI.process_number()
+
+  return rank
 
 def info_green(*args, **kwargs):
-    if MPI.process_number() == 0:
+    if get_rank() == 0:
         dolfin.info_green(*args, **kwargs)
 
 
 def info_red(*args, **kwargs):
-    if MPI.process_number() == 0:
+    if get_rank() == 0:
         dolfin.info_red(*args, **kwargs)
 
 
 def info_blue(*args, **kwargs):
-    if MPI.process_number() == 0:
+    if get_rank() == 0:
         dolfin.info_blue(*args, **kwargs)
 
 
 def info(*args, **kwargs):
-    if MPI.process_number() == 0:
+    if get_rank() == 0:
         dolfin.info(*args, **kwargs)
 
 
 def print0(*args, **kwargs):
-    if MPI.process_number() == 0:
+    if get_rank() == 0:
         print(*args, **kwargs)
 
 
@@ -158,7 +165,7 @@ class StateWriter:
 def cpu0only(f):
     ''' A decorator class that only evaluates on the first CPU in a parallel environment. '''
     def decorator(self, *args, **kw):
-        myid = MPI.process_number()
+        myid = get_rank()
         if myid == 0:
             f(self, *args, **kw)
 
@@ -172,7 +179,11 @@ def function_eval(func, point):
     except RuntimeError:
         val = -inf
 
-    maxval = MPI.max(val)
+    if dolfin.__version__ >= '1.3.0+':
+      maxval = MPI.max(mpi_comm_world(), val)
+    else:
+      maxval = MPI.max(val)
+
     if maxval == -inf:
         raise RuntimeError("Point is outside the domain")
     else:
