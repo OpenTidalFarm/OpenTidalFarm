@@ -8,6 +8,7 @@ import uptide
 import uptide.tidal_netcdf
 import datetime
 import scipy.interpolate
+import numpy
 
 # We need to store tnci_time as a non-class variable, otherwise 
 # dolfin-adjoint tries to be clever and restores its values during the
@@ -29,6 +30,7 @@ class TidalForcing(Expression):
         self.tnci = uptide.tidal_netcdf.OTPSncTidalInterpolator(tide,
                     grid_file_name, data_file_name, ranges)
 
+
     def eval(self, values, X):
         global tnci_time
         if tnci_time != self.t:
@@ -37,8 +39,15 @@ class TidalForcing(Expression):
             tnci_time = self.t
 
         latlon = utm.to_latlon(X[0], X[1], self.utm_zone, self.utm_band)
-        # OTPS has lon, lat coordinates!
-        values[0] = self.tnci.get_val((latlon[1], latlon[0]), allow_extrapolation=True)
+        try:
+          # OTPS has lon, lat coordinates!
+          values[0] = self.tnci.get_val((latlon[1], latlon[0]), allow_extrapolation=True)
+        except uptide.netcdf_reader.CoordinateError:
+          # uptide raises a CoordinateError if interpolated within the land mask, this shouldn't happen
+          # but dolfin evaluates too many points in the interior of the domain which are then not used
+          # but some of those might overlap with landmask, therefore set to NaN instead of raising an exception
+          # so that /if/ the value is used we'll notice it
+          values[0] = numpy.NaN
 
 
 class BathymetryDepthExpression(Expression):
