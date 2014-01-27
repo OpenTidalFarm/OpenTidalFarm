@@ -35,12 +35,12 @@ def test(refinement_level):
   config.params["dt"] = config.params["finish_time"]/100
   config.params["dump_period"] = 100000
   config.params["bctype"] = "dirichlet"
-  config.params["weak_dirichlet_bc_expr"] = Expression(("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0"), 
-                                                       eta0=eta0, 
-                                                       g=config.params["g"], 
-                                                       depth=config.params["depth"], 
-                                                       t=config.params["current_time"], 
-                                                       k=k)
+  config.params["u_weak_dirichlet_bc_expr"] = Expression(("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0"), 
+                                                         eta0=eta0, 
+                                                         g=config.params["g"], 
+                                                         depth=config.params["depth"], 
+                                                         t=config.params["current_time"], 
+                                                         k=k)
 
   return error(config, eta0, k)
 

@@ -233,11 +233,11 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
         if steady_state:
             raise ValueError("Can not use a time dependent boundary condition for a steady state simulation")
         # The dirichlet boundary condition on the left hand side
-        expr = config.params["weak_dirichlet_bc_expr"]
-        bc_contr = - depth * dot(expr, n) * q * ds(1)
+        u_expr = config.params["u_weak_dirichlet_bc_expr"]
+        bc_contr = - depth * dot(u_expr, n) * q * ds(1)
 
         # The dirichlet boundary condition on the right hand side
-        bc_contr -= depth * dot(expr, n) * q * ds(2)
+        bc_contr -= depth * dot(u_expr, n) * q * ds(2)
 
         # We enforce a no-normal flow on the sides by removing the surface integral.
         # bc_contr -= dot(u_mid, n) * q * ds(3)
@@ -246,8 +246,8 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
         if steady_state:
             raise ValueError("Can not use a time dependent boundary condition for a steady state simulation")
         # The Flather boundary condition on the left hand side
-        expr = config.params["flather_bc_expr"]
-        bc_contr = - depth * dot(expr, n) * q * ds(1)
+        u_expr = config.params["flather_bc_expr"]
+        bc_contr = - depth * dot(u_expr, n) * q * ds(1)
         Ct_mid += sqrt(g * depth) * inner(h_mid, q) * ds(1)
 
         # The contributions of the Flather boundary condition on the right hand side
@@ -265,8 +265,15 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
         sys.exit(1)
 
     # Pressure gradient operator
-    C_mid = g * inner(v, grad(h_mid)) * dx
-    #+inner(avg(v),jump(h_mid,n))*dS # This term is only needed for dg element pairs
+    eta_expr = config.params["eta_weak_dirichlet_bc_expr"]
+    if eta_expr is None: # assume we don't want to integrate the pressure gradient by parts
+      C_mid = g * inner(v, grad(h_mid)) * dx
+      #+inner(avg(v),jump(h_mid,n))*dS # This term is only needed for dg element pairs
+    else:
+      C_mid =  -g * inner(div(v), h_mid) * dx
+      C_mid +=  g * inner(dot(v, n), eta_expr) * ds(1)
+      C_mid +=  g * inner(dot(v, n), eta_expr) * ds(2)
+      C_mid +=  g * inner(dot(v, n), h_mid)    * ds(3)
 
     # Bottom friction
     friction = params["friction"]
@@ -338,7 +345,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
         # Check that we are not using a DG velocity function space, as the facet integrals are not implemented.
         if "Discontinuous" in str(function_space.split()[0]):
             raise NotImplementedError("The diffusion term for discontinuous elements is not implemented yet.")
-        D_mid = diffusion_coef * inner(grad(u_mid), grad(v)) * dx
+        D_mid = diffusion_coef * inner(grad(u_mid), grad(v)) * dx - diffusion_coef * inner(v, dot(grad(u_mid), n)) * dolfin.ds
 
     # Create the final form
     G_mid = C_mid + Ct_mid + R_mid
@@ -427,7 +434,11 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
         if bctype == "strong_dirichlet":
             strong_bc.update_time(t)
         else:
-            expr.t = t - (1.0 - theta) * dt
+            u_expr.t = t - (1.0 - theta) * dt
+
+        if eta_expr is not None:
+            eta_expr.t = t - (1.0 - theta) * dt
+
         # Update source term
         if u_source:
             u_source.t = t - (1.0 - theta) * dt
