@@ -34,7 +34,7 @@ class TidalForcing(Expression):
     def eval(self, values, X):
         global tnci_time
         if tnci_time != self.t:
-            print0("Setting Tidal forcing time to %f " % self.t)
+            print0("Setting tidal forcing time to %f " % self.t)
             self.tnci.set_time(self.t)
             tnci_time = self.t
 

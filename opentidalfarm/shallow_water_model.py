@@ -459,9 +459,9 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
 
             info_blue("Solve shallow water equations at time %s (Newton iteration) ..." % params["current_time"])
             if bctype == 'strong_dirichlet':
-                solve(F == 0, state_new, bcs=strong_bc.bcs, solver_parameters=solver_parameters, annotate=annotate)
+                solve(F == 0, state_new, bcs=strong_bc.bcs, solver_parameters=solver_parameters, annotate=annotate, J=derivative(F, state_new))
             else:
-                solve(F == 0, state_new, solver_parameters=solver_parameters, annotate=annotate)
+                solve(F == 0, state_new, solver_parameters=solver_parameters, annotate=annotate, J=derivative(F, state_new))
 
             if turbine_thrust_parametrisation or implicit_turbine_thrust_parametrisation:
                 print0("Inflow velocity: ", u[0]((10, 160)))
