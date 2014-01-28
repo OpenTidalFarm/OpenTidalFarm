@@ -468,7 +468,9 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
 
             solve(F == 0, state_new, bcs=F_bcs, solver_parameters=solver_parameters, annotate=annotate, J=derivative(F, state_new))
 
-            if turbine_thrust_parametrisation or implicit_turbine_thrust_parametrisation:
+            perform_test = False
+            if perform_test and (turbine_thrust_parametrisation or
+                    implicit_turbine_thrust_parametrisation):
                 print0("Inflow velocity: ", u[0]((10, 160)))
                 print0("Estimated upstream velocity: ", up_u((640. / 3, 160)))
                 print0("Expected thrust force: ", thrust_force(u[0]((10, 160)), min=min)((0)))
