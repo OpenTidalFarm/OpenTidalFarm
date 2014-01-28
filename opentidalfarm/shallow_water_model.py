@@ -459,7 +459,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
 
             info_blue("Solve shallow water equations at time %s (Newton iteration) ..." % params["current_time"])
             if bctype == 'strong_dirichlet':
-                F_bcs = strong_bcs.bcs
+                F_bcs = strong_bc.bcs
             else:
                 F_bcs = []
 
