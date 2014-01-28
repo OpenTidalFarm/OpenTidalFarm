@@ -98,3 +98,13 @@ else:
   max_ct = 0.6*pi/2/9
   print "Maximum turbine friction: %f." % max_ct
   m_opt = maximize(rf, bounds = [0, max_ct], options = {"maxiter": 600})
+
+  # Store the final turbine friction
+  rf.update_turbine_cache(m_opt)
+
+  if farm_selector is None:
+    f = File("optimal_turbine_friction.xml")
+  else:
+    f = File("optimal_turbine_friction_farm%i.xml" % farm_selector)
+  f << config.turbine_cache.cache["turbine_field"]
+
