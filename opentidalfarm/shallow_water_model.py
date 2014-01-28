@@ -87,7 +87,8 @@ def upstream_u_implicit_equation(config, tf, u, up_u, o, up_u_adv, o_adv):
 
 
 def upstream_u_equation(config, tf, u, up_u, o):
-        ''' Returns the equation that computes the turbine upstream velocities '''
+        ''' Returns the equation that computes the turbine upstream velocities
+        (we only average the velocity at the turbine position at the moment) '''
 
         # The equations underpredict the upstream velocity which is corrected with this factor
         correction_factor = Constant(1.34)
@@ -99,8 +100,10 @@ def upstream_u_equation(config, tf, u, up_u, o):
             chi = ufl.conditional(ufl.gt(tf, 0), 1, 0)
 
             # Solve the Helmholtz equation in each turbine area to obtain averaged velocity values
-            c_diff = Constant(1e6)
-            F1 = chi * (inner(up_u - norm_approx(u), o) + Constant(distance_to_upstream) / norm_approx(u) * (inner(dot(grad(norm_approx(u)), u), o) + c_diff * inner(grad(up_u), grad(o)))) * dx
+            c_diff = Constant(1e3)
+            #F1 = chi * (inner(up_u - norm_approx(u), o) + Constant(distance_to_upstream) / norm_approx(u) * (inner(dot(grad(norm_approx(u)), u), o) + c_diff * inner(grad(up_u), grad(o)))) * dx
+            F1 = chi * (inner(up_u - norm_approx(u), o) + c_diff * inner(grad(up_u), grad(o))) * dx
+
             invchi = 1 - chi
             F2 = inner(invchi * up_u, o) * dx
             F = F1 + F2

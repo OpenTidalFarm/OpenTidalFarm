@@ -16,18 +16,11 @@ config = SteadyConfiguration("mesh.xml", inflow_direction=inflow_direction)
 config.functional = PowerCurveFunctional
 config.params['turbine_thrust_parametrisation'] = True
 config.params['initial_condition'] = ConstantFlowInitialCondition(config)
-config.params['diffusion_coef'] = 3.
+config.params['diffusion_coef'] = 30.
 
 config.set_site_dimensions(site_x_start, site_x_start + site_x, site_y_start, site_y_start + site_y)
-deploy_turbines(config, nx = 1, ny = 1)
-print0("Turbine position: " + str(config.params["turbine_pos"]))
-
-# Place one turbine 
-#turbine_pos = [[basin_x/3, basin_y/2]]
-
-#print0("Turbine position: " + str(turbine_pos))
-#config.set_turbine_pos(turbine_pos, friction=1.0)
-
+# Place some turbines 
+deploy_turbines(config, nx = 8, ny = 4)
 
 bc = DirichletBCSet(config)
 bc.add_constant_flow(1, 2.0, direction=inflow_direction)
@@ -40,5 +33,5 @@ config.info()
 rf = ReducedFunctional(config)
 
 lb, ub = position_constraints(config) 
-ineq = get_minimum_distance_constraint_func(config)
+ineq = get_minimum_distance_constraint_func(config, min_distance=5)
 maximize(rf, bounds = [lb, ub], constraints = ineq, method = "SLSQP", options = {"maxiter": 200})
