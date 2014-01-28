@@ -1,5 +1,6 @@
 ''' Runs the forward model with a single turbine and prints some statistics '''
 from opentidalfarm import *
+from opentidalfarm.helpers import function_eval
 import matplotlib.pyplot as plt
 import numpy
 set_log_level(INFO)
@@ -24,6 +25,18 @@ turbine_pos = [[basin_x/3, basin_y/2]]
 
 print0("Turbine position: " + str(turbine_pos))
 config.set_turbine_pos(turbine_pos, friction=1.0)
+
+def sw_callback(config, state):
+    ux = state[0]
+    uy = state[1]
+    eta = state[2]
+    up_u = state[3]
+
+    print0("Inflow velocity: ", function_eval(ux, (10, 160)))
+    print0("Estimated upstream velocity: ", function_eval(up_u, (640. / 3, 160)))
+
+config.params["postsolver_callback"] = sw_callback
+config.info()
 
 fac = 1.5e6/(3**3) # Scaling factor such that for 3 m/s, the turbine produces 1.5 MW
 us = numpy.linspace(0, 5, 6)

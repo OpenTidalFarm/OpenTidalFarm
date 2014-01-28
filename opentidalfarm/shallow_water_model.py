@@ -9,11 +9,7 @@ import ufl
 # state variables in this dictionary to be used for the next solve
 state_cache = {}
 
-# Some global variables for plotting the thurst plot - just for testing purposes
-us = []
-thrusts = []
-thrusts_est = []
-
+# Defines the advection distance for the turbine parametrisation
 distance_to_upstream = 1. * 20
 
 def default_solver_parameters(newton):
@@ -154,6 +150,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
     turbine_thrust_parametrisation = params["turbine_thrust_parametrisation"]
     implicit_turbine_thrust_parametrisation = params["implicit_turbine_thrust_parametrisation"]
     cache_forward_state = params["cache_forward_state"]
+    postsolver_callback = params["postsolver_callback"]
 
     if not 0 <= functional_quadrature_degree <= 1:
         raise ValueError("functional_quadrature_degree must be 0 or 1.")
@@ -467,25 +464,9 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
                 F_bcs = []
 
             solve(F == 0, state_new, bcs=F_bcs, solver_parameters=solver_parameters, annotate=annotate, J=derivative(F, state_new))
-
-            perform_test = False
-            if perform_test and (turbine_thrust_parametrisation or
-                    implicit_turbine_thrust_parametrisation):
-                print0("Inflow velocity: ", u[0]((10, 160)))
-                print0("Estimated upstream velocity: ", up_u((640. / 3, 160)))
-                print0("Expected thrust force: ", thrust_force(u[0]((10, 160)), min=min)((0)))
-                print0("Total amount of thurst force applied: ", assemble(inner(Constant(1), thrust_force(up_u) * tf / config.turbine_cache.turbine_integral()) * dx))
-
-                us.append(u[0]((10, 160)))
-                thrusts.append(thrust_force(u[0]((10, 160)))((0)))
-                thrusts_est.append(assemble(inner(Constant(1), thrust_force(up_u) * tf / config.turbine_cache.turbine_integral()) * dx))
-
-                import matplotlib.pyplot as plt
-                plt.clf()
-                plt.plot(us, thrusts, label="Analytical")
-                plt.plot(us, thrusts_est, label="Approximated")
-                plt.legend(loc=2)
-                plt.savefig("thrust_plot.pdf", format='pdf')
+            # Call user defined callback
+            if postsolver_callback is not None:
+                postsolver_callback(config, state_new)
 
         # Solve non-linear system with a Picard iteration
         elif is_nonlinear:
