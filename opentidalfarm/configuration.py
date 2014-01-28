@@ -68,7 +68,8 @@ class DefaultConfiguration(object):
             'output_turbine_power': True,
             'save_checkpoints': False,
             'cache_forward_state': False,
-            'base_path': os.curdir
+            'base_path': os.curdir,
+            'nonlinear_solver': None,
             })
 
         params['dt'] = params['finish_time'] / 4000.

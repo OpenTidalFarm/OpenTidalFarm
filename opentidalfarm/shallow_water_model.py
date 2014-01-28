@@ -463,7 +463,12 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
             else:
                 F_bcs = []
 
-            solve(F == 0, state_new, bcs=F_bcs, solver_parameters=solver_parameters, annotate=annotate, J=derivative(F, state_new))
+            solver = config.params['nonlinear_solver']
+            if solver is None:
+              solve(F == 0, state_new, bcs=F_bcs, solver_parameters=solver_parameters, annotate=annotate, J=derivative(F, state_new))
+            else:
+              solver(F, state_new, F_bcs, annotate, solver_parameters)
+
             # Call user defined callback
             if postsolver_callback is not None:
                 postsolver_callback(config, state_new)
