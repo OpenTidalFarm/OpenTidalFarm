@@ -143,6 +143,7 @@ class DefaultConfiguration(object):
             print "Advection term: %s" % self.params["include_advection"]
             print "Diffusion term: %s" % self.params["include_diffusion"]
             print "Steady state: %s" % self.params["steady_state"]
+            print "Friction term: %s" % ("quadratic" if self.params['quadratic_friction'] else "linear")
 
             # Turbine settings 
             print "\n=== Turbine settings ==="
