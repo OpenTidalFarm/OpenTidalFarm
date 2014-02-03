@@ -1,6 +1,6 @@
 run: clean mesh
-	unbuffer time mpirun -n 2 python multi_steady_state_2steps.py
-	unbuffer time mpirun -n 2 python multi_steady_state_1step.py 
+	time mpirun -n 2 python multi_steady_state_2steps.py
+	time mpirun -n 2 python multi_steady_state_1step.py 
 
 mesh:	
 	gmsh -2 mesh_coarse.geo
