@@ -312,7 +312,8 @@ def get_domain_constraints(config, feasible_area, attraction_center):
 def get_distance_function(config, domains):
     V = dolfin.FunctionSpace(config.domain.mesh, "CG", 1)
     v = dolfin.TestFunction(V)
-    d = dolfin.Function(V)
+    d = dolfin.TrialFunction(V)
+    sol = dolfin.Function(V)
     s = dolfin.interpolate(Constant(1.0), V)
     domains_func = dolfin.Function(dolfin.FunctionSpace(config.domain.mesh, "DG", 0))
     domains_func.vector().set_local(domains.array().astype(numpy.float))
@@ -334,7 +335,8 @@ def get_distance_function(config, domains):
 
     # Solve the diffusion problem with a constant source term
     info_blue("Solving diffusion problem to identify feasible area ...")
-    F = (dolfin.inner(dolfin.grad(d), dolfin.grad(v)) - dolfin.inner(s, v)) * dolfin.dx
-    dolfin.solve(F == 0, d, bc)
+    a = dolfin.inner(dolfin.grad(d), dolfin.grad(v)) * dolfin.dx
+    L = dolfin.inner(s, v) * dolfin.dx
+    dolfin.solve(a == L, sol, bc)
 
-    return d
+    return sol
