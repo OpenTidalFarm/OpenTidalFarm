@@ -138,8 +138,7 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
                     timesteps.append(t)
 
                 if not config.params["include_time_term"]:
-                    # Remove the initial condition. I think this is a bug in dolfin-adjoint, since really I expected pop(0) here - but the Taylor tests pass only with pop(1)!
-                    timesteps.pop(1)
+                    timesteps.pop(0)
 
                 # Construct the functional
                 J = Functional(sum(functional.Jt(state, dummy_tf) * dt[t] for t in timesteps))
