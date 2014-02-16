@@ -475,7 +475,6 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
 
         # Solve non-linear system with a Picard iteration
         elif is_nonlinear:
-            # Solve the problem using a picard iteration
             iter_counter = 0
             while True:
                 info_blue("Solving shallow water equations at time %s (Picard iteration %d) ..." % (params["current_time"], iter_counter))
@@ -494,8 +493,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
                     elif iter_counter >= picard_iterations:
                         info_red("Picard iteration reached maximum number of iterations (" + str(picard_iterations) + ") with a relative difference of " + str(relative_diff) + ".")
                         break
-
-            state_nl.assign(state_new)
+                state_nl.assign(state_new)
 
         # Solve linear system with preassembled matrices
         else:
