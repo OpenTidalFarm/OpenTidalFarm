@@ -213,7 +213,7 @@ class SteadyConfiguration(DefaultConfiguration):
         # Boundary conditions
         bc = DirichletBCSet(self)
         bc.add_constant_flow(1, 2.0 + 1e-10, direction=inflow_direction)
-        bc.add_zero_eta(2)
+        bc.add_analytic_eta(2, 0.0)
         self.params['bctype'] = 'strong_dirichlet'
         self.params['strong_bc'] = bc
         self.params['free_slip_on_sides'] = True

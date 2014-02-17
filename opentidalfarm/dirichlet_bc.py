@@ -22,15 +22,16 @@ class DirichletBCSet:
     def update_time(self, t):
         ''' Update the time values for all boundary conditions '''
         for expression in self.expressions:
-            expression.t = t
+            if hasattr(expression, "t"):
+                expression.t = t
         for bc in self.constant_inflow_bcs:
             bc.t = t
 
     def add_analytic_u(self, label, expression):
-        if self.config.params['steady_state']:
+        if self.config.params['steady_state'] and hasattr(expression, "t"):
             raise ValueError('Can not apply a time dependent boundary condition for a steady state simulation.')
-        self.expressions.append(expression)
 
+        self.expressions.append(expression)
         self.bcs.append(DirichletBC(self.function_space.sub(0), expression, self.config.domain.boundaries, label))
 
     def add_constant_flow(self, label, magnitude, direction=[1, 0]):
@@ -39,7 +40,7 @@ class DirichletBCSet:
         self.bcs.append(DirichletBC(self.function_space.sub(0), self.constant_inflow_bcs[-1], self.config.domain.boundaries, label))
 
     def add_analytic_eta(self, label, expression):
-        if self.config.params['steady_state']:
+        if self.config.params['steady_state'] and hasattr(expression, "t"):
             raise ValueError('Can not apply a time dependent boundary condition for a steady state simulation.')
         self.expressions.append(expression)
         self.bcs.append(DirichletBC(self.function_space.sub(1), expression, self.config.domain.boundaries, label))
@@ -62,9 +63,3 @@ class DirichletBCSet:
 
         pbc = PeriodicBoundary()
         self.bcs.append(PeriodicBC(self.function_space, pbc))
-
-    def add_zero_eta(self, label):
-        self.bcs.append(DirichletBC(self.function_space.sub(1), Constant("0.0"), self.config.domain.boundaries, label))
-
-    def add_constant_eta(self, label, expresssion):
-        self.bcs.append(DirichletBC(self.function_space.sub(1), expresssion, self.config.domain.boundaries, label))

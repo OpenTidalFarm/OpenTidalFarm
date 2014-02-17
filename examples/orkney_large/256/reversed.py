@@ -22,7 +22,7 @@ config.params['save_checkpoints'] = True
 config.info()
 
 bc = DirichletBCSet(config)
-bc.add_zero_eta(1)
+bc.add_analytic_eta(1, 0.0)
 bc.add_constant_flow(2, 2.0 + 1e-10, direction=inflow_direction)
 config.params['strong_bc'] = bc
 

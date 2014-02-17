@@ -34,7 +34,7 @@ u = 2.5
 # Boundary conditions
 bc = DirichletBCSet(config)
 bc.add_constant_flow(1, u, direction=inflow_direction)
-bc.add_zero_eta(2)
+bc.add_analytic_eta(2, 0.0)
 config.params['bctype'] = 'strong_dirichlet'
 config.params['strong_bc'] = bc
 

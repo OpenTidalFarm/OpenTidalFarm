@@ -41,8 +41,8 @@ class TidalForcing(Expression):
         values[0] = self.tnci.get_val((latlon[1], latlon[0]), allow_extrapolation=True)
 
 eta_expr = TidalForcing() 
-bc.add_constant_eta(1, eta_expr) # inflow
-bc.add_constant_eta(2, eta_expr) # outflow
+bc.add_analytic_eta(1, eta_expr) # inflow
+bc.add_analytic_eta(2, eta_expr) # outflow
 # comment if you want free slip:
 bc.add_noslip_u(3)               # coast
 config.params['bctype'] = 'strong_dirichlet'
