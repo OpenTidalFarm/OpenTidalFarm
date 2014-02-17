@@ -161,9 +161,9 @@ class DefaultConfiguration(object):
             print "Steady state: ", self.params["steady_state"]
             if not self.params["steady_state"]:
                 print "Theta: %f" % self.params["theta"]
-                print "Start time: %f s" % self.params["start_time"]
-                print "Finish time: %f s" % self.params["finish_time"]
-                print "Time step: %f s" % self.params["dt"]
+                print "Start time: %f s" % float(self.params["start_time"])
+                print "Finish time: %f s" % float(self.params["finish_time"])
+                print "Time step: %f s" % float(self.params["dt"])
             print "Number of mesh elements: %i" % num_cells
             print "Mesh element size: %f - %f" % (hmin, hmax)
 

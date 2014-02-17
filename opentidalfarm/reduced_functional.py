@@ -131,10 +131,10 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
 
             elif config.params['functional_quadrature_degree'] == 0:
                 # Pseudo-redo the time loop to collect the necessary timestep information
-                t = config.params["start_time"]
+                t = float(config.params["start_time"])
                 timesteps = [t]
-                while (t < config.params["finish_time"]):
-                    t += config.params["dt"]
+                while (t < float(config.params["finish_time"])):
+                    t += float(config.params["dt"])
                     timesteps.append(t)
 
                 if not config.params["include_time_term"]:
