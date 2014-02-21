@@ -125,7 +125,7 @@ class StateWriter:
         self.p_out << self.p_out_state
 
         if self.callback is not None:
-            self.callback(self.u_out_state, self.p_out_state, self.timestep, self.optimisation_iteration)
+            self.callback(state, self.u_out_state, self.p_out_state, self.timestep, self.optimisation_iteration)
 
         self.timestep += 1
 
