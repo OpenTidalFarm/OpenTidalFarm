@@ -123,12 +123,12 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
     params.check()
 
     theta = params["theta"]
-    dt = params["dt"]
+    dt = float(params["dt"])
     g = params["g"]
     depth = params["depth"]
     # Reset the time
     params["current_time"] = params["start_time"]
-    t = params["current_time"]
+    t = float(params["current_time"])
     quadratic_friction = params["quadratic_friction"]
     include_advection = params["include_advection"]
     include_diffusion = params["include_diffusion"]
@@ -144,13 +144,15 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
     strong_bc = params["strong_bc"]
     free_slip_on_sides = params["free_slip_on_sides"]
     steady_state = params["steady_state"]
+    linear_divergence = params["linear_divergence"]
     functional_final_time_only = params["functional_final_time_only"]
     functional_quadrature_degree = params["functional_quadrature_degree"]
-    is_nonlinear = (include_advection or quadratic_friction)
     turbine_thrust_parametrisation = params["turbine_thrust_parametrisation"]
     implicit_turbine_thrust_parametrisation = params["implicit_turbine_thrust_parametrisation"]
     cache_forward_state = params["cache_forward_state"]
     postsolver_callback = params["postsolver_callback"]
+    
+    is_nonlinear = (include_advection or quadratic_friction or not linear_divergence)
 
     if not 0 <= functional_quadrature_degree <= 1:
         raise ValueError("functional_quadrature_degree must be 0 or 1.")
@@ -202,6 +204,15 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
         u0, h0 = split(state)
         u_nl, h_nl = split(state_nl)
 
+    # Define the water depth
+    if linear_divergence:
+        H = depth
+    else:
+        if newton_solver:
+            H = h + depth
+        else:
+            H = h_nl + depth
+
     # Create initial conditions and interpolate
     state_new.assign(state, annotate=annotate)
 
@@ -226,7 +237,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
     M0 += inner(q, h0) * dx
 
     # Divergence term.
-    Ct_mid = -depth * inner(u_mid, grad(q)) * dx
+    Ct_mid = -H * inner(u_mid, grad(q)) * dx
     #+inner(avg(u_mid),jump(q,n))*dS # This term is only needed for dg element pairs
 
     if bctype == 'dirichlet':
@@ -234,10 +245,10 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
             raise ValueError("Can not use a time dependent boundary condition for a steady state simulation")
         # The dirichlet boundary condition on the left hand side
         u_expr = config.params["u_weak_dirichlet_bc_expr"]
-        bc_contr = - depth * dot(u_expr, n) * q * ds(1)
+        bc_contr = - H * dot(u_expr, n) * q * ds(1)
 
         # The dirichlet boundary condition on the right hand side
-        bc_contr -= depth * dot(u_expr, n) * q * ds(2)
+        bc_contr -= H * dot(u_expr, n) * q * ds(2)
 
         # We enforce a no-normal flow on the sides by removing the surface integral.
         # bc_contr -= dot(u_mid, n) * q * ds(3)
@@ -247,18 +258,18 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
             raise ValueError("Can not use a time dependent boundary condition for a steady state simulation")
         # The Flather boundary condition on the left hand side
         u_expr = config.params["flather_bc_expr"]
-        bc_contr = - depth * dot(u_expr, n) * q * ds(1)
-        Ct_mid += sqrt(g * depth) * inner(h_mid, q) * ds(1)
+        bc_contr = - H * dot(u_expr, n) * q * ds(1)
+        Ct_mid += sqrt(g * H) * inner(h_mid, q) * ds(1)
 
         # The contributions of the Flather boundary condition on the right hand side
-        Ct_mid += sqrt(g * depth) * inner(h_mid, q) * ds(2)
+        Ct_mid += sqrt(g * H) * inner(h_mid, q) * ds(2)
 
     elif bctype == 'strong_dirichlet':
         # Do not replace anything in the surface integrals as the strong Dirichlet Boundary condition will do that
-        bc_contr = -depth * dot(u_mid, n) * q * ds(1)
-        bc_contr -= depth * dot(u_mid, n) * q * ds(2)
+        bc_contr = -H * dot(u_mid, n) * q * ds(1)
+        bc_contr -= H * dot(u_mid, n) * q * ds(2)
         if not free_slip_on_sides:
-            bc_contr -= depth * dot(u_mid, n) * q * ds(3)
+            bc_contr -= H * dot(u_mid, n) * q * ds(3)
 
     else:
         info_red("Unknown boundary condition type: %s" % bctype)
@@ -270,6 +281,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
       C_mid = g * inner(v, grad(h_mid)) * dx
       #+inner(avg(v),jump(h_mid,n))*dS # This term is only needed for dg element pairs
     else:
+      # Apply the eta boundary conditions weakly on boundary IDs 1 and 2
       C_mid =  -g * inner(div(v), h_mid) * dx
       C_mid +=  g * inner(dot(v, n), eta_expr) * ds(1)
       C_mid +=  g * inner(dot(v, n), eta_expr) * ds(2)
@@ -314,24 +326,24 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
     # Friction term
     # With Newton we can simply use a non-linear form
     if quadratic_friction and newton_solver:
-        R_mid = friction / depth * dot(u_mid, u_mid) ** 0.5 * inner(u_mid, v) * dx
+        R_mid = friction / H * dot(u_mid, u_mid) ** 0.5 * inner(u_mid, v) * dx
 
         if turbine_field and not (turbine_thrust_parametrisation or implicit_turbine_thrust_parametrisation):
-            R_mid += tf / depth * dot(u_mid, u_mid) ** 0.5 * inner(u_mid, v) * config.site_dx(1)
+            R_mid += tf / H * dot(u_mid, u_mid) ** 0.5 * inner(u_mid, v) * config.site_dx(1)
 
     # With a picard iteration we need to linearise using the best guess
     elif quadratic_friction and not newton_solver:
-        R_mid = friction / depth * dot(u_mid_nl, u_mid_nl) ** 0.5 * inner(u_mid, v) * dx
+        R_mid = friction / H * dot(u_mid_nl, u_mid_nl) ** 0.5 * inner(u_mid, v) * dx
 
         if turbine_field and not (turbine_thrust_parametrisation or implicit_turbine_thrust_parametrisation):
-            R_mid += tf / depth * dot(u_mid_nl, u_mid_nl) ** 0.5 * inner(u_mid, v) * config.site_dx(1)
+            R_mid += tf / H * dot(u_mid_nl, u_mid_nl) ** 0.5 * inner(u_mid, v) * config.site_dx(1)
 
     # Use a linear drag
     else:
-        R_mid = friction / depth * inner(u_mid, v) * dx
+        R_mid = friction / H * inner(u_mid, v) * dx
 
         if turbine_field and not (turbine_thrust_parametrisation or implicit_turbine_thrust_parametrisation):
-            R_mid += tf / depth * inner(u_mid, v) * config.site_dx(1)
+            R_mid += tf / H * inner(u_mid, v) * config.site_dx(1)
 
     # Advection term
     # With a newton solver we can simply use a quadratic form
@@ -382,8 +394,8 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
 
     # Do some parameter checking:
     if "dynamic_turbine_friction" in params["controls"]:
-        if len(config.params["turbine_friction"]) != (params["finish_time"] - t) / dt + 1:
-            print0("You control the turbine friction dynamically, but your turbine friction parameter is not an array of length 'number of timesteps' (here: %i)." % ((params["finish_time"] - t) / dt + 1))
+        if len(config.params["turbine_friction"]) != (float(params["finish_time"]) - t) / dt + 1:
+            print0("You control the turbine friction dynamically, but your turbine friction parameter is not an array of length 'number of timesteps' (here: %i)." % ((float(params["finish_time"]) - t) / dt + 1))
             import sys
             sys.exit(1)
 
@@ -425,7 +437,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
     print0("Start of time loop")
     adjointer.time.start(t)
     timestep = 0
-    while (t < params["finish_time"]):
+    while (t < float(params["finish_time"])):
         timestep += 1
         t += dt
         params["current_time"] = t
@@ -457,7 +469,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
                 ic = config.params['initial_condition']
                 state_new.assign(ic, annotate=False)
 
-            info_blue("Solve shallow water equations at time %s (Newton iteration) ..." % params["current_time"])
+            info_blue("Solve shallow water equations at time %s (Newton iteration) ..." % float(params["current_time"]))
             if bctype == 'strong_dirichlet':
                 F_bcs = strong_bc.bcs
             else:
@@ -477,7 +489,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
         elif is_nonlinear:
             iter_counter = 0
             while True:
-                info_blue("Solving shallow water equations at time %s (Picard iteration %d) ..." % (params["current_time"], iter_counter))
+                info_blue("Solving shallow water equations at time %s (Picard iteration %d) ..." % (float(params["current_time"]), iter_counter))
                 if bctype == 'strong_dirichlet':
                     solve(dolfin.lhs(F) == dolfin.rhs(F), state_new, bcs=strong_bc.bcs, solver_parameters=solver_parameters)
                 else:
@@ -502,7 +514,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
             dummy_term = Constant(0) * q * dx
             rhs_preass = assemble(dolfin.rhs(F + dummy_term))
             # Apply dirichlet boundary conditions
-            info_blue("Solving shallow water equations at time %s (preassembled matrices) ..." % (params["current_time"]))
+            info_blue("Solving shallow water equations at time %s (preassembled matrices) ..." % (float(params["current_time"])))
             if bctype == 'strong_dirichlet':
                 [bc.apply(lhs_preass, rhs_preass) for bc in strong_bc.bcs]
             if use_lu_solver:
@@ -533,10 +545,10 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
             writer.write(state)
 
         if functional is not None:
-            if not (functional_final_time_only and t < params["finish_time"]):
+            if not (functional_final_time_only and t < float(params["finish_time"])):
                 if steady_state or functional_final_time_only or functional_quadrature_degree == 0:
                     quad = 1.0
-                elif t >= params["finish_time"]:
+                elif t >= float(params["finish_time"]):
                     quad = 0.5 * dt
                 else:
                     quad = 1.0 * dt
@@ -564,7 +576,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
                         print0("Contribution of turbine number %d at co-ordinates:" % (i + 1), params["turbine_pos"][i], ' is: ', j_individual[i] * 0.001, 'kW', 'with friction of', fr_individual[i])
 
         # Increase the adjoint timestep
-        adj_inc_timestep(time=t, finished=(not t < params["finish_time"]))
+        adj_inc_timestep(time=t, finished=(not t < float(params["finish_time"])))
     print0("End of time loop.")
 
     # Write the turbine positions, power extraction and friction to a .csv file named turbine_info.csv

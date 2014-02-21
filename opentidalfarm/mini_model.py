@@ -27,7 +27,7 @@ class MiniModel:
 
         params = self.config.params
         if functional is not None and not params["functional_final_time_only"]:
-            j = 0.5 * params["dt"] * assemble(self.functional.Jt(state, self.tf))
+            j = 0.5 * assemble(params["dt"] * self.functional.Jt(state, self.tf))
 
         adjointer.time.start(0.0)
         tmpstate = Function(state.function_space(), name="tmp_state")
@@ -39,13 +39,13 @@ class MiniModel:
         state.assign(tmpstate, annotate=self.annotate)
 
         # Bump timestep to shut up libadjoint.
-        adj_inc_timestep(time=params["dt"], finished=True)
+        adj_inc_timestep(time=float(params["dt"]), finished=True)
 
         if self.functional is not None:
             if params["functional_final_time_only"]:
                 j = assemble(self.functional.Jt(state, self.tf))
             else:
-                j += 0.5 * params["dt"] * assemble(self.functional.Jt(state, self.tf))
+                j += 0.5 * assemble(params["dt"] * self.functional.Jt(state, self.tf))
             return j
 
 

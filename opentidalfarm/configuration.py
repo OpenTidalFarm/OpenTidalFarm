@@ -36,6 +36,7 @@ class DefaultConfiguration(object):
             'include_advection': False,
             'include_diffusion': False,
             'include_time_term': True,
+            'linear_divergence': True,
             'diffusion_coef': 0.0,
             'depth': 50.0,
             'g': 9.81,
@@ -161,9 +162,9 @@ class DefaultConfiguration(object):
             print "Steady state: ", self.params["steady_state"]
             if not self.params["steady_state"]:
                 print "Theta: %f" % self.params["theta"]
-                print "Start time: %f s" % self.params["start_time"]
-                print "Finish time: %f s" % self.params["finish_time"]
-                print "Time step: %f s" % self.params["dt"]
+                print "Start time: %f s" % float(self.params["start_time"])
+                print "Finish time: %f s" % float(self.params["finish_time"])
+                print "Time step: %f s" % float(self.params["dt"])
             print "Number of mesh elements: %i" % num_cells
             print "Mesh element size: %f - %f" % (hmin, hmax)
 
@@ -204,6 +205,7 @@ class SteadyConfiguration(DefaultConfiguration):
         self.params['initial_condition'] = ConstantFlowInitialCondition(self)
         self.params['include_advection'] = True
         self.params['include_diffusion'] = True
+        self.params['linear_divergence'] = False
         self.params['diffusion_coef'] = 3.0
         self.params['quadratic_friction'] = True
         self.params['newton_solver'] = True
