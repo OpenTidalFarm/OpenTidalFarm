@@ -204,7 +204,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
         u0, h0 = split(state)
         u_nl, h_nl = split(state_nl)
 
-    # The full depth
+    # Define the water depth
     if linear_divergence:
         H = depth
     else:
@@ -326,24 +326,24 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
     # Friction term
     # With Newton we can simply use a non-linear form
     if quadratic_friction and newton_solver:
-        R_mid = friction / depth * dot(u_mid, u_mid) ** 0.5 * inner(u_mid, v) * dx
+        R_mid = friction / H * dot(u_mid, u_mid) ** 0.5 * inner(u_mid, v) * dx
 
         if turbine_field and not (turbine_thrust_parametrisation or implicit_turbine_thrust_parametrisation):
-            R_mid += tf / depth * dot(u_mid, u_mid) ** 0.5 * inner(u_mid, v) * config.site_dx(1)
+            R_mid += tf / H * dot(u_mid, u_mid) ** 0.5 * inner(u_mid, v) * config.site_dx(1)
 
     # With a picard iteration we need to linearise using the best guess
     elif quadratic_friction and not newton_solver:
-        R_mid = friction / depth * dot(u_mid_nl, u_mid_nl) ** 0.5 * inner(u_mid, v) * dx
+        R_mid = friction / H * dot(u_mid_nl, u_mid_nl) ** 0.5 * inner(u_mid, v) * dx
 
         if turbine_field and not (turbine_thrust_parametrisation or implicit_turbine_thrust_parametrisation):
-            R_mid += tf / depth * dot(u_mid_nl, u_mid_nl) ** 0.5 * inner(u_mid, v) * config.site_dx(1)
+            R_mid += tf / H * dot(u_mid_nl, u_mid_nl) ** 0.5 * inner(u_mid, v) * config.site_dx(1)
 
     # Use a linear drag
     else:
-        R_mid = friction / depth * inner(u_mid, v) * dx
+        R_mid = friction / H * inner(u_mid, v) * dx
 
         if turbine_field and not (turbine_thrust_parametrisation or implicit_turbine_thrust_parametrisation):
-            R_mid += tf / depth * inner(u_mid, v) * config.site_dx(1)
+            R_mid += tf / H * inner(u_mid, v) * config.site_dx(1)
 
     # Advection term
     # With a newton solver we can simply use a quadratic form
