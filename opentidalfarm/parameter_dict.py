@@ -29,6 +29,7 @@ class ParameterDictionary(dict):
             'include_time_term': 'time term is included',
             'diffusion_coef': 'diffusion coefficient',
             'cost_coef': 'multiplicator that determines the cost per turbine friction',
+            'linear_divergence': 'use the depth at rest as an approximation for the full depth in the shallow water equations',
             'depth': 'water depth at rest',
             'g': 'graviation',
             'quadratic_friction': 'quadratic friction',

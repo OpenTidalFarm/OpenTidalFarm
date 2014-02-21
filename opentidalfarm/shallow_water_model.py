@@ -144,13 +144,15 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
     strong_bc = params["strong_bc"]
     free_slip_on_sides = params["free_slip_on_sides"]
     steady_state = params["steady_state"]
+    linear_divergence = params["linear_divergence"]
     functional_final_time_only = params["functional_final_time_only"]
     functional_quadrature_degree = params["functional_quadrature_degree"]
-    is_nonlinear = (include_advection or quadratic_friction)
     turbine_thrust_parametrisation = params["turbine_thrust_parametrisation"]
     implicit_turbine_thrust_parametrisation = params["implicit_turbine_thrust_parametrisation"]
     cache_forward_state = params["cache_forward_state"]
     postsolver_callback = params["postsolver_callback"]
+    
+    is_nonlinear = (include_advection or quadratic_friction or not linear_divergence)
 
     if not 0 <= functional_quadrature_degree <= 1:
         raise ValueError("functional_quadrature_degree must be 0 or 1.")
@@ -202,6 +204,15 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
         u0, h0 = split(state)
         u_nl, h_nl = split(state_nl)
 
+    # The full depth
+    if linear_divergence:
+        H = depth
+    else:
+        if newton_solver:
+            H = h + depth
+        else:
+            H = h_nl + depth
+
     # Create initial conditions and interpolate
     state_new.assign(state, annotate=annotate)
 
@@ -226,7 +237,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
     M0 += inner(q, h0) * dx
 
     # Divergence term.
-    Ct_mid = -depth * inner(u_mid, grad(q)) * dx
+    Ct_mid = -H * inner(u_mid, grad(q)) * dx
     #+inner(avg(u_mid),jump(q,n))*dS # This term is only needed for dg element pairs
 
     if bctype == 'dirichlet':
@@ -234,10 +245,10 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
             raise ValueError("Can not use a time dependent boundary condition for a steady state simulation")
         # The dirichlet boundary condition on the left hand side
         u_expr = config.params["u_weak_dirichlet_bc_expr"]
-        bc_contr = - depth * dot(u_expr, n) * q * ds(1)
+        bc_contr = - H * dot(u_expr, n) * q * ds(1)
 
         # The dirichlet boundary condition on the right hand side
-        bc_contr -= depth * dot(u_expr, n) * q * ds(2)
+        bc_contr -= H * dot(u_expr, n) * q * ds(2)
 
         # We enforce a no-normal flow on the sides by removing the surface integral.
         # bc_contr -= dot(u_mid, n) * q * ds(3)
@@ -247,18 +258,18 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
             raise ValueError("Can not use a time dependent boundary condition for a steady state simulation")
         # The Flather boundary condition on the left hand side
         u_expr = config.params["flather_bc_expr"]
-        bc_contr = - depth * dot(u_expr, n) * q * ds(1)
-        Ct_mid += sqrt(g * depth) * inner(h_mid, q) * ds(1)
+        bc_contr = - H * dot(u_expr, n) * q * ds(1)
+        Ct_mid += sqrt(g * H) * inner(h_mid, q) * ds(1)
 
         # The contributions of the Flather boundary condition on the right hand side
-        Ct_mid += sqrt(g * depth) * inner(h_mid, q) * ds(2)
+        Ct_mid += sqrt(g * H) * inner(h_mid, q) * ds(2)
 
     elif bctype == 'strong_dirichlet':
         # Do not replace anything in the surface integrals as the strong Dirichlet Boundary condition will do that
-        bc_contr = -depth * dot(u_mid, n) * q * ds(1)
-        bc_contr -= depth * dot(u_mid, n) * q * ds(2)
+        bc_contr = -H * dot(u_mid, n) * q * ds(1)
+        bc_contr -= H * dot(u_mid, n) * q * ds(2)
         if not free_slip_on_sides:
-            bc_contr -= depth * dot(u_mid, n) * q * ds(3)
+            bc_contr -= H * dot(u_mid, n) * q * ds(3)
 
     else:
         info_red("Unknown boundary condition type: %s" % bctype)
@@ -270,6 +281,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
       C_mid = g * inner(v, grad(h_mid)) * dx
       #+inner(avg(v),jump(h_mid,n))*dS # This term is only needed for dg element pairs
     else:
+      # Apply the eta boundary conditions weakly on boundary IDs 1 and 2
       C_mid =  -g * inner(div(v), h_mid) * dx
       C_mid +=  g * inner(dot(v, n), eta_expr) * ds(1)
       C_mid +=  g * inner(dot(v, n), eta_expr) * ds(2)

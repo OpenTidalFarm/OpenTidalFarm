@@ -48,6 +48,7 @@ def test(refinement_level):
   config.params["start_time"] = 0
   config.params["finish_time"] = pi/(sqrt(config.params["g"]*config.params["depth"])*k)
   config.params["dt"] = config.params["finish_time"]/(2*2**refinement_level)
+  config.params["linear_divergence"] = True
 
   # Make sure that we apply the analytical boundary conditions
   eta0 = 2.0
