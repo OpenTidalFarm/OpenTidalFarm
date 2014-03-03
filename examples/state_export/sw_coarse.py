@@ -4,7 +4,7 @@ timestep and optimisation iteration. '''
 from opentidalfarm import *
 set_log_level(INFO)
 
-def state_writer(u, p, it, optit):
+def state_writer(state, u_p1, p_p1, it, optit):
     ''' This function is called after each timestep in the shallow water model
     and can be used for example to output the solution into a user-specific 
     format.
@@ -15,9 +15,9 @@ def state_writer(u, p, it, optit):
         optit: the optimisation iteration
     '''
     print "Saving velocity/pressure solution as xyz data..."
-    File("xyz_data/p_opiter_%i_timstep_%i_.xyz" % (optit, it)) << p 
+    File("xyz_data/p_opiter_%i_timstep_%i_.xyz" % (optit, it)) << p_p1
     # Split u into the x and y component since xyz can only store scalar fields
-    ux, uy = u.split(deepcopy=True)
+    ux, uy = u_p1.split(deepcopy=True)
     File("xyz_data/ux_opiter_%i_timstep_%i_.xyz" % (optit, it)) << ux
     File("xyz_data/uy_opiter_%i_timstep_%i_.xyz" % (optit, it)) << uy
 
