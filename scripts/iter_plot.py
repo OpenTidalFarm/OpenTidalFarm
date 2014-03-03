@@ -62,7 +62,7 @@ for line in f:
 f.close()
 
 if not found_slsqp:
-    print "No L-BFGS-B output found. Please supply the stdout record of an OpenTidalFarm simulation which used the L-BFGS-B optimisation algorithm."
+    print "No SLSQP output found. Please supply the stdout record of an OpenTidalFarm simulation which used the SLSQP optimisation algorithm."
     sys.exit(1)
 
 print "Power output of initial layout: ", func[0]
