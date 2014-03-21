@@ -71,6 +71,7 @@ class DefaultConfiguration(object):
             'cache_forward_state': False,
             'base_path': os.curdir,
             'nonlinear_solver': None,
+            'free_u': None,
             })
 
         params['dt'] = params['finish_time'] / 4000.
