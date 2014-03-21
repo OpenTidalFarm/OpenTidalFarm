@@ -139,7 +139,7 @@ def free_stream_velocity(config, m):
     F = F1 + F2
     solve(lhs(F) == rhs(F), free_u_sol)
     config.params['free_u'] = free_u_sol
-    from IPython import embed; embed()
+
     return free_u_sol
 
 
