@@ -188,5 +188,5 @@ if __name__ == "__main__":
 
     turbines = Turbines(V, params)
     #f = turbines()#1, "turbine_pos_y")
-    f = turbines(derivative_index_selector=1, derivative_var_selector="turbine_pos_y", timestep=0)
+    f = turbines(derivative_index_selector=1, derivative_var_selector="turbine_pos_y", timestep=0) 
     plot(f, interactive=True)

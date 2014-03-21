@@ -80,19 +80,21 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
             parameters["adjoint"]["record_all"] = True
 
             # Get initial conditions
-            if config.params["implicit_turbine_thrust_parametrisation"]:
-                state = Function(config.function_space_2enriched, name="Current_state")
-            elif config.params["turbine_thrust_parametrisation"]:
-                state = Function(config.function_space_enriched, name="Current_state")
-            else:
-                state = Function(config.function_space, name="Current_state")
+#            if config.params["implicit_turbine_thrust_parametrisation"]:
+#                state = Function(config.function_space_2enriched, name="Current_state")
+#            elif config.params["turbine_thrust_parametrisation"]:
+#                state = Function(config.function_space_enriched, name="Current_state")
+#            else:
+            state = Function(config.function_space, name="Current_state")
 
-            if config.params["steady_state"] and config.params["include_time_term"] and self.last_state is not None:
+#            if config.params["steady_state"] and config.params["include_time_term"] and self.last_state is not None:
                 # Speed up the nonlinear solves by starting the Newton solve with the most recent state solution
-                state.assign(self.last_state, annotate=False)
-            else:
-                ic = config.params['initial_condition']
-                state.assign(ic, annotate=False)
+#                state.assign(self.last_state, annotate=False)
+#            else:
+#            from IPython import embed
+#            embed()
+            ic = config.params['initial_condition']
+            state.assign(ic, annotate=False)
 
             # Solve the shallow water system
             functional = config.functional(config)
@@ -390,6 +392,21 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
     def set_parameters(self, m_array):
         m = [p.data() for p in self.parameter]
         dolfin_adjoint.optimization.set_local(m, m_array)
+
+    def flow_for_explicit_use(self, m, annotate=True):
+        ''' turbine locations (m) -> flow field with unparametrised turbines 
+        This function returns the functional value for the parameter choice m to explicitly parametrise turbines. '''
+
+        info_green('Start evaluation of flow to approximate freestream velocity at turbines... INSIDE THE INNER SOLVE... ')
+        #timer = dolfin.Timer("j exp evaluation")
+
+        unparam_j = self.compute_functional_mem(m, annotate=annotate)
+
+        #timer.stop()
+        #info_blue('Runtime for explicit flow calculation: ' + str(timer.value()) + " s")
+        info_green('unparametrised j = ' + str(unparam_j))
+        info_green('YOU HAVE LEFT THE INNER SOLVE...')
+        return self.last_state[0], self.last_state[1]
 
 
 class ReducedFunctional(ReducedFunctionalNumPy):

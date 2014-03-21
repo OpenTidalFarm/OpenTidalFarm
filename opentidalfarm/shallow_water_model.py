@@ -1,9 +1,11 @@
+import opentidalfarm
 import sys
 import os.path
 from dolfin import *
 from dolfin_adjoint import *
 from helpers import info, info_green, info_red, info_blue, print0, StateWriter
 import ufl
+import copy
 
 # If cache_for_nonlinear_initial_guess is true, then we store all intermediate
 # state variables in this dictionary to be used for the next solve
@@ -110,6 +112,36 @@ def upstream_u_equation(config, tf, u, up_u, o):
         return up_u_eq
 
 
+def free_stream_velocity(config, m):
+    ''' config & turbine locations -> velocity field (zero outside turbs & freestream vel at turbs)
+    Returns the equation that computes the freestream velocities at each turbine
+    (we average the velocity at the turbine and return an explicit velocity field) '''
+    
+    # Solve the shallow water equations to determine the flow field
+    from reduced_functional import ReducedFunctional
+
+    tempconfig = opentidalfarm.SteadyConfiguration("mesh_coarse.xml", inflow_direction = [1, 0])
+    tempconfig.set_turbine_pos(config.params['turbine_pos']) 
+    temprf = ReducedFunctional(tempconfig)
+    u = temprf.flow_for_explicit_use(m) 
+    #u = (Constant(3.0), Constant(0.0)) 
+    config.params['turbine_thrust_parametrisation'] = True
+    tf = config.turbine_cache.cache['turbine_field']
+    function_space = config.turbine_function_space 
+    o = TestFunction(function_space)
+    free_u = TrialFunction(function_space)
+    free_u_sol = Function(function_space) 
+    chi = ufl.conditional(ufl.gt(tf, 0), 1, 0) 
+    c_diff = Constant(1.0)
+    F1 = (chi * inner(free_u - sqrt(u[0]**2+u[1]**2), o) + c_diff * inner(grad(free_u), grad(o))) * dx
+    invchi = 1 - chi
+    F2 = inner(invchi * free_u, o) * dx
+    F = F1 + F2
+    solve(lhs(F) == rhs(F), free_u_sol)
+
+    return free_u_sol
+
+
 def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, u_source=None):
     ''' Solve the shallow water equations '''
 
@@ -160,7 +192,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
     if implicit_turbine_thrust_parametrisation:
         function_space = config.function_space_2enriched
     elif turbine_thrust_parametrisation:
-        function_space = config.function_space_enriched
+        function_space = config.function_space#_enriched
     else:
         function_space = config.function_space
 
@@ -173,8 +205,8 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
     # Define test functions
     if implicit_turbine_thrust_parametrisation:
         v, q, o, o_adv = TestFunctions(function_space)
-    elif turbine_thrust_parametrisation:
-        v, q, o = TestFunctions(function_space)
+#    elif turbine_thrust_parametrisation:
+#        v, q, o = TestFunctions(function_space)
     else:
         v, q = TestFunctions(function_space)
 
@@ -185,12 +217,12 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
     if not newton_solver and (turbine_thrust_parametrisation or implicit_turbine_thrust_parametrisation):
         raise NotImplementedError("Thrust turbine representation does currently only work with the newton solver.")
 
-    # Split mixed functions
+    # Split mixed functions 
     if is_nonlinear and newton_solver:
         if implicit_turbine_thrust_parametrisation:
             u, h, up_u, up_u_adv = split(state_new)
         elif turbine_thrust_parametrisation:
-            u, h, up_u = split(state_new)
+            u, h = split(state_new)   ###################### <- up,u
         else:
             u, h = split(state_new)
     else:
@@ -199,7 +231,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
     if implicit_turbine_thrust_parametrisation:
         u0, h0, up_u0, up_u_adv0 = split(state)
     elif turbine_thrust_parametrisation:
-        u0, h0, up_u0 = split(state)
+        u0, h0  = split(state) ############################# <- up_u0
     else:
         u0, h0 = split(state)
         u_nl, h_nl = split(state_nl)
@@ -229,8 +261,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
     # The normal direction
     n = FacetNormal(function_space.mesh())
 
-    # Mass matrix
-
+    # Mass matrix 
     M = inner(v, u) * dx
     M += inner(q, h) * dx
     M0 = inner(v, u0) * dx
@@ -298,30 +329,30 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
 
         if turbine_thrust_parametrisation or implicit_turbine_thrust_parametrisation:
             print0("Adding thrust force")
-            # Compute the upstream velocities
 
+            # Compute the upstream velocities 
             if implicit_turbine_thrust_parametrisation:
                 up_u_eq = upstream_u_implicit_equation(config, tf, u, up_u, o, up_u_adv, o_adv)
             elif turbine_thrust_parametrisation:
-                up_u_eq = upstream_u_equation(config, tf, u, up_u, o)
+                #up_u = upstream_u_equation(config, tf, u, up_u, o) 
+                free_u = free_stream_velocity(config, params['turbine_pos'])
 
-            def thrust_force(up_u, min=smooth_uflmin):
-                ''' Returns the thrust force for a given upstream velcocity '''
-                # Now apply a pointwise transformation based on the interpolation of a loopup table
+            def thrust_force(free_u, min=smooth_uflmin): 
+                ''' Returns the thrust force for a given upstream velocity ''' 
+                # Now apply a pointwise transformation based on the interpolation of a lookup table
                 c_T_coeffs = [0.08344535, -1.42428216, 9.13153605, -26.19370168, 28.8752054]
                 c_T_coeffs.reverse()
-                c_T = min(0.88, sum([c_T_coeffs[i] * up_u ** i for i in range(len(c_T_coeffs))]))
-
+                c_T = ufl.Min(0.88, sum([c_T_coeffs[i] * free_u ** i for i in range(len(c_T_coeffs))])) 
                 # The amount of forcing we want to apply
                 turbine_radius = 15.
                 A_c = pi * Constant(turbine_radius ** 2)  # Turbine cross section
-                f = 0.5 * c_T * up_u ** 2 * A_c
+                f = 0.5 * c_T * free_u**2  * A_c                    
                 return f
-
+            
             # Apply the force in the opposite direction of the flow
-            f_dir = -thrust_force(up_u) * u / norm_approx(u, alpha=1e-6)
+            f_dir = -thrust_force(free_u) * u / norm_approx(u, alpha=1e-6) 
             # Distribute this force over the turbine area
-            thrust = inner(f_dir * tf / (Constant(config.turbine_cache.turbine_integral()) * config.params["depth"]), v) * dx
+            #thrust = inner(f_dir * tf / (Constant(config.turbine_cache.turbine_integral()) * config.params["depth"]), v) * dx
 
     # Friction term
     # With Newton we can simply use a non-linear form
@@ -335,8 +366,9 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
     elif quadratic_friction and not newton_solver:
         R_mid = friction / H * dot(u_mid_nl, u_mid_nl) ** 0.5 * inner(u_mid, v) * dx
 
-        if turbine_field and not (turbine_thrust_parametrisation or implicit_turbine_thrust_parametrisation):
+        if turbine_field and not (turbine_thrust_parametrisation or implicit_turbine_thrust_parametrisation): 
             R_mid += tf / H * dot(u_mid_nl, u_mid_nl) ** 0.5 * inner(u_mid, v) * config.site_dx(1)
+
 
     # Use a linear drag
     else:
@@ -375,10 +407,12 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
     if include_time_term and not steady_state:
         F += M - M0
 
-    if turbine_thrust_parametrisation or implicit_turbine_thrust_parametrisation:
-        F += up_u_eq
-        if turbine_field:
-            F -= thrust
+    if turbine_thrust_parametrisation: #or implicit_turbine_thrust_parametrisation: 
+        F -= inner((f_dir / (Constant(config.params['turbine_x']*config.params['turbine_y']) * H)), v) * dx #thrust
+
+#        F += inner(f_dir, v) * dx
+#        if turbine_field:
+#            F -= thrust
 
     # Preassemble the lhs if possible
     use_lu_solver = not newton_solver and solver_parameters['linear_solver'] == "lu"
@@ -433,9 +467,8 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
                 for i in range(len(params["turbine_pos"])):
                     j_individual.append(dt * quad * assemble(functional.Jt_individual(state, i)))
                     force_individual.append(dt * quad * assemble(functional.force_individual(state, i)))
-
     print0("Start of time loop")
-    adjointer.time.start(t)
+#    adjointer.time.start(t)
     timestep = 0
     while (t < float(params["finish_time"])):
         timestep += 1
@@ -526,6 +559,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
 
         # After the timestep solve, update state
         state.assign(state_new)
+
         if cache_forward_state:
             # Save state for initial guess cache
             print0("Cache initial guess for time %f." % t)
@@ -576,7 +610,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
                         print0("Contribution of turbine number %d at co-ordinates:" % (i + 1), params["turbine_pos"][i], ' is: ', j_individual[i] * 0.001, 'kW', 'with friction of', fr_individual[i])
 
         # Increase the adjoint timestep
-        adj_inc_timestep(time=t, finished=(not t < float(params["finish_time"])))
+#        adj_inc_timestep(time=t, finished=(not t < float(params["finish_time"])))
     print0("End of time loop.")
 
     # Write the turbine positions, power extraction and friction to a .csv file named turbine_info.csv
@@ -592,6 +626,25 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
         for i in range(0, len(individual_contribution_list), 5):
             print >> output_turbines, '%s, %s, %s, %s, %s' % (individual_contribution_list[i], individual_contribution_list[i + 1], individual_contribution_list[i + 2], individual_contribution_list[i + 3], individual_contribution_list[i + 4])
         print 'Total of individual turbines is', sum(j_individual)
+        
+        filename = 'main_output.csv'
+       
+        if config.optimisation_iteration == 0:
+            print >> open(filename, 'a'), 'Number of Turbines, Iteration Number, Power Output'
+
+        print >> open(filename, 'a'), '%s, %s, %s' % (len(individual_contribution_list)/5, config.optimisation_iteration+1, sum(j_individual))
+
+
+
+
+
+
+
+
+
+
+
+
 
     if functional is not None:
         return j
