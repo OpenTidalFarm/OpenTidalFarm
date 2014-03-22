@@ -20,6 +20,14 @@ def p2p1(mesh):
 
     return V, H
 
+def mini(mesh):
+    "Return a function space U*H on mesh from the mini space."
+
+    V = VectorFunctionSpace(mesh, 'CG', 1, dim=2) + VectorFunctionSpace(mesh, 'Bubble', 3) # Velocity space
+
+    H = FunctionSpace(mesh, 'CG', 1)               # Height space
+
+    return V, H
 
 def p1dgp2(mesh):
     "Return a function space U*H on mesh from the rt0 space."
