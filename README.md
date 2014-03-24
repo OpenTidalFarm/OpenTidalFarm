@@ -42,6 +42,7 @@ The installation consists of following steps
     - [FEniCS project >=1.2](http://fenicsproject.org/download/) (Follow the Ubuntu PPA installation order to get a recent installation)
     - [dolfin-adjoint](http://dolfin-adjoint.org/download/index.html).
     - [SciPy Version >=0.11](https://github.com/scipy/scipy) - e.g. with `pip install scipy`.
+    - [Uptide](https://github.com/stephankramer/uptide)
 2. [Download OpenTidalFarm](https://github.com/funsim/OpenTidalFarm/zipball/master) and extract it.
 3. Open a terminal and change into the extracted directory and run
 
