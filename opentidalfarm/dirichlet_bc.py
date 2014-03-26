@@ -40,8 +40,6 @@ class DirichletBCSet:
         self.bcs.append(DirichletBC(self.function_space.sub(0), self.constant_inflow_bcs[-1], self.config.domain.boundaries, label))
 
     def add_analytic_eta(self, label, expression):
-        if self.config.params['steady_state'] and hasattr(expression, "t"):
-            raise ValueError('Can not apply a time dependent boundary condition for a steady state simulation.')
         self.expressions.append(expression)
         self.bcs.append(DirichletBC(self.function_space.sub(1), expression, self.config.domain.boundaries, label))
 
