@@ -57,7 +57,8 @@ class ParameterDictionary(dict):
             'save_checkpoints': 'automatically store checkpoints after each optimisation iteration',
             'cache_forward_state': 'caches the forward state for all timesteps and reuses them as initial guess for the next optimisation iteration',
             'base_path': 'root directory for output',
-            'nonlinear_solver': 'callback to solve the nonlinear problem. Called with callback(F, z, bcs, annotate, solver_parameters).'
+            'nonlinear_solver': 'callback to solve the nonlinear problem. Called with callback(F, z, bcs, annotate, solver_parameters).',
+            'revolve_parameters': '(strategy, snaps_on_disk, snaps_in_ram, verbose)',
              }
 
     def check(self):

@@ -78,6 +78,10 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
             ''' Takes in the turbine friction field and computes the resulting functional of interest. '''
             adj_reset()
             parameters["adjoint"]["record_all"] = True
+            if config.params['revolve_parameters'] is not None:
+              (strategy, snaps_on_disk, snaps_in_ram, verbose) = config.params['revolve_parameters']
+              adj_checkpointing(strategy, config.params['finish_time'] / config.params['dt'],
+                                snaps_on_disk=snaps_on_disk, snaps_in_ram=snaps_in_ram, verbose=verbose)
 
             # Get initial conditions
             if config.params["implicit_turbine_thrust_parametrisation"]:

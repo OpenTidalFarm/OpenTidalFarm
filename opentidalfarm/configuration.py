@@ -71,6 +71,7 @@ class DefaultConfiguration(object):
             'cache_forward_state': False,
             'base_path': os.curdir,
             'nonlinear_solver': None,
+            'revolve_parameters': None, # (strategy, snaps_on_disk, snaps_in_ram, verbose)
             })
 
         params['dt'] = params['finish_time'] / 4000.
