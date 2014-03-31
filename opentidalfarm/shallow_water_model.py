@@ -131,7 +131,7 @@ def free_stream_velocity(config, m):
     o = TestFunction(function_space)
     free_u = TrialFunction(function_space)
     free_u_sol = Function(function_space) 
-    chi = ufl.conditional(ufl.gt(tf, 0), 1, 0) 
+    chi = tanh(tf) # ufl.conditional(ufl.gt(tf, 0), 1, 0)
     c_diff = Constant(1.0)
     F1 = (chi * inner(free_u - sqrt(u[0]**2+u[1]**2), o) + c_diff * inner(grad(free_u), grad(o))) * dx
     invchi = 1 - chi
