@@ -13,8 +13,8 @@ from ad import adnumber
 import ad
 from ad.admath import *
 import random
-#from helpers import info, info_red, info_green, info_blue
-#import dolfin
+from helpers import info, info_red, info_green, info_blue, get_rank
+import dolfin
 
 
 class CableCostGA(object):
@@ -34,7 +34,22 @@ class CableCostGA(object):
             self.multiple_subs = False
         else: self.multiple_subs = True
         self.basic_mode = basic_mode
-
+    
+    
+    def cable_info(self):
+        rank = get_rank()
+        if rank == 0:
+            print '\n=== Cable routing parameters ==='
+            print 'Substation location(s): ', self.substation_location
+            print 'Cable capacity: ', self.capacity
+            print 'Population size: ', self.pop_size
+            print 'Maximum number of iterations: ', self.num_iter
+            print 'Convergence definition: ', self.convergence_definition
+            print 'Scaling factor: ', self.scaling_factor
+            print 'Redundancy: ', self.redundancy
+            if self.basic_mode:
+                print 'OPERATING IN BASIC ROUTING MODE: ALL TURBINES CONNECTED DIRECTLY TO SUBSTATION'
+            print '\n'
 
     def convert_to_adnumber(self, coordinate_list):
         '''Convert the location vectors from floats into adnumbers to enable differentiation'''
@@ -355,6 +370,7 @@ class CableCostGA(object):
         return best_chromosome, global_min
         
     def compute_cable_cost(self, turbine_locations, prev_routing):
+        if self.show_prog: self.cable_info()
         if prev_routing == None:
             dummy_route = random.sample(range(len(self.substation_location), len(turbine_locations)+len(self.substation_location)), len(turbine_locations))
             dummy_break = range(self.capacity, len(turbine_locations), self.capacity)
@@ -585,25 +601,25 @@ class Clarke_Wright(object):
 if __name__ == '__main__':
 
     turbine_locations = [[74, 101], [58, 41], [72, 67], [116, 86], [97, 103], [104, 70], [10, 96], [55, 14], [86, 20], [52, 36], [49, 117], [118, 127], [65, 59], [17, 5], [23, 74], [40, 35], [82, 49], [64, 50], [79, 83], [59, 95], [29, 107], [41, 80], [124, 18], [103, 42], [7, 66], [43, 68], [60, 8], [36, 17], [51, 89], [125, 84], [123, 54], [85, 100], [109, 118], [84, 47], [0, 19], [117, 63], [3, 51], [96, 1], [89, 109], [76, 28], [111, 30], [62, 104], [5, 0], [70, 13], [35, 11], [87, 26], [14, 60], [102, 81], [48, 29], [121, 91], [13, 53], [78, 31], [2, 37], [127, 122], [69, 3], [113, 93], [15, 121], [67, 62], [1, 72], [95, 57], [12, 55], [63, 38], [105, 115], [126, 23], [9, 88], [101, 24], [4, 2], [45, 69], [114, 112], [32, 40], [77, 123], [30, 43], [93, 27], [100, 124], [75, 45], [20, 56], [119, 16], [6, 22], [83, 98], [98, 79], [21, 78], [26, 61], [112, 125], [110, 10], [115, 85], [24, 73], [8, 116], [44, 25], [94, 113], [108, 92], [34, 126], [57, 52], [99, 97], [92, 44], [90, 111], [25, 114], [50, 48], [68, 94], [27, 33], [91, 82], [106, 90], [88, 9], [16, 120], [61, 4], [31, 15], [53, 65], [22, 75], [73, 106], [107, 34], [47, 108], [71, 58], [122, 99], [11, 76], [80, 64], [19, 12], [37, 39], [81, 110], [38, 71], [42, 77], [28, 119], [18, 32], [46, 105], [56, 7], [54, 87], [39, 46], [120, 6], [66, 102], [33, 21]]
-#    turbine_locations = [[343.5000000000009, 1109.9999999999432], [449.56193055171383, 1204.9568212253362], [373.8701934484227, 1372.521503004281], [363.63561883807995, 1562.6649907636972], [343.4999999999962, 1690.0000000000691], [533.0506158875066, 1110.1311130904792], [452.18317292830216, 1234.842086646732], [373.5269830186765, 1414.7654917011073], [537.9442839316735, 1549.897917515539], [540.112139613262, 1610.1238083439873], [532.8823929868996, 1149.9040738644953], [598.5760252943064, 1280.0962562922723], [553.167508585214, 1400.12916708796], [535.3656776324977, 1470.3482155216236], [535.1333650495839, 1654.9090490810224], [595.6766848546965, 1250.1831082868339], [623.4872156891772, 1329.8702009501885], [545.0485125737644, 1441.9538022061836], [537.8677401792739, 1519.8980151615397], [530.3391422667778, 1684.8940274896208]]
+    turbine_locations = [[343.5000000000009, 1109.9999999999432], [449.56193055171383, 1204.9568212253362], [373.8701934484227, 1372.521503004281], [363.63561883807995, 1562.6649907636972], [343.4999999999962, 1690.0000000000691], [533.0506158875066, 1110.1311130904792], [452.18317292830216, 1234.842086646732], [373.5269830186765, 1414.7654917011073], [537.9442839316735, 1549.897917515539], [540.112139613262, 1610.1238083439873], [532.8823929868996, 1149.9040738644953], [598.5760252943064, 1280.0962562922723], [553.167508585214, 1400.12916708796], [535.3656776324977, 1470.3482155216236], [535.1333650495839, 1654.9090490810224], [595.6766848546965, 1250.1831082868339], [623.4872156891772, 1329.8702009501885], [545.0485125737644, 1441.9538022061836], [537.8677401792739, 1519.8980151615397], [530.3391422667778, 1684.8940274896208]]
     show_prog = True
     print len(turbine_locations)
     CC = CableCostGA(show_prog = True, show_result = True)
     
-#    timer = dolfin.Timer("Cable Length Evaluation")
+    timer = dolfin.Timer("Cable Length Evaluation")
     prev_routing = None#[[5, 2, 6, 7, 3, 4, 8, 1], [7]]
     output = CC.compute_cable_cost(turbine_locations, prev_routing = None)
-#    timer.stop()
+    timer.stop()
 
     print output[0], output[1]
-#    print 'Cable length evaluation in: ', timer.value(), 'seconds'
+    print 'Cable length evaluation in: ', timer.value(), 'seconds'
 
-#    timer = dolfin.Timer("Cable Length Evaluation")
+    timer = dolfin.Timer("Cable Length Evaluation")
     deriv = CC.compute_cable_cost_derivative(turbine_locations)
-#    timer.stop()
+    timer.stop()
 
     print deriv
-#    print 'Derivative evaluation in: ', timer.value(), 'seconds'
+    print 'Derivative evaluation in: ', timer.value(), 'seconds'
     
 
 

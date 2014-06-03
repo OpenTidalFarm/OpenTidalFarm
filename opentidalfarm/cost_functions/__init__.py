@@ -17,10 +17,10 @@ __license__ = 'GPL-3'
 __maintainer__ = 'Dave Culley'
 __email__ = 'dmc13@imperial.com'
 
-import cable_costing
+from cable_costing import *
 import spatially_varying
 import disc_packing
-import number_optimisation
+#import number_optimisation
 
 
 

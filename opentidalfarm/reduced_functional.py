@@ -10,7 +10,7 @@ from dolfin_adjoint import *
 from turbines import *
 from helpers import info_green, info_red, info_blue
 import os.path
-from cable_costing import CableCostGA
+from cost_functions.cable_costing import CableCostGA
 
 
 class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
@@ -61,7 +61,8 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
         self.cable_cost_ga = CableCostGA(substation_location = cc_params[1],
                 capacity = cc_params[3], pop_size = cc_params[5], num_iter =
                 cc_params[7], convergence_definition = cc_params[9],
-                scaling_factor = cc_params[11])
+                scaling_factor = cc_params[11], redundancy = cc_params[13],
+                basic_mode = cc_params[15])
         self.prev_cable_routing = None
 
         if plot:

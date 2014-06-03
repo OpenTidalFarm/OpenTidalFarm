@@ -39,7 +39,7 @@ class DefaultConfiguration(object):
             'include_cable_cost': False,
             'cable_cost_params': ['substation_location =', [[0,0]], 'capacity =',
                 7, 'pop_size = ', 8000, 'num_iter =', 2200, 'convergence =',
-                11, 'scaling_factor =', 2200, 'redundancy =', False],
+                11, 'scaling_factor =', 2200, 'redundancy =', False, 'basic_mode =', False],
             'diffusion_coef': 0.0,
             'depth': 50.0,
             'g': 9.81,
@@ -178,7 +178,6 @@ class DefaultConfiguration(object):
             if self.params["automatic_scaling"]:
                 print "Automatic functional rescaling multiplier: %s" % self.params["automatic_scaling_multiplier"]
             print "Automatic checkpoint generation: %s" % self.params["save_checkpoints"]
-            print ""
 
             # Solver settings
             print "\n=== Solver settings ==="
@@ -190,7 +189,20 @@ class DefaultConfiguration(object):
             print "\n=== Other ==="
             print "Dolfin version: %s" % dolfin.__version__
             print "Cache forward solution for initial solver guess: %s" % self.params["cache_forward_state"]
-            print ""
+
+            if self.params["include_cable_cost"]:
+                cabling = self.params["cable_cost_params"]
+                print '\n=== Cable routing parameters ==='
+                print 'Substation location(s): ', cabling[1]
+                print 'Cable capacity: ', cabling[3]
+                print 'Population size: ', cabling[5]
+                print 'Maximum number of iterations: ', cabling[7]
+                print 'Convergence definition: ', cabling[9]
+                print 'Scaling factor: ', cabling[11]
+                print 'Redundancy: ', cabling[13] 
+                if cabling[15] == True:
+                    print 'OPERATING IN BASIC ROUTING MODE: ALL TURBINES CONNECTED DIRECTLY TO SUBSTATION'
+            print '\n'
 
     def set_site_dimensions(self, site_x_start, site_x_end, site_y_start, site_y_end):
         if not site_x_start < site_x_end or not site_y_start < site_y_end:
