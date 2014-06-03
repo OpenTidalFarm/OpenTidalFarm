@@ -20,7 +20,8 @@ class ParameterDictionary(dict):
             'bctype': 'type of boundary condition to be applied',
             'strong_bc': 'list of strong dirichlet boundary conditions to be applied',
             'flather_bc_expr': 'dolfin.Expression describing the flather boundary condition values',
-            'weak_dirichlet_bc_expr': 'dolfin.Expression describing the weak Dirichlet boundary condition values',
+            'u_weak_dirichlet_bc_expr': 'dolfin.Expression describing the weak Dirichlet boundary condition values for velocity',
+            'eta_weak_dirichlet_bc_expr': 'dolfin.Expression describing the weak Dirichlet boundary condition values for free surface height',
             'free_slip_on_sides': 'apply free slip boundary conditions on the sides (id=3)',
             'initial_condition': 'initial condition function',
             'include_advection': 'advection term on',
@@ -42,8 +43,8 @@ class ParameterDictionary(dict):
             'rho': 'the density of the fluid',
             'controls': 'a list of the control variables. Valid list values: "turbine_pos" for the turbine position, "turbine_friction" for the friction of the turbine',
             'newton_solver': 'newton solver instead of a picard iteration',
-            'linear_solver': 'default linear solver',
-            'preconditioner': 'default preconditioner',
+            'postsolver_callback': 'a function which is called after each solve',
+            'solver_parameters': 'a dictionary containing the solver settings. Must be compatible to DOLFIN\'s solve interface.',
             'picard_relative_tolerance': 'relative tolerance for the picard iteration',
             'picard_iterations': 'maximum number of picard iterations',
             'run_benchmark': 'benchmark to compare different solver/preconditioner combinations',
@@ -56,7 +57,9 @@ class ParameterDictionary(dict):
             'cache_forward_state': 'caches the forward state for all timesteps and reuses them as initial guess for the next optimisation iteration',
             'base_path': 'root directory for output',
             'include_cable_cost': 'include the cable costs in the optimisation',
-            'cable_cost_params': 'adjust cable routing parameters from run-file'
+            'cable_cost_params': 'adjust cable routing parameters from run-file',
+            'nonlinear_solver': 'callback to solve the nonlinear problem. Called with callback(F, z, bcs, annotate, solver_parameters).',
+            'ind_cont_list': 'list of the contributions of individual turbines'
              }
 
     def check(self):

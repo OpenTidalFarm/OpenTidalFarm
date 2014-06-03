@@ -26,7 +26,7 @@ from turbines import Turbines
 from functionals import DefaultFunctional, PowerCurveFunctional
 
 from dolfin import *
-from dolfin_adjoint import minimize, maximize, Function
+from dolfin_adjoint import minimize, maximize, Function, solve
 from helpers import info_green, info_red, info_blue, info, print0
 
 # We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.

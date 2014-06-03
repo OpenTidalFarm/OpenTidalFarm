@@ -13,15 +13,13 @@ from ad import adnumber
 import ad
 from ad.admath import *
 import random
-from helpers import info, info_red, info_green, info_blue
-import dolfin
+#from helpers import info, info_red, info_green, info_blue
+#import dolfin
 
 
 class CableCostGA(object):
     
-    def __init__(self, substation_location = [[960,220]], capacity = 7, pop_size =
-            8000, num_iter = 2200, convergence_definition = 50, scaling_factor =
-            3900, show_prog = False, show_result = False): 
+    def __init__(self, substation_location = [[0,0]], capacity = 8, pop_size = 8000, num_iter = 2200, convergence_definition = 21, scaling_factor = 3900, show_prog = False, show_result = False, redundancy = False, basic_mode = False): 
         self.substation_location = substation_location
         self.capacity = capacity
         self.pop_size = pop_size
@@ -30,6 +28,12 @@ class CableCostGA(object):
         self.scaling_factor = scaling_factor
         self.show_prog = show_prog
         self.show_result = show_result
+        self.length_record = []
+        self.redundancy = redundancy
+        if len(substation_location) == 1:
+            self.multiple_subs = False
+        else: self.multiple_subs = True
+        self.basic_mode = basic_mode
 
 
     def convert_to_adnumber(self, coordinate_list):
@@ -43,7 +47,7 @@ class CableCostGA(object):
     
     def differentiate(self, best_chromosome, turbine_locations):
         '''Differentiate the length of the routing w.r.t. the position of the turbines, produces a n x 2 array, ((dC/dx1, dC/dy1), ...)'''
-        info_blue('Determining dC/dX: Performing automatic differentiation...')
+        print 'Determining dC/dX: Performing automatic differentiation...'
         turbine_locations = self.convert_to_adnumber(turbine_locations)
         substation_location = self.convert_to_adnumber(self.substation_location)
         vertices = substation_location + turbine_locations
@@ -57,7 +61,7 @@ class CableCostGA(object):
         for i in range(n):
             dC_dX[i][0] = total_dist.d(turbine_locations[i][0])
             dC_dX[i][1] = total_dist.d(turbine_locations[i][1])
-        info_green('Automatic differentiation complete...')
+        print 'Automatic differentiation complete...'
         return dC_dX
     
     
@@ -85,19 +89,20 @@ class CableCostGA(object):
         R = self.routing_coordinates(vertices, self.routing(opt_route, opt_breaks))
         plt.title('Total distance='+str(global_min))
         V = np.array((vertices))
-        plt.plot(V[:,0],V[:,1],'o')
+        plt.plot(V[:,0],V[:,1],'.')
         for i in range(len(R)):
             plt.plot(R[i][:,0], R[i][:,1], '-')
-        for i in range(len(V)):
-            plt.text(V[i][0], V[i][1], '%s' % (str(i)))
-        basin_x = 641.03068e+07
-        basin_y = 320320.
-        site_x = 3000.
-        site_y = 2000.
-        site_x_start = (basin_x - site_x)/2
+#        for i in range(len(V)):
+#            plt.text(V[i][0], V[i][1], '%s' % (str(i)))
+        basin_x = 640.
+        basin_y = 2560.
+        site_x = 320.
+        site_y = 1280.
+        site_x_start = ((basin_x - site_x)/2)-230
         site_y_start = (basin_y - site_y)/2
-#        plt.plot([site_x_start, site_x_start + site_x, site_x_start + site_x, site_x_start, site_x_start], [site_y_start, site_y_start, site_y_start + site_y, site_y_start + site_y, site_y_start], linestyle = '--', color = 'r')
-#        plt.axis('equal')
+        #plt.plot([site_x_start, site_x_start + site_x, site_x_start + site_x, site_x_start, site_x_start], [site_y_start, site_y_start, site_y_start + site_y, site_y_start + site_y, site_y_start], linestyle = '--', color = 'r')
+        plt.axis('equal')
+        plt.savefig('destination_path02.pdf', format='pdf', dpi=1000)
         plt.show()
         
     
@@ -111,6 +116,11 @@ class CableCostGA(object):
             add_each = int(np.ceil(0.5 + short / len(RB)))
             for i in range(len(RB)):
                 RB[i] = RB[i] + add_each * (i+1)
+        if self.multiple_subs:
+#            print 'hello', RB
+            RB = [0] + RB
+            for i in range(len(RB)):
+                RB[i] = [RB[i], random.randint(0,len(self.substation_location)-1)]
         return RB    
     
         
@@ -120,23 +130,42 @@ class CableCostGA(object):
         poproutes = [prev_routing[0]]
         for i in range(self.pop_size - 1):
             popbreaks.append(self.rand_breaks(n, min_route, n_routes, n_breaks))
-            poproutes.append(random.sample(range(1, n+1), n))
+            poproutes.append(random.sample(range(len(self.substation_location), n+len(self.substation_location)), n))
+#        print poproutes
         return poproutes, popbreaks
     
     
     def routing(self, route, breaks):
-        '''Combine route and breaks into an array of the routes described as vertices in the order in which they are toured'''      
-        rting = [[0] + route[0:breaks[0]]]
-        if len(breaks) > 1:
-            for f in range(1, len(breaks)):
-                rting.append([0] + route[breaks[f-1]:breaks[f]])
-        rting.append([0] + route[breaks[-1]:])
-        return rting
+        '''Combine route and breaks into an array of the routes described as vertices in the order in which they are toured'''  
+        if self.redundancy:
+            rting = [[0] + route[0:breaks[0]] + [0]]
+            if len(breaks) > 1:
+                for f in range(1, len(breaks)):
+                    rting.append([0] + route[breaks[f-1]:breaks[f]] + [0])
+            rting.append([0] + route[breaks[-1]:] + [0])
+            return rting
+        elif self.multiple_subs:
+#            print route, breaks
+            rting = []#[[breaks[0][1]] + route[0:breaks[1][0]]]
+            #print breaks
+            #if len(breaks) > 1:
+            for f in range(len(breaks)-1):
+                rting.append([breaks[f][1]] + route[breaks[f][0]:breaks[f+1][0]])
+            rting.append([breaks[-1][1]] + route[breaks[-1][0]:])
+#            print 'rting', rting
+            return rting
+        else:    
+            rting = [[0] + route[0:breaks[0]]]
+            if len(breaks) > 1:
+                for f in range(1, len(breaks)):
+                    rting.append([0] + route[breaks[f-1]:breaks[f]])
+            rting.append([0] + route[breaks[-1]:])
+            return rting
     
     
     def routing_distance(self, routing, C):
         '''Return the geometric length of the routing'''
-        d = 0        
+        d = 0
         for r in range(len(routing)):
             for v in range(len(routing[r]) - 1):
                 d += C[routing[r][v]][routing[r][v+1]]
@@ -182,7 +211,7 @@ class CableCostGA(object):
     
     def transformations(self, bestof8route, bestof8breaks, n, min_route, n_routes, n_breaks, vertices, iteration, turbine_locations):
         '''Returns a copy of the original chromosome and 7 mutations'''
-        selector = random.sample(range(1, n), n-1)
+        selector = random.sample(range(len(self.substation_location), n), n-len(self.substation_location))
         randlist = [selector[n/3], selector[2*n/3]]
         I = min(randlist)
         J = max(randlist)
@@ -206,7 +235,9 @@ class CableCostGA(object):
         temp_pop_route.append(trans_3)
         temp_pop_breaks.append(bestof8breaks)
         ## transformation 4
-        if iteration < 15:
+        if (iteration%10) == 0:
+#        if iteration > 15:
+            #print 'Transformation 4 substituted with Clarke and Wright'
             trans_4 = copy.deepcopy(bestof8route)
             trans_4 = self.clarke_wright(trans_4, bestof8breaks, vertices, turbine_locations)
             valid = True
@@ -256,20 +287,41 @@ class CableCostGA(object):
             new_pop_route += new_8[0]
             new_pop_breaks += new_8[1]
         return new_pop_route, new_pop_breaks
+ 
+   
+    def graph_iterations(self):
+        y = np.array(self.length_record)
+        x = np.array(range(len(y)))
+        plt.plot(x,y)
+        plt.show()
         
+        
+    def basic_connection_mode(self, vertices, turbine_locations):
+        chromosome = [range(1,len(turbine_locations)+1), range(1,len(turbine_locations))]
+        C = self.construct_cost_matrix(vertices)
+        length = self.routing_distance(self.routing(chromosome[0], chromosome[1]), C)
+        if self.show_result:
+            self.produce_plot(vertices, chromosome, length)
+        return chromosome, length
+            
             
     def run_GA(self, turbine_locations, prev_routing):
         '''Run the genetic algorithm'''
         np.random.seed(100)
         random.seed(100)        
         vertices = self.substation_location + turbine_locations
+        
+        if self.basic_mode:
+            print 'In basic mode: all turbines connected directly to substation'
+            return self.basic_connection_mode(vertices, turbine_locations)
+        
         n_routes = int(math.ceil(float(len(vertices)) / self.capacity))
         min_route = len(vertices) / n_routes
         n = len(turbine_locations)
         n_breaks = n_routes - 1
         converged = False
         convergence_counter = 0
-        info_green('Running Genetic Algorithm...')
+        print 'Running Genetic Algorithm...'
         pop = self.initialise_population(n, min_route, n_routes, n_breaks, prev_routing)
         C = self.construct_cost_matrix(vertices)
         D = self.evaluate_population(pop, C, n)    
@@ -279,9 +331,12 @@ class CableCostGA(object):
         dist_history = [global_min]
     
         for iteration in range(self.num_iter):
+            if len(self.length_record) > (self.convergence_definition + 5) and (self.length_record[-(self.convergence_definition + 2)] / self.length_record[-1]) < 1.01:
+                converged = True
             if not converged:
                 if self.show_prog:
-                    info('Current Routing Length %2f' % global_min)
+                    self.length_record.append(global_min)
+                    print 'Current Routing Length %2f' % global_min
                 pop = self.breed_population(pop, D, n, min_route, n_routes, n_breaks, vertices, iteration, turbine_locations)
                 D = self.evaluate_population(pop, C, n)
                 MIndx = min(xrange(len(D)),key=D.__getitem__)
@@ -295,19 +350,24 @@ class CableCostGA(object):
                     converged = True
         if self.show_result:
             self.produce_plot(vertices, best_chromosome, global_min)
-        info('GA Complete, Routing Length is: %2f' % global_min)
+        print 'GA Complete, Routing Length is: %2f' % global_min
+        #self.graph_iterations()
         return best_chromosome, global_min
         
     def compute_cable_cost(self, turbine_locations, prev_routing):
         if prev_routing == None:
-            dummy_route = random.sample(range(1, len(turbine_locations)+1), len(turbine_locations))
+            dummy_route = random.sample(range(len(self.substation_location), len(turbine_locations)+len(self.substation_location)), len(turbine_locations))
             dummy_break = range(self.capacity, len(turbine_locations), self.capacity)
+            if self.multiple_subs:
+                dummy_break = [0] + dummy_break
+                for i in range(len(dummy_break)):
+                    dummy_break[i] = [dummy_break[i], random.randint(0,len(self.substation_location)-1)]
             prev_routing = [dummy_route, dummy_break]
-        info('Previous Routing: %s' % (str(prev_routing)))
+        print 'Previous Routing: %s' % (str(prev_routing))
         out = self.run_GA(turbine_locations, prev_routing)
         self.best_chromosome = out[0]
         length = out[1]*self.scaling_factor
-        info_green('Scaled cable length = %2f' % (length))
+        print 'Scaled cable length = %2f' % (length)
         return length, self.best_chromosome
         
     def compute_cable_cost_derivative(self, turbine_locations):
@@ -315,7 +375,8 @@ class CableCostGA(object):
                 turbine_locations)*self.scaling_factor
         return dC_dX
         
-        
+        for i in range(len(RB)):
+                RB[i] = [RB[i], random.randint(0,len(self.substation_location)-1)]
         
         
 ## 0o0o0o0o0o0o0o0o0o0o0o0o0o0o0o0o0o0o0o0o0o0o0o0o0o0o0o0o0o0o0o0o0o0o0o0o0o0o0o0o0o0o0o0o0o0o0o0o0 ##
@@ -522,26 +583,27 @@ class Clarke_Wright(object):
         
         
 if __name__ == '__main__':
-    turbine_locations = [[10306820.0, 6521420.010911537], [10306820.0, 6521740.115051068], [10306820.459505819, 6522010.291624502], [10306820.078903863, 6522330.086527729], [10306900.21477789, 6522490.092113465], [10306920.234333517, 6522840.2410056805], [10306930.330026872, 6523229.714678311], [10307080.155724445, 6523309.944402088], [10307620.531569539, 6521420.0], [10307625.528233232, 6521685.134457088], [10307669.92344875, 6522090.081212131], [10307649.82080755, 6522340.00075338], [10307640.676949427, 6522510.205998664], [10307385.165586194, 6523030.165815855], [10307355.089903623, 6523270.486114363], [10307390.166581199, 6523379.999999996], [10308344.866617287, 6521420.0], [10308360.137363253, 6521700.156817845], [10308395.253424548, 6521974.907493305], [10308409.930071872, 6522175.090042371], [10308424.802828403, 6522419.967748636], [10308250.252432656, 6522620.187040842], [10308249.624748424, 6522849.884139977], [10308275.134398129, 6523189.661426808], [10309309.875849286, 6521420.0], [10309180.728665292, 6521570.023533419], [10309159.850679496, 6521819.93583926], [10309080.266997749, 6522184.961175125], [10309089.899176996, 6522485.013270668], [10308890.283790814, 6522854.95007274], [10308899.872445788, 6523109.815205181], [10309199.701220253, 6523379.999999999], [10309620.290200587, 6521429.488862822], [10309725.050350875, 6521709.939669639], [10309775.046646519, 6521954.936217356], [10309774.735514805, 6522140.095525715], [10309779.889488667, 6522419.90899926], [10309779.904015178, 6522744.999170611], [10309729.74783965, 6523024.961295239], [10309600.058336852, 6523294.760891932]]
-    #    turbine_locations = [[170.0, 89.9999999981 ],[230.762902669, 118.780853982 ],[ 217.34050357, 202.52520328 ],[ 170.0, 230.000000002 ],[ 239.228274376, 89.9999999998 ],[ 240.47051623, 147.166807426 ],[ 229.215176098, 174.975390988 ],[ 229.387725126, 230.0 ],[ 415.282558217, 89.9999999989 ],[ 449.359266401, 116.874979577],[  445.24260239, 203.16962924 ],[ 413.338850382, 230.000000001 ],[ 462.691014683, 89.9999999997 ],[ 459.26079982, 145.193872955 ],[ 455.412623046, 174.9460453],[  458.663900532, 230.0]]
+
+    turbine_locations = [[74, 101], [58, 41], [72, 67], [116, 86], [97, 103], [104, 70], [10, 96], [55, 14], [86, 20], [52, 36], [49, 117], [118, 127], [65, 59], [17, 5], [23, 74], [40, 35], [82, 49], [64, 50], [79, 83], [59, 95], [29, 107], [41, 80], [124, 18], [103, 42], [7, 66], [43, 68], [60, 8], [36, 17], [51, 89], [125, 84], [123, 54], [85, 100], [109, 118], [84, 47], [0, 19], [117, 63], [3, 51], [96, 1], [89, 109], [76, 28], [111, 30], [62, 104], [5, 0], [70, 13], [35, 11], [87, 26], [14, 60], [102, 81], [48, 29], [121, 91], [13, 53], [78, 31], [2, 37], [127, 122], [69, 3], [113, 93], [15, 121], [67, 62], [1, 72], [95, 57], [12, 55], [63, 38], [105, 115], [126, 23], [9, 88], [101, 24], [4, 2], [45, 69], [114, 112], [32, 40], [77, 123], [30, 43], [93, 27], [100, 124], [75, 45], [20, 56], [119, 16], [6, 22], [83, 98], [98, 79], [21, 78], [26, 61], [112, 125], [110, 10], [115, 85], [24, 73], [8, 116], [44, 25], [94, 113], [108, 92], [34, 126], [57, 52], [99, 97], [92, 44], [90, 111], [25, 114], [50, 48], [68, 94], [27, 33], [91, 82], [106, 90], [88, 9], [16, 120], [61, 4], [31, 15], [53, 65], [22, 75], [73, 106], [107, 34], [47, 108], [71, 58], [122, 99], [11, 76], [80, 64], [19, 12], [37, 39], [81, 110], [38, 71], [42, 77], [28, 119], [18, 32], [46, 105], [56, 7], [54, 87], [39, 46], [120, 6], [66, 102], [33, 21]]
+#    turbine_locations = [[343.5000000000009, 1109.9999999999432], [449.56193055171383, 1204.9568212253362], [373.8701934484227, 1372.521503004281], [363.63561883807995, 1562.6649907636972], [343.4999999999962, 1690.0000000000691], [533.0506158875066, 1110.1311130904792], [452.18317292830216, 1234.842086646732], [373.5269830186765, 1414.7654917011073], [537.9442839316735, 1549.897917515539], [540.112139613262, 1610.1238083439873], [532.8823929868996, 1149.9040738644953], [598.5760252943064, 1280.0962562922723], [553.167508585214, 1400.12916708796], [535.3656776324977, 1470.3482155216236], [535.1333650495839, 1654.9090490810224], [595.6766848546965, 1250.1831082868339], [623.4872156891772, 1329.8702009501885], [545.0485125737644, 1441.9538022061836], [537.8677401792739, 1519.8980151615397], [530.3391422667778, 1684.8940274896208]]
     show_prog = True
-    
+    print len(turbine_locations)
     CC = CableCostGA(show_prog = True, show_result = True)
     
-    timer = dolfin.Timer("Cable Length Evaluation")
-    prev_routing = [[2, 3, 4, 5, 13, 12, 6, 7, 8, 16, 15, 14, 27, 26, 25, 33, 34, 35, 36, 1, 9, 17, 18, 19, 20, 21, 11, 22, 23, 24, 30, 31, 32, 10, 28, 29, 37, 38, 39, 40], [6, 12, 19, 26, 33]]
-    output = CC.compute_cable_cost(turbine_locations, prev_routing = prev_routing)
-    timer.stop()
+#    timer = dolfin.Timer("Cable Length Evaluation")
+    prev_routing = None#[[5, 2, 6, 7, 3, 4, 8, 1], [7]]
+    output = CC.compute_cable_cost(turbine_locations, prev_routing = None)
+#    timer.stop()
 
     print output[0], output[1]
-    print 'Cable length evaluation in: ', timer.value(), 'seconds'
+#    print 'Cable length evaluation in: ', timer.value(), 'seconds'
 
-    timer = dolfin.Timer("Cable Length Evaluation")
+#    timer = dolfin.Timer("Cable Length Evaluation")
     deriv = CC.compute_cable_cost_derivative(turbine_locations)
-    timer.stop()
+#    timer.stop()
 
     print deriv
-    print 'Derivative evaluation in: ', timer.value(), 'seconds'
+#    print 'Derivative evaluation in: ', timer.value(), 'seconds'
     
 
 

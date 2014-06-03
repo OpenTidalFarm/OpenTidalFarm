@@ -69,7 +69,7 @@ class PowerCurveFunctional(FunctionalPrototype):
         assert(self.params["turbine_thrust_parametrisation"] or self.params["implicit_turbine_thrust_parametrisation"])
 
     def Jt(self, state, tf):
-        up_u = state[3]
+        up_u = state[3]  # Extract the upstream velocity
         #ux = state[0]
 
         def power_function(u):
@@ -77,8 +77,5 @@ class PowerCurveFunctional(FunctionalPrototype):
             fac = Constant(1.5e6 / (3 ** 3))
             return shallow_water_model.smooth_uflmin(1.5e6, fac * u ** 3)
 
-        P = inner(Constant(1), power_function(up_u) * tf / self.config.turbine_cache.turbine_integral()) * dx
-
-        #print "Expected power: %f MW" % (power_function(ux((10, 160)))((0))/1e6)
-        print "Estimated power: %f MW" % (assemble(P) / 1e6)
+        P = power_function(up_u) * tf / self.config.turbine_cache.turbine_integral() * dx
         return P

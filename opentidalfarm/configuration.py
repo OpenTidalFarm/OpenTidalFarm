@@ -7,7 +7,7 @@ from dolfin import *
 from math import sqrt, pi
 from initial_conditions import *
 from domains import *
-from helpers import info, info_green, info_red, info_blue
+from helpers import info, info_red, get_rank
 from functionals import DefaultFunctional
 import os
 
@@ -30,7 +30,8 @@ class DefaultConfiguration(object):
             'bctype': 'flather',
             'strong_bc': None,
             'flather_bc_expr': None,
-            'weak_dirichlet_bc_expr': None,
+            'u_weak_dirichlet_bc_expr': None,
+            'eta_weak_dirichlet_bc_expr': None,
             'free_slip_on_sides': False,
             'include_advection': False,
             'include_diffusion': False,
@@ -38,7 +39,7 @@ class DefaultConfiguration(object):
             'include_cable_cost': False,
             'cable_cost_params': ['substation_location =', [[0,0]], 'capacity =',
                 7, 'pop_size = ', 8000, 'num_iter =', 2200, 'convergence =',
-                50, 'scaling_factor =', 3900],
+                11, 'scaling_factor =', 2200, 'redundancy =', False],
             'diffusion_coef': 0.0,
             'depth': 50.0,
             'g': 9.81,
@@ -56,10 +57,10 @@ class DefaultConfiguration(object):
             'rho': 1000.,  # Use the density of water: 1000kg/m^3
             'controls': ['turbine_pos', 'turbine_friction'],
             'newton_solver': False,
-            'linear_solver': ('mumps' if ('mumps' in map(lambda x: x[0], linear_solver_methods())) else 'default'),
-            'preconditioner': 'default',
+            'solver_parameters': None,
             'picard_relative_tolerance': 1e-5,
             'picard_iterations': 3,
+            'postsolver_callback': None,
             'run_benchmark': False,
             'solver_exclude': ['cg'],
             'start_time': 0.,
@@ -67,11 +68,13 @@ class DefaultConfiguration(object):
             'finish_time': 100.,
             'automatic_scaling': False,
             'print_individual_turbine_power': False,
-            'automatic_scaling_multiplier': 5,
+            'automatic_scaling_multiplier': 50,
             'output_turbine_power': True,
             'save_checkpoints': False,
             'cache_forward_state': False,
-            'base_path': os.curdir
+            'base_path': os.curdir,
+            'nonlinear_solver': None,
+            'ind_cont_list': None,
             })
 
         params['dt'] = params['finish_time'] / 4000.
@@ -121,7 +124,7 @@ class DefaultConfiguration(object):
           hmin = MPI.min(comm, self.domain.mesh.hmin())
           hmax = MPI.max(comm, self.domain.mesh.hmax())
           num_cells = MPI.sum(comm, self.domain.mesh.num_cells())
-          rank = MPI.process_number(comm)
+          rank = get_rank()
         else:
           hmin = MPI.min(self.domain.mesh.hmin())
           hmax = MPI.max(self.domain.mesh.hmax())
@@ -145,6 +148,7 @@ class DefaultConfiguration(object):
             print "Advection term: %s" % self.params["include_advection"]
             print "Diffusion term: %s" % self.params["include_diffusion"]
             print "Steady state: %s" % self.params["steady_state"]
+            print "Friction term: %s" % ("quadratic" if self.params['quadratic_friction'] else "linear")
 
             # Turbine settings 
             print "\n=== Turbine settings ==="
@@ -179,8 +183,8 @@ class DefaultConfiguration(object):
             # Solver settings
             print "\n=== Solver settings ==="
             print "Nonlinear solver: %s" % ("Newton" if self.params["newton_solver"] else "Picard")
-            print "Linear solver: %s" % self.params["linear_solver"]
-            print "Preconditioner: %s" % self.params["preconditioner"]
+#            print "Linear solver: %s" % self.params["linear_solver"]
+#            print "Preconditioner: %s" % self.params["preconditioner"]
 
             # Other 
             print "\n=== Other ==="
@@ -216,7 +220,7 @@ class SteadyConfiguration(DefaultConfiguration):
         # Boundary conditions
         bc = DirichletBCSet(self)
         bc.add_constant_flow(1, 2.0 + 1e-10, direction=inflow_direction)
-        bc.add_zero_eta(2)
+        bc.add_analytic_eta(2, 0.0)
         self.params['bctype'] = 'strong_dirichlet'
         self.params['strong_bc'] = bc
         self.params['free_slip_on_sides'] = True

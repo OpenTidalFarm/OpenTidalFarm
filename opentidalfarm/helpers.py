@@ -9,7 +9,7 @@ import os.path
 
 def get_rank():
   if dolfin.__version__ >= '1.3.0+':
-    rank = MPI.process_number(mpi_comm_world())
+    rank = MPI.rank(mpi_comm_world())
   else:
     rank = MPI.process_number()
 
@@ -188,3 +188,42 @@ def function_eval(func, point):
         raise RuntimeError("Point is outside the domain")
     else:
         return maxval
+
+
+def get_ambient_flow(config, include_turbines=False):
+    """
+    Returns the ambient flow field
+    """
+    from reduced_functional import ReducedFunctional
+    bkp_scaling = config.params["automatic_scaling"]
+    bkp_turbines = config.params["turbine_pos"]
+    config.params["automatic_scaling"] = False
+    config.params["turbine_pos"] = []
+    info_blue("Generating an ambient flow field...")
+    rf = ReducedFunctional(config)
+    if isinstance(include_turbines, bool):
+        if include_turbines:
+            rf.j(rf.initial_control())
+        else:
+            rf.j([])
+    # vector of turbine positions given
+    else:
+        m = (array(include_turbines)).flatten()
+        rf.j(m)
+
+    state = rf.last_state
+    V = VectorFunctionSpace(config.function_space.mesh(), "CG", 2, dim=2)
+    u_out = TrialFunction(V)
+    v_out = TestFunction(V)
+    M_out = assemble(inner(v_out, u_out)*dx)
+    out_state = Function(V)
+
+    rhs = assemble(inner(v_out, state.split()[0])*dx)
+    solve(M_out, out_state.vector(), rhs, "cg", "sor", annotate=False)
+
+    info_green("Finished generating an ambient flow field")
+
+    config.params["automatic_scaling"] = bkp_scaling
+    config.params["turbine_pos"] = bkp_turbines
+
+    return out_state

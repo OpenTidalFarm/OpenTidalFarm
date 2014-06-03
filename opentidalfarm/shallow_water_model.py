@@ -9,12 +9,30 @@ import ufl
 # state variables in this dictionary to be used for the next solve
 state_cache = {}
 
-# Some global variables for plotting the thurst plot - just for testing purposes
-us = []
-thrusts = []
-thrusts_est = []
-
+# Defines the advection distance for the turbine parametrisation
 distance_to_upstream = 1. * 20
+
+def default_solver_parameters(newton):
+    ''' Create a dictionary with the default solver parameters '''
+    linear_solver = 'mumps' if ('mumps' in map(lambda x: x[0], linear_solver_methods())) else 'default'
+    preconditioner = 'default'
+
+    if newton:
+        solver_parameters = {"newton_solver": {}}
+        # Older version of Dolfin (<= 1.2.0) have a different structure for the solver parameters...
+        if NonlinearVariationalSolver.default_parameters().has_parameter("linear_solver"):
+            solver_parameters["linear_solver"] = linear_solver
+            solver_parameters["preconditioner"] = preconditioner
+        else:
+            solver_parameters["newton_solver"]["linear_solver"] = linear_solver
+            solver_parameters["newton_solver"]["preconditioner"] = preconditioner
+        solver_parameters["newton_solver"]["maximum_iterations"] = 20
+
+    else:
+        solver_parameters = {"linear_solver": linear_solver,
+                             "preconditioner": preconditioner}
+
+    return solver_parameters
 
 
 def uflmin(a, b):
@@ -65,7 +83,8 @@ def upstream_u_implicit_equation(config, tf, u, up_u, o, up_u_adv, o_adv):
 
 
 def upstream_u_equation(config, tf, u, up_u, o):
-        ''' Returns the equation that computes the turbine upstream velocities '''
+        ''' Returns the equation that computes the turbine upstream velocities
+        (we only average the velocity at the turbine position at the moment) '''
 
         # The equations underpredict the upstream velocity which is corrected with this factor
         correction_factor = Constant(1.34)
@@ -77,8 +96,10 @@ def upstream_u_equation(config, tf, u, up_u, o):
             chi = ufl.conditional(ufl.gt(tf, 0), 1, 0)
 
             # Solve the Helmholtz equation in each turbine area to obtain averaged velocity values
-            c_diff = Constant(1e6)
-            F1 = chi * (inner(up_u - norm_approx(u), o) + Constant(distance_to_upstream) / norm_approx(u) * (inner(dot(grad(norm_approx(u)), u), o) + c_diff * inner(grad(up_u), grad(o)))) * dx
+            c_diff = Constant(1e3)
+            #F1 = chi * (inner(up_u - norm_approx(u), o) + Constant(distance_to_upstream) / norm_approx(u) * (inner(dot(grad(norm_approx(u)), u), o) + c_diff * inner(grad(up_u), grad(o)))) * dx
+            F1 = chi * (inner(up_u - norm_approx(u), o) + c_diff * inner(grad(up_u), grad(o))) * dx
+
             invchi = 1 - chi
             F2 = inner(invchi * up_u, o) * dx
             F = F1 + F2
@@ -90,11 +111,7 @@ def upstream_u_equation(config, tf, u, up_u, o):
 
 
 def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, u_source=None):
-    '''Solve the shallow water equations with the parameters specified in params.
-       Options for linear_solver and preconditioner are:
-        linear_solver: lu, cholesky, cg, gmres, bicgstab, minres, tfqmr, richardson
-        preconditioner: none, ilu, icc, jacobi, bjacobi, sor, amg, additive_schwarz, hypre_amg, hypre_euclid, hypre_parasails, ml_amg
-    '''
+    ''' Solve the shallow water equations '''
 
     ############################### Setting up the equations ###########################
 
@@ -120,8 +137,9 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
     newton_solver = params["newton_solver"]
     picard_relative_tolerance = params["picard_relative_tolerance"]
     picard_iterations = params["picard_iterations"]
-    linear_solver = params["linear_solver"]
-    preconditioner = params["preconditioner"]
+    solver_parameters = params["solver_parameters"]
+    if solver_parameters is None:
+        solver_parameters = default_solver_parameters(newton_solver)
     bctype = params["bctype"]
     strong_bc = params["strong_bc"]
     free_slip_on_sides = params["free_slip_on_sides"]
@@ -132,6 +150,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
     turbine_thrust_parametrisation = params["turbine_thrust_parametrisation"]
     implicit_turbine_thrust_parametrisation = params["implicit_turbine_thrust_parametrisation"]
     cache_forward_state = params["cache_forward_state"]
+    postsolver_callback = params["postsolver_callback"]
 
     if not 0 <= functional_quadrature_degree <= 1:
         raise ValueError("functional_quadrature_degree must be 0 or 1.")
@@ -162,7 +181,8 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
     state_nl = Function(function_space, name="Best_guess_state")  # the last computed state of the next timestep, used for the picard iteration
 
     if not newton_solver and (turbine_thrust_parametrisation or implicit_turbine_thrust_parametrisation):
-        raise NotImplementedError("Thrust turbine representation does currently only work with the newton solver.")
+        #raise NotImplementedError("Thrust turbine representation does currently only work with the newton solver.")
+        info('Implementing turbine thrust parametrisation with Picard solver')
 
     # Split mixed functions
     if is_nonlinear and newton_solver:
@@ -172,6 +192,12 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
             u, h, up_u = split(state_new)
         else:
             u, h = split(state_new)
+
+# DC LINE    
+    elif not newton_solver and turbine_thrust_parametrisation:
+        u, h, up_u = split(state_new)
+    
+    
     else:
         u, h = TrialFunctions(function_space)
 
@@ -192,9 +218,17 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
 
     # If a picard iteration is used we need an intermediate state
     if is_nonlinear and not newton_solver:
-        u_nl, h_nl = split(state_nl)
-        state_nl.assign(state, annotate=annotate)
-        u_mid_nl = (1.0 - theta) * u0 + theta * u_nl
+        if not turbine_thrust_parametrisation:
+            u_nl, h_nl = split(state_nl)
+            state_nl.assign(state, annotate=annotate)
+            u_mid_nl = (1.0 - theta) * u0 + theta * u_nl
+    
+#DC LINE
+        else:
+            u_nl, h_nl, up_u = split(state_nl)
+            print 'OUTPUT HERE: ', up_u, type(up_u)
+            state_nl.assign(state, annotate=annotate)
+            u_mid_nl = (1.0 - theta) * u0 + theta * u_nl
 
     # The normal direction
     n = FacetNormal(function_space.mesh())
@@ -214,11 +248,11 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
         if steady_state:
             raise ValueError("Can not use a time dependent boundary condition for a steady state simulation")
         # The dirichlet boundary condition on the left hand side
-        expr = config.params["weak_dirichlet_bc_expr"]
-        bc_contr = - depth * dot(expr, n) * q * ds(1)
+        u_expr = config.params["u_weak_dirichlet_bc_expr"]
+        bc_contr = - depth * dot(u_expr, n) * q * ds(1)
 
         # The dirichlet boundary condition on the right hand side
-        bc_contr -= depth * dot(expr, n) * q * ds(2)
+        bc_contr -= depth * dot(u_expr, n) * q * ds(2)
 
         # We enforce a no-normal flow on the sides by removing the surface integral.
         # bc_contr -= dot(u_mid, n) * q * ds(3)
@@ -227,8 +261,8 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
         if steady_state:
             raise ValueError("Can not use a time dependent boundary condition for a steady state simulation")
         # The Flather boundary condition on the left hand side
-        expr = config.params["flather_bc_expr"]
-        bc_contr = - depth * dot(expr, n) * q * ds(1)
+        u_expr = config.params["flather_bc_expr"]
+        bc_contr = - depth * dot(u_expr, n) * q * ds(1)
         Ct_mid += sqrt(g * depth) * inner(h_mid, q) * ds(1)
 
         # The contributions of the Flather boundary condition on the right hand side
@@ -246,8 +280,15 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
         sys.exit(1)
 
     # Pressure gradient operator
-    C_mid = g * inner(v, grad(h_mid)) * dx
-    #+inner(avg(v),jump(h_mid,n))*dS # This term is only needed for dg element pairs
+    eta_expr = config.params["eta_weak_dirichlet_bc_expr"]
+    if eta_expr is None: # assume we don't want to integrate the pressure gradient by parts
+      C_mid = g * inner(v, grad(h_mid)) * dx
+      #+inner(avg(v),jump(h_mid,n))*dS # This term is only needed for dg element pairs
+    else:
+      C_mid =  -g * inner(div(v), h_mid) * dx
+      C_mid +=  g * inner(dot(v, n), eta_expr) * ds(1)
+      C_mid +=  g * inner(dot(v, n), eta_expr) * ds(2)
+      C_mid +=  g * inner(dot(v, n), h_mid)    * ds(3)
 
     # Bottom friction
     friction = params["friction"]
@@ -319,7 +360,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
         # Check that we are not using a DG velocity function space, as the facet integrals are not implemented.
         if "Discontinuous" in str(function_space.split()[0]):
             raise NotImplementedError("The diffusion term for discontinuous elements is not implemented yet.")
-        D_mid = diffusion_coef * inner(grad(u_mid), grad(v)) * dx
+        D_mid = diffusion_coef * inner(grad(u_mid), grad(v)) * dx #- diffusion_coef * inner(v, dot(grad(u_mid), n)) * dolfin.ds
 
     # Create the final form
     G_mid = C_mid + Ct_mid + R_mid
@@ -343,7 +384,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
             F -= thrust
 
     # Preassemble the lhs if possible
-    use_lu_solver = (linear_solver == "lu")
+    use_lu_solver = not newton_solver and solver_parameters['linear_solver'] == "lu"
     if not is_nonlinear:
         lhs_preass = assemble(dolfin.lhs(F))
         # Precompute the LU factorisation
@@ -408,7 +449,11 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
         if bctype == "strong_dirichlet":
             strong_bc.update_time(t)
         else:
-            expr.t = t - (1.0 - theta) * dt
+            u_expr.t = t - (1.0 - theta) * dt
+
+        if eta_expr is not None:
+            eta_expr.t = t - (1.0 - theta) * dt
+
         # Update source term
         if u_source:
             u_source.t = t - (1.0 - theta) * dt
@@ -417,18 +462,18 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
         # Solve non-linear system with a Newton sovler
         if is_nonlinear and newton_solver:
             # Use a Newton solver to solve the nonlinear problem.
-            solver_parameters = {"newton_solver": {}}
-            # Older version of Dolfin (<= 1.2.0) have a different structure for the solver parameters...
-            if NonlinearVariationalSolver.default_parameters().has_parameter("linear_solver"):
-                solver_parameters["linear_solver"] = linear_solver
-                solver_parameters["preconditioner"] = preconditioner
-            else:
-                solver_parameters["newton_solver"]["linear_solver"] = linear_solver
-                solver_parameters["newton_solver"]["preconditioner"] = preconditioner
-            solver_parameters["newton_solver"]["error_on_nonconvergence"] = True
-            solver_parameters["newton_solver"]["maximum_iterations"] = 20
-            solver_parameters["newton_solver"]["convergence_criterion"] = "incremental"
-            solver_parameters["newton_solver"]["relative_tolerance"] = 1e-16
+#            solver_parameters = {"newton_solver": {}}
+#            # Older version of Dolfin (<= 1.2.0) have a different structure for the solver parameters...
+#            if NonlinearVariationalSolver.default_parameters().has_parameter("linear_solver"):
+#                solver_parameters["linear_solver"] = linear_solver
+#                solver_parameters["preconditioner"] = preconditioner
+#            else:
+#                solver_parameters["newton_solver"]["linear_solver"] = linear_solver
+#                solver_parameters["newton_solver"]["preconditioner"] = preconditioner
+#            solver_parameters["newton_solver"]["error_on_nonconvergence"] = True
+#            solver_parameters["newton_solver"]["maximum_iterations"] = 20
+#            solver_parameters["newton_solver"]["convergence_criterion"] = "incremental"
+#            solver_parameters["newton_solver"]["relative_tolerance"] = 1e-16
 
             if cache_forward_state and state_cache.has_key(t):
                 print0("Load initial guess from cache for time %f." % t)
@@ -442,26 +487,19 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
 
             info_blue("Solve shallow water equations at time %s (Newton iteration) ..." % params["current_time"])
             if bctype == 'strong_dirichlet':
-                solve(F == 0, state_new, bcs=strong_bc.bcs, solver_parameters=solver_parameters, annotate=annotate)
+                F_bcs = strong_bc.bcs
             else:
-                solve(F == 0, state_new, solver_parameters=solver_parameters, annotate=annotate)
+                F_bcs = []
 
-            if turbine_thrust_parametrisation or implicit_turbine_thrust_parametrisation:
-                print0("Inflow velocity: ", u[0]((10, 160)))
-                print0("Estimated upstream velocity: ", up_u((640. / 3, 160)))
-                print0("Expected thrust force: ", thrust_force(u[0]((10, 160)), min=min)((0)))
-                print0("Total amount of thurst force applied: ", assemble(inner(Constant(1), thrust_force(up_u) * tf / config.turbine_cache.turbine_integral()) * dx))
+            solver = config.params['nonlinear_solver']
+            if solver is None:
+              solve(F == 0, state_new, bcs=F_bcs, solver_parameters=solver_parameters, annotate=annotate, J=derivative(F, state_new))
+            else:
+              solver(F, state_new, F_bcs, annotate, solver_parameters)
 
-                us.append(u[0]((10, 160)))
-                thrusts.append(thrust_force(u[0]((10, 160)))((0)))
-                thrusts_est.append(assemble(inner(Constant(1), thrust_force(up_u) * tf / config.turbine_cache.turbine_integral()) * dx))
-
-                import matplotlib.pyplot as plt
-                plt.clf()
-                plt.plot(us, thrusts, label="Analytical")
-                plt.plot(us, thrusts_est, label="Approximated")
-                plt.legend(loc=2)
-                plt.savefig("thrust_plot.pdf", format='pdf')
+            # Call user defined callback
+            if postsolver_callback is not None:
+                postsolver_callback(config, state_new)
 
         # Solve non-linear system with a Picard iteration
         elif is_nonlinear:
@@ -469,8 +507,8 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
             iter_counter = 0
             while True:
                 info_blue("Solving shallow water equations at time %s (Picard iteration %d) ..." % (params["current_time"], iter_counter))
-                solver_parameters = {"linear_solver": linear_solver,
-                                     "preconditioner": preconditioner}
+#                solver_parameters = {"linear_solver": linear_solver,
+#                                     "preconditioner": preconditioner}
                 if bctype == 'strong_dirichlet':
                     solve(dolfin.lhs(F) == dolfin.rhs(F), state_new, bcs=strong_bc.bcs, solver_parameters=solver_parameters)
                 else:
@@ -479,15 +517,18 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
                 if iter_counter > 0:
                     relative_diff = abs(assemble(inner(state_new - state_nl, state_new - state_nl) * dx)) / assemble(inner(state_new, state_new) * dx)
                     info_blue("Picard iteration " + str(iter_counter) + " relative difference: " + str(relative_diff))
-
+#
+#
+# NEWTON SOLVER WILL GO HERE - ADD NEW HYBRID PARAM - if config.params["use_hybrid_solver"]:
+#
+#                    
                     if relative_diff < picard_relative_tolerance:
                         info("Picard iteration converged after " + str(iter_counter) + " iterations.")
                         break
                     elif iter_counter >= picard_iterations:
                         info_red("Picard iteration reached maximum number of iterations (" + str(picard_iterations) + ") with a relative difference of " + str(relative_diff) + ".")
                         break
-
-            state_nl.assign(state_new)
+                state_nl.assign(state_new)
 
         # Solve linear system with preassembled matrices
         else:
@@ -503,7 +544,8 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
                 info("Using a LU solver to solve the linear system.")
                 lu_solver.solve(state.vector(), rhs_preass, annotate=annotate)
             else:
-                solve(lhs_preass, state_new.vector(), rhs_preass, linear_solver, preconditioner, annotate=annotate)
+                solve(lhs_preass, state_new.vector(), rhs_preass, 
+                      solver_parameters['linear_solver'], solver_parameters['preconditioner'], annotate=annotate)
 
         # After the timestep solve, update state
         state.assign(state_new)
@@ -555,7 +597,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
                         individual_contribution_list.append(fr_individual[i])
 
                         print0("Contribution of turbine number %d at co-ordinates:" % (i + 1), params["turbine_pos"][i], ' is: ', j_individual[i] * 0.001, 'kW', 'with friction of', fr_individual[i])
-
+                        config.params['ind_cont_list'] = individual_contribution_list
         # Increase the adjoint timestep
         adj_inc_timestep(time=t, finished=(not t < params["finish_time"]))
     print0("End of time loop.")
