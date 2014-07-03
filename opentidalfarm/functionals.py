@@ -27,13 +27,13 @@ class DefaultFunctional(FunctionalPrototype):
         self.params = ParameterDictionary(dict(config.params))
 
     def cost_per_friction(self, turbines):
-        if self.params['cost_coef'] <= 0:
+        if float(self.params['cost_coef']) <= 0:
             return Constant(0)
         # Function spaces with polynomial degree >1 suffer from undershooting which can result in
         # negative cost values.
         if turbines.function_space().ufl_element().degree() > 1:
             raise ValueError('Costing only works if the function space for the turbine friction has polynomial degree < 2.')
-        return Constant(self.params['cost_coef']) * (ln(turbines + 1) / ln(21))
+        return Constant(self.params['cost_coef']) * turbines
 
     def power(self, state, turbines):
             return self.params['rho'] * turbines * (dot(state[0], state[0]) + dot(state[1], state[1])) ** 1.5
