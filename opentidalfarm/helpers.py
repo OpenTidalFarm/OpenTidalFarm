@@ -3,7 +3,6 @@ import random
 from dolfin import *
 from dolfin_adjoint import *
 from numpy import dot, inf
-import pylab
 import dolfin
 import os.path
 
@@ -94,6 +93,7 @@ def test_gradient_array(J, dJ, x, seed=0.01, perturbation_direction=None, plot_f
         first_order = [xx for xx in perturbation_sizes]
         second_order = [xx ** 2 for xx in perturbation_sizes]
 
+        import pylab
         pylab.figure()
         pylab.loglog(perturbation_sizes, first_order, 'b--', perturbation_sizes, second_order, 'g--', perturbation_sizes, no_gradient, 'bo-', perturbation_sizes, with_gradient, 'go-')
         pylab.legend(('First order convergence', 'Second order convergence', 'Taylor remainder without gradient', 'Taylor remainder with gradient'), 'lower right', shadow=True, fancybox=True)
