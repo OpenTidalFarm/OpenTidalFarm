@@ -4,7 +4,6 @@ import shallow_water_model as sw_model
 import helpers
 import sys
 import dolfin_adjoint
-from animated_plot import AnimatedPlot
 from dolfin import *
 from dolfin_adjoint import *
 from turbines import *
@@ -58,6 +57,7 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
         self.parameter = [Parameter()]
 
         if plot:
+            from animated_plot import AnimatedPlot
             self.plotter = AnimatedPlot(xlabel="Iteration", ylabel="Functional value")
 
         def compute_functional(m, return_final_state=False, annotate=True):
