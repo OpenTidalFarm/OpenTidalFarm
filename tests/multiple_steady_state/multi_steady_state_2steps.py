@@ -21,7 +21,6 @@ config.params['finish_time'] = 3
 config.params['include_time_term'] = False
 config.params['viscosity'] = 16
 config.params['functional_quadrature_degree'] = 0
-config.params["newton_solver"] = True
 config.params["solver_parameters"] = {"newton_solver": {"relative_tolerance": 1e-15}}
 config.params['cache_forward_state'] = True
 k = pi/basin_x

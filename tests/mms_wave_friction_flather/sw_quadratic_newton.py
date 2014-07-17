@@ -43,7 +43,6 @@ def test(refinement_level):
   config.params["dump_period"] = 100000
   config.params["friction"] = 0.25 
   config.params["quadratic_friction"] = True
-  config.params["newton_solver"] = True
   config.params["flather_bc_expr"] = Expression(("2*eta0*sqrt(g/depth)*cos(-sqrt(g*depth)*k*t)", "0"), 
                                                  eta0=eta0, 
                                                  g=config.params["g"], 

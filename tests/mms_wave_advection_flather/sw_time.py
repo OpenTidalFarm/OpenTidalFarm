@@ -43,7 +43,6 @@ def test(refinement_level):
   config.params["theta"] = 0.5
   config.params["dump_period"] = 1
   config.params["include_advection"] = True
-  config.params["newton_solver"] = True 
   config.params["flather_bc_expr"] = Expression(("2*eta0*sqrt(g/depth)*cos(-sqrt(g*depth)*k*t)", "0"), 
                                                  eta0=eta0, 
                                                  g=config.params["g"], 

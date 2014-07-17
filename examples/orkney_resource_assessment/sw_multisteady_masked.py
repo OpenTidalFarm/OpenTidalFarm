@@ -26,9 +26,6 @@ config.params['finish_time'] = 48.*3600.
 config.params['theta'] = 1.0 
 config.params['functional_quadrature_degree'] = 0
 
-#config.params['newton_solver'] = False
-#config.params['picard_iterations'] = 2
-
 # Tidal boundary forcing
 bc = DirichletBCSet(config)
 eta_expr = TidalForcing(grid_file_name='gridES2008.nc',

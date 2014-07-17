@@ -52,7 +52,6 @@ class DefaultConfiguration(object):
             'implicit_turbine_thrust_parametrisation': False,
             'rho': 1000.,  # Use the density of water: 1000kg/m^3
             'controls': ['turbine_pos', 'turbine_friction'],
-            'newton_solver': False,
             'solver_parameters': None,
             'picard_relative_tolerance': 1e-5,
             'picard_iterations': 3,
@@ -175,10 +174,6 @@ class DefaultConfiguration(object):
             print "Automatic checkpoint generation: %s" % self.params["save_checkpoints"]
             print ""
 
-            # Solver settings
-            print "\n=== Solver settings ==="
-            print "Nonlinear solver: %s" % ("Newton" if self.params["newton_solver"] else "Picard")
-
             # Other 
             print "\n=== Other ==="
             print "Dolfin version: %s" % dolfin.__version__
@@ -206,7 +201,6 @@ class SteadyConfiguration(DefaultConfiguration):
         self.params['include_viscosity'] = True
         self.params['linear_divergence'] = False
         self.params['viscosity'] = 3.0
-        self.params['newton_solver'] = True
         self.params['friction'] = Constant(0.0025)
         self.params['theta'] = 1.0
 

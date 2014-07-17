@@ -21,7 +21,6 @@ config.params['finish_time'] = 1
 config.params['include_time_term'] = False
 config.params['viscosity'] = 16
 config.params['functional_quadrature_degree'] = 0
-config.params["newton_solver"] = True
 config.params['cache_forward_state'] = True
 k = pi/basin_x
 config.params["flather_bc_expr"] = Expression(("2*eta0*sqrt(g/depth)*cos(-sqrt(g*depth)*k*t)", "0"), 
