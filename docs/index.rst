@@ -22,8 +22,7 @@ Contents:
    :maxdepth: 2
    :numbered:
 
-   examples
-   features
+   examples.rst
    
 
 
