@@ -1,3 +1,6 @@
+[Link to OpenTidalFarms Documentation](http://opentidalfarm.readthedocs.org/en/latest/index.html#)
+======================================
+
 About OpenTidalFarm 
 ===================
 OpenTidalFarm is a layout optimisation software for tidal turbine farms.
