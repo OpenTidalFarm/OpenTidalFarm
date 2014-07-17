@@ -131,9 +131,9 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
     t = float(params["current_time"])
     quadratic_friction = params["quadratic_friction"]
     include_advection = params["include_advection"]
-    include_diffusion = params["include_diffusion"]
+    include_viscosity = params["include_viscosity"]
     include_time_term = params["include_time_term"]
-    diffusion_coef = params["diffusion_coef"]
+    viscosity = params["viscosity"]
     newton_solver = params["newton_solver"]
     picard_relative_tolerance = params["picard_relative_tolerance"]
     picard_iterations = params["picard_iterations"]
@@ -353,19 +353,19 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
     if include_advection and not newton_solver:
         Ad_mid = inner(dot(grad(u_mid), u_mid_nl), v) * dx
 
-    if include_diffusion:
+    if include_viscosity:
         # Check that we are not using a DG velocity function space, as the facet integrals are not implemented.
         if "Discontinuous" in str(function_space.split()[0]):
-            raise NotImplementedError("The diffusion term for discontinuous elements is not implemented yet.")
-        D_mid = diffusion_coef * inner(grad(u_mid), grad(v)) * dx #- diffusion_coef * inner(v, dot(grad(u_mid), n)) * dolfin.ds
+            raise NotImplementedError("The viscosity term for discontinuous elements is not implemented yet.")
+        D_mid = viscosity * inner(grad(u_mid), grad(v)) * dx
 
     # Create the final form
     G_mid = C_mid + Ct_mid + R_mid
     # Add the advection term
     if include_advection:
         G_mid += Ad_mid
-    # Add the diffusion term
-    if include_diffusion:
+    # Add the viscosity term
+    if include_viscosity:
         G_mid += D_mid
     # Add the source term
     if u_source:

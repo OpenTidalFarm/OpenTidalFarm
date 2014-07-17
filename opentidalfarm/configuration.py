@@ -34,10 +34,10 @@ class DefaultConfiguration(object):
             'eta_weak_dirichlet_bc_expr': None,
             'free_slip_on_sides': False,
             'include_advection': False,
-            'include_diffusion': False,
+            'include_viscosity': False,
             'include_time_term': True,
             'linear_divergence': True,
-            'diffusion_coef': 0.0,
+            'viscosity': 0.0,
             'depth': 50.0,
             'g': 9.81,
             'dump_period': 1,
@@ -134,7 +134,7 @@ class DefaultConfiguration(object):
             if isinstance(self.params["depth"], float):
                 print "Water depth: %f m" % self.params["depth"]
             print "Gravity constant: %f m/s^2" % self.params["g"]
-            print "Viscosity constant: %f m^2/s" % self.params["diffusion_coef"]
+            print "Viscosity constant: %f m^2/s" % self.params["viscosity_coef"]
             print "Water density: %f kg/m^3" % self.params["rho"]
             if isinstance(self.params["friction"], dolfin.functions.constant.Constant):
                 print "Bottom friction: %s" % (self.params["friction"](0))
@@ -143,7 +143,7 @@ class DefaultConfiguration(object):
                     (self.params["friction"].vector().array().min(),
                      self.params["friction"].vector().array().max())
             print "Advection term: %s" % self.params["include_advection"]
-            print "Diffusion term: %s" % self.params["include_diffusion"]
+            print "Viscosity term: %s" % self.params["include_viscosity"]
             print "Steady state: %s" % self.params["steady_state"]
             print "Friction term: %s" % ("quadratic" if self.params['quadratic_friction'] else "linear")
 
@@ -205,9 +205,9 @@ class SteadyConfiguration(DefaultConfiguration):
         self.params['steady_state'] = True
         self.params['initial_condition'] = ConstantFlowInitialCondition(self)
         self.params['include_advection'] = True
-        self.params['include_diffusion'] = True
+        self.params['include_viscosity'] = True
         self.params['linear_divergence'] = False
-        self.params['diffusion_coef'] = 3.0
+        self.params['viscosity_coef'] = 3.0
         self.params['quadratic_friction'] = True
         self.params['newton_solver'] = True
         self.params['friction'] = Constant(0.0025)
