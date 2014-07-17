@@ -35,10 +35,7 @@ config.params["flather_bc_expr"] = Expression(("2*eta0*sqrt(g/depth)*cos(-sqrt(g
 u_free_stream = 2.5
 print "Target free-stream velocity (without turbines): ", u_free_stream
 delta_eta = config.params["friction"](())/config.params["depth"]/config.params["g"]
-if config.params["quadratic_friction"]: 
-	delta_eta *= u_free_stream**2
-else:
-	delta_eta *= u_free_stream
+delta_eta *= u_free_stream**2
 delta_eta *= basin_x
 print "Derived head-loss difference to achieve target free-stream: ", delta_eta
 

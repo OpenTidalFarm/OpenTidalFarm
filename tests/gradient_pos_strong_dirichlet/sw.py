@@ -45,7 +45,6 @@ def default_config():
 
 
   # Turbine settings
-  config.params["quadratic_friction"] = True
   config.params["friction"] = 0.0025
   # The turbine position is the control variable 
   config.params["turbine_pos"] = [[1000, 400], [2000, 600]] 
