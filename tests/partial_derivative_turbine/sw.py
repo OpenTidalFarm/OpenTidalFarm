@@ -14,7 +14,6 @@ def default_config():
   config = configuration.DefaultConfiguration(nx=40, ny=20, finite_element = finite_elements.p1dgp2)
   config.set_domain(opentidalfarm.domains.RectangularDomain(3000, 1000, 40, 20))
   config.params["dump_period"] = 1000
-  config.params["verbose"] = 0
 
   # Turbine settings
   config.params["turbine_pos"] = [[1000., 500.], [1600, 300], [2500, 700]]

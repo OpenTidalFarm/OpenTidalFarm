@@ -22,7 +22,6 @@ class DefaultConfiguration(object):
         self.functional = DefaultFunctional
 
         params = ParameterDictionary({
-            'verbose': 1,
             'theta': 0.6,
             'steady_state': False,
             'functional_final_time_only': False,

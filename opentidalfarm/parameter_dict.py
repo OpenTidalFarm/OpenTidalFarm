@@ -7,7 +7,6 @@ class ParameterDictionary(dict):
             self[key] = val
 
         self.required = {
-            'verbose': 'output verbosity',
             'dt': 'timestep',
             'theta': 'the implicitness for the time discretisation',
             'start_time': 'start time',
