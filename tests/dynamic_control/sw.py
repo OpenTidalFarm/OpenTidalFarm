@@ -10,7 +10,7 @@ config.params['finish_time'] = config.params["start_time"] + 2*config.params["dt
 # Deploy some turbines 
 turbine_pos = [] 
 # The configuration does not converge for this (admittely unphysical) setup, so we help a little with some viscosity
-#config.params['diffusion_coef'] = 40.0
+#config.params['viscosity'] = 40.0
 basin_x = 1200
 basin_y = 1000
 land_x = 600

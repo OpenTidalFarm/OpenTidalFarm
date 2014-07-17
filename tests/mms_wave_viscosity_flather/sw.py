@@ -12,14 +12,14 @@ def error(config, eta0, k):
   state = Function(config.function_space)
   state.interpolate(SinusoidalInitialCondition(config, eta0, k, config.params["depth"]))
   u_exact = "eta0*sqrt(g/depth) * cos(k*x[0]-sqrt(g*depth)*k*t)" # The analytical veclocity of the shallow water equations has been multiplied by depth to account for the change of variable (\tilde u = depth u) in this code.
-  ddu_exact = "(diffusion_coef * eta0*sqrt(g/depth) * cos(k*x[0]-sqrt(g*depth)*k*t) * k*k)"
+  ddu_exact = "(viscosity * eta0*sqrt(g/depth) * cos(k*x[0]-sqrt(g*depth)*k*t) * k*k)"
   eta_exact = "eta0*cos(k*x[0]-sqrt(g*depth)*k*t)"
   # The source term
   source = Expression((ddu_exact, 
                        "0.0"), \
                        eta0=eta0, g=config.params["g"], \
                        depth=config.params["depth"], t=config.params["current_time"], \
-                       k=k, diffusion_coef=config.params["diffusion_coef"])
+                       k=k, viscosity=config.params["viscosity"])
 
   adj_reset()
   shallow_water_model.sw_solve(config, state, annotate=False, u_source=source)
@@ -42,8 +42,8 @@ def test(refinement_level):
   config.params["finish_time"] = pi/(sqrt(config.params["g"]*config.params["depth"])*k)/20
   config.params["dt"] = config.params["finish_time"]/100
   config.params["dump_period"] = 100000
-  config.params["include_diffusion"] = True
-  config.params["diffusion_coef"] = 10.0
+  config.params["include_viscosity"] = True
+  config.params["viscosity"] = 10.0
   config.params["flather_bc_expr"] = Expression(("2*eta0*sqrt(g/depth)*cos(-sqrt(g*depth)*k*t)", "0"), 
                                                  eta0=eta0, 
                                                  g=config.params["g"], 

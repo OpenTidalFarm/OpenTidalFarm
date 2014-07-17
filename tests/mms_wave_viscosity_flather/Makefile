@@ -1,5 +1,5 @@
 run: clean
-	@echo "Running convergence test with diffusion"
+	@echo "Running convergence test with viscosity"
 	python sw.py
 clean:
 	rm -f *vtu

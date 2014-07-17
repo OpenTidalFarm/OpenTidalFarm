@@ -25,7 +25,7 @@ for c in [DefaultConfiguration, SteadyConfiguration]:
     turbine_pos = [] 
     if c == SteadyConfiguration:
         # The configuration does not converge for this (admittely unphysical) setup, so we help a little with some viscosity
-        config.params['diffusion_coef'] = 40.0
+        config.params['viscosity'] = 40.0
         basin_x = 1200
         basin_y = 1000
         land_x = 600

@@ -23,7 +23,7 @@ else:
 
 config = UnsteadyConfiguration(mesh_basefile + ".xml", [1, 1]) 
 config.params['initial_condition'] = ConstantFlowInitialCondition(config) 
-config.params['diffusion_coef'] = 120.0
+config.params['viscosity'] = 120.0
 config.params["controls"] = ["turbine_friction"]
 config.params["turbine_parametrisation"] = "smeared"
 config.params["automatic_scaling"] = False 

@@ -17,8 +17,8 @@ def default_config():
   config.params["finish_time"] = config.params["start_time"] + 2*config.params["dt"]
   config.params["theta"] = 0.6
   config.params["include_advection"] = True 
-  config.params["include_diffusion"] = True 
-  config.params["diffusion_coef"] = 20.0
+  config.params["include_viscosity"] = True 
+  config.params["viscosity"] = 20.0
   config.params["newton_solver"] = True 
   config.params["controls"] = ["turbine_pos"]
 

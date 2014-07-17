@@ -12,7 +12,7 @@ def error(config, eta0, k):
   state.interpolate(SinusoidalInitialCondition(config, eta0, k, config.params["depth"]))
   u_exact = "eta0*sqrt(g/depth) * cos(k*x[0]-sqrt(g*depth)*k*t)" 
   du_exact = "(- eta0*sqrt(g/depth) * sin(k*x[0]-sqrt(g*depth)*k*t) * k)"
-  ddu_exact = "(diffusion_coef * eta0*sqrt(g/depth) * cos(k*x[0]-sqrt(g*depth)*k*t) * k*k)"
+  ddu_exact = "(viscosity * eta0*sqrt(g/depth) * cos(k*x[0]-sqrt(g*depth)*k*t) * k*k)"
   eta_exact = "eta0*cos(k*x[0]-sqrt(g*depth)*k*t)"
   friction = "friction/depth * " + u_exact + "*pow(pow(" + u_exact + ", 2), 0.5)"
   # The source term
@@ -20,7 +20,7 @@ def error(config, eta0, k):
                              "0.0"), \
                              eta0 = eta0, g = config.params["g"], \
                              depth = config.params["depth"], t = config.params["current_time"], \
-                             k = k, diffusion_coef = config.params["diffusion_coef"],
+                             k = k, viscosity = config.params["viscosity"],
                              friction = config.params["friction"])
 
   adj_reset()
