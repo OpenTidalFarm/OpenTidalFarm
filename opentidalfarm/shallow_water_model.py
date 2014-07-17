@@ -9,9 +9,6 @@ import ufl
 # state variables in this dictionary to be used for the next solve
 state_cache = {}
 
-# Defines the advection distance for the turbine parametrisation
-distance_to_upstream = 1. * 20
-
 def default_solver_parameters():
     ''' Create a dictionary with the default solver parameters '''
     linear_solver = 'mumps' if ('mumps' in map(lambda x: x[0], linear_solver_methods())) else 'default'
@@ -45,64 +42,6 @@ def norm_approx(u, alpha=1e-4):
 
 def smooth_uflmin(a, b, alpha=1e-8):
     return a - (norm_approx(a - b, alpha=alpha) + a - b) / 2
-
-
-def upstream_u_implicit_equation(config, tf, u, up_u, o, up_u_adv, o_adv):
-        ''' Returns the implicit equations that compute the turbine upstream velocities '''
-
-        def advect(u, up_u_adv, o_adv):
-
-            theta = 1.0
-            uh = Constant(1 - theta) * norm_approx(u) + Constant(theta) * up_u_adv
-            F = (inner(up_u_adv - norm_approx(u), o_adv) + Constant(distance_to_upstream) / norm_approx(uh) * inner(dot(grad(uh), u), o_adv)) * dx
-            #F = (inner(up_u_adv-norm_approx(u), o_adv) + Constant(distance_to_upstream)*inner(dot(grad(uh), Constant((1, 0))), o_adv))*dx
-
-            return F
-
-        def smooth(up_u_adv, up_u, o):
-            # Calculate averaged velocities
-
-            # Define the indicator function of the turbine support
-            chi = ufl.conditional(ufl.gt(tf, 0), 1, 0)
-
-            c_diff = Constant(1e6)
-            F1 = chi * (inner(up_u - up_u_adv, o) + c_diff * inner(grad(up_u), grad(o))) * dx
-            invchi = 1 - chi
-            F2 = inner(invchi * up_u, o) * dx
-            F = F1 + F2
-
-            return F
-
-        up_u_eqs = advect(u, up_u_adv, o_adv) + smooth(up_u_adv, up_u, o)
-        return up_u_eqs
-
-
-def upstream_u_equation(config, tf, u, up_u, o):
-        ''' Returns the equation that computes the turbine upstream velocities
-        (we only average the velocity at the turbine position at the moment) '''
-
-        # The equations underpredict the upstream velocity which is corrected with this factor
-        correction_factor = Constant(1.34)
-
-        def smooth(u, up_u, o):
-            # Calculate averaged velocities
-
-            # Define the indicator function of the turbine support
-            chi = ufl.conditional(ufl.gt(tf, 0), 1, 0)
-
-            # Solve the Helmholtz equation in each turbine area to obtain averaged velocity values
-            c_diff = Constant(1e3)
-            #F1 = chi * (inner(up_u - norm_approx(u), o) + Constant(distance_to_upstream) / norm_approx(u) * (inner(dot(grad(norm_approx(u)), u), o) + c_diff * inner(grad(up_u), grad(o)))) * dx
-            F1 = chi * (inner(up_u - norm_approx(u), o) + c_diff * inner(grad(up_u), grad(o))) * dx
-
-            invchi = 1 - chi
-            F2 = inner(invchi * up_u, o) * dx
-            F = F1 + F2
-
-            return F
-
-        up_u_eq = smooth(u, 1. / correction_factor * up_u, o)
-        return up_u_eq
 
 
 def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, u_source=None):
