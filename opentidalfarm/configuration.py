@@ -133,7 +133,7 @@ class DefaultConfiguration(object):
             if isinstance(self.params["depth"], float):
                 print "Water depth: %f m" % self.params["depth"]
             print "Gravity constant: %f m/s^2" % self.params["g"]
-            print "Viscosity constant: %f m^2/s" % self.params["viscosity_coef"]
+            print "Viscosity constant: %f m^2/s" % self.params["viscosity"]
             print "Water density: %f kg/m^3" % self.params["rho"]
             if isinstance(self.params["friction"], dolfin.functions.constant.Constant):
                 print "Bottom friction: %s" % (self.params["friction"](0))
@@ -205,7 +205,7 @@ class SteadyConfiguration(DefaultConfiguration):
         self.params['include_advection'] = True
         self.params['include_viscosity'] = True
         self.params['linear_divergence'] = False
-        self.params['viscosity_coef'] = 3.0
+        self.params['viscosity'] = 3.0
         self.params['newton_solver'] = True
         self.params['friction'] = Constant(0.0025)
         self.params['theta'] = 1.0
