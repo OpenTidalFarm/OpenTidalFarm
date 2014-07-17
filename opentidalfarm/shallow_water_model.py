@@ -138,20 +138,13 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
     linear_divergence = params["linear_divergence"]
     functional_final_time_only = params["functional_final_time_only"]
     functional_quadrature_degree = params["functional_quadrature_degree"]
-    turbine_thrust_parametrisation = params["turbine_thrust_parametrisation"]
-    implicit_turbine_thrust_parametrisation = params["implicit_turbine_thrust_parametrisation"]
     cache_forward_state = params["cache_forward_state"]
     postsolver_callback = params["postsolver_callback"]
     
     if not 0 <= functional_quadrature_degree <= 1:
         raise ValueError("functional_quadrature_degree must be 0 or 1.")
 
-    if implicit_turbine_thrust_parametrisation:
-        function_space = config.function_space_2enriched
-    elif turbine_thrust_parametrisation:
-        function_space = config.function_space_enriched
-    else:
-        function_space = config.function_space
+    function_space = config.function_space
 
     # Take care of the steady state case
     if steady_state:
@@ -160,30 +153,15 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
         theta = 1.
 
     # Define test functions
-    if implicit_turbine_thrust_parametrisation:
-        v, q, o, o_adv = TestFunctions(function_space)
-    elif turbine_thrust_parametrisation:
-        v, q, o = TestFunctions(function_space)
-    else:
-        v, q = TestFunctions(function_space)
+    v, q = TestFunctions(function_space)
 
     # Define functions
     state_new = Function(function_space, name="New_state")  # solution of the next timestep
 
     # Split mixed functions
-    if implicit_turbine_thrust_parametrisation:
-        u, h, up_u, up_u_adv = split(state_new)
-    elif turbine_thrust_parametrisation:
-        u, h, up_u = split(state_new)
-    else:
-        u, h = split(state_new)
+    u, h = split(state_new)
 
-    if implicit_turbine_thrust_parametrisation:
-        u0, h0, up_u0, up_u_adv0 = split(state)
-    elif turbine_thrust_parametrisation:
-        u0, h0, up_u0 = split(state)
-    else:
-        u0, h0 = split(state)
+    u0, h0 = split(state)
 
     # Define the water depth
     if linear_divergence:
@@ -268,37 +246,10 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
         else:
             tf = Function(turbine_field, name="turbine_friction", annotate=annotate)
 
-        if turbine_thrust_parametrisation or implicit_turbine_thrust_parametrisation:
-            print0("Adding thrust force")
-            # Compute the upstream velocities
-
-            if implicit_turbine_thrust_parametrisation:
-                up_u_eq = upstream_u_implicit_equation(config, tf, u, up_u, o, up_u_adv, o_adv)
-            elif turbine_thrust_parametrisation:
-                up_u_eq = upstream_u_equation(config, tf, u, up_u, o)
-
-            def thrust_force(up_u, min=smooth_uflmin):
-                ''' Returns the thrust force for a given upstream velcocity '''
-                # Now apply a pointwise transformation based on the interpolation of a loopup table
-                c_T_coeffs = [0.08344535, -1.42428216, 9.13153605, -26.19370168, 28.8752054]
-                c_T_coeffs.reverse()
-                c_T = min(0.88, sum([c_T_coeffs[i] * up_u ** i for i in range(len(c_T_coeffs))]))
-
-                # The amount of forcing we want to apply
-                turbine_radius = 15.
-                A_c = pi * Constant(turbine_radius ** 2)  # Turbine cross section
-                f = 0.5 * c_T * up_u ** 2 * A_c
-                return f
-
-            # Apply the force in the opposite direction of the flow
-            f_dir = -thrust_force(up_u) * u / norm_approx(u, alpha=1e-6)
-            # Distribute this force over the turbine area
-            thrust = inner(f_dir * tf / (Constant(config.turbine_cache.turbine_integral()) * config.params["depth"]), v) * dx
-
     # Friction term
     R_mid = friction / H * dot(u_mid, u_mid) ** 0.5 * inner(u_mid, v) * dx
 
-    if turbine_field and not (turbine_thrust_parametrisation or implicit_turbine_thrust_parametrisation):
+    if turbine_field:
         R_mid += tf / H * dot(u_mid, u_mid) ** 0.5 * inner(u_mid, v) * config.site_dx(1)
 
     # Advection term
@@ -326,11 +277,6 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
     # Add the time term
     if include_time_term and not steady_state:
         F += M - M0
-
-    if turbine_thrust_parametrisation or implicit_turbine_thrust_parametrisation:
-        F += up_u_eq
-        if turbine_field:
-            F -= thrust
 
     # Do some parameter checking:
     if "dynamic_turbine_friction" in params["controls"]:

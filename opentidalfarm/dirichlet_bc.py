@@ -7,12 +7,7 @@ class DirichletBCSet:
         params = config.params
         self.config = config
 
-        if params["implicit_turbine_thrust_parametrisation"]:
-            self.function_space = self.config.function_space_2enriched
-        elif params["turbine_thrust_parametrisation"]:
-            self.function_space = self.config.function_space_enriched
-        else:
-            self.function_space = self.config.function_space
+        self.function_space = self.config.function_space
 
         self.expressions = []
         self.constant_inflow_bcs = []

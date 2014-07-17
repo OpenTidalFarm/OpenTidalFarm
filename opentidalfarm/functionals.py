@@ -53,29 +53,3 @@ class DefaultFunctional(FunctionalPrototype):
         ''' Computes the total force on the i'th turbine. '''
         tf = self.config.turbine_cache.cache['turbine_field_individual'][i]
         return (self.force(state, tf) - self.cost_per_friction(tf)) * self.config.site_dx(1)
-
-
-class PowerCurveFunctional(FunctionalPrototype):
-    ''' Implements a functional for the power with a given power curve
-          J(u, m) = \int_\Omega power(u)
-        where m controls the strength of each turbine.
-    '''
-    def __init__(self, config):
-        ''' Constructs a new DefaultFunctional. The turbine settings are derived from the settings params. '''
-        config.turbine_cache.update(config)
-        self.config = config
-        # Create a copy of the parameters so that future changes will not affect the definition of this object.
-        self.params = ParameterDictionary(dict(config.params))
-        assert(self.params["turbine_thrust_parametrisation"] or self.params["implicit_turbine_thrust_parametrisation"])
-
-    def Jt(self, state, tf):
-        up_u = state[3]  # Extract the upstream velocity
-        #ux = state[0]
-
-        def power_function(u):
-            # A simple power function implementation. Could be replaced with a polynomial approximation.
-            fac = Constant(1.5e6 / (3 ** 3))
-            return shallow_water_model.smooth_uflmin(1.5e6, fac * u ** 3)
-
-        P = power_function(up_u) * tf / self.config.turbine_cache.turbine_integral() * dx
-        return P

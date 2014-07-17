@@ -84,12 +84,7 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
                                 snaps_on_disk=snaps_on_disk, snaps_in_ram=snaps_in_ram, verbose=verbose)
 
             # Get initial conditions
-            if config.params["implicit_turbine_thrust_parametrisation"]:
-                state = Function(config.function_space_2enriched, name="Current_state")
-            elif config.params["turbine_thrust_parametrisation"]:
-                state = Function(config.function_space_enriched, name="Current_state")
-            else:
-                state = Function(config.function_space, name="Current_state")
+            state = Function(config.function_space, name="Current_state")
 
             if config.params["steady_state"] and config.params["include_time_term"] and self.last_state is not None:
                 # Speed up the nonlinear solves by starting the Newton solve with the most recent state solution
@@ -120,8 +115,8 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
 
             # Produce power plot
             if config.params['output_turbine_power']:
-                if config.params['turbine_thrust_parametrisation'] or config.params["implicit_turbine_thrust_parametrisation"] or "dynamic_turbine_friction" in config.params["controls"]:
-                    info_red("Turbine power VTU's is not yet implemented with thrust based turbines parameterisations and dynamic turbine friction control.")
+                if "dynamic_turbine_friction" in config.params["controls"]:
+                    info_red("Turbine power VTU's is not yet implemented with dynamic turbine friction control.")
                 else:
                     turbines = self.__config__.turbine_cache.cache["turbine_field"]
                     self.power_file << project(functional.power(state, turbines), config.turbine_function_space, annotate=False)
