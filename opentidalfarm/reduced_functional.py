@@ -361,10 +361,12 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
 
     def __call__(self, m):
         ''' Interface function for dolfin_adjoint.ReducedFunctional '''
+
         return self.j(m)
 
     def derivative(self, m_array, taylor_test=False, seed=0.001, forget=True, **kwargs):
         ''' Interface function for dolfin_adjoint.ReducedFunctional '''
+
         if taylor_test:
             return self.dj_with_check(m_array, seed, forget)
         else:
@@ -372,12 +374,15 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
 
     def hessian(self, m_array, m_dot_array):
         ''' Interface function for dolfin_adjoint.ReducedFunctional '''
+
         raise NotImplementedError('The Hessian computation is not yet implemented')
 
     def obj_to_array(self, obj):
+
         return dolfin_adjoint.optimization.get_global(obj)
 
     def set_parameters(self, m_array):
+
         m = [p.data() for p in self.parameter]
         dolfin_adjoint.optimization.set_local(m, m_array)
 
