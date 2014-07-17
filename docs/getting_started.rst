@@ -1,9 +1,8 @@
 Getting started 
 ========================
 
-Following example code shows how to optimise the position of 32 turbines in a mesh of the Orkney islands.
+Following example code shows how to optimise the position of 32 turbines in a mesh of the Orkney islands.::
 
-.. code:: python
    from opentidalfarm import *
 
    config = SteadyConfiguration("mesh/earth_orkney_converted.xml", inflow_direction=[0.9865837220518425, -0.16325611591095968])
@@ -40,8 +39,8 @@ The output files are:
 * p2p1_u.pvd: The velocity function for the most recent turbine position calculation. 
 * p2p1_p.pvd: The free-surface displacement function for the most recent turbine position calculation.
 
-If you only want to compute the power production for the given layout (without optimising), replace the ast code line above with:
-.. code:: python
+If you only want to compute the power production for the given layout (without optimising), replace the ast code line above with:::
+
    # Switch off the computation of the automatic scaling factor (requires one adjoint solve), as it is needed only for the optimisation
    config.params['automatic_scaling'] = False 
    
