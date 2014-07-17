@@ -35,3 +35,49 @@ Indices and tables
 * :ref:`modindex`
 * :ref:`search`
 
+OpenTidalFarm module 
+
+.. automodule:: opentidalfarm
+   :members:
+   :undoc-members:
+
+.. autoclass:: TidalForcing
+   :members:
+   :private-members:
+   :special-members:
+
+.. autoclass:: BathymetryDepthExpression
+   :members:
+   :private-members:
+   :special-members:
+   
+.. autoclass:: Turbines
+   :members:
+   :private-members:
+   :special-members:
+
+.. autoclass:: TurbineCache
+   :members:
+   :private-members:
+   :special-members:
+
+.. autoclass:: ReducedFunctionalNumPy
+   :members:
+   :private-members:
+   :special-members:
+
+.. autoclass:: FunctionalPrototype
+   :members:
+   :private-members:
+   :special-members:
+
+.. autoclass:: DefaultFunctional
+   :members:
+   :private-members:
+   :special-members:
+
+.. autoclass:: PowerCurveFunctional
+   :members:
+   :private-members:
+   :special-members:
+
