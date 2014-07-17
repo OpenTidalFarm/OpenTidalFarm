@@ -129,7 +129,6 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
     # Reset the time
     params["current_time"] = params["start_time"]
     t = float(params["current_time"])
-    quadratic_friction = params["quadratic_friction"]
     include_advection = params["include_advection"]
     include_viscosity = params["include_viscosity"]
     include_time_term = params["include_time_term"]
@@ -152,8 +151,6 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
     cache_forward_state = params["cache_forward_state"]
     postsolver_callback = params["postsolver_callback"]
     
-    is_nonlinear = (include_advection or quadratic_friction or not linear_divergence)
-
     if not 0 <= functional_quadrature_degree <= 1:
         raise ValueError("functional_quadrature_degree must be 0 or 1.")
 
@@ -325,25 +322,18 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
 
     # Friction term
     # With Newton we can simply use a non-linear form
-    if quadratic_friction and newton_solver:
+    if newton_solver:
         R_mid = friction / H * dot(u_mid, u_mid) ** 0.5 * inner(u_mid, v) * dx
 
         if turbine_field and not (turbine_thrust_parametrisation or implicit_turbine_thrust_parametrisation):
             R_mid += tf / H * dot(u_mid, u_mid) ** 0.5 * inner(u_mid, v) * config.site_dx(1)
 
     # With a picard iteration we need to linearise using the best guess
-    elif quadratic_friction and not newton_solver:
+    else:
         R_mid = friction / H * dot(u_mid_nl, u_mid_nl) ** 0.5 * inner(u_mid, v) * dx
 
         if turbine_field and not (turbine_thrust_parametrisation or implicit_turbine_thrust_parametrisation):
             R_mid += tf / H * dot(u_mid_nl, u_mid_nl) ** 0.5 * inner(u_mid, v) * config.site_dx(1)
-
-    # Use a linear drag
-    else:
-        R_mid = friction / H * inner(u_mid, v) * dx
-
-        if turbine_field and not (turbine_thrust_parametrisation or implicit_turbine_thrust_parametrisation):
-            R_mid += tf / H * inner(u_mid, v) * config.site_dx(1)
 
     # Advection term
     # With a newton solver we can simply use a quadratic form

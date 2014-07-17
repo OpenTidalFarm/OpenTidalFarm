@@ -41,7 +41,6 @@ class DefaultConfiguration(object):
             'depth': 50.0,
             'g': 9.81,
             'dump_period': 1,
-            'quadratic_friction': False,
             'friction': Constant(0.0),
             'turbine_parametrisation': 'individual',
             'turbine_pos': [],
@@ -145,7 +144,6 @@ class DefaultConfiguration(object):
             print "Advection term: %s" % self.params["include_advection"]
             print "Viscosity term: %s" % self.params["include_viscosity"]
             print "Steady state: %s" % self.params["steady_state"]
-            print "Friction term: %s" % ("quadratic" if self.params['quadratic_friction'] else "linear")
 
             # Turbine settings 
             print "\n=== Turbine settings ==="
@@ -208,7 +206,6 @@ class SteadyConfiguration(DefaultConfiguration):
         self.params['include_viscosity'] = True
         self.params['linear_divergence'] = False
         self.params['viscosity_coef'] = 3.0
-        self.params['quadratic_friction'] = True
         self.params['newton_solver'] = True
         self.params['friction'] = Constant(0.0025)
         self.params['theta'] = 1.0

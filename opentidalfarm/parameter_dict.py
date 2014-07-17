@@ -32,7 +32,6 @@ class ParameterDictionary(dict):
             'linear_divergence': 'use the depth at rest as an approximation for the full depth in the shallow water equations',
             'depth': 'water depth at rest',
             'g': 'graviation',
-            'quadratic_friction': 'quadratic friction',
             'friction': 'friction term on',
             'turbine_parametrisation': 'parametrisation of the turbines. If its value is "individual" then the turbines are resolved individually, if "smooth" then the turbines are represented as an average friction over the site area',
             'turbine_pos': 'list of turbine positions',
