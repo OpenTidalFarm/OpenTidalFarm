@@ -14,14 +14,12 @@ import os.path
 class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
 
     def __init__(self, config, scale=1.0, forward_model=sw_model.sw_solve,
-                 plot=False, save_functional_values=False):
-        ''' If plot is True, the functional values will be automatically saved in a plot.
-            scale is ignored if automatic_scaling is active. '''
+                 save_functional_values=False):
+        ''' scale is ignored if automatic_scaling is active. '''
         # Hide the configuration since changes would break the memoize algorithm.
         self.__config__ = config
         self.scale = scale
         self.automatic_scaling_factor = None
-        self.plot = plot
         self.save_functional_values = save_functional_values
         # Caching variables that store which controls the last forward run was performed
         self.last_m = None
@@ -55,10 +53,6 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
                 return numpy.array(m)
 
         self.parameter = [Parameter()]
-
-        if plot:
-            from animated_plot import AnimatedPlot
-            self.plotter = AnimatedPlot(xlabel="Iteration", ylabel="Functional value")
 
         def compute_functional(m, return_final_state=False, annotate=True):
             ''' Takes in the turbine positions/frictions values and computes the resulting functional of interest. '''
@@ -118,7 +112,7 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
             state = self.last_state
             functional = config.functional(config)
 
-            # Produce power plot
+            # Output power
             if config.params['output_turbine_power']:
                 if config.params['turbine_thrust_parametrisation'] or config.params["implicit_turbine_thrust_parametrisation"] or "dynamic_turbine_friction" in config.params["controls"]:
                     info_red("Turbine power VTU's is not yet implemented with thrust based turbines parameterisations and dynamic turbine friction control.")
@@ -309,10 +303,6 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
         if self.save_functional_values and MPI.process_number() == 0:
             with open("functional_values.txt", "a") as functional_values:
                 functional_values.write(str(self.last_j) + "\n")
-
-        if self.plot:
-            self.plotter.addPoint(self.last_j)
-            self.plotter.savefig("functional_plot.png")
 
         if self.__config__.params["save_checkpoints"]:
             self.save_checkpoint("checkpoint")
