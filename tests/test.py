@@ -70,3 +70,5 @@ if options.timings:
 if len(fails) > 0:
   print "Failures: ", set(fails)
   sys.exit(1)
+else:
+  print "All tests pass."

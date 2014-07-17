@@ -9,7 +9,6 @@ def default_config():
   config.set_domain(opentidalfarm.domains.RectangularDomain(3000, 1000, 30, 10))
   period = 1.24*60*60 # Wave period
   info("Wave period (in h): %f" % (period/60/60) )
-  config.params["verbose"] = 0
 
   # Start at rest state
   config.params["start_time"] = period/4

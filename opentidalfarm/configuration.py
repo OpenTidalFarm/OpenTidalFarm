@@ -22,7 +22,6 @@ class DefaultConfiguration(object):
         self.functional = DefaultFunctional
 
         params = ParameterDictionary({
-            'verbose': 1,
             'theta': 0.6,
             'steady_state': False,
             'functional_final_time_only': False,
@@ -58,8 +57,6 @@ class DefaultConfiguration(object):
             'picard_relative_tolerance': 1e-5,
             'picard_iterations': 3,
             'postsolver_callback': None,
-            'run_benchmark': False,
-            'solver_exclude': ['cg'],
             'start_time': 0.,
             'current_time': 0.,
             'finish_time': 100.,

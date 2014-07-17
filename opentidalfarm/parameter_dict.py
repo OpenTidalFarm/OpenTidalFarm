@@ -7,7 +7,6 @@ class ParameterDictionary(dict):
             self[key] = val
 
         self.required = {
-            'verbose': 'output verbosity',
             'dt': 'timestep',
             'theta': 'the implicitness for the time discretisation',
             'start_time': 'start time',
@@ -48,8 +47,6 @@ class ParameterDictionary(dict):
             'solver_parameters': 'a dictionary containing the solver settings. Must be compatible to DOLFIN\'s solve interface.',
             'picard_relative_tolerance': 'relative tolerance for the picard iteration',
             'picard_iterations': 'maximum number of picard iterations',
-            'run_benchmark': 'benchmark to compare different solver/preconditioner combinations',
-            'solver_exclude': 'solvers/preconditioners to be excluded from the benchmark',
             'automatic_scaling': 'activates the initial automatic scaling of the functional',
             'automatic_scaling_multiplier': 'defines the multiplier that determines the initial gradient length (= multiplier * turbine size)',
             'print_individual_turbine_power': 'print out the power output of each individual turbine',
