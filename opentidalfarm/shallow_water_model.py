@@ -128,8 +128,6 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
     include_viscosity = params["include_viscosity"]
     include_time_term = params["include_time_term"]
     viscosity = params["viscosity"]
-    picard_relative_tolerance = params["picard_relative_tolerance"]
-    picard_iterations = params["picard_iterations"]
     solver_parameters = params["solver_parameters"]
     if solver_parameters is None:
         solver_parameters = default_solver_parameters()
@@ -171,7 +169,6 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
 
     # Define functions
     state_new = Function(function_space, name="New_state")  # solution of the next timestep
-    state_nl = Function(function_space, name="Best_guess_state")  # the last computed state of the next timestep, used for the picard iteration
 
     # Split mixed functions
     if implicit_turbine_thrust_parametrisation:
@@ -187,7 +184,6 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
         u0, h0, up_u0 = split(state)
     else:
         u0, h0 = split(state)
-        u_nl, h_nl = split(state_nl)
 
     # Define the water depth
     if linear_divergence:

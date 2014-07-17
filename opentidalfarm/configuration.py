@@ -53,8 +53,6 @@ class DefaultConfiguration(object):
             'rho': 1000.,  # Use the density of water: 1000kg/m^3
             'controls': ['turbine_pos', 'turbine_friction'],
             'solver_parameters': None,
-            'picard_relative_tolerance': 1e-5,
-            'picard_iterations': 3,
             'postsolver_callback': None,
             'run_benchmark': False,
             'solver_exclude': ['cg'],

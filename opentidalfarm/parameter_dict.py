@@ -44,8 +44,6 @@ class ParameterDictionary(dict):
             'controls': 'a list of the control variables. Valid list values: "turbine_pos" for the turbine position, "turbine_friction" for the friction of the turbine',
             'postsolver_callback': 'a function which is called after each solve',
             'solver_parameters': 'a dictionary containing the solver settings. Must be compatible to DOLFIN\'s solve interface.',
-            'picard_relative_tolerance': 'relative tolerance for the picard iteration',
-            'picard_iterations': 'maximum number of picard iterations',
             'run_benchmark': 'benchmark to compare different solver/preconditioner combinations',
             'solver_exclude': 'solvers/preconditioners to be excluded from the benchmark',
             'automatic_scaling': 'activates the initial automatic scaling of the functional',
