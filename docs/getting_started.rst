@@ -8,7 +8,8 @@ Following example code shows how to optimise the position of 32 turbines in a me
 
 This example can be found in the ``examples/tutorial`` directory and can be executed by running ``make mesh && make``.
 
-The output files are:
+The output files are
+
 - turbine.pvd: The turbine positions at each optimisation step
 - p2p1_u.pvd: The velocity function for the most recent turbine position calculation. 
 - p2p1_p.pvd: The free-surface displacement function for the most recent turbine position calculation.
