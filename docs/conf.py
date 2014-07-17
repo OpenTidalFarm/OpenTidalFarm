@@ -47,7 +47,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'OpenTidalFarm'
-copyright = u'2014, SW Funke et al'
+copyright = u'2014, The OpenTidalFarm team'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
