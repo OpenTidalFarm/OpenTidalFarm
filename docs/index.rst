@@ -23,8 +23,9 @@ Contents:
    :numbered:
 
    examples.rst
-   
-
+   features.rst
+   installation.rst
+   getting_started.rst
 
 
 Indices and tables
@@ -34,3 +35,31 @@ Indices and tables
 * :ref:`modindex`
 * :ref:`search`
 
+Citing
+======
+
+Please cite the following paper if you are using OpenTidalFarm:
+
+S.W. Funke, P.E. Farrell, M.D. Piggott, Tidal turbine array optimisation using the adjoint approach, Renewable Energy, accepted (2013) `arXiv:1304.1768
+<http://arxiv.org/abs/1304.1768>`_
+
+For the automated optimisation framework used by OpenTidalFarm, please cite:
+
+Simon W. Funke and Patrick E. Farrell. A framework for automated PDE-constrained optimisation, TOMS, submitted. `arXiv:1302.3894
+<http://arxiv.org/abs/1302.3894>`_
+
+For the automatic adjoint generation used by OpenTidalFarm, please cite:
+
+Patrick E. Farrell, David A. Ham, Simon W. Funke and Marie E. Rognes (2013). Automated derivation of the adjoint of high-level transient finite element programs. SIAM Journal on Scientific Computing, Vol:35, ISSN:1064-8275, Pages:C369-C393
+
+Contact
+=======
+
+For questions and support please contact Simon Funke s.funke09@imperial.ac.uk
+
+Licence
+=======
+
+OpenTidalFarm is an open source project that can be freely used under the `GNU GPL version 3 licence`_.
+
+.. _GNU GPL version 3 licence: http://www.gnu.org/licenses/gpl.html
