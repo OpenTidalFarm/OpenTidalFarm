@@ -2,6 +2,7 @@ Getting started
 ========================
 
 Other Scenarios:
+
 .. toctree::
    :maxdepth: 2
    ./examples/scenario1.rst
