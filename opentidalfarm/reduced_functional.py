@@ -13,12 +13,13 @@ import os.path
 
 class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
 
-    def __init__(self, config, scale=1.0, forward_model=sw_model.sw_solve,
+    def __init__(self, config, functional, scale=1.0, forward_model=sw_model.sw_solve,
                  plot=False, save_functional_values=False):
         ''' If plot is True, the functional values will be automatically saved in a plot.
             scale is ignored if automatic_scaling is active. '''
         # Hide the configuration since changes would break the memoize algorithm.
         self.__config__ = config
+        self.functional = functional
         self.scale = scale
         self.automatic_scaling_factor = None
         self.plot = plot
@@ -99,7 +100,7 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
                 state.assign(ic, annotate=False)
 
             # Solve the shallow water system
-            functional = config.functional(config)
+            functional = self.functional
             j = forward_model(config, state, functional=functional, turbine_field=tf, annotate=annotate)
             self.last_state = state
 
@@ -116,15 +117,16 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
                 compute_functional(m, annotate=True)
 
             state = self.last_state
-            functional = config.functional(config)
+            functional = self.functional
 
             # Produce power plot
             if config.params['output_turbine_power']:
                 if config.params['turbine_thrust_parametrisation'] or config.params["implicit_turbine_thrust_parametrisation"] or "dynamic_turbine_friction" in config.params["controls"]:
                     info_red("Turbine power VTU's is not yet implemented with thrust based turbines parameterisations and dynamic turbine friction control.")
                 else:
+                    from functionals import PowerFunctional
                     turbines = self.__config__.turbine_cache.cache["turbine_field"]
-                    self.power_file << project(functional.power(state, turbines), config.turbine_function_space, annotate=False)
+                    self.power_file << project(PowerFunctional(config).power(state, turbines), config.turbine_function_space, annotate=False)
 
             # The functional depends on the turbine friction function which we do not have on scope here.
             # But dolfin-adjoint only cares about the name, so we can just create a dummy function with the desired name.
@@ -205,7 +207,7 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
 
             state = self.last_state
 
-            functional = config.functional(config)
+            functional = self.functional
             if config.params['steady_state'] or config.params["functional_final_time_only"]:
                 J = Functional(functional.Jt(state) * dt[FINISH_TIME])
             else:

@@ -23,7 +23,7 @@ from reduced_functional import ReducedFunctional
 from dirichlet_bc import DirichletBCSet
 from initial_conditions import SinusoidalInitialCondition, BumpInitialCondition
 from turbines import Turbines
-from functionals import DefaultFunctional, PowerCurveFunctional
+from functionals import PowerFunctional, CostFunctional, PowerCurveFunctional
 from tidal import TidalForcing, BathymetryDepthExpression 
 
 from dolfin import *

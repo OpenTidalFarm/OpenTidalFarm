@@ -8,7 +8,6 @@ from math import sqrt, pi
 from initial_conditions import *
 from domains import *
 from helpers import info, info_red, get_rank
-from functionals import DefaultFunctional
 import os
 
 
@@ -18,8 +17,6 @@ class DefaultConfiguration(object):
 
         # Initialize function space and the domain
         self.finite_element = finite_element
-
-        self.functional = DefaultFunctional
 
         params = ParameterDictionary({
             'verbose': 1,
@@ -263,3 +260,37 @@ class UnsteadyConfiguration(SteadyConfiguration):
         bc.add_analytic_u(2, expression)
         bc.add_noslip_u(3)
         self.params['strong_bc'] = bc
+
+
+
+#class ShallowWaterProblem(object):
+#    def __init__(self, params):
+#        self.params = params
+#
+#
+#    @classmethod
+#    def default_parameters():
+#        return ShallowWaterParameters()
+#
+##
+#
+#class ShallowWaterParameters(object):
+#    def __init__(self):
+#        self._param1 = 10
+#
+ ##   @property
+ #   def param1(self):
+ #       return self._param1
+ #   
+  #  @param1.setter
+#    def param1(self, value):
+#        self._param1 = value
+#
+#params = ShallowWaterProblem.default_parameters()
+#params.param1 = 1
+#print params
+##
+#problem = ShallowWaterProblem(parms)
+
+
+
