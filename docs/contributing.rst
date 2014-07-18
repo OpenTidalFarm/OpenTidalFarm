@@ -138,8 +138,8 @@ For a module:
 .. code-block:: python
 
    """
-   ``.. module::`` example_module
-   ``:synopsis:`` Brief description of the module.
+   .. module:: example_module
+      :synopsis: Brief description of the module.
 
    """
 
@@ -152,7 +152,7 @@ For a class:
 
         A longer description of the class.
 
-        ``.. note::``
+        .. note::
 
             Any notes you may wish to highlight in the online documentation.
 
@@ -166,12 +166,12 @@ And an example for a function:
     def public_function_with_sphinx_docstring(name, state=None):
         """This function does something.
 
-        ``:param name:`` The name to use.
-        ``:type name:`` str.
-        ``:param state:`` Current state to be in.
-        ``:type state:`` bool.
-        ``:returns:``  int -- the return code.
-        ``:raises:`` AttributeError, KeyError
+        :param name: The name to use.
+        :type name: str.
+        :param state: Current state to be in.
+        :type state: bool.
+        :returns:  int -- the return code.
+        :raises: AttributeError, KeyError
 
         """
         # Implementation of public_function_with_sphinx_docstring...
