@@ -75,7 +75,7 @@ However, spaces should *not* be added around the assignment operator (``=``)
 when used to indicate a keyword argument or a default value. I.e. you should
 do this:
 
--- code-block:: python
+.. code-block:: python
 
     functions_with_default_arguments(argument_one=10.0, argument_two=20.0)
 
@@ -96,9 +96,10 @@ Naming Convention
 
 The following convention should be used for naming:
 
-``module_name, package_name, ClassName, method_name, ExceptionName,
-function_name, GLOBAL_CONSTANT_NAME, global_variable_name,
-instance_variable_name, function_parameter_name, local_variable_name``
+``module_name``, ``package_name``, ``ClassName``, ``method_name``,
+``ExceptionName``, ``function_name``, ``GLOBAL_CONSTANT_NAME``,
+``global_variable_name``, ``instance_variable_name``,
+``function_parameter_name``, ``local_variable_name``.
 
 
 Imports formatting
@@ -106,7 +107,7 @@ Imports formatting
 
 Imports should be at the top of the file and should occur on separate lines:
 
--- code-block:: python
+.. code-block:: python
 
   import numpy
   import dolfin
@@ -134,7 +135,8 @@ examples are given below.
 
 For a module:
 
-::
+.. code-block:: python
+
    """
    ``.. module::`` example_module
    ``:synopsis:`` Brief description of the module.
@@ -143,7 +145,8 @@ For a module:
 
 For a class:
 
-::
+.. code-block:: python
+
     class ExampleClass(object):
         """A brief description of the class.
 
@@ -158,7 +161,8 @@ For a class:
 
 And an example for a function:
 
-::
+.. code-block:: python
+
     def public_function_with_sphinx_docstring(name, state=None):
         """This function does something.
 
