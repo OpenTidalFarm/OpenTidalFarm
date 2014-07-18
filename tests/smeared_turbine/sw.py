@@ -37,7 +37,10 @@ domains.set_all(0)
 site.mark(domains, 1)
 config.site_dx = Measure("dx")[domains]
 
-rf = ReducedFunctional(config)
+power = PowerFunctional(config)
+objective = power
+
+rf = ReducedFunctional(config, functional = objective)
 # Ensure the same seed value accross all CPUs
 numpy.random.seed(33)
 m0 = numpy.random.rand(len(rf.initial_control()))

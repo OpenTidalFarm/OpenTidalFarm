@@ -74,7 +74,9 @@ dj = lambda m, forget: j_and_dj(m, forward_only = False)[1]
 
 # run the taylor remainder test 
 config = default_config()
-m0 = ReducedFunctional(config).initial_control()
+power = PowerFunctional(config)
+objective = power
+m0 = ReducedFunctional(config, functional = objective).initial_control()
 
 # We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
 p = numpy.random.rand(len(m0))

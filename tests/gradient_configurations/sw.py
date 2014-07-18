@@ -52,8 +52,9 @@ for c in [DefaultConfiguration, SteadyConfiguration]:
 
     config.set_turbine_pos(turbine_pos, friction=1.0)
     info_blue("Deployed " + str(len(turbine_pos)) + " turbines.")
-
-    model = ReducedFunctional(config, scale = 10**-6)
+    power = PowerFunctional(config)
+    objective = power
+    model = ReducedFunctional(config, functional = objective, scale = 10**-6)
     m0 = model.initial_control()
 
     p = numpy.random.rand(len(m0))

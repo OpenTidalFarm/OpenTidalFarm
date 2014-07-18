@@ -35,7 +35,10 @@ info_blue("Deployed " + str(len(turbine_pos)) + " turbines.")
 
 config.params["turbine_friction"] = [config.params["turbine_friction"]]*3
 
-rf = ReducedFunctional(config, scale = 10**-6)
+power = PowerFunctional(config)
+objective = power
+
+rf = ReducedFunctional(config, functional = objective, scale = 10**-6)
 m0 = rf.initial_control()
 
 rf.j(m0)

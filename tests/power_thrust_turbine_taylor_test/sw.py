@@ -38,7 +38,10 @@ bc.add_analytic_eta(2, 0.0)
 config.params['bctype'] = 'strong_dirichlet'
 config.params['strong_bc'] = bc
 
-rf = ReducedFunctional(config)
+power = PowerFunctional(config)
+objective = power
+
+rf = ReducedFunctional(config, functional = objective)
 m = rf.initial_control()
 
 seed = 1e-4

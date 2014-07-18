@@ -55,7 +55,10 @@ config.params['strong_bc'] = bc
 deploy_turbines(config, nx=8, ny=4)
 config.info()
 
-rf = ReducedFunctional(config)
+power = PowerFunctional(config)
+objective = power
+
+rf = ReducedFunctional(config, functional = objective)
 m0 = rf.initial_control()
 p = numpy.random.rand(len(m0))
 seed = 0.1

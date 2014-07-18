@@ -34,7 +34,9 @@ config.params["flather_bc_expr"] = Expression(("2*eta0*sqrt(g/depth)*cos(-sqrt(g
                                  k=k)
 
 # Set up the model 
-model = ReducedFunctional(config)
+power = PowerFunctional(config)
+objective = power
+model = ReducedFunctional(config, functional = objective)
 m0 = model.initial_control()
 
 # Run the taylor test

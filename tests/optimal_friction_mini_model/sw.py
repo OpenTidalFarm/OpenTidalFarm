@@ -39,7 +39,11 @@ def default_config():
   return config
 
 config = default_config()
-rf = ReducedFunctional(config, scale = 1e-3, forward_model=mini_model.mini_model_solve)
+
+power = PowerFunctional(config)
+objective = power
+
+rf = ReducedFunctional(config, functional = objective, scale = 1e-3, forward_model=mini_model.mini_model_solve)
 m0 = rf.initial_control()
 rf(m0)
 rf.dj(m0, forget=False)

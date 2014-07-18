@@ -93,7 +93,6 @@ class PowerFunctional(GenericFunctional):
 
 
     def Jt(self, state, tf):
-        print 'TEST ****'
         return self.power(state, tf) * self.config.site_dx(1)
 
     def power(self, state, turbines):

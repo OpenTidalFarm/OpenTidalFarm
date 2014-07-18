@@ -41,7 +41,10 @@ config = default_config()
 config.params["save_checkpoints"] = True
 config.info()
 
-rf = ReducedFunctional(config, forward_model = mini_model.mini_model_solve)
+power = PowerFunctional(config)
+objective = power
+
+rf = ReducedFunctional(config, functional = objective, forward_model = mini_model.mini_model_solve)
 
 if "--from-checkpoint" in sys.argv:
   rf.load_checkpoint()

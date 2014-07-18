@@ -59,7 +59,11 @@ def default_config():
   return config
 
 config = default_config()
-rf = ReducedFunctional(config)
+
+power = PowerFunctional(config)
+objective = power
+
+rf = ReducedFunctional(config, functional = objective)
 m0 = rf.initial_control()
 
 p = numpy.random.rand(len(m0))
