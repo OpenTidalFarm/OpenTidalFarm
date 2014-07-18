@@ -5,7 +5,7 @@ If you wish to contribute to the development of OpenTidalFarm please adhere to
 the following *guidelines* on Python *coding style* and *language rules*.
 
 It is **strongly** recommended that contributors read through the entirety of
-the [Google Python Style Guide](http://google-styleguide.googlecode.com/svn/trunk/pyguide.html).
+the `Google Python Style Guide`_.
 
 Key points are summarised below.
 
@@ -60,40 +60,44 @@ should be aligned vertically or using a hanging indent of 4 spaces.
 a comma but not before.
 
 Do not put whitespace:
+
 * inside parentheses, brackets, or braces,
 * before a comma, colon or semicolon, and
 * before opening parentheses that starts an argument list, indexing or slicing.
 
 A single space should be added around binary operators for:
-* assignment (`=`),
-* comparisons (`==, <, >, !=, <>, <=, >=, in, not in, is, is not`), and
-* Booleans (`and, or, not`)
 
-However, spaces should *not* be added around the assignment operator (`=`)
+* assignment (``=``),
+* comparisons (``==, <, >, !=, <>, <=, >=, in, not in, is, is not``), and
+* Booleans (``and, or, not``).
+
+However, spaces should *not* be added around the assignment operator (``=``)
 when used to indicate a keyword argument or a default value. I.e. you should
 do this:
 
 -- code-block:: python
+
     functions_with_default_arguments(argument_one=10.0, argument_two=20.0)
 
-Many more examples regarding whitespace may be found in the [Google Python
-Style Guide](http://google-styleguide.googlecode.com/svn/trunk/pyguide.html?showone=Whitespace#Whitespace).
+Many more examples regarding whitespace may be again found in the
+`whitespace`_ section of the `Google Python Style Guide`_.
 
 **Blank lines** should be added as such:
+
 * Two blank lines between top-level definitions, be they function or class
-definitions.
+  definitions.
 * One blank line between method definitions and between the class line and the
-first method. Use single blank lines as you judge appropriate within functions
-or methods.
+  first method. Use single blank lines as you judge appropriate within
+  functions or methods.
 
 
 ### Naming Conventions ###
 
 The following convention should be used for naming:
 
-`module_name, package_name, ClassName, method_name, ExceptionName,
+``module_name, package_name, ClassName, method_name, ExceptionName,
 function_name, GLOBAL_CONSTANT_NAME, global_variable_name,
-instance_variable_name, function_parameter_name, local_variable_name`
+instance_variable_name, function_parameter_name, local_variable_name``
 
 
 ### Imports formatting ###
@@ -101,13 +105,15 @@ instance_variable_name, function_parameter_name, local_variable_name`
 Imports should be at the top of the file and should occur on separate lines:
 
 -- code-block:: python
+
   import numpy
   import dolfin
 
 They should also be ordered from most generic to least generic:
-* standard library imports (such as `math`),
-* third-party imports (such as `opentidalfarm`),
-* application-specific imports (such as `farm`).
+
+* standard library imports (such as ``math``),
+* third-party imports (such as ``opentidalfarm``),
+* application-specific imports (such as ``farm``).
 
 
 ### Commenting ###
@@ -128,8 +134,8 @@ For a module:
 -- code-block:: python
 
    """
-   .. module:: example_module
-      :synopsis: Brief description of the module.
+   ``.. module::`` example_module
+   ``:synopsis:`` Brief description of the module.
 
    """
 
@@ -142,7 +148,7 @@ For a class:
 
         A longer description of the class.
 
-        .. note::
+        ``.. note::``
 
             Any notes you may wish to highlight in the online documentation.
 
@@ -156,12 +162,12 @@ And an example for a function:
     def public_function_with_sphinx_docstring(name, state=None):
         """This function does something.
 
-        :param name: The name to use.
-        :type name: str.
-        :param state: Current state to be in.
-        :type state: bool.
-        :returns:  int -- the return code.
-        :raises: AttributeError, KeyError
+        ``:param name:`` The name to use.
+        ``:type name:`` str.
+        ``:param state:`` Current state to be in.
+        ``:type state:`` bool.
+        ``:returns:``  int -- the return code.
+        ``:raises:`` AttributeError, KeyError
 
         """
         # Implementation of public_function_with_sphinx_docstring...
@@ -173,5 +179,5 @@ written with correct spelling, punctuation and grammar.
 
 
 
-
-
+.. _Google Python Style Guide: http://google-styleguide.googlecode.com/svn/trunk/pyguide.html
+.. _whitespace: http://google-styleguide.googlecode.com/svn/trunk/pyguide.html?showone=Whitespace#Whitespace
