@@ -9,12 +9,12 @@ the `Google Python Style Guide`_.
 
 Key points are summarised below.
 
----
 
 Style Guide
 -----------
 
-### Formatting ###
+Formatting
+^^^^^^^^^^
 
 **Line length** should be limited to **80** characters. Use Python's implicit
 line joining inside parentheses, brackets and braces.
@@ -91,7 +91,8 @@ Many more examples regarding whitespace may be again found in the
   functions or methods.
 
 
-### Naming Conventions ###
+Naming Convention
+^^^^^^^^^^^^^^^^^
 
 The following convention should be used for naming:
 
@@ -100,7 +101,8 @@ function_name, GLOBAL_CONSTANT_NAME, global_variable_name,
 instance_variable_name, function_parameter_name, local_variable_name``
 
 
-### Imports formatting ###
+Imports formatting
+^^^^^^^^^^^^^^^^^^
 
 Imports should be at the top of the file and should occur on separate lines:
 
@@ -116,7 +118,8 @@ They should also be ordered from most generic to least generic:
 * application-specific imports (such as ``farm``).
 
 
-### Commenting ###
+Commenting and Documentation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Documenting your work is crucial for to allowing other users and developers to
 quickly understand what your work does and how it works. For example a
@@ -131,8 +134,7 @@ examples are given below.
 
 For a module:
 
--- code-block:: python
-
+::
    """
    ``.. module::`` example_module
    ``:synopsis:`` Brief description of the module.
@@ -141,8 +143,7 @@ For a module:
 
 For a class:
 
--- code-block:: python
-
+::
     class ExampleClass(object):
         """A brief description of the class.
 
@@ -157,8 +158,7 @@ For a class:
 
 And an example for a function:
 
--- code-block:: python
-
+::
     def public_function_with_sphinx_docstring(name, state=None):
         """This function does something.
 
