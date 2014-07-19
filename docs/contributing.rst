@@ -5,7 +5,8 @@ If you wish to contribute to the development of OpenTidalFarm please adhere to
 the following *guidelines* on Python *coding style* and *language rules*.
 
 It is **strongly** recommended that contributors read through the entirety of
-the `Google Python Style Guide`_.
+the `Google Python Style Guide
+<http://google-styleguide.googlecode.com/svn/trunk/pyguide.html>`_.
 
 Key points are summarised below.
 
@@ -80,7 +81,9 @@ do this:
     functions_with_default_arguments(argument_one=10.0, argument_two=20.0)
 
 Many more examples regarding whitespace may be again found in the
-`whitespace`_ section of the `Google Python Style Guide`_.
+`whitespace
+<http://google-styleguide.googlecode.com/svn/trunk/pyguide.html?showone=Whitespace#Whitespace>`_
+section of the Google Python Style Guide.
 
 **Blank lines** should be added as such:
 
@@ -185,11 +188,20 @@ written with correct spelling, punctuation and grammar.
 Language Rules
 --------------
 
-Most of the information regarding language rules in the `Google Python Style Guide`_ is fairly obvious but a few important points are highlighted here.
+Most of the information regarding language rules in the `Google Python Style
+Guide`_ is fairly obvious but a few important points are highlighted here.
 
-**List comprehensions** when used correctly can create lists in a very concise manner, however they should not be used in complicated situations as they can become hard to read. 
+**List comprehensions** when used correctly can create lists in a very concise
+manner, however they should not be used in complicated situations as they can
+become hard to read.
 
-**Properties** may be used to **control access** to class data members. For example a class which defines the turbine farm may be initialized with the coordinates defining the boundary for the site. Once initialized it does not make sense to resize the site (as turbines may no longer lie within its bounds) but the user may wish to still access these values. In Python there is no way of truly make certain data private but the following convention is ususally adopted.
+**Properties** may be used to **control access** to class data members. For
+example a class which defines the turbine farm may be initialized with the
+coordinates defining the boundary for the site. Once initialized it does not
+make sense to resize the site (as turbines may no longer lie within its
+bounds) but the user may wish to still access these values. In Python there is
+no way to truly make certain data private but the following convention is
+ususally adopted.
 
 For read-only data the `property` decorator is used:
 
@@ -198,7 +210,7 @@ For read-only data the `property` decorator is used:
   class Circle(object):
       def __init__(self, radius):
           self._radius = radius
-   
+
       @property
       def radius(self):
           """The radius of the circle."""
@@ -207,45 +219,130 @@ For read-only data the `property` decorator is used:
 Thus the user may still access the radius of the circle without changing it:
 
 .. code-block:: python
-  
+
   >>> circle = Circle(10.0)
   >>> circle.radius
   10.0
   >>> circle.radius = 15.0
   AttributeError: can't set attribute
-  
-  
-If the user wishes the provide full access to a data member it can be done so using the built-in property function. This also provides a convenient way to allow a number of properties to be based upon a single property yet store only one property.
+
+
+If the user wishes the provide full access to a data member it can be done so
+using the built-in property function. This also provides a convenient way to
+allow a number of properties to be based upon a single property.
 
 .. code-block:: python
 
   class Circle(object):
       def __init__(self, radius):
           self._radius = radius
-   
+
       def _get_radius(self):
           return self._radius
-  
+
       def _set_radius(self, radius):
           self._radius = radius
-        
+
       radius = property(_get_radius, _set_radius, "Radius of circle")
-      
+
       def _get_diameter(self):
           return self._radius*2
-          
+
       def _set_diameter(self, diameter):
           self._radius = diameter*0.5
-          
+
       diameter = property(_get_diameter, _set_diameter, "Diameter of circle")
-          
-Thus we do the following:
+
+Thus we may do the following:
 
 .. code-block:: python
-  
+
   >>> circle = Circle(10.0)
   >>> circle.diameter
   20.0
   >>> circle.diameter = 10.0
   >>> circle.radius
   5.0
+
+
+Logging using dolfin.log
+------------------------
+
+It is strongly encouraged that developers make use of the logging capability
+of ``dolfin``. The verbosity of the logger during runtime may be altered by
+the user allowing for easier debugging.
+
+The logger is included by ``dolfin`` and has a number of verbosity levels
+given in the table below.
+
+=========== =====
+ Log Level  Value
+=========== =====
+ERROR         40
+WARNING       30
+INFO          20
+PROGRESS      16
+DBG / DEBUG   10
+=========== =====
+
+Controlling the verbosity of what the logger displays during runtime is simple:
+
+.. code-block:: python
+
+  import dolfin
+  # Can be any of the values from the table above
+  dolfin.set_log_level(INFO)
+
+Using the logger is simple, for example when adding turbines to a farm it may
+be useful to know how many turbines are being added to the farm (for which we
+would set the log level to INFO). In certain cases it may useful to know when
+each turbine is being added, in which case we would use the PROGRESS log
+level:
+
+.. code-block:: python
+
+  import dolfin
+
+  class RectangularFarm(object):
+      # Implementation of RectangularFarm ...
+
+
+      def add_regular_turbine_layout(self, num_x, num_y):
+          """Adds turbines to the farm in a regularly spaced array."""
+
+          dolfin.log(dolfin.INFO, "Adding %i turbines to the farm..."
+                     % (num_x*num_y))
+
+          added = 1
+          total = num_x*num_y
+          for x in num_x:
+              for y in num_y:
+                  dolfin.log(dolfin.PROGRESS, "Adding turbine %i of %i..."
+                             % (added, total))
+                  # ...add turbines to the farm
+                  added += 1
+
+          dolfin.log(dolfin.INFO, "Added %i turbines to the farm."
+                     % (added))
+
+
+More information may be found in the documentation.
+
+It is also suggested that for computationally expensive functions that the
+``dolfin.Progress`` bar is used. An example from the `documentation
+<http://fenicsproject.org/documentation/dolfin/1.0.1/python/programmers-reference/cpp/Progress.html>`_
+is shown below.
+
+.. code-block:: python
+
+  >>> import dolfin
+  >>> dolfin.set_log_level(dolfin.PROGRESS)
+  >>> n = 10000000
+  >>> progress_bar = dolfin.Progress("Informative progress message...", n)
+  >>> for i in range(n):
+  ...     progress_bar += 1
+  ...
+  Informative progress message... [>                                    ] 0.0%
+  Informative progress message... [=>                                   ] 5.2%
+  Informative progress message... [====>                                ] 11.1%
+  Informative progress message... [======>                              ] 17.0%
