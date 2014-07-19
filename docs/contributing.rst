@@ -182,6 +182,70 @@ not be immediately obvious what is being done. These comments should be well
 written with correct spelling, punctuation and grammar.
 
 
+Language Rules
+--------------
 
-.. _Google Python Style Guide: http://google-styleguide.googlecode.com/svn/trunk/pyguide.html
-.. _whitespace: http://google-styleguide.googlecode.com/svn/trunk/pyguide.html?showone=Whitespace#Whitespace
+Most of the information regarding language rules in the `Google Python Style Guide`_ is fairly obvious but a few important points are highlighted here.
+
+**List comprehensions** when used correctly can create lists in a very concise manner, however they should not be used in complicated situations as they can become hard to read. 
+
+**Properties** may be used to **control access** to class data members. For example a class which defines the turbine farm may be initialized with the coordinates defining the boundary for the site. Once initialized it does not make sense to resize the site (as turbines may no longer lie within its bounds) but the user may wish to still access these values. In Python there is no way of truly make certain data private but the following convention is ususally adopted.
+
+For read-only data the `property` decorator is used:
+
+.. code-block:: python
+
+  class Circle(object):
+      def __init__(self, radius):
+          self._radius = radius
+   
+      @property
+      def radius(self):
+          """The radius of the circle."""
+          return self._radius
+
+Thus the user may still access the radius of the circle without changing it:
+
+.. code-block:: python
+  
+  >>> circle = Circle(10.0)
+  >>> circle.radius
+  10.0
+  >>> circle.radius = 15.0
+  AttributeError: can't set attribute
+  
+  
+If the user wishes the provide full access to a data member it can be done so using the built-in property function. This also provides a convenient way to allow a number of properties to be based upon a single property yet store only one property.
+
+.. code-block:: python
+
+  class Circle(object):
+      def __init__(self, radius):
+          self._radius = radius
+   
+      def _get_radius(self):
+          return self._radius
+  
+      def _set_radius(self, radius):
+          self._radius = radius
+        
+      radius = property(_get_radius, _set_radius, "Radius of circle")
+      
+      def _get_diameter(self):
+          return self._radius*2
+          
+      def _set_diameter(self, diameter):
+          self._radius = diameter*0.5
+          
+      diameter = property(_get_diameter, _set_diameter, "Diameter of circle")
+          
+Thus we do the following:
+
+.. code-block:: python
+  
+  >>> circle = Circle(10.0)
+  >>> circle.diameter
+  20.0
+  >>> circle.diameter = 10.0
+  >>> circle.radius
+  5.0
