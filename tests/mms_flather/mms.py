@@ -37,13 +37,13 @@ def compute_error(config, eta0, k):
     e = state - exactstate
     return sqrt(assemble(dot(e,e)*dx))
 
-def setup_model(time_step, finish_time, mesh_x):
+def setup_model(time_step, finish_time, mesh_x, mesh_y=2):
+    # Note: The analytical solution is constant in the 
+    # y-direction, hence a coarse y-resolution is sufficient.
+
     # Reset the adjoint tape to keep dolfin-adjoint happy 
     adj_reset()
 
-    # Define the mesh size. The solution is constant in the 
-    # y-direction, a very coarse mesh is sufficient
-    mesh_y = 2
 
     config = configuration.DefaultConfiguration(nx=mesh_x, 
                                                 ny=mesh_y, 

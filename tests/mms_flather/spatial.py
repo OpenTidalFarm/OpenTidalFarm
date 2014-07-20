@@ -9,15 +9,16 @@ if __name__ == "__main__":
     # Compute the errors
     errors = []
     levels = 3
-    finish_time = 6.
+    finish_time = 5.
 
 
     for l in range(levels):
 
         mesh_x = 4 * 2**l
+        mesh_y = 2
         time_step = 0.25
 
-        model = setup_model(time_step, finish_time, mesh_x)
+        model = setup_model(time_step, finish_time, mesh_x, mesh_y)
         error = compute_error(*model)
         errors.append(error)
 
