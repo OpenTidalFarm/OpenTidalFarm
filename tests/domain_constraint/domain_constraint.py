@@ -1,6 +1,7 @@
 #!/usr/bin/python
 ''' This test checks the derivatives of the inequality contraints for the domain constraint. '''
 from opentidalfarm import *
+from dolfin import log, INFO
 import opentidalfarm.domains
 import numpy
 import sys
@@ -46,4 +47,4 @@ eps = 2.
 grad = ieqcons_dJ(x)
 assert (((ieqcons_J(x+eps*hy) - ieqcons_J(x))/eps) - grad[1])/grad[1] < 1e-10
 
-info_green("Test passed")
+log(INFO, "Test passed")
