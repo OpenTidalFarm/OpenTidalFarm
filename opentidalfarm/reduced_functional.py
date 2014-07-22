@@ -13,21 +13,19 @@ import os.path
 
 class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
 
-    def __init__(self, config, functional, scale=1.0, forward_model=sw_model.sw_solve,
-                 plot=False, save_functional_values=False):
-        ''' If plot is True, the functional values will be automatically saved in a plot.
-            scale is ignored if automatic_scaling is active. '''
+    def __init__(self, config, scale=1.0, forward_model=sw_model.sw_solve,
+                 save_functional_values=False):
+        ''' scale is ignored if automatic_scaling is active. '''
         # Hide the configuration since changes would break the memoize algorithm.
         self.__config__ = config
         self.functional = functional
         self.scale = scale
         self.automatic_scaling_factor = None
-        self.plot = plot
         self.save_functional_values = save_functional_values
         # Caching variables that store which controls the last forward run was performed
         self.last_m = None
         self.last_state = None
-        self.in_euclidian_space = False
+        self.in_euclidian_space = False  # FIXME: legacy dolfin-adjoint parameter
         if self.__config__.params["dump_period"] > 0:
             self.turbine_file = File(config.params['base_path'] + os.path.sep + "turbines.pvd", "compressed")
 
@@ -57,27 +55,22 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
 
         self.parameter = [Parameter()]
 
-        if plot:
-            from animated_plot import AnimatedPlot
-            self.plotter = AnimatedPlot(xlabel="Iteration", ylabel="Functional value")
-
-        def compute_functional(m, return_final_state=False, annotate=True):
-            ''' Takes in the turbine positions/frictions values and computes the resulting functional of interest. '''
+        def compute_functional(m, annotate=True):
+            ''' Compute the functional of interest for the turbine positions/frictions array '''
 
             self.last_m = m
 
             self.update_turbine_cache(m)
             tf = config.turbine_cache.cache["turbine_field"]
-            #info_green("Turbine integral: %f ", assemble(tf*dx))
-            #info_green("The correct integral should be: %f ",  25.2771) # computed with wolfram alpha using:
-            # int 0.17353373* (exp(-1.0/(1-(x/10)**2)) * exp(-1.0/(1-(y/10)**2)) * exp(2)) dx dy, x=-10..10, y=-10..10
-            #info_red("relative error: %f", (assemble(tf*dx)-25.2771)/25.2771)
 
-            return compute_functional_from_tf(tf, return_final_state, annotate=annotate)
+            return compute_functional_from_tf(tf, annotate=annotate)
 
-        def compute_functional_from_tf(tf, return_final_state, annotate=True):
-            ''' Takes in the turbine friction field and computes the resulting functional of interest. '''
+        def compute_functional_from_tf(tf, annotate=True):
+            ''' Computes the functional of interest for a given turbine friction function. '''
+
+            # Reset the dolfin-adjoint tape
             adj_reset()
+
             parameters["adjoint"]["record_all"] = True
             if config.params['revolve_parameters'] is not None:
               (strategy, snaps_on_disk, snaps_in_ram, verbose) = config.params['revolve_parameters']
@@ -104,22 +97,19 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
             j = forward_model(config, state, functional=functional, turbine_field=tf, annotate=annotate)
             self.last_state = state
 
-            if return_final_state:
-                return j, state
-            else:
-                return j
+            return j
 
         def compute_gradient(m, forget=True):
-            ''' Takes in the turbine positions/frictions values and computes the resulting functional gradient. '''
-            # If the last forward run was performed with the same parameters, then all recorded values by dolfin-adjoint are still valid for this adjoint run
-            # and we do not have to rerun the forward model.
+            ''' Compute the functional gradient for the turbine positions/frictions array '''
+
+            # If any of the parameters changed, the forward model needs to re-run
             if numpy.any(m != self.last_m):
                 compute_functional(m, annotate=True)
 
             state = self.last_state
             functional = self.functional
 
-            # Produce power plot
+            # Output power
             if config.params['output_turbine_power']:
                 if config.params['turbine_thrust_parametrisation'] or config.params["implicit_turbine_thrust_parametrisation"] or "dynamic_turbine_friction" in config.params["controls"]:
                     info_red("Turbine power VTU's is not yet implemented with thrust based turbines parameterisations and dynamic turbine friction control.")
@@ -151,7 +141,7 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
 
             else:
                 if not config.params["include_time_term"]:
-                    raise NotImplementedError, "Multi-steady state simulations only work with 'functional_quadrature_degree=0' or 'functional_final_time_only=True'" 
+                    raise NotImplementedError, "Multi-steady state simulations only work with 'functional_quadrature_degree=0' or 'functional_final_time_only=True'"
                 J = Functional(functional.Jt(state, dummy_tf) * dt)
 
             if 'dynamic_turbine_friction' in config.params["controls"]:
@@ -217,7 +207,7 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
             m_dot = project(Constant(1), config.turbine_function_space)
             return H(m_dot)
 
-        # For smeared turbine parametrisations we only want to store the 
+        # For smeared turbine parametrisations we only want to store the
         # hash of the control values into the pickle datastructure
         hash_keys = (config.params["turbine_parametrisation"] == "smeared")
 
@@ -312,10 +302,6 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
             with open("functional_values.txt", "a") as functional_values:
                 functional_values.write(str(self.last_j) + "\n")
 
-        if self.plot:
-            self.plotter.addPoint(self.last_j)
-            self.plotter.savefig("functional_plot.png")
-
         if self.__config__.params["save_checkpoints"]:
             self.save_checkpoint("checkpoint")
 
@@ -377,10 +363,12 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
 
     def __call__(self, m):
         ''' Interface function for dolfin_adjoint.ReducedFunctional '''
+
         return self.j(m)
 
     def derivative(self, m_array, taylor_test=False, seed=0.001, forget=True, **kwargs):
         ''' Interface function for dolfin_adjoint.ReducedFunctional '''
+
         if taylor_test:
             return self.dj_with_check(m_array, seed, forget)
         else:
@@ -388,12 +376,15 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
 
     def hessian(self, m_array, m_dot_array):
         ''' Interface function for dolfin_adjoint.ReducedFunctional '''
+
         raise NotImplementedError('The Hessian computation is not yet implemented')
 
     def obj_to_array(self, obj):
+
         return dolfin_adjoint.optimization.get_global(obj)
 
     def set_parameters(self, m_array):
+
         m = [p.data() for p in self.parameter]
         dolfin_adjoint.optimization.set_local(m, m_array)
 

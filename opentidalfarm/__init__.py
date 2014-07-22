@@ -24,7 +24,9 @@ from dirichlet_bc import DirichletBCSet
 from initial_conditions import SinusoidalInitialCondition, BumpInitialCondition
 from turbines import Turbines
 from functionals import PowerFunctional, CostFunctional, PowerCurveFunctional
-from tidal import TidalForcing, BathymetryDepthExpression 
+from tidal import TidalForcing, BathymetryDepthExpression
+from turbine import Turbine
+from farm import RectangularFarm
 
 from dolfin import *
 from dolfin_adjoint import minimize, maximize, Function, solve

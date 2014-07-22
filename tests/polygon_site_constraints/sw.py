@@ -7,7 +7,6 @@ import opentidalfarm.domains
 def default_config():
   config = configuration.DefaultConfiguration(nx=40, ny=20, finite_element = finite_elements.p1dgp2)
   config.set_domain(opentidalfarm.domains.RectangularDomain(3000, 1000, 40, 20))
-  config.params["verbose"] = 0
 
   # dt is used in the functional only
   config.params["dt"] = 0.8
