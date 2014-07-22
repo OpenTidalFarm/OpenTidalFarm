@@ -2,15 +2,15 @@
 
 import sys
 from opentidalfarm import *
+from dolfin import log, INFO, ERROR
 import opentidalfarm.domains
-set_log_level(ERROR)
 
 for c in [DefaultConfiguration, SteadyConfiguration]:
-    info_green("Testing configuration " + c.__name__)
+    log(INFO, "******** Testing configuration %s ********" % c.__name__)
     if c == SteadyConfiguration:
         config = c("mesh.xml", inflow_direction = [1, 1])
     else:
-        config = c(nx = 15, ny = 15)
+        config = c(nx=15, ny=15)
         config.set_domain(opentidalfarm.domains.RectangularDomain(3000, 1000, 15, 15))
     config.params['finish_time'] = config.params["start_time"] + 2*config.params["dt"]
 
@@ -24,7 +24,8 @@ for c in [DefaultConfiguration, SteadyConfiguration]:
     # Deploy some turbines 
     turbine_pos = [] 
     if c == SteadyConfiguration:
-        # The configuration does not converge for this (admittely unphysical) setup, so we help a little with some viscosity
+        # The configuration does not converge for this (admittely unphysical) 
+        # setup, so we help a little with some viscosity
         config.params['viscosity'] = 40.0
         basin_x = 1200
         basin_y = 1000
@@ -58,10 +59,9 @@ for c in [DefaultConfiguration, SteadyConfiguration]:
 
     p = numpy.random.rand(len(m0))
     seed = 0.1
-    #minconv = helpers.test_gradient_array(model.j, model.dj, m0, seed = seed, perturbation_direction = p, plot_file = "convergence_" + c.__name__ + ".pdf")
     minconv = helpers.test_gradient_array(model.j, model.dj, m0, seed = seed, perturbation_direction = p)
     if minconv < 1.85:
-        info_red("The gradient taylor remainder test failed for the " + c.__name__ + " configuration.")
+        log(ERROR, "The gradient taylor remainder test failed for the " + c.__name__ + " configuration.")
         sys.exit(1)
     else:
-        info_green("The gradient taylor remainder test passed.")
+        log(INFO, "The gradient taylor remainder test passed.")
