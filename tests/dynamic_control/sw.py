@@ -1,8 +1,9 @@
-''' This example optimises the position of three turbines using the hallow water rf. '''
+''' This example optimises the position of three turbines 
+    using the shallow water solver. '''
 
 import sys
 from opentidalfarm import *
-set_log_level(PROGRESS)
+from dolfin import log, INFO, ERROR
 
 config = UnsteadyConfiguration("mesh.xml", inflow_direction = [1, 1])
 config.params['finish_time'] = config.params["start_time"] + 2*config.params["dt"]
@@ -11,15 +12,12 @@ config.params['finish_time'] = config.params["start_time"] + 2*config.params["dt
 turbine_pos = [] 
 # The configuration does not converge for this (admittely unphysical) setup, so we help a little with some viscosity
 #config.params['viscosity'] = 40.0
-basin_x = 1200
-basin_y = 1000
-land_x = 600
-land_y = 300
-land_site_delta = 100
-site_x = 150
-site_y = 100
-site_x_start = basin_x - land_x
-site_y_start = land_y + land_site_delta 
+basin_x = 640.
+basin_y = 320.
+site_x = 320.
+site_y = 160.
+site_x_start = basin_x - site_x/2
+site_y_start = basin_y - site_y/2
 config.params['turbine_x'] = 50. 
 config.params['turbine_y'] = 50. 
 config.params['controls'] = ["dynamic_turbine_friction"]
@@ -45,7 +43,7 @@ seed = 0.1
 #minconv = helpers.test_gradient_array(rf.j, rf.dj, m0, seed=seed, perturbation_direction=p, plot_file="convergence.pdf")
 minconv = helpers.test_gradient_array(rf.j, rf.dj, m0, seed=seed, perturbation_direction=p)
 if minconv < 1.9:
-    info_red("The gradient taylor remainder test failed.")
+    log(ERROR, "The gradient taylor remainder test failed.")
     sys.exit(1)
 else:
-    info_green("The gradient taylor remainder test passed.")
+    log(INFO, "The gradient taylor remainder test passed.")
