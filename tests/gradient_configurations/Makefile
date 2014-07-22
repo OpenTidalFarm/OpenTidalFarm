@@ -1,5 +1,5 @@
 run: clean
-	time mpirun -n 2 python sw.py 
+	python sw.py 
 
 mesh:	
 	gmsh -2 mesh.geo
