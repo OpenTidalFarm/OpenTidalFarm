@@ -43,15 +43,12 @@ def error(config, eta0, k):
                               depth=config.params["depth"],
                               t=config.params["current_time"],
                               k=k)
-    exactstate = Function(config.function_space)
-    exactstate.interpolate(analytic_sol)
-    e = state - exactstate
-    return sqrt(assemble(dot(e, e)*dx))
+    return errornorm(analytic_sol, state)
 
 
 def test(refinement_level):
     nx = 2 * 2**refinement_level
-    ny = 2**refinement_level
+    ny = 1
 
     config = configuration.DefaultConfiguration(nx=nx, ny=ny)
     domain = domains.RectangularDomain(3000, 1000, nx, ny)
