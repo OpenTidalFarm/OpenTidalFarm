@@ -28,28 +28,28 @@ def error(config, eta0, k):
   return sqrt(assemble(dot(e,e)*dx))
 
 def test(refinement_level):
-  nx = 2**4
-  config = configuration.DefaultConfiguration(nx=nx, ny=2, 
-          finite_element=finite_elements.p1dgp2) 
-  domain = domains.RectangularDomain(3000, 1000, nx, 2)
-  config.set_domain(domain)
-  eta0 = 2.0
-  k = pi/config.domain.basin_x
-  config.params["finish_time"] = 2 * pi / (sqrt(config.params["g"] * 
-      config.params["depth"]) * k)
-  config.params["dt"] = config.params["finish_time"] / (4 * 2**refinement_level)
-  config.params["theta"] = 0.5
-  config.params["dump_period"] = 100000
-  config.params["bctype"] = "dirichlet"
-  config.params["u_weak_dirichlet_bc_expr"] = Expression(
-         ("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0"), 
-         eta0=eta0, 
-         g=config.params["g"], 
-         depth=config.params["depth"], 
-         t=config.params["current_time"], 
-         k=k)
+    nx = 2**4
+    config = configuration.DefaultConfiguration(nx=nx, ny=2, 
+            finite_element=finite_elements.p1dgp2) 
+    domain = domains.RectangularDomain(3000, 1000, nx, 2)
+    config.set_domain(domain)
+    eta0 = 2.0
+    k = pi/config.domain.basin_x
+    config.params["finish_time"] = 2 * pi / (sqrt(config.params["g"] * 
+        config.params["depth"]) * k)
+    config.params["dt"] = config.params["finish_time"] / (4 * 2**refinement_level)
+    config.params["theta"] = 0.5
+    config.params["dump_period"] = 100000
+    config.params["bctype"] = "dirichlet"
+    config.params["u_weak_dirichlet_bc_expr"] = Expression(
+           ("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0"), 
+           eta0=eta0, 
+           g=config.params["g"], 
+           depth=config.params["depth"], 
+           t=config.params["current_time"], 
+           k=k)
 
-  return error(config, eta0, k)
+    return error(config, eta0, k)
 
 errors = []
 tests = 4
