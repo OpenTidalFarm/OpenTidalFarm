@@ -72,6 +72,9 @@ def setup_model(time_step, finish_time, mesh_x, mesh_y=2):
     config.params["include_advection"] = True
     config.params["friction"] = 0.25 
 
+    config.params["dump_period"] = -1
+    config.params["output_turbine_power"] = False
+
     # Set the analytical boundary conditions
     config.params["flather_bc_expr"] = Expression(
         ("2*eta0*sqrt(g/depth)*cos(-sqrt(g*depth)*k*t)", "0"), 
@@ -80,7 +83,5 @@ def setup_model(time_step, finish_time, mesh_x, mesh_y=2):
         depth=config.params["depth"], 
         t=config.params["current_time"], 
         k=k)
-
-    config.params["dump_period"] = 100000
 
     return config, eta0, k
