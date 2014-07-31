@@ -13,7 +13,7 @@ if __name__ == "__main__":
 
     for l in range(levels):
 
-        mesh_x = 2**5
+        mesh_x = 2**4
         time_step = finish_time/(2*2**l)
 
         model = setup_model(time_step, finish_time, mesh_x)

@@ -11,7 +11,6 @@ if __name__ == "__main__":
     levels = 3
     finish_time = 5.
 
-
     for l in range(levels):
 
         mesh_x = 4 * 2**l
@@ -22,8 +21,8 @@ if __name__ == "__main__":
         error = compute_error(*model)
         errors.append(error)
 
-    # Compute the orders of convergence 
-    conv = [] 
+    # Compute the orders of convergence
+    conv = []
     for i in range(len(errors)-1):
         convergence_order = abs(log(errors[i+1]/errors[i], 2))
         conv.append(convergence_order)
