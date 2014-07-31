@@ -46,10 +46,16 @@ help:
 	@echo "  linkcheck  to check all external links for integrity"
 	@echo "  doctest    to run all doctests embedded in the documentation (if enabled)"
 
+EXAMPLES_IN = ../examples
+EXAMPLES_OUT = examples
+
+build_examples:
+	bin/pylit.py $(EXAMPLES_IN)/scenario1/sw.py $(EXAMPLES_OUT)/scenario1/scenario1.rst
+
 clean:
 	rm -rf $(BUILDDIR)/*
 
-html:
+html: build_examples
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."

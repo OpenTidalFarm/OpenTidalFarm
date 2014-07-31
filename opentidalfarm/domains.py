@@ -50,44 +50,6 @@ class RectangularDomain:
         return mesh
 
 
-class LShapeDomain:
-    ''' This class implements the datastructures for a L shaped domain '''
-
-    def __init__(self, filename, length):
-        ''' filename must be a valid mesh file that contains a L like geometry. '''
-
-        self.mesh = Mesh(filename)
-
-        # Extract the dimensions
-        basin_x = length
-        basin_y = length
-
-        class Left(SubDomain):
-            def inside(self, x, on_boundary):
-                return on_boundary and near(x[0], basin_x)
-
-        class Right(SubDomain):
-            def inside(self, x, on_boundary):
-                return on_boundary and near(x[1], basin_y)
-
-        class Sides(SubDomain):
-            def inside(self, x, on_boundary):
-                return on_boundary and not (near(x[1], basin_y) or near(x[0], basin_x))
-
-        # Initialize sub-domain instances
-        left = Left()
-        right = Right()
-        sides = Sides()
-
-        # Initialize mesh function for boundary domains
-        self.boundaries = FacetFunction('size_t', self.mesh)
-        self.boundaries.set_all(0)
-        left.mark(self.boundaries, 1)
-        right.mark(self.boundaries, 2)
-        sides.mark(self.boundaries, 3)
-        self.ds = Measure('ds')[self.boundaries]
-
-
 class GMeshDomain:
     ''' This class represents a mesh from gmsh '''
 

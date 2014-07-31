@@ -24,5 +24,5 @@ lb, ub = position_constraints(config)
 ineq = get_minimum_distance_constraint_func(config)
 
 # Solve the optimisation problem
-rf = ReducedFunctional(config, plot = True)
-maximize(rf, bounds = [lb, ub], constraints = ineq, method = "SLSQP") 
+rf = ReducedFunctional(config)
+maximize(rf, bounds=[lb, ub], constraints=ineq, method="SLSQP")

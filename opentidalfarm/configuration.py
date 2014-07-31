@@ -22,7 +22,6 @@ class DefaultConfiguration(object):
         self.functional = DefaultFunctional
 
         params = ParameterDictionary({
-            'verbose': 1,
             'theta': 0.6,
             'steady_state': False,
             'functional_final_time_only': False,
@@ -54,8 +53,6 @@ class DefaultConfiguration(object):
             'controls': ['turbine_pos', 'turbine_friction'],
             'solver_parameters': None,
             'postsolver_callback': None,
-            'run_benchmark': False,
-            'solver_exclude': ['cg'],
             'start_time': 0.,
             'current_time': 0.,
             'finish_time': 100.,
