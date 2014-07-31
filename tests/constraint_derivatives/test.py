@@ -1,6 +1,7 @@
 #!/usr/bin/python
 ''' This test checks the derivatives of the inequality contraints for the minimal turbine distance constraint. '''
 from opentidalfarm import *
+from dolfin import log, INFO
 import opentidalfarm.domains
 import numpy
 import sys
@@ -40,8 +41,8 @@ minconv = helpers.test_gradient_array(ieqcons_J,
 
 # These constraints are linear so we expect no convergence at all.
 # Let's check that the tolerance is not above a threshold
-print "Expecting a Nan convergence order"
+log(INFO, "Expecting a Nan convergence order")
 if not math.isnan(minconv):
     info_red("Convergence for the polygon shaped sites failed")
     sys.exit(1)
-info("Test passed")    
+log(INFO, "Test passed")
