@@ -4,8 +4,8 @@ from dolfin import log, INFO, ERROR
 set_log_level(INFO)
 
 parameters['form_compiler']['cpp_optimize_flags'] = '-O3 -fno-math-errno \
-        -march=native'        
-parameters['form_compiler']['quadrature_degree'] = 20
+        -march=native'
+parameters['form_compiler']['quadrature_degree'] = 4
 
 basin_x = 640.
 basin_y = 320.
@@ -18,16 +18,17 @@ config.params['turbine_thrust_parametrisation'] = True
 config.params['initial_condition'] = ConstantFlowInitialCondition(config)
 k = pi/basin_x
 config.params["flather_bc_expr"] = Expression(
-        ("2*eta0*sqrt(g/depth)*cos(-sqrt(g*depth)*k*t)", "0"), 
-        eta0=2., 
-        g=config.params["g"], 
-        depth=config.params["depth"], 
-        t=config.params["current_time"], 
-        k=k)
+    ("2*eta0*sqrt(g/depth)*cos(-sqrt(g*depth)*k*t)", "0"),
+    eta0=2.,
+    g=config.params["g"],
+    depth=config.params["depth"],
+    t=config.params["current_time"],
+    k=k
+)
 
-# Place one turbine 
-turbine_pos = [[basin_x/3-25, basin_y/2], 
-               [basin_x/3+25, basin_y/2]] 
+# Place one turbine
+turbine_pos = [[basin_x/3-25, basin_y/2],
+               [basin_x/3+25, basin_y/2]]
 
 print0("Turbine position: " + str(turbine_pos))
 config.set_turbine_pos(turbine_pos, friction=1.0)
