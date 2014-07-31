@@ -12,25 +12,20 @@ state_cache = {}
 # Defines the advection distance for the turbine parametrisation
 distance_to_upstream = 1. * 20
 
-def default_solver_parameters(newton):
+def default_solver_parameters():
     ''' Create a dictionary with the default solver parameters '''
     linear_solver = 'mumps' if ('mumps' in map(lambda x: x[0], linear_solver_methods())) else 'default'
     preconditioner = 'default'
 
-    if newton:
-        solver_parameters = {"newton_solver": {}}
-        # Older version of Dolfin (<= 1.2.0) have a different structure for the solver parameters...
-        if NonlinearVariationalSolver.default_parameters().has_parameter("linear_solver"):
-            solver_parameters["linear_solver"] = linear_solver
-            solver_parameters["preconditioner"] = preconditioner
-        else:
-            solver_parameters["newton_solver"]["linear_solver"] = linear_solver
-            solver_parameters["newton_solver"]["preconditioner"] = preconditioner
-        solver_parameters["newton_solver"]["maximum_iterations"] = 20
-
+    solver_parameters = {"newton_solver": {}}
+    # Older version of Dolfin (<= 1.2.0) have a different structure for the solver parameters...
+    if NonlinearVariationalSolver.default_parameters().has_parameter("linear_solver"):
+        solver_parameters["linear_solver"] = linear_solver
+        solver_parameters["preconditioner"] = preconditioner
     else:
-        solver_parameters = {"linear_solver": linear_solver,
-                             "preconditioner": preconditioner}
+        solver_parameters["newton_solver"]["linear_solver"] = linear_solver
+        solver_parameters["newton_solver"]["preconditioner"] = preconditioner
+    solver_parameters["newton_solver"]["maximum_iterations"] = 20
 
     return solver_parameters
 
@@ -129,17 +124,13 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
     # Reset the time
     params["current_time"] = params["start_time"]
     t = float(params["current_time"])
-    quadratic_friction = params["quadratic_friction"]
     include_advection = params["include_advection"]
-    include_diffusion = params["include_diffusion"]
+    include_viscosity = params["include_viscosity"]
     include_time_term = params["include_time_term"]
-    diffusion_coef = params["diffusion_coef"]
-    newton_solver = params["newton_solver"]
-    picard_relative_tolerance = params["picard_relative_tolerance"]
-    picard_iterations = params["picard_iterations"]
+    viscosity = params["viscosity"]
     solver_parameters = params["solver_parameters"]
     if solver_parameters is None:
-        solver_parameters = default_solver_parameters(newton_solver)
+        solver_parameters = default_solver_parameters()
     bctype = params["bctype"]
     strong_bc = params["strong_bc"]
     free_slip_on_sides = params["free_slip_on_sides"]
@@ -152,8 +143,6 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
     cache_forward_state = params["cache_forward_state"]
     postsolver_callback = params["postsolver_callback"]
     
-    is_nonlinear = (include_advection or quadratic_friction or not linear_divergence)
-
     if not 0 <= functional_quadrature_degree <= 1:
         raise ValueError("functional_quadrature_degree must be 0 or 1.")
 
@@ -180,21 +169,14 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
 
     # Define functions
     state_new = Function(function_space, name="New_state")  # solution of the next timestep
-    state_nl = Function(function_space, name="Best_guess_state")  # the last computed state of the next timestep, used for the picard iteration
-
-    if not newton_solver and (turbine_thrust_parametrisation or implicit_turbine_thrust_parametrisation):
-        raise NotImplementedError("Thrust turbine representation does currently only work with the newton solver.")
 
     # Split mixed functions
-    if is_nonlinear and newton_solver:
-        if implicit_turbine_thrust_parametrisation:
-            u, h, up_u, up_u_adv = split(state_new)
-        elif turbine_thrust_parametrisation:
-            u, h, up_u = split(state_new)
-        else:
-            u, h = split(state_new)
+    if implicit_turbine_thrust_parametrisation:
+        u, h, up_u, up_u_adv = split(state_new)
+    elif turbine_thrust_parametrisation:
+        u, h, up_u = split(state_new)
     else:
-        u, h = TrialFunctions(function_space)
+        u, h = split(state_new)
 
     if implicit_turbine_thrust_parametrisation:
         u0, h0, up_u0, up_u_adv0 = split(state)
@@ -202,16 +184,12 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
         u0, h0, up_u0 = split(state)
     else:
         u0, h0 = split(state)
-        u_nl, h_nl = split(state_nl)
 
     # Define the water depth
     if linear_divergence:
         H = depth
     else:
-        if newton_solver:
-            H = h + depth
-        else:
-            H = h_nl + depth
+        H = h + depth
 
     # Create initial conditions and interpolate
     state_new.assign(state, annotate=annotate)
@@ -219,12 +197,6 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
     # u_(n+theta) and h_(n+theta)
     u_mid = (1.0 - theta) * u0 + theta * u
     h_mid = (1.0 - theta) * h0 + theta * h
-
-    # If a picard iteration is used we need an intermediate state
-    if is_nonlinear and not newton_solver:
-        u_nl, h_nl = split(state_nl)
-        state_nl.assign(state, annotate=annotate)
-        u_mid_nl = (1.0 - theta) * u0 + theta * u_nl
 
     # The normal direction
     n = FacetNormal(function_space.mesh())
@@ -324,48 +296,28 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
             thrust = inner(f_dir * tf / (Constant(config.turbine_cache.turbine_integral()) * config.params["depth"]), v) * dx
 
     # Friction term
-    # With Newton we can simply use a non-linear form
-    if quadratic_friction and newton_solver:
-        R_mid = friction / H * dot(u_mid, u_mid) ** 0.5 * inner(u_mid, v) * dx
+    R_mid = friction / H * dot(u_mid, u_mid) ** 0.5 * inner(u_mid, v) * dx
 
-        if turbine_field and not (turbine_thrust_parametrisation or implicit_turbine_thrust_parametrisation):
-            R_mid += tf / H * dot(u_mid, u_mid) ** 0.5 * inner(u_mid, v) * config.site_dx(1)
-
-    # With a picard iteration we need to linearise using the best guess
-    elif quadratic_friction and not newton_solver:
-        R_mid = friction / H * dot(u_mid_nl, u_mid_nl) ** 0.5 * inner(u_mid, v) * dx
-
-        if turbine_field and not (turbine_thrust_parametrisation or implicit_turbine_thrust_parametrisation):
-            R_mid += tf / H * dot(u_mid_nl, u_mid_nl) ** 0.5 * inner(u_mid, v) * config.site_dx(1)
-
-    # Use a linear drag
-    else:
-        R_mid = friction / H * inner(u_mid, v) * dx
-
-        if turbine_field and not (turbine_thrust_parametrisation or implicit_turbine_thrust_parametrisation):
-            R_mid += tf / H * inner(u_mid, v) * config.site_dx(1)
+    if turbine_field and not (turbine_thrust_parametrisation or implicit_turbine_thrust_parametrisation):
+        R_mid += tf / H * dot(u_mid, u_mid) ** 0.5 * inner(u_mid, v) * config.site_dx(1)
 
     # Advection term
-    # With a newton solver we can simply use a quadratic form
-    if include_advection and newton_solver:
+    if include_advection:
         Ad_mid = inner(dot(grad(u_mid), u_mid), v) * dx
-    # With a picard iteration we need to linearise using the best guess
-    if include_advection and not newton_solver:
-        Ad_mid = inner(dot(grad(u_mid), u_mid_nl), v) * dx
 
-    if include_diffusion:
+    if include_viscosity:
         # Check that we are not using a DG velocity function space, as the facet integrals are not implemented.
         if "Discontinuous" in str(function_space.split()[0]):
-            raise NotImplementedError("The diffusion term for discontinuous elements is not implemented yet.")
-        D_mid = diffusion_coef * inner(grad(u_mid), grad(v)) * dx #- diffusion_coef * inner(v, dot(grad(u_mid), n)) * dolfin.ds
+            raise NotImplementedError("The viscosity term for discontinuous elements is not implemented yet.")
+        D_mid = viscosity * inner(grad(u_mid), grad(v)) * dx
 
     # Create the final form
     G_mid = C_mid + Ct_mid + R_mid
     # Add the advection term
     if include_advection:
         G_mid += Ad_mid
-    # Add the diffusion term
-    if include_diffusion:
+    # Add the viscosity term
+    if include_viscosity:
         G_mid += D_mid
     # Add the source term
     if u_source:
@@ -379,18 +331,6 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
         F += up_u_eq
         if turbine_field:
             F -= thrust
-
-    # Preassemble the lhs if possible
-    use_lu_solver = not newton_solver and solver_parameters['linear_solver'] == "lu"
-    if not is_nonlinear:
-        lhs_preass = assemble(dolfin.lhs(F))
-        # Precompute the LU factorisation
-        if use_lu_solver:
-            info("Computing the LU factorisation for later use ...")
-            if bctype == 'strong_dirichlet':
-                raise NotImplementedError("Strong boundary condition and reusing LU factorisation is currently not implemented")
-            lu_solver = LUSolver(lhs_preass)
-            lu_solver.parameters["reuse_factorization"] = True
 
     # Do some parameter checking:
     if "dynamic_turbine_friction" in params["controls"]:
@@ -456,73 +396,32 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
             u_source.t = t - (1.0 - theta) * dt
         step += 1
 
-        # Solve non-linear system with a Newton sovler
-        if is_nonlinear and newton_solver:
-            # Use a Newton solver to solve the nonlinear problem.
-            if cache_forward_state and state_cache.has_key(t):
-                print0("Load initial guess from cache for time %f." % t)
-                # Load initial guess for solver from cache
-                state_new.assign(state_cache[t], annotate=False)
-            elif not include_time_term:
-                print0("Set the initial guess for the nonlinear solver to the initial condition.")
-                # Reset the initial guess after each timestep
-                ic = config.params['initial_condition']
-                state_new.assign(ic, annotate=False)
+        # Solve non-linear system with a Newton solver
+        if cache_forward_state and state_cache.has_key(t):
+            print0("Load initial guess from cache for time %f." % t)
+            # Load initial guess for solver from cache
+            state_new.assign(state_cache[t], annotate=False)
+        elif not include_time_term:
+            print0("Set the initial guess for the nonlinear solver to the initial condition.")
+            # Reset the initial guess after each timestep
+            ic = config.params['initial_condition']
+            state_new.assign(ic, annotate=False)
 
-            info_blue("Solve shallow water equations at time %s (Newton iteration) ..." % float(params["current_time"]))
-            if bctype == 'strong_dirichlet':
-                F_bcs = strong_bc.bcs
-            else:
-                F_bcs = []
-
-            solver = config.params['nonlinear_solver']
-            if solver is None:
-              solve(F == 0, state_new, bcs=F_bcs, solver_parameters=solver_parameters, annotate=annotate, J=derivative(F, state_new))
-            else:
-              solver(F, state_new, F_bcs, annotate, solver_parameters)
-
-            # Call user defined callback
-            if postsolver_callback is not None:
-                postsolver_callback(config, state_new)
-
-        # Solve non-linear system with a Picard iteration
-        elif is_nonlinear:
-            iter_counter = 0
-            while True:
-                info_blue("Solving shallow water equations at time %s (Picard iteration %d) ..." % (float(params["current_time"]), iter_counter))
-                if bctype == 'strong_dirichlet':
-                    solve(dolfin.lhs(F) == dolfin.rhs(F), state_new, bcs=strong_bc.bcs, solver_parameters=solver_parameters)
-                else:
-                    solve(dolfin.lhs(F) == dolfin.rhs(F), state_new, solver_parameters=solver_parameters, annotate=annotate)
-                iter_counter += 1
-                if iter_counter > 0:
-                    relative_diff = abs(assemble(inner(state_new - state_nl, state_new - state_nl) * dx)) / assemble(inner(state_new, state_new) * dx)
-                    info_blue("Picard iteration " + str(iter_counter) + " relative difference: " + str(relative_diff))
-
-                    if relative_diff < picard_relative_tolerance:
-                        info("Picard iteration converged after " + str(iter_counter) + " iterations.")
-                        break
-                    elif iter_counter >= picard_iterations:
-                        info_red("Picard iteration reached maximum number of iterations (" + str(picard_iterations) + ") with a relative difference of " + str(relative_diff) + ".")
-                        break
-                state_nl.assign(state_new)
-
-        # Solve linear system with preassembled matrices
+        info_blue("Solve shallow water equations at time %s (Newton iteration) ..." % float(params["current_time"]))
+        if bctype == 'strong_dirichlet':
+            F_bcs = strong_bc.bcs
         else:
-            # dolfin can't assemble empty forms which can sometimes happen here.
-            # A simple workaround is to add a dummy term:
-            dummy_term = Constant(0) * q * dx
-            rhs_preass = assemble(dolfin.rhs(F + dummy_term))
-            # Apply dirichlet boundary conditions
-            info_blue("Solving shallow water equations at time %s (preassembled matrices) ..." % (float(params["current_time"])))
-            if bctype == 'strong_dirichlet':
-                [bc.apply(lhs_preass, rhs_preass) for bc in strong_bc.bcs]
-            if use_lu_solver:
-                info("Using a LU solver to solve the linear system.")
-                lu_solver.solve(state.vector(), rhs_preass, annotate=annotate)
-            else:
-                solve(lhs_preass, state_new.vector(), rhs_preass, 
-                      solver_parameters['linear_solver'], solver_parameters['preconditioner'], annotate=annotate)
+            F_bcs = []
+
+        solver = config.params['nonlinear_solver']
+        if solver is None:
+          solve(F == 0, state_new, bcs=F_bcs, solver_parameters=solver_parameters, annotate=annotate, J=derivative(F, state_new))
+        else:
+          solver(F, state_new, F_bcs, annotate, solver_parameters)
+
+        # Call user defined callback
+        if postsolver_callback is not None:
+            postsolver_callback(config, state_new)
 
         # After the timestep solve, update state
         state.assign(state_new)

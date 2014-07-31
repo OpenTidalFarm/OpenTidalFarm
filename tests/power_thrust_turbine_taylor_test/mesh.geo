@@ -4,8 +4,8 @@ site_x = 90;
 site_y = 40;
 site_x_start = 640/3-site_x/2;
 site_y_start = 320/2-site_y/2;
-element_size = 4;
-element_size_coarse = 50;
+element_size = 6;
+element_size_coarse = 100;
 
 Point(1) = {0, 0, 0, element_size_coarse};
 Point(2) = {basin_x, 0, 0, element_size_coarse};
