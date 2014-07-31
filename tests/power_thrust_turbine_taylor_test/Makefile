@@ -1,4 +1,4 @@
-run: mesh clean
+run: clean
 	python sw.py 
 
 mesh:	

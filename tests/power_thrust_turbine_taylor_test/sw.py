@@ -1,8 +1,10 @@
 ''' Runs the forward model with a single turbine and prints some statistics '''
 from opentidalfarm import *
+from dolfin import log, INFO, ERROR
 set_log_level(INFO)
 
-parameters['form_compiler']['cpp_optimize_flags'] = '-O3 -fno-math-errno -march=native'        
+parameters['form_compiler']['cpp_optimize_flags'] = '-O3 -fno-math-errno \
+        -march=native'        
 parameters['form_compiler']['quadrature_degree'] = 20
 
 basin_x = 640.
@@ -15,12 +17,13 @@ config.functional = PowerCurveFunctional
 config.params['turbine_thrust_parametrisation'] = True
 config.params['initial_condition'] = ConstantFlowInitialCondition(config)
 k = pi/basin_x
-config.params["flather_bc_expr"] = Expression(("2*eta0*sqrt(g/depth)*cos(-sqrt(g*depth)*k*t)", "0"), 
-                                 eta0=2., 
-                                 g=config.params["g"], 
-                                 depth=config.params["depth"], 
-                                 t=config.params["current_time"], 
-                                 k=k)
+config.params["flather_bc_expr"] = Expression(
+        ("2*eta0*sqrt(g/depth)*cos(-sqrt(g*depth)*k*t)", "0"), 
+        eta0=2., 
+        g=config.params["g"], 
+        depth=config.params["depth"], 
+        t=config.params["current_time"], 
+        k=k)
 
 # Place one turbine 
 turbine_pos = [[basin_x/3-25, basin_y/2], 
@@ -45,7 +48,7 @@ seed = 1e-4
 minconv = helpers.test_gradient_array(rf.j, rf.dj, m, seed=seed)
 
 if minconv < 1.9:
-    info_red("The gradient taylor remainder test failed.")
+    log(ERROR, "The gradient taylor remainder test failed.")
     sys.exit(1)
 else:
-    info_green("The gradient taylor remainder test passed.")
+    log(INFO, "The gradient taylor remainder test passed.")
