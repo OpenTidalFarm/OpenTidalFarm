@@ -10,8 +10,9 @@ from dolfin import log, INFO, ERROR
 
 def error(config, eta0, k):
   state = Function(config.function_space)
-  state.interpolate(SinusoidalInitialCondition(config, eta0, k, 
-      config.params["depth"]))
+  ic_expr = SinusoidalInitialCondition(config, eta0, k, config.params["depth"])
+  ic = project(ic_expr, state.function_space())
+  state.assign(ic, annotate=False)
 
   adj_reset()
   shallow_water_model.sw_solve(config, state, annotate=False)
@@ -22,40 +23,36 @@ def error(config, eta0, k):
          eta0=eta0, g=config.params["g"], \
          depth=config.params["depth"], \
          t=config.params["current_time"], k=k)
-  exactstate = Function(config.function_space)
-  exactstate.interpolate(analytic_sol)
-  e = state - exactstate
-  return sqrt(assemble(dot(e,e)*dx))
+  return errornorm(analytic_sol, state)
 
 def test(refinement_level):
-    nx = 2**refinement_level
-    ny = 2**refinement_level
+    nx = 2 * 2**refinement_level
+    ny = 1
     config = configuration.DefaultConfiguration(nx, ny) 
     domain = domains.RectangularDomain(3000, 1000, nx, ny)
     config.set_domain(domain)
     eta0 = 2.0
     k = pi/config.domain.basin_x
     config.params["finish_time"] = pi / (sqrt(config.params["g"] * \
-            config.params["depth"]) * k) / 20
+        config.params["depth"]) * k) / 20
     config.params["dt"] = config.params["finish_time"] / 4
     config.params["dump_period"] = 100000
     config.params["bctype"] = "strong_dirichlet"
     bc = DirichletBCSet(config)
 
-    expression = Expression(("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", 
-        "0"), 
-        eta0=eta0, 
-        g=config.params["g"], 
-        depth=config.params["depth"], 
-        t=config.params["current_time"], 
-        k=k)
+    expression = Expression(("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0"), 
+                            eta0=eta0, 
+                            g=config.params["g"], 
+                            depth=config.params["depth"], 
+                            t=config.params["current_time"], 
+                            k=k)
 
     bc.add_analytic_u(1, expression)
     bc.add_analytic_u(2, expression)
     bc.add_analytic_u(3, expression)
     config.params["strong_bc"] = bc
 
-    return error(config, eta0, k)
+    return error(config,eta0,k)
 
 errors = []
 tests = 4
