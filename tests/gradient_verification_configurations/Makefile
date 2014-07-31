@@ -1,5 +1,5 @@
 run: clean
-	python sw.py 
+	python gradient_verification_configurations.py
 
 mesh:	
 	gmsh -2 mesh.geo
