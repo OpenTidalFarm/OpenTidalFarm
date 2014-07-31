@@ -13,6 +13,7 @@
 
 import sys
 from opentidalfarm import *
+from dolfin import log, INFO
 import opentidalfarm.domains
 set_log_level(PROGRESS)
 
@@ -31,6 +32,7 @@ def default_config():
   config.params["turbine_y"] = 8000
   config.params['controls'] = ['turbine_friction']
   config.params["functional_final_time_only"] = True
+  config.params["dump_period"] = 100000
 
   k = pi/config.domain.basin_x
   config.params['initial_condition'] = SinusoidalInitialCondition(config, 2.0, k, config.params['depth'])
@@ -54,4 +56,4 @@ else:
 
 bounds = [0, 100]
 m = maximize(rf, bounds=bounds, method="SLSQP", scale=1e-3, options={'maxiter': maxiter}) 
-info_green("Test passed")
+log(INFO, "Test passed")
