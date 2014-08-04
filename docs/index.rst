@@ -16,6 +16,9 @@ Following presentation gives a quick introduction to OpenTidalFarm:
 `OpenTidalFarm
 <https://www.slideboom.com/presentations/758051/OpenTidalFarm/>`_
 
+To download the source code or to report issues visit the `GitHub page
+<https://github.com/OpenTidalFarm/OpenTidalFarm>`_
+
 Contents:
 
 .. toctree::
