@@ -200,7 +200,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
   ('index', 'OpenTidalFarm.tex', u'OpenTidalFarm Documentation',
-   u'SW Funke et al', 'manual'),
+   u'The OpenTidalFarm team', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -230,7 +230,7 @@ latex_documents = [
 # (source start file, name, description, authors, manual section).
 man_pages = [
     ('index', 'opentidalfarm', u'OpenTidalFarm Documentation',
-     [u'SW Funke et al'], 1)
+     [u'The OpenTidalFarm team'], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -244,7 +244,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
   ('index', 'OpenTidalFarm', u'OpenTidalFarm Documentation',
-   u'SW Funke et al', 'OpenTidalFarm', 'One line description of project.',
+   u'The OpenTidalFarm team', 'OpenTidalFarm', 'One line description of project.',
    'Miscellaneous'),
 ]
 
