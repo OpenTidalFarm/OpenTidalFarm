@@ -18,7 +18,7 @@ config.functional = PowerCurveFunctional
 config.params['turbine_thrust_parametrisation'] = True
 config.params['initial_condition'] = ConstantFlowInitialCondition(config)
 config.params['automatic_scaling'] = False
-#config.params['diffusion_coef'] = 10.
+#config.params['viscosity'] = 10.
 
 # Place one turbine 
 turbine_pos = [[basin_x/3, basin_y/2]]

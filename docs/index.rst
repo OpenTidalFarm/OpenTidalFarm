@@ -14,7 +14,7 @@ However, finding the optimal layout is a difficult process due to the complex fl
 
 Following presentation gives a quick introduction to OpenTidalFarm:
 `OpenTidalFarm
-<https://www.slideboom.com/presentations/758051/OpenTidalFarm/>`_ 
+<https://www.slideboom.com/presentations/758051/OpenTidalFarm/>`_
 
 Contents:
 
@@ -26,6 +26,7 @@ Contents:
    features.rst
    installation.rst
    getting_started.rst
+   contributing.rst
 
 
 Indices and tables
@@ -81,7 +82,7 @@ Code documentation
    :members:
    :private-members:
    :special-members:
-   
+
 .. autoclass:: Turbines
    :members:
    :private-members:

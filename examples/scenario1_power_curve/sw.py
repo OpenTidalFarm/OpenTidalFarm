@@ -16,7 +16,7 @@ config = SteadyConfiguration("mesh.xml", inflow_direction=inflow_direction)
 config.functional = PowerCurveFunctional
 config.params['turbine_thrust_parametrisation'] = True
 config.params['initial_condition'] = ConstantFlowInitialCondition(config)
-config.params['diffusion_coef'] = 30.
+config.params['viscosity'] = 30.
 
 config.set_site_dimensions(site_x_start, site_x_start + site_x, site_y_start, site_y_start + site_y)
 # Place some turbines 
