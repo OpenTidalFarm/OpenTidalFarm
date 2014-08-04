@@ -40,4 +40,4 @@ class TestMinimalDistanceConstraint(object):
         # These constraints are linear so we expect no convergence at all.
         # Let's check that the tolerance is not above a threshold
         log(INFO, "Expecting a Nan convergence order")
-        assert math.isnan(minconv):
+        assert math.isnan(minconv)
