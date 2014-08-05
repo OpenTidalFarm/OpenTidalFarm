@@ -1,0 +1,37 @@
+Collection of tests for beatadjoint
+===================================
+
+Running the tests:
+------------------
+
+We recommend running the tests from the test/unit/ directory. The complete
+test suite can be run with:
+
+  py.test
+
+For quick testing, we recommend:
+
+  py.test -m "not slow" -v
+
+For parallel run install python-pytest-xdist.
+Disable the xdist plugin by:
+
+  py.test -p no:xdist
+
+To see the standard output of the tests, as well as for dropping into an 
+debugger or embedded IPython shell you want to use:
+
+  py.test -p no:xdist -s
+
+Guidelines for organizing the tests:
+----------------------------------------
+
+- Mark tests that tests dolfin-adjoint functionality by
+
+  @adjoint
+
+- Mark tests according to speed:
+
+  @fast   : (complete) test < ~1 s
+  @medium : (complete) test < ~10 s
+  @slow   : (complete) test > ~10 s

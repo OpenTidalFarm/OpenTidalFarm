@@ -8,6 +8,7 @@ from math import sqrt, pi
 from initial_conditions import *
 from domains import *
 from helpers import info, info_red, get_rank
+from functionals import DefaultFunctional
 import os
 
 
@@ -30,14 +31,13 @@ class DefaultConfiguration(object):
             'eta_weak_dirichlet_bc_expr': None,
             'free_slip_on_sides': False,
             'include_advection': False,
-            'include_diffusion': False,
+            'include_viscosity': False,
             'include_time_term': True,
             'linear_divergence': True,
-            'diffusion_coef': 0.0,
+            'viscosity': 0.0,
             'depth': 50.0,
             'g': 9.81,
             'dump_period': 1,
-            'quadratic_friction': False,
             'friction': Constant(0.0),
             'turbine_parametrisation': 'individual',
             'turbine_pos': [],
@@ -49,10 +49,7 @@ class DefaultConfiguration(object):
             'implicit_turbine_thrust_parametrisation': False,
             'rho': 1000.,  # Use the density of water: 1000kg/m^3
             'controls': ['turbine_pos', 'turbine_friction'],
-            'newton_solver': False,
             'solver_parameters': None,
-            'picard_relative_tolerance': 1e-5,
-            'picard_iterations': 3,
             'postsolver_callback': None,
             'start_time': 0.,
             'current_time': 0.,
@@ -65,7 +62,10 @@ class DefaultConfiguration(object):
             'cache_forward_state': False,
             'base_path': os.curdir,
             'nonlinear_solver': None,
-            'revolve_parameters': None, # (strategy, snaps_on_disk, snaps_in_ram, verbose)
+            'revolve_parameters': None,  # (strategy,
+                                         # snaps_on_disk,
+                                         # snaps_in_ram,
+                                         # verbose)
             })
 
         params['dt'] = params['finish_time'] / 4000.
@@ -79,7 +79,8 @@ class DefaultConfiguration(object):
 
         params['initial_condition'] = ConstantFlowInitialCondition(self)
 
-        # Create a chaching object for the interpolated turbine friction fields (as their computation is very expensive)
+        # Create a chaching object for the interpolated turbine friction fields
+        # (as their computation is very expensive)
         self.turbine_cache = TurbineCache()
 
         # A counter for the current optimisation iteration
@@ -87,16 +88,19 @@ class DefaultConfiguration(object):
 
     def set_domain(self, domain, warning=True):
         if warning and hasattr(self, 'domain'):
-            info_red("If you are overwriting the domain, make sure that you reapply the boundary conditions as well")
+            info_red("If you are overwriting the domain, make sure that you \
+                     reapply the boundary conditions as well")
         self.domain = domain
 
-        # Define the subdomain for the turbine site. The default value should only be changed for smeared turbine representations.
+        # Define the subdomain for the turbine site. The default value should
+        # only be changed for smeared turbine representations.
         domains = CellFunction("size_t", self.domain.mesh)
         domains.set_all(1)
-        self.site_dx = Measure("dx")[domains]  # The measure used to integrate the turbine friction
+        self.site_dx = Measure("dx")[domains]  # The measure used to integrate
+                                               # the turbine friction
 
         V, H = self.finite_element(self.domain.mesh)
-        T = FunctionSpace(self.domain.mesh, 'CG', 2)              # Turbine space
+        T = FunctionSpace(self.domain.mesh, 'CG', 2)   # Turbine space
 
         self.turbine_function_space = T
         self.function_space = MixedFunctionSpace([V, H])
@@ -110,17 +114,19 @@ class DefaultConfiguration(object):
 
     def info(self):
         if dolfin.__version__ >= '1.3.0+':
-          # I *hate* unannounced and intrusive API changes with no support for a transition.
-          comm = mpi_comm_world() # self.domain.mesh.mpi_comm() when it works
-          hmin = MPI.min(comm, self.domain.mesh.hmin())
-          hmax = MPI.max(comm, self.domain.mesh.hmax())
-          num_cells = MPI.sum(comm, self.domain.mesh.num_cells())
-          rank = get_rank()
+            # I *hate* unannounced and intrusive API changes with no support
+            # for a transition.
+            comm = mpi_comm_world()  # self.domain.mesh.mpi_comm()
+                                     # when it works
+            hmin = MPI.min(comm, self.domain.mesh.hmin())
+            hmax = MPI.max(comm, self.domain.mesh.hmax())
+            num_cells = MPI.sum(comm, self.domain.mesh.num_cells())
+            rank = get_rank()
         else:
-          hmin = MPI.min(self.domain.mesh.hmin())
-          hmax = MPI.max(self.domain.mesh.hmax())
-          num_cells = MPI.sum(self.domain.mesh.num_cells())
-          rank = MPI.process_number()
+            hmin = MPI.min(self.domain.mesh.hmin())
+            hmax = MPI.max(self.domain.mesh.hmax())
+            num_cells = MPI.sum(self.domain.mesh.num_cells())
+            rank = MPI.process_number()
 
         if rank == 0:
             # Physical parameters
@@ -128,28 +134,31 @@ class DefaultConfiguration(object):
             if isinstance(self.params["depth"], float):
                 print "Water depth: %f m" % self.params["depth"]
             print "Gravity constant: %f m/s^2" % self.params["g"]
-            print "Viscosity constant: %f m^2/s" % self.params["diffusion_coef"]
+            print "Viscosity constant: %f m^2/s" % self.params["viscosity"]
             print "Water density: %f kg/m^3" % self.params["rho"]
-            if isinstance(self.params["friction"], dolfin.functions.constant.Constant):
-                print "Bottom friction: %s" % (self.params["friction"](0))
-            else:
-                print "Bottom fruction: %f - %f" %\
+            try:
+                print "Bottom friction: %e" % float(self.params["friction"])
+            except TypeError:
+                print "Bottom friction: %f - %f" %\
                     (self.params["friction"].vector().array().min(),
                      self.params["friction"].vector().array().max())
             print "Advection term: %s" % self.params["include_advection"]
-            print "Diffusion term: %s" % self.params["include_diffusion"]
+            print "Viscosity term: %s" % self.params["include_viscosity"]
             print "Steady state: %s" % self.params["steady_state"]
-            print "Friction term: %s" % ("quadratic" if self.params['quadratic_friction'] else "linear")
 
-            # Turbine settings 
+            # Turbine settings
             print "\n=== Turbine settings ==="
             print "Number of turbines: %i" % len(self.params["turbine_pos"])
-            print "Turbines parametrisation: %s" % self.params["turbine_parametrisation"]
+            print "Turbines parametrisation: %s" % \
+                  self.params["turbine_parametrisation"]
             if self.params["turbine_parametrisation"] == "individual":
-                print "Turbines dimensions: %f x %f" % (self.params["turbine_x"], self.params["turbine_y"])
+                print "Turbines dimensions: %f x %f" % \
+                    (self.params["turbine_x"], self.params["turbine_y"])
             print "Control parameters: %s" % ', '.join(self.params["controls"])
             if len(self.params["turbine_friction"]) > 0:
-                print "Turbines frictions: %f - %f" % (min(self.params["turbine_friction"]), max(self.params["turbine_friction"]))
+                print "Turbines frictions: %f - %f" % (
+                    min(self.params["turbine_friction"]),
+                    max(self.params["turbine_friction"]))
 
             # Discretisation settings
             print "\n=== Discretisation settings ==="
@@ -165,23 +174,24 @@ class DefaultConfiguration(object):
 
             # Optimisation settings
             print "\n=== Optimisation settings ==="
-            print "Automatic functional rescaling: %s" % self.params["automatic_scaling"]
+            print "Automatic functional rescaling: %s" % \
+                self.params["automatic_scaling"]
             if self.params["automatic_scaling"]:
-                print "Automatic functional rescaling multiplier: %s" % self.params["automatic_scaling_multiplier"]
-            print "Automatic checkpoint generation: %s" % self.params["save_checkpoints"]
+                print "Automatic functional rescaling multiplier: %s" % \
+                    self.params["automatic_scaling_multiplier"]
+            print "Automatic checkpoint generation: %s" % \
+                self.params["save_checkpoints"]
             print ""
 
-            # Solver settings
-            print "\n=== Solver settings ==="
-            print "Nonlinear solver: %s" % ("Newton" if self.params["newton_solver"] else "Picard")
-
-            # Other 
+            # Other
             print "\n=== Other ==="
             print "Dolfin version: %s" % dolfin.__version__
-            print "Cache forward solution for initial solver guess: %s" % self.params["cache_forward_state"]
+            print "Cache forward solution for initial solver guess: %s" % \
+                self.params["cache_forward_state"]
             print ""
 
-    def set_site_dimensions(self, site_x_start, site_x_end, site_y_start, site_y_end):
+    def set_site_dimensions(self, site_x_start, site_x_end, site_y_start,
+                            site_y_end):
         if not site_x_start < site_x_end or not site_y_start < site_y_end:
             raise ValueError("Site must have a positive area")
         self.domain.site_x_start = site_x_start
@@ -191,19 +201,19 @@ class DefaultConfiguration(object):
 
 
 class SteadyConfiguration(DefaultConfiguration):
-    def __init__(self, mesh_file, inflow_direction, finite_element=finite_elements.p2p1):
+    def __init__(self, mesh_file, inflow_direction,
+                 finite_element=finite_elements.p2p1):
 
-        super(SteadyConfiguration, self).__init__(finite_element=finite_element)
+        super(SteadyConfiguration, self).__init__(
+            finite_element=finite_element)
         # Model settings
         self.set_domain(GMeshDomain(mesh_file), warning=False)
         self.params['steady_state'] = True
         self.params['initial_condition'] = ConstantFlowInitialCondition(self)
         self.params['include_advection'] = True
-        self.params['include_diffusion'] = True
+        self.params['include_viscosity'] = True
         self.params['linear_divergence'] = False
-        self.params['diffusion_coef'] = 3.0
-        self.params['quadratic_friction'] = True
-        self.params['newton_solver'] = True
+        self.params['viscosity'] = 3.0
         self.params['friction'] = Constant(0.0025)
         self.params['theta'] = 1.0
 
@@ -233,8 +243,12 @@ class SteadyConfiguration(DefaultConfiguration):
 
 
 class UnsteadyConfiguration(SteadyConfiguration):
-    def __init__(self, mesh_file, inflow_direction, finite_element=finite_elements.p2p1, period=12. * 60 * 60, eta0=2.0):
-        super(UnsteadyConfiguration, self).__init__(mesh_file, inflow_direction, finite_element)
+    def __init__(self, mesh_file, inflow_direction,
+                 finite_element=finite_elements.p2p1, period=12. * 60 * 60,
+                 eta0=2.0):
+        super(UnsteadyConfiguration, self).__init__(mesh_file,
+                                                    inflow_direction,
+                                                    finite_element)
 
         # Switch to the unsteady shallow water equations
         self.params['steady_state'] = False
@@ -248,11 +262,15 @@ class UnsteadyConfiguration(SteadyConfiguration):
 
         # Initial condition
         k = 2 * pi / (period * sqrt(self.params['g'] * self.params['depth']))
-        self.params['initial_condition'] = SinusoidalInitialCondition(self, eta0, k, self.params['depth'])
+        self.params['initial_condition'] = SinusoidalInitialCondition(
+            self, eta0, k, self.params['depth'])
 
         # Boundary conditions
         bc = DirichletBCSet(self)
-        expression = Expression(("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0"), eta0=eta0, g=self.params["g"], depth=self.params["depth"], t=self.params["current_time"], k=k)
+        expression = Expression(
+            ("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0"),
+            eta0=eta0, g=self.params["g"], depth=self.params["depth"],
+            t=self.params["current_time"], k=k)
         bc.add_analytic_u(1, expression)
         bc.add_analytic_u(2, expression)
         bc.add_noslip_u(3)

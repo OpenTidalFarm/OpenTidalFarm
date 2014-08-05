@@ -14,7 +14,10 @@ However, finding the optimal layout is a difficult process due to the complex fl
 
 Following presentation gives a quick introduction to OpenTidalFarm:
 `OpenTidalFarm
-<https://www.slideboom.com/presentations/758051/OpenTidalFarm/>`_ 
+<https://www.slideboom.com/presentations/758051/OpenTidalFarm/>`_
+
+To download the source code or to report issues visit the `GitHub page
+<https://github.com/OpenTidalFarm/OpenTidalFarm>`_
 
 Contents:
 
@@ -26,6 +29,7 @@ Contents:
    features.rst
    installation.rst
    getting_started.rst
+   contributing.rst
 
 
 Indices and tables
@@ -53,10 +57,20 @@ For the automatic adjoint generation used by OpenTidalFarm, please cite:
 
 Patrick E. Farrell, David A. Ham, Simon W. Funke and Marie E. Rognes (2013). Automated derivation of the adjoint of high-level transient finite element programs. SIAM Journal on Scientific Computing, Vol:35, ISSN:1064-8275, Pages:C369-C393
 
-Contact
-=======
+Developer team and contribution
+===============================
 
-For questions and support please contact Simon Funke s.funke09@imperial.ac.uk
+OpenTidalFarm has been developed by 
+
+* Simon Funke, Simula Research Laboratory
+* Patrick Farrell, Oxford University
+* Matthew Piggott, Imperial College London
+* Stephan Kramer, Imperial College London
+* David Culley, Imperial College London
+* George Barnett, Imperial College London
+
+If you would like to contribute to the project, please send an email to simon@simula.no.
+
 
 Licence
 =======
@@ -81,7 +95,7 @@ Code documentation
    :members:
    :private-members:
    :special-members:
-   
+
 .. autoclass:: Turbines
    :members:
    :private-members:
