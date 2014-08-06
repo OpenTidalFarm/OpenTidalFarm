@@ -17,8 +17,7 @@ class MinimumDistanceConstraints(dolfin_adjoint.InequalityConstraint):
             http://dolfin-adjoint.org/documentation/api.html#dolfin_adjoint.InequalityConstraint
 
     """
-    def __init__(self, serialized_turbines, minimum_distance,
-                 friction_and_position_constraints_enabled):
+    def __init__(self, serialized_turbines, minimum_distance, controls):
         """Create MinimumDistanceConstraints
 
         :param serialized_turbines: The serialized turbine paramaterisation.
@@ -35,8 +34,7 @@ class MinimumDistanceConstraints(dolfin_adjoint.InequalityConstraint):
 
         self._turbines = serialized_turbines
         self._minimum_distance = minimum_distance
-        self._friction_and_position_constraints_enabled = \
-            friction_and_position_constraints_enabled
+        self._controls = controls
 
 
     def _sl2norm(self, x):
@@ -104,7 +102,7 @@ class MinimumDistanceConstraints(dolfin_adjoint.InequalityConstraint):
                     continue
 
                 # Need to add space for zeros for the friction
-                if self._friction_and_position_constraints_enabled:
+                if self._controls.position and self._controls.friction:
                     prime_inequality_constraints = numpy.zeros(len(m*3/2))
                     friction_length = len(m)/2
                 else:

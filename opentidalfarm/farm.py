@@ -19,19 +19,7 @@ class Farm(object):
         self.turbines = []
 
 
-    def only_position_constraints_enabled(self, serialized):
-        return len(serialized) == 2*len(self.turbines)
-
-
-    def only_friction_constraints_enabled(self, serialized):
-        return len(serialized) == len(self.turbines)
-
-
-    def friction_and_position_constraints_enabled(self, serialized):
-        return len(serialized) == 3*len(self.turbines)
-
-
-    def serialize(self, turbine_pos, turbine_friction):
+    def serialize(self, controls):
         """Returns the serialized paramaterisation of the turbines.
 
         :param turbine_pos: Specifies whether or not turbine_pos is a control
@@ -44,17 +32,17 @@ class Farm(object):
 
         """
         parameters = []
-        if turbine_friction:
+        if controls.friction:
             for turbine in self.turbines:
                 parameters.append(turbine.friction)
-        if turbine_pos:
+        if controls.position:
             for turbine in self.turbines:
                 parameters.append(turbine.x)
                 parameters.append(turbine.y)
         return np.array(parameters)
 
 
-    def deserialize(self, serialized):
+    def deserialize(self, serialized, controls):
         """Deserializes the current parameter set.
 
         :param serialized: Serialized turbine paramaterisation of length 1, 2,
@@ -63,18 +51,8 @@ class Farm(object):
         :raises: ValueError.
 
         """
-        # Work out what we are updating
-        both = len(serialized)==len(self.turbines)*3
-        turbine_pos =  len(serialized)==len(self.turbines)*2
-        turbine_friction = len(serialized)==len(self.turbines)
-
-        if not both and not turbine_friction and not turbine_pos:
-            raise ValueError("The parameter set is of the wrong length. It "
-                             "should be of length 1, 2, or 3 times the number "
-                             "of turbines.")
-
         # Turbine_friction and turbine_pos are control parameters
-        if both:
+        if controls.friction and controls.position:
             # Break up the input parameters into friction and tuples of
             # coordinates.
             friction = serialized[:len(serialized)/3]
@@ -87,11 +65,11 @@ class Farm(object):
                 self.turbines[i].coordinates = d[1]
 
         # Only turbine_friction is a control parameter.
-        elif turbine_friction:
+        elif controls.friction:
             for i, f in enumerate(serialized):
                 self.turbines[i].friction = f
         # Only the turbine_pos is a control parameter.
-        elif turbine_pos:
+        elif controls.position:
             for i in range(len(serialized)/2):
                 position = (serialized[2*i], serialized[2*i+1])
                 self.turbines[i].coordinates = position
@@ -122,17 +100,22 @@ class Farm(object):
         A rectangular turbine layout with turbines evenly spread out in each
         direction across the domain.
 
-        Args:
-            num_x: An int with the number of turbines placed in the x-direction.
-            num_y: An int with the number of turbines placed in the y-direction.
-            site_x_start: A float defining the minimum x-coordinate of the site
-                where turbines are to be placed.
-            site_x_end: A float defining the minimum x-coordinate of the site
-                where turbines are to be placed.
-            site_y_start: A float defining the minimum y-coordinate of the site
-                where turbines are to be placed.
-            site_y_end: A float defining the minimum y-coordinate of the site
-                where turbines are to be placed.
+        :param turbine: Defines the type of turbine to add to the farm.
+        :type turbine: Turbine object.
+        :param num_x: The number of turbines placed in the x-direction.
+        :type num_x: int
+        :param num_y: The number of turbines placed in the y-direction.
+        :type num_y: int
+        :param site_x_start: The minimum x-coordinate of the site.
+        :type site_x_start: float
+        :param site_x_end: The maximum x-coordinate of the site.
+        :type site_x_end: float
+        :param site_y_start: The minimum y-coordinate of the site.
+        :type site_y_start: float
+        :param site_y_end: The maximum y-coordinate of the site.
+        :type site_y_end: float
+        :raises: ValueError
+
         """
         # Create an empty list of turbines.
         turbines = []
@@ -173,23 +156,25 @@ class Farm(object):
 
 
 # TODO: testing and documentation
-# TODO: how does the farm know about the control parameters?
 
-    def minimum_distance_constraints(self, turbine_pos, turbine_friction):
-        """Returns an instance of MinimumDistanceConstraints."""
+    def minimum_distance_constraints(self, controls):
+        """Returns an instance of MinimumDistanceConstraints.
+
+        :param controls: The optimisation controls.
+        :type controls: Controls
+        :raises: ValueError
+        :returns: InequalityConstraint instance defining the minimum distance
+            between turbines.
+
+        """
         # Check we have some turbines.
         if len(self.turbines) == 0:
-            raise NotImplementedError("Turbines must be deployed before "
-                                      "minimum distance constraints can be "
-                                      "calculated.")
+            raise ValueError("Turbines must be deployed before minimum "
+                             "distance constraints can be calculated.")
 
-        m = self.serialize(turbine_pos, turbine_friction)
+        m = self.serialize(controls)
         minimum_distance = self.turbines[0].minimum_distance
-        friction_and_position_enabled = \
-                               self.friction_and_position_constraints_enabled(m)
-        return MinimumDistanceConstraints(m, minimum_distance,
-                                          friction_and_position_enabled)
-
+        return MinimumDistanceConstraints(m, minimum_distance, self._controls)
 
 
 class RectangularFarm(Farm):
@@ -240,8 +225,8 @@ class RectangularFarm(Farm):
     def add_regular_turbine_layout(self, turbine, num_x, num_y, x_start=None,
                                    x_end=None, y_start=None, y_end=None):
         # Get the documentation from the base function
-        self.__doc__ = \
-                super(RectangularFarm, self)._regular_turbine_layout.__doc__
+        self.add_regular_turbine_layout.__doc__ = (
+            super(RectangularFarm, self)._regular_turbine_layout.__doc__)
 
         # Get default parameters:
         if x_start is None: x_start = self.site_x_start
@@ -249,13 +234,8 @@ class RectangularFarm(Farm):
         if x_end is None: x_end = self.site_x_end
         if y_end is None: y_end = self.site_y_end
 
-        return super(RectangularFarm, self)._regular_turbine_layout(turbine,
-                                                                    num_x,
-                                                                    num_y,
-                                                                    x_start,
-                                                                    x_end,
-                                                                    y_start,
-                                                                    y_end)
+        return super(RectangularFarm, self)._regular_turbine_layout(
+            turbine, num_x, num_y, x_start, x_end, y_start, y_end)
 
 
     def site_boundary_constraints(self):
@@ -264,14 +244,11 @@ class RectangularFarm(Farm):
         These constraints ensure that the turbine positions remain within the
         turbine site during optimisation.
 
-        Returns:
-            A tuple of lists of length equal to the twice the number of turbines.
-            Each list contains dolfin_adjoint.Constant objects of the upper and
-            lower bound coordinates.
+        :raises: ValueError
+        :returns: Tuple of lists of length equal to the twice the number of
+            turbines. Each list contains dolfin_adjoint.Constant objects of the
+            upper and lower bound coordinates.
 
-        Raises:
-            ValueError: If there are no turbines deployed.
-            ValueError: If the lower bounds are larger than the upper bounds.
         """
         n_turbines = len(self.turbines)
         # Check we have deployed some turbines in the farm.
@@ -281,10 +258,10 @@ class RectangularFarm(Farm):
 
         largest_radius = max([t.radius for t in self.turbines])
         # Get the lower and upper bounds.
-        lower_x = self.site_x_start + largest_radius
-        lower_y = self.site_y_start + largest_radius
-        upper_x = self.site_x_end - largest_radius
-        upper_y = self.site_y_end - largest_radius
+        lower_x = self.site_x_start+largest_radius
+        lower_y = self.site_y_start+largest_radius
+        upper_x = self.site_x_end-largest_radius
+        upper_y = self.site_y_end-largest_radius
 
         # Check the site is large enough.
         if upper_x < lower_x or upper_y < lower_y:
