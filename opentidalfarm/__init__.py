@@ -27,6 +27,7 @@ from functionals import DefaultFunctional, PowerCurveFunctional
 from tidal import TidalForcing, BathymetryDepthExpression
 from turbine import Turbine
 from farm import RectangularFarm
+from controls import Controls
 
 from dolfin import *
 from dolfin_adjoint import minimize, maximize, Function, solve
