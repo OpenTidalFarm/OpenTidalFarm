@@ -8,7 +8,6 @@ from math import sqrt, pi
 from initial_conditions import *
 from domains import *
 from helpers import info, info_red, get_rank
-from functionals import DefaultFunctional
 import os
 
 

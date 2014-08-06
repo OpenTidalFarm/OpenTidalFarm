@@ -12,10 +12,11 @@ class Controls(object):
     desired control parameters.
 
     """
-    def __init__(self, position=False, friction=False):
+    def __init__(self, position=False, friction=False, dynamic_friction=False):
 
         self._controls = {"position": False,
-                          "friction": False}
+                          "friction": False,
+                          "dynamic_friction": False}
 
         def _process(key, value):
             """Check value is of type bool. Raise ValueError if it is not."""
@@ -31,6 +32,7 @@ class Controls(object):
         # Process the given values
         _process("position", position)
         _process("friction", friction)
+        _process("dynamic friction", dynamic_friction)
 
 
     def __str__(self):
@@ -66,3 +68,14 @@ class Controls(object):
         :type: bool
         """
         return self._controls["friction"]
+
+
+    @property
+    def dynamic_friction(self):
+        """Whether dynamic friction is enabled as a control parameter.
+
+        :getter: Returns True if dynamic friction is enabled as a control
+            parameter.
+        :type: bool
+        """
+        return self._controls["dynamic friction"]
