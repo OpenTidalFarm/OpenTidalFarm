@@ -15,7 +15,7 @@ from table import tabulate_data
 class Farm(object):
     """A base Farm class from which other Farm classes should be derived."""
     def __init__(self):
-        """Create the Farm."""
+        """Create an empty Farm."""
         self.turbines = []
 
 
@@ -95,7 +95,7 @@ class Farm(object):
 
     def _regular_turbine_layout(self, turbine, num_x, num_y, site_x_start,
             site_x_end, site_y_start, site_y_end):
-        """Generates a rectangular turbine layout.
+        """Adds a rectangular turbine layout to the farm.
 
         A rectangular turbine layout with turbines evenly spread out in each
         direction across the domain.
@@ -155,8 +155,6 @@ class Farm(object):
                                    "boundaries.")
 
 
-# TODO: testing and documentation
-
     def minimum_distance_constraints(self, controls):
         """Returns an instance of MinimumDistanceConstraints.
 
@@ -178,7 +176,24 @@ class Farm(object):
 
 
 class RectangularFarm(Farm):
+    """Extends :py:class:`Farm`. Defines a rectangular Farm.
+
+    This class holds the turbines within a rectangular site.
+
+    """
     def __init__(self, site_x_start, site_x_end, site_y_start, site_y_end):
+        """Initializes an empty rectangular farm with the given dimensions.
+
+        :param site_x_start: The minimum x-coordinate for the site.
+        :type site_x_start: float
+        :param site_x_end: The maximum x-coordinate for the site.
+        :type site_x_end: float
+        :param site_y_start: The minimum y-coordinate for the site.
+        :type site_y_start: float
+        :param site_y_end: The maximum y-coordinate for the site.
+        :type site_y_end: float
+
+        """
         # Initialize the base class
         super(RectangularFarm, self).__init__()
 
@@ -200,34 +215,68 @@ class RectangularFarm(Farm):
 
     @property
     def site_x_start(self):
-        """The smallest x-coordinate of the site"""
+        """The minimum x-coordinate of the site.
+
+        :getter: Returns the minimum x-coordinate of the site.
+        :type: float
+        """
         return self._site_x_start
 
 
     @property
     def site_y_start(self):
-        """The smallest y-coordinate of the site"""
+        """The minimum y-coordinate of the site.
+
+        :getter: Returns the minimum y-coordinate of the site.
+        :type: float
+        """
         return self._site_y_start
 
 
     @property
     def site_x_end(self):
-        """The largest x-coordinate of the site"""
+        """The maximum x-coordinate of the site.
+
+        :getter: Returns the maximum x-coordinate of the site.
+        :type: float
+        """
         return self._site_x_end
 
 
     @property
     def site_y_end(self):
-        """The largest y-coordinate of the site"""
+        """The maximum y-coordinate of the site.
+
+        :getter: Returns the maximum y-coordinate of the site.
+        :type: float
+        """
         return self._site_y_end
 
 
     def add_regular_turbine_layout(self, turbine, num_x, num_y, x_start=None,
                                    x_end=None, y_start=None, y_end=None):
-        # Get the documentation from the base function
-        self.add_regular_turbine_layout.__doc__ = (
-            super(RectangularFarm, self)._regular_turbine_layout.__doc__)
+        """Adds a rectangular turbine layout to the farm.
 
+        A rectangular turbine layout with turbines evenly spread out in each
+        direction across the given rectangular site.
+
+        :param turbine: Defines the type of turbine to add to the farm.
+        :type turbine: Turbine object.
+        :param num_x: The number of turbines placed in the x-direction.
+        :type num_x: int
+        :param num_y: The number of turbines placed in the y-direction.
+        :type num_y: int
+        :param x_start: The minimum x-coordinate of the site.
+        :type x_start: float
+        :param x_end: The maximum x-coordinate of the site.
+        :type x_end: float
+        :param y_start: The minimum y-coordinate of the site.
+        :type y_start: float
+        :param y_end: The maximum y-coordinate of the site.
+        :type y_end: float
+        :raises: ValueError
+
+        """
         # Get default parameters:
         if x_start is None: x_start = self.site_x_start
         if y_start is None: y_start = self.site_y_start
