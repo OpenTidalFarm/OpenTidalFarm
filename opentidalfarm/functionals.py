@@ -1,4 +1,4 @@
-from dolfin import dot, Constant
+from dolfin import dot, Constant, dx
 from parameter_dict import ParameterDictionary
 import shallow_water_model
 
@@ -61,7 +61,7 @@ class ScaledFunctional(GenericFunctional):
     
     def __init__(self, functional, scaling_factor):
         assert isinstance(functional, GenericFunctional) 
-        assert isinstance(scaling_factor, int) or isinstance(scaling_factor, int)
+        assert isinstance(scaling_factor, int) or isinstance(scaling_factor, float)
         self.functional = functional
         self.scaling_factor = scaling_factor
         
@@ -108,6 +108,7 @@ class PowerFunctional(GenericFunctional):
 
 class CostFunctional(GenericFunctional):
     ''' Implements a functional for computing the farm cost
+    TODO: doesn't really do anything at the minute
     '''
     def __init__(self, config):
         config.turbine_cache.update(config)
@@ -121,7 +122,8 @@ class CostFunctional(GenericFunctional):
         # Function spaces with polynomial degree >1 suffer from undershooting which can result in
         # negative cost values.
         if turbines.function_space().ufl_element().degree() > 1:
-            raise ValueError('Costing only works if the function space for the turbine friction has polynomial degree < 2.')
+            raise ValueError('Costing only works if the function space for \
+                    the turbine friction has polynomial degree < 2.')
         return Constant(self.params['cost_coef']) * turbines
 
     def Jt(self, state, tf):
@@ -131,58 +133,33 @@ class CostFunctional(GenericFunctional):
         ''' Computes the power output of the i'th turbine. '''
         tf = self.config.turbine_cache.cache['turbine_field_individual'][i]
         return self.cost_per_friction(tf) * self.config.site_dx(1)
-
-class TestFunctional(GenericFunctional):
-    
-    def __init__(self, config):
-        self.config = config
         
-    def Jt(self):
-        print 'Running'
-        return config
-
-###############################################################################
-
-class FunctionalPrototype(object):
-    ''' This prototype class should be overloaded for an actual functional implementation.  '''
-
-    def __init__(self):
-        raise NotImplementedError("FunctionalPrototyp.__init__ needs to be overloaded.")
-
-    def Jt(self):
-        ''' This function should return the form that computes the functional's contribution for one timelevel.'''
-        raise NotImplementedError("FunctionalPrototyp.__Jt__ needs to be overloaded.")
-
-
-class PowerCurveFunctional(FunctionalPrototype):
+        
+class PowerCurveFunctional(GenericFunctional):
     ''' Implements a functional for the power with a given power curve
-          J(u, m) = \int_\Omega power(u)
-        where m controls the strength of each turbine.
+    J(u, m) = \int_\Omega power(u)
+    where m controls the strength of each turbine.
+    TODO: doesn't work yet...
     '''
     def __init__(self, config):
-        ''' Constructs a new DefaultFunctional. The turbine settings are derived from the settings params. '''
+        ''' Constructs a new DefaultFunctional. The turbine settings are 
+        derived from the settings params. '''
         config.turbine_cache.update(config)
         self.config = config
-        # Create a copy of the parameters so that future changes will not affect the definition of this object.
+        # Create a copy of the parameters so that future changes will not 
+        # affect the definition of this object.
         self.params = ParameterDictionary(dict(config.params))
-        assert(self.params["turbine_thrust_parametrisation"] or self.params["implicit_turbine_thrust_parametrisation"])
+        assert(self.params["turbine_thrust_parametrisation"] or \
+               self.params["implicit_turbine_thrust_parametrisation"])
 
     def Jt(self, state, tf):
         up_u = state[3]  # Extract the upstream velocity
         #ux = state[0]
-
         def power_function(u):
-            # A simple power function implementation. Could be replaced with a polynomial approximation.
+            # A simple power function implementation. 
+            # Could be replaced with a polynomial approximation.
             fac = Constant(1.5e6 / (3 ** 3))
             return shallow_water_model.smooth_uflmin(1.5e6, fac * u ** 3)
 
         P = power_function(up_u) * tf / self.config.turbine_cache.turbine_integral() * dx
         return P
-
-if __name__ == '__main__':
-    config = 'test'    
-    a = TestFunctional(config)
-    b = TestFunctional(config)
-    print a    
-    c = a + b
-    print c
