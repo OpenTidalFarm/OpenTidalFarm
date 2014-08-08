@@ -1,0 +1,2 @@
+from reduced_functional import ReducedFunctional
+from shallow_water_reduced_functional import ShallowWaterReducedFunctional
