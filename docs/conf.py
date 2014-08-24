@@ -50,7 +50,7 @@ try:
 except ImportError:
     MOCK_MODULES = ['dolfin', 'dolfin_adjoint',
             'dolfin_adjoint.ReducedFunctionalNumPy', 'ufl',
-            'uptide', 'uptide.netcdf_reader', 'uptide.tidal_netcdf'] 
+            'uptide', 'uptide.netcdf_reader', 'uptide.tidal_netcdf', 'numpy'] 
     for mod_name in MOCK_MODULES:
         print "Generating mock module %s." % mod_name
         sys.modules[mod_name] = Mock()
