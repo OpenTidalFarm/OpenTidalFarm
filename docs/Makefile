@@ -53,7 +53,7 @@ build_examples:
 	bin/pylit.py $(EXAMPLES_IN)/scenario1/sw.py $(EXAMPLES_OUT)/scenario1/scenario1.rst
 
 auto_apidoc:
-	sphinx-apidoc -f -o . ../opentidalfarm/
+	sphinx-apidoc -T -f -o . ../opentidalfarm/
 
 clean:
 	rm -rf $(BUILDDIR)/*
