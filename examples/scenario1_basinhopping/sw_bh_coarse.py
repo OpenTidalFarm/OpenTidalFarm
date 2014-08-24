@@ -114,7 +114,7 @@ depth_pvd << depth
 # Set the depth in the config
 config.params["depth"] = depth
 
-rf = ReducedFunctional(config, plot=True)
+rf = ReducedFunctional(config)
 lb, ub = position_constraints(config) 
 
 # set some parameters for basinhoppings local minimizer
