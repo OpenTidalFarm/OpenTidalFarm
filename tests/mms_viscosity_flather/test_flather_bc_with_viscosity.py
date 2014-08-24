@@ -31,7 +31,8 @@ class TestFlatherBoundaryConditionsWithViscosity(object):
                             k=k, viscosity=config.params["viscosity"])
 
         adj_reset()
-        shallow_water_model.sw_solve(config, state, annotate=False,
+        solver = ShallowWaterSolver(config)
+        solver.solve(state, annotate=False,
                                      u_source=source)
 
         analytic_sol = Expression((u_exact,

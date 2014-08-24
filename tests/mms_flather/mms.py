@@ -31,7 +31,8 @@ def compute_error(config, eta0, k):
                         friction=config.params["friction"])
 
     # Run the shallow water model
-    shallow_water_model.sw_solve(config, state, annotate=False,
+    solver = ShallowWaterSolver(config)
+    solver.solve(state, annotate=False,
                                  u_source=source)
 
     # Compare the difference to the analytical solution

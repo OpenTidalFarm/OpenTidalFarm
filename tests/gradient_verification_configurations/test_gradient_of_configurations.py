@@ -63,7 +63,9 @@ class TestConfigurations(object):
         config.set_turbine_pos(turbine_pos, friction=1.0)
         log(INFO, "Deployed " + str(len(turbine_pos)) + " turbines.")
 
-        model = ReducedFunctional(config, scale = 10**-6)
+        solver = ShallowWaterSolver(config)
+
+        model = ReducedFunctional(config, solver, scale=10**-6)
         m0 = model.initial_control()
 
         p = numpy.random.rand(len(m0))

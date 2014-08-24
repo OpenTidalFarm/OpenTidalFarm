@@ -27,6 +27,3 @@ def pytest_runtest_setup(item):
 
     # Reset adjoint state
     dolfin_adjoint.adj_reset()
-
-    # Clear state cache of SWE solver
-    opentidalfarm.shallow_water_model.state_cache = {}

@@ -44,7 +44,9 @@ class TestCheckpoint(object):
         config.info()
         friction0 = config.params["turbine_friction"]
 
-        rf = ReducedFunctional(config, forward_model = mini_model.mini_model_solve)
+        solver = DummySolver(config)
+
+        rf = ReducedFunctional(config, solver)
         bounds = [0, 100]
         
         # First optimize without checkpoints

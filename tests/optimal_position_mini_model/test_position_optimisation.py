@@ -36,7 +36,8 @@ class TestPositionOptimisation(object):
 
     def test_optimisation_recovers_optimal_position(self):
         config = self.default_config()
-        rf = ReducedFunctional(config, forward_model=mini_model_solve)
+        solver = DummySolver(config)
+        rf = ReducedFunctional(config, solver)
         m0 = rf.initial_control()
 
         config.info()

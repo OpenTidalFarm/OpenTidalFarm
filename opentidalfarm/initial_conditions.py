@@ -53,18 +53,9 @@ def BumpInitialCondition(config):
             values[0] = self.bump_function([x_unit, y_unit])
             values[1] = 0
             values[2] = 0
-            if config.params['turbine_thrust_parametrisation']:
-                values[3] = 0.
-            if config.params['implicit_turbine_thrust_parametrisation']:
-                values[4] = 0.
 
         def value_shape(self):
-            if config.params['implicit_turbine_thrust_parametrisation']:
-                return (5,)
-            elif config.params['turbine_thrust_parametrisation']:
-                return (4,)
-            else:
-                return (3,)
+            return (3,)
 
     return BumpExpr()
 
@@ -75,17 +66,8 @@ def ConstantFlowInitialCondition(config, val=[1e-19, 0, 0, 0]):
             values[0] = val[0]
             values[1] = val[1]
             values[2] = val[2]
-            if config.params['turbine_thrust_parametrisation']:
-                values[3] = val[3]
-            if config.params['implicit_turbine_thrust_parametrisation']:
-                values[4] = 0.
 
         def value_shape(self):
-            if config.params['implicit_turbine_thrust_parametrisation']:
-                return (5,)
-            elif config.params['turbine_thrust_parametrisation']:
-                return (4,)
-            else:
-                return (3,)
+            return (3,)
 
     return ConstantFlow()

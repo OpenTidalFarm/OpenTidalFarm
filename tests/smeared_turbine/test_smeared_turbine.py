@@ -54,7 +54,8 @@ class TestSmearedTurbine(object):
         site.mark(d, 1)
         config.site_dx = Measure("dx")[d]
 
-        rf = ReducedFunctional(config)
+        solver = ShallowWaterSolver(config)
+        rf = ReducedFunctional(config, solver)
         # Ensure the same seed value accross all CPUs
         numpy.random.seed(33)
         m0 = numpy.random.rand(len(rf.initial_control()))

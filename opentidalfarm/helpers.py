@@ -7,11 +7,30 @@ import dolfin
 import os.path
 
 
+def norm_approx(u, alpha=1e-4):
+    """ A smooth approximation to ||u|| with
+
+    sqrt(u**2 + alpha**2)
+
+    :param u: The coefficient.
+    :param alpha: The approximation coefficient.
+    :returns: ufl expression -- the approximate norm of u.
+
+    """
+    return sqrt(inner(u, u) + alpha**2)
+
+
+def smooth_uflmin(a, b, alpha=1e-8):
+    return a - (norm_approx(a - b, alpha=alpha) + a - b) / 2
+
+
 def get_rank():
-    if dolfin.__version__ >= '1.3.0+':
-        rank = MPI.rank(mpi_comm_world())
-    else:
-        rank = MPI.process_number()
+    """ The processor number.
+
+    :returns: int -- The processor number.
+
+    """
+    rank = MPI.rank(mpi_comm_world())
 
     return rank
 

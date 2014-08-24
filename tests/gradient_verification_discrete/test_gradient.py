@@ -57,7 +57,8 @@ def model(controls):
     config.params["turbine_x"] = 400
     config.params["turbine_y"] = 400
   
-    rf = ReducedFunctional(config)
+    solver = ShallowWaterSolver(config)
+    rf = ReducedFunctional(config, solver)
     return rf
 
 class TestDiscreteTurbine(object):

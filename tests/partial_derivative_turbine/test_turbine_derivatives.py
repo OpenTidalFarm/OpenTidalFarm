@@ -85,7 +85,8 @@ class TestTurbineDerivatives(object):
     def test_turbine_derivatives_passes_taylor_test(self):
         # run the taylor remainder test
         config = self.default_config()
-        m0 = ReducedFunctional(config).initial_control()
+        solver = ShallowWaterSolver(config)
+        m0 = ReducedFunctional(config, solver).initial_control()
 
         j = lambda m, forward_only = False: self.j_and_dj(config, m, forward_only)[0]
         dj = lambda m, forget: self.j_and_dj(config, m, forward_only=False)[1]

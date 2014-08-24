@@ -1,6 +1,6 @@
 from turbines import *
 from parameter_dict import ParameterDictionary
-import shallow_water_model
+from helpers import smooth_uflmin
 
 
 class FunctionalPrototype(object):
@@ -66,7 +66,6 @@ class PowerCurveFunctional(FunctionalPrototype):
         self.config = config
         # Create a copy of the parameters so that future changes will not affect the definition of this object.
         self.params = ParameterDictionary(dict(config.params))
-        assert(self.params["turbine_thrust_parametrisation"] or self.params["implicit_turbine_thrust_parametrisation"])
 
     def Jt(self, state, tf):
         up_u = state[3]  # Extract the upstream velocity
@@ -75,7 +74,7 @@ class PowerCurveFunctional(FunctionalPrototype):
         def power_function(u):
             # A simple power function implementation. Could be replaced with a polynomial approximation.
             fac = Constant(1.5e6 / (3 ** 3))
-            return shallow_water_model.smooth_uflmin(1.5e6, fac * u ** 3)
+            return smooth_uflmin(1.5e6, fac * u ** 3)
 
         P = power_function(up_u) * tf / self.config.turbine_cache.turbine_integral() * dx
         return P

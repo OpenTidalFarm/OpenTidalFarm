@@ -47,8 +47,6 @@ class DefaultConfiguration(object):
             'turbine_y': 5.,
             'turbine_friction': [],
             'cost_coef': 0.,
-            'turbine_thrust_parametrisation': False,
-            'implicit_turbine_thrust_parametrisation': False,
             'rho': 1000.,  # Use the density of water: 1000kg/m^3
             'controls': ['turbine_pos', 'turbine_friction'],
             'solver_parameters': None,

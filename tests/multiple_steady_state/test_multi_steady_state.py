@@ -62,7 +62,8 @@ class TestMultiSteadyState(object):
         deploy_turbines(config, nx=8, ny=4)
         config.info()
 
-        rf = ReducedFunctional(config)
+        solver = ShallowWaterSolver(config)
+        rf = ReducedFunctional(config, solver)
         m0 = rf.initial_control()
         p = numpy.random.rand(len(m0))
         seed = 0.1

@@ -36,7 +36,9 @@ class TestDynamicTurbineControl(object):
 
         config.params["turbine_friction"] = [config.params["turbine_friction"]]*3
 
-        rf = ReducedFunctional(config, scale = 10**-6)
+        solver = ShallowWaterSolver(config)
+
+        rf = ReducedFunctional(config, solver, scale=10**-6)
         m0 = rf.initial_control()
 
         rf.j(m0)

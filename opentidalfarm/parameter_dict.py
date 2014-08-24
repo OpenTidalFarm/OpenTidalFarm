@@ -37,8 +37,6 @@ class ParameterDictionary(dict):
             'turbine_x': 'turbine extension in the x direction',
             'turbine_y': 'turbine extension in the y direction',
             'turbine_friction': 'turbine friction',
-            'turbine_thrust_parametrisation': 'parametrise the turbine based on speed/thrust and speed/power functions. If False, the turbines are parametrised as increased friction.',
-            'implicit_turbine_thrust_parametrisation': 'implicitly parametrise the turbine based on speed/thrust and speed/power functions. If False, the turbines are parametrised as increased friction.',
             'rho': 'the density of the fluid',
             'controls': 'a list of the control variables. Valid list values: "turbine_pos" for the turbine position, "turbine_friction" for the friction of the turbine',
             'postsolver_callback': 'a function which is called after each solve',

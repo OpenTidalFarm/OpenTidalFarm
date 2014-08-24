@@ -1,11 +1,17 @@
 from dolfin import *
 from dolfin_adjoint import *
+from solver import Solver
 
 
-class MiniModel:
-    def __init__(self, config, turbine_field, functional=None, annotate=True):
-        (v, q) = TestFunctions(config.function_space)
-        (u, h) = TrialFunctions(config.function_space)
+class DummySolver(Solver):
+
+    def __init__(self, config):
+        self.config = config
+        self.tf = None
+
+    def setup(self, turbine_field, functional=None, annotate=True):
+        (v, q) = TestFunctions(self.config.function_space)
+        (u, h) = TrialFunctions(self.config.function_space)
 
         # Mass matrices
         self.M = inner(v, u) * dx
@@ -18,12 +24,14 @@ class MiniModel:
 
         self.annotate = annotate
         self.functional = functional
-        self.config = config
 
-    def __call__(self, state):
+    def solve(self, state, turbine_field, functional=None, annotate=True,
+            linear_solver="default", preconditioner="default", u_source=None):
         '''Solve (1+turbine)*M*state = M*old_state.
            The solution is a x-velocity of old_state/(turbine_friction + 1) and a zero pressure value y-velocity.
         '''
+
+        self.setup(turbine_field, functional, annotate)
 
         params = self.config.params
         if functional is not None and not params["functional_final_time_only"]:
@@ -47,8 +55,3 @@ class MiniModel:
             else:
                 j += 0.5 * assemble(params["dt"] * self.functional.Jt(state, self.tf))
             return j
-
-
-def mini_model_solve(config, state, turbine_field, functional=None, annotate=True, linear_solver="default", preconditioner="default", u_source=None):
-    mini_model = MiniModel(config, turbine_field, functional, annotate)
-    return mini_model(state)

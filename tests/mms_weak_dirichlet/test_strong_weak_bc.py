@@ -19,7 +19,8 @@ class TestWeakDirichletBoundaryConditions(object):
         state.assign(ic, annotate=False)
 
         adj_reset()
-        shallow_water_model.sw_solve(config, state, annotate=False)
+        solver = ShallowWaterSolver(config)
+        solver.solve(state, annotate=False)
 
         analytic_sol = Expression(
             ("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0",

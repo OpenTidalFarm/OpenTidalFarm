@@ -41,7 +41,10 @@ class TestFrictionOptimisation(object):
 
     def test_optimisation_recovers_optimal_friction(self):
         config = self.default_config()
-        rf = ReducedFunctional(config, scale = 1e-3, forward_model=mini_model.mini_model_solve)
+
+        solver = DummySolver(config)
+
+        rf = ReducedFunctional(config, solver, scale=1e-3)
         m0 = rf.initial_control()
         rf(m0)
         rf.dj(m0, forget=False)

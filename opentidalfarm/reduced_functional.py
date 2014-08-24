@@ -1,22 +1,25 @@
 import numpy
 import memoize
-import shallow_water_model as sw_model
 import helpers
 import sys
 import dolfin_adjoint
 from dolfin import *
 from dolfin_adjoint import *
 from turbines import *
-from helpers import info_green, info_red, info_blue
+from solvers import Solver
 import os.path
 
 
 class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
 
-    def __init__(self, config, scale=1.0, forward_model=sw_model.sw_solve,
+    def __init__(self, config, solver, scale=1.0,
                  save_functional_values=False):
         ''' scale is ignored if automatic_scaling is active. '''
         # Hide the configuration since changes would break the memoize algorithm.
+
+        if not isinstance(solver, Solver):
+            raise ValueError, "solver must be of type Solver."
+
         self.__config__ = config
         self.scale = scale
         self.automatic_scaling_factor = None
@@ -77,12 +80,7 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
                                 snaps_on_disk=snaps_on_disk, snaps_in_ram=snaps_in_ram, verbose=verbose)
 
             # Get initial conditions
-            if config.params["implicit_turbine_thrust_parametrisation"]:
-                state = Function(config.function_space_2enriched, name="Current_state")
-            elif config.params["turbine_thrust_parametrisation"]:
-                state = Function(config.function_space_enriched, name="Current_state")
-            else:
-                state = Function(config.function_space, name="Current_state")
+            state = Function(config.function_space, name="Current_state")
 
             if config.params["steady_state"] and config.params["include_time_term"] and self.last_state is not None:
                 # Speed up the nonlinear solves by starting the Newton solve with the most recent state solution
@@ -93,7 +91,7 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
 
             # Solve the shallow water system
             functional = config.functional(config)
-            j = forward_model(config, state, functional=functional, turbine_field=tf, annotate=annotate)
+            j = solver.solve(state, functional=functional, turbine_field=tf, annotate=annotate)
             self.last_state = state
 
             return j
@@ -110,11 +108,8 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
 
             # Output power
             if config.params['output_turbine_power']:
-                if config.params['turbine_thrust_parametrisation'] or config.params["implicit_turbine_thrust_parametrisation"] or "dynamic_turbine_friction" in config.params["controls"]:
-                    info_red("Turbine power VTU's is not yet implemented with thrust based turbines parameterisations and dynamic turbine friction control.")
-                else:
-                    turbines = self.__config__.turbine_cache.cache["turbine_field"]
-                    self.power_file << project(functional.power(state, turbines), config.turbine_function_space, annotate=False)
+                turbines = self.__config__.turbine_cache.cache["turbine_field"]
+                self.power_file << project(functional.power(state, turbines), config.turbine_function_space, annotate=False)
 
             # The functional depends on the turbine friction function which we do not have on scope here.
             # But dolfin-adjoint only cares about the name, so we can just create a dummy function with the desired name.
@@ -251,7 +246,7 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
 
     def j(self, m, annotate=True):
         ''' This memoised function returns the functional value for the parameter choice m. '''
-        info_green('Start evaluation of j')
+        log(INFO, 'Start evaluation of j')
         timer = dolfin.Timer("j evaluation")
         j = self.compute_functional_mem(m, annotate=annotate)
         timer.stop()
@@ -259,14 +254,14 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
         if self.__config__.params["save_checkpoints"]:
             self.save_checkpoint("checkpoint")
 
-        info_blue('Runtime: ' + str(timer.value()) + " s")
-        info_green('j = ' + str(j))
+        log(INFO, 'Runtime: ' + str(timer.value()) + " s")
+        log(INFO, 'j = ' + str(j))
         self.last_j = j
 
         if self.__config__.params['automatic_scaling']:
             if not self.automatic_scaling_factor:
                 # Computing dj will set the automatic scaling factor.
-                info_blue("Computing derivative to determine the automatic scaling factor")
+                log(INFO, "Computing derivative to determine the automatic scaling factor")
                 self.dj(m, forget=False, optimisation_iteration=False)
             return j * self.scale * self.automatic_scaling_factor
         else:
@@ -274,7 +269,7 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
 
     def dj(self, m, forget, optimisation_iteration=True):
         ''' This memoised function returns the gradient of the functional for the parameter choice m. '''
-        info_green('Start evaluation of dj')
+        log(INFO, 'Start evaluation of dj')
         timer = dolfin.Timer("dj evaluation")
         dj = self.compute_gradient_mem(m, forget)
 
@@ -289,7 +284,7 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
                 if self.compute_gradient_mem.has_cache(m, forget):
                     self.update_turbine_cache(m)
                 if "dynamic_turbine_friction" in self.__config__.params["controls"]:
-                    info_red("Turbine VTU output not yet implemented for dynamic turbine control")
+                    log(WARNING, "Turbine VTU output not yet implemented for dynamic turbine control")
                 else:
                     self.turbine_file << self.__config__.turbine_cache.cache["turbine_field"]
                     # Compute the total amount of friction due to turbines
@@ -319,10 +314,10 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
                 raise ValueError("Automatic scaling failed: The gradient at the parameter point is zero")
             else:
                 self.automatic_scaling_factor = abs(self.__config__.params['automatic_scaling_multiplier'] * max(self.__config__.params['turbine_x'], self.__config__.params['turbine_y']) / djl2 / self.scale)
-                info_blue("The automatic scaling factor was set to " + str(self.automatic_scaling_factor * self.scale) + ".")
+                log(INFO, "The automatic scaling factor was set to " + str(self.automatic_scaling_factor * self.scale) + ".")
 
-        info_blue('Runtime: ' + str(timer.stop()) + " s")
-        info_green('|dj| = ' + str(numpy.linalg.norm(dj)))
+        log(INFO, 'Runtime: ' + str(timer.stop()) + " s")
+        log(INFO, '|dj| = ' + str(numpy.linalg.norm(dj)))
 
         if self.__config__.params['automatic_scaling']:
             return dj * self.scale * self.automatic_scaling_factor
@@ -332,14 +327,14 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
     def dj_with_check(self, m, seed=0.1, tol=1.8, forget=True):
         ''' This function checks the correctness and returns the gradient of the functional for the parameter choice m. '''
 
-        info_red("Checking derivative at m = " + str(m))
+        log(INFO, "Checking derivative at m = " + str(m))
         p = numpy.random.rand(len(m))
         minconv = helpers.test_gradient_array(self.j, self.dj, m, seed=seed, perturbation_direction=p)
         if minconv < tol:
-            info_red("The gradient taylor remainder test failed.")
+            log(ERROR, "The gradient taylor remainder test failed.")
             sys.exit(1)
         else:
-            info_green("The gradient taylor remainder test passed.")
+            log(INFO, "The gradient taylor remainder test passed.")
 
         return self.dj(m, forget)
 
