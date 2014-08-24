@@ -1,14 +1,12 @@
 Developer team
 ===============================
 
-OpenTidalFarm has been developed by 
+OpenTidalFarm is developed by 
 
-* Simon Funke, Simula Research Laboratory
-* Patrick Farrell, Oxford University
-* Matthew Piggott, Imperial College London
-* Stephan Kramer, Imperial College London
-* David Culley, Imperial College London
+* `Simon Funkes <http://www.simonfunke.com>`_, Simula Research Laboratory
+* `Patrick Farrell <https://www.maths.ox.ac.uk/contact/details/farrellp>`_, Oxford University
+* `Matthew Piggott <http://www3.imperial.ac.uk/people/m.d.piggott>`_, Imperial College London
+* `Stephan Kramer <http://www3.imperial.ac.uk/people/s.kramer>`_, Imperial College London
+* `David Culley <http://www3.imperial.ac.uk/people/d.culley13>`_, Imperial College
+  London
 * George Barnett, Imperial College London
-
-If you would like to contribute to the project, please send an email to simon@simula.no.
-
