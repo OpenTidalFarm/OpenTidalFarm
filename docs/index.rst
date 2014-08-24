@@ -30,15 +30,10 @@ Contents
    getting_started
    examples
    contributing
+   genindex
+   modindex
+   search
 
-Explained demos applications
-----------------------------
-
-.. toctree::
-   :maxdepth: 2
-   :numbered:
-
-   examples/scenario1/scenario1
 
 Code documentation
 ------------------

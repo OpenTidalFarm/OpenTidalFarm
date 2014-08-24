@@ -3,6 +3,12 @@
 Examples
 ========
 
+.. toctree::
+   :maxdepth: 2
+   :numbered:
+
+   examples/scenario1/scenario1
+
 This page contains examples of OpenTidaFarm applied to arrays:
 
 - `Optimisation of 32 turbines in an idealised tidal stream`_
