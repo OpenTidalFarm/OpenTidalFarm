@@ -15,16 +15,47 @@
 import sys
 import os
 
- 
 # Our make file calls sphinx-apidoc, but read-the-docs uses our config instead
 # (so it skips that step). Calling apidoc here instead if we're being built
 # there.
-
 on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
-
 if on_rtd:
     os.system("sphinx-apidoc -f -o . ../opentidalfarm")
 
+ 
+# No need to install dolfin to generate the docs
+class Mock(object):
+
+    __all__ = []
+
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def __call__(self, *args, **kwargs):
+        return Mock()
+
+    @classmethod
+    def __getattr__(cls, name):
+        if name in ('__file__', '__path__'):
+            return '/dev/null'
+        elif name[0] == name[0].upper():
+            mockType = type(name, (), {})
+            mockType.__module__ = __name__
+            return mockType
+        else:
+            return Mock()
+
+try:
+    import dolfin
+except ImportError:
+    MOCK_MODULES = ['dolfin', 'dolfin_adjoint',
+            'dolfin_adjoint.ReducedFunctionalNumPy', 'ufl',
+            'uptide', 'uptide.netcdf_reader', 'uptide.tidal_netcdf'] 
+    for mod_name in MOCK_MODULES:
+        print "Generating mock module %s." % mod_name
+        sys.modules[mod_name] = Mock()
+
+#
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.

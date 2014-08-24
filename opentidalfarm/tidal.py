@@ -1,3 +1,5 @@
+from dolfin import Expression  # Keep readthedocs happy
+
 from dolfin import *
 from dolfin_adjoint import *
 from helpers import print0
