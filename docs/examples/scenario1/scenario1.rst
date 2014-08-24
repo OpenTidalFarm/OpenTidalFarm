@@ -1,4 +1,21 @@
-..  from opentidalfarm import *
+..  #!/usr/bin/env python
+  # -*- coding: utf-8 -*-
+  
+.. _scenario1:
+
+.. py:currentmodule:: opentidalfarm
+
+Layout optimisation of 32 turbines in a simple channel
+======================================================
+
+
+Background
+**********
+
+
+::
+
+  from opentidalfarm import *
   set_log_level(INFO)
   
   # Some domain information extracted from the geo file

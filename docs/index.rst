@@ -9,7 +9,6 @@ Welcome to OpenTidalFarm's documentation!
 OpenTidalFarm is a layout optimisation software for tidal turbine farms.
 
 The positioning of the turbines in a tidal farm is a crucial decision. Simulations show that the optimal positioning can increase the power generation of the farm by up to 50% and can therefore determine the viability of a project.
-
 However, finding the optimal layout is a difficult process due to the complex flow interactions. OpenTidalFarm solves this problem by applying an efficient optimisation algorithm onto a accurate flow prediction model.
 
 Following presentation gives a quick introduction to OpenTidalFarm:
@@ -19,20 +18,30 @@ Following presentation gives a quick introduction to OpenTidalFarm:
 To download the source code or to report issues visit the `GitHub page
 <https://github.com/OpenTidalFarm/OpenTidalFarm>`_
 
-Contents:
+Contents
+--------
 
 .. toctree::
    :maxdepth: 2
    :numbered:
 
-   examples.rst
-   features.rst
-   installation.rst
-   getting_started.rst
-   contributing.rst
+   installation
+   features
+   getting_started
+   examples
+   contributing
+
+Explained demos applications
+----------------------------
+
+.. toctree::
+   :maxdepth: 2
+   :numbered:
+
+   examples/scenario1/scenario1
 
 Code documentation
-==================
+------------------
 
 * :ref:`genindex`
 * :ref:`modindex`
@@ -45,17 +54,27 @@ Citing
 
 Please cite the following paper if you are using OpenTidalFarm:
 
-S.W. Funke, P.E. Farrell, M.D. Piggott, Tidal turbine array optimisation using the adjoint approach, Renewable Energy, accepted (2013) `arXiv:1304.1768
-<http://arxiv.org/abs/1304.1768>`_
+* **S.W. Funke, P.E. Farrell, M.D. Piggott (2014)**.
+    *Tidal turbine array optimisation using the adjoint approach*
+    Renewable Energy, 63, pp. 658-673.
+    `doi:10.1016/j.renene.2013.09.031
+    <http://dx.doi.org/10.1016/j.renene.2013.09.031>`__.
+    `arXiv:1304.1768 <http://arxiv.org/abs/1304.1768>`__ [cs.MS].
+    [`PDF <http://arxiv.org/pdf/1304.1768v2.pdf>`__].
 
 For the automated optimisation framework used by OpenTidalFarm, please cite:
 
-Simon W. Funke and Patrick E. Farrell. A framework for automated PDE-constrained optimisation, TOMS, submitted. `arXiv:1302.3894
-<http://arxiv.org/abs/1302.3894>`_
+* **Simon W. Funke and Patrick E. Farrell (2013)**.                                                                                                                                                                                            
+    *A framework for automated PDE-constrained optimisation*,
+    submitted. arXiv:1302.3894 [cs.MS]
+    [`PDF <http://arxiv.org/pdf/1211.6989v2>`__].
 
 For the automatic adjoint generation used by OpenTidalFarm, please cite:
 
-Patrick E. Farrell, David A. Ham, Simon W. Funke and Marie E. Rognes (2013). Automated derivation of the adjoint of high-level transient finite element programs. SIAM Journal on Scientific Computing, Vol:35, ISSN:1064-8275, Pages:C369-C393
+* **Patrick E. Farrell, Colin J. Cotter and Simon W. Funke (2014)**.
+  *A framework for the automation of generalised stability theory*,
+  SIAM Journal on Scientific Computing 36.1, pp. C25--C48. `doi:10.1137/120900745 <http://dx.doi.org/10.1137/120900745>`__. `arXiv:1211.6989 <http://arxiv.org/abs/1211.6989>`__ [cs.MS].
+  [`PDF <../_static/gst.pdf>`__].
 
 Developer team and contribution
 ===============================

@@ -1,15 +1,6 @@
 Getting started 
 ========================
 
-Other Scenarios:
-
-.. toctree::
-   :maxdepth: 2
-   
-   /examples/scenario1.rst
-
-
-
 Following example code shows how to optimise the position of 32 turbines in a mesh of the Orkney islands.
 
 .. literalinclude:: getting_started.py
