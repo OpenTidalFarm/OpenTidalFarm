@@ -34,9 +34,9 @@ The installation consists of following steps:
    where ``XYZ`` should be replaced with the path to your OpenTidalFarm installation. 
 
 .. _Ubuntu: http://www.ubuntu.com/
-.. _FEniCS project >=1.2: http://fenicsproject.org/download/
+.. _FEniCS: http://fenicsproject.org/download/
 .. _dolfin-adjoint: http://dolfin-adjoint.org/download/index.html
-.. _SciPy Version >=0.11: https://github.com/scipy/scipy
+.. _SciPy >=0.11: https://github.com/scipy/scipy
 .. _Uptide: https://github.com/stephankramer/uptide
 .. _UTM: https://pypi.python.org/pypi/utm
 .. _Download OpenTidalFarm: https://github.com/funsim/OpenTidalFarm/zipball/master
