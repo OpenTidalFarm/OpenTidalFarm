@@ -52,10 +52,13 @@ EXAMPLES_OUT = examples
 build_examples:
 	bin/pylit.py $(EXAMPLES_IN)/scenario1/sw.py $(EXAMPLES_OUT)/scenario1/scenario1.rst
 
+auto_apidoc:
+	sphinx-apidoc -f -o . ../opentidalfarm/
+
 clean:
 	rm -rf $(BUILDDIR)/*
 
-html: build_examples
+html: build_examples auto_apidoc
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."

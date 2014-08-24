@@ -31,13 +31,13 @@ Contents:
    getting_started.rst
    contributing.rst
 
-
-Indices and tables
+Code documentation
 ==================
 
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
+
 
 ======
 Citing
@@ -78,51 +78,4 @@ Licence
 OpenTidalFarm is an open source project that can be freely used under the `GNU GPL version 3 licence`_.
 
 .. _GNU GPL version 3 licence: http://www.gnu.org/licenses/gpl.html
-
-Code documentation
-==================
-
-.. automodule:: opentidalfarm
-   :members:
-   :undoc-members:
-
-.. autoclass:: TidalForcing
-   :members:
-   :private-members:
-   :special-members:
-
-.. autoclass:: BathymetryDepthExpression
-   :members:
-   :private-members:
-   :special-members:
-
-.. autoclass:: Turbines
-   :members:
-   :private-members:
-   :special-members:
-
-.. autoclass:: TurbineCache
-   :members:
-   :private-members:
-   :special-members:
-
-.. autoclass:: ReducedFunctionalNumPy
-   :members:
-   :private-members:
-   :special-members:
-
-.. autoclass:: FunctionalPrototype
-   :members:
-   :private-members:
-   :special-members:
-
-.. autoclass:: DefaultFunctional
-   :members:
-   :private-members:
-   :special-members:
-
-.. autoclass:: PowerCurveFunctional
-   :members:
-   :private-members:
-   :special-members:
 
