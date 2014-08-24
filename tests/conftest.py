@@ -4,6 +4,7 @@ import pytest
 import dolfin
 import dolfin_adjoint
 import opentidalfarm
+from fixtures import sw_problem_parameters
 
 # Automatically parallelize over all cpus
 def pytest_cmdline_preparse(args):

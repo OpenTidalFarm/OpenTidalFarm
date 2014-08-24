@@ -17,13 +17,15 @@ from opentidalfarm import *
 set_log_level(INFO)
 
 # Some domain information extracted from the geo file
+inflow_direction = [1, 0]
 basin_x = 640.
 basin_y = 320.
 site_x = 320.
 site_y = 160.
 site_x_start = (basin_x - site_x)/2
 site_y_start = (basin_y - site_y)/2 
-config = SteadyConfiguration("mesh_coarse.xml", inflow_direction=[1, 0])
+config = SteadyConfiguration("mesh_coarse.xml",
+        inflow_direction=inflow_direction)
 config.set_site_dimensions(site_x_start, site_x_start + site_x, site_y_start,
                            site_y_start + site_y)
 
@@ -32,14 +34,17 @@ deploy_turbines(config, nx=8, ny=4)
 
 config.info()
 
-#problem = ShallowWaterProblem(domain=..., time_start=, time_end=, bcs=)
+parameters = SteadyShallowWaterProblem.default_parameters()
 
-#solver = CoupledSolver(problem)
+bc = DirichletBCSet(config)
+bc.add_constant_flow(1, 2.0 + 1e-10, direction=inflow_direction)
+bc.add_analytic_eta(2, 0.0)
+parameters["strong_bc"] = bc
 
-#functional = PowerFunctional()
+problem = SteadyShallowWaterProblem(parameters)
 
-solver = ShallowWaterSolver(config=config)
-
+parameters = ShallowWaterSolver.default_parameters()
+solver = ShallowWaterSolver(problem, parameters, config)
 
 rf = ReducedFunctional(config, solver)
 

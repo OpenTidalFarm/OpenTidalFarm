@@ -1,9 +1,8 @@
 from opentidalfarm import *
 from dolfin_adjoint import adj_reset
-import opentidalfarm.domains
 
 
-def compute_error(config, eta0, k):
+def compute_error(problem, config, eta0, k):
     # Define the state function
     state = Function(config.function_space)
     ic_expr = SinusoidalInitialCondition(config, eta0, k,
@@ -24,26 +23,28 @@ def compute_error(config, eta0, k):
 
     source = Expression((viscosity_source + "+" + advection_source, "0.0"),
                         eta0=eta0,
-                        g=config.params["g"],
-                        depth=config.params["depth"],
-                        t=config.params["current_time"],
+                        g=problem.parameters["g"],
+                        depth=problem.parameters["depth"],
+                        t=problem.parameters["current_time"],
                         k=k,
-                        friction=config.params["friction"])
+                        friction=problem.parameters["friction"])
 
-    # Run the shallow water model
-    solver = ShallowWaterSolver(config)
+    parameters = ShallowWaterSolver.default_parameters()
+    parameters["dump_period"] = -1
+    solver = ShallowWaterSolver(problem, parameters, config)
+
     solver.solve(state, annotate=False,
                                  u_source=source)
 
     # Compare the difference to the analytical solution
     analytic_sol = Expression((u_exact, "0", eta_exact),
-                              eta0=eta0, g=config.params["g"],
-                              depth=config.params["depth"],
-                              t=config.params["current_time"], k=k)
+                              eta0=eta0, g=problem.parameters["g"],
+                              depth=problem.parameters["depth"],
+                              t=problem.parameters["current_time"], k=k)
     return errornorm(analytic_sol, state)
 
 
-def setup_model(time_step, finish_time, mesh_x, mesh_y=2):
+def setup_model(parameters, time_step, finish_time, mesh_x, mesh_y=2):
     # Note: The analytical solution is constant in the
     # y-direction, hence a coarse y-resolution is sufficient.
 
@@ -55,34 +56,41 @@ def setup_model(time_step, finish_time, mesh_x, mesh_y=2):
         ny=mesh_y, 
         finite_element=finite_elements.p1dgp2)
 
-    domain = opentidalfarm.domains.RectangularDomain(3000, 1000, 
-                                                     mesh_x, mesh_y)
+    domain = domains.RectangularDomain(3000, 1000, mesh_x, mesh_y)
 
     config.set_domain(domain)
     eta0 = 2.0
     k = pi/config.domain.basin_x
 
-    # Temporal settings
-    config.params["finish_time"] = Constant(finish_time)
-    config.params["dt"] = Constant(time_step)
-
-    # Use Crank-Nicolson to get a second-order time-scheme
-    config.params["theta"] = 0.5
-
-    # Activate the relevant terms
-    config.params["include_advection"] = True
-    config.params["friction"] = 0.25 
-
-    config.params["dump_period"] = -1
     config.params["output_turbine_power"] = False
 
+    # Temporal settings
+    parameters["start_time"] = Constant(0)
+    parameters["finish_time"] = Constant(finish_time)
+    parameters["dt"] = Constant(time_step)
+
+    # Use Crank-Nicolson to get a second-order time-scheme
+    parameters["theta"] = Constant(0.5)
+
+    # Activate the relevant terms
+    parameters["include_advection"] = True
+    parameters["include_viscosity"] = False   
+    parameters["linear_divergence"] = True 
+
+    # Physical settings
+    parameters["friction"] = Constant(0.25)
+    parameters["viscosity"] = Constant(0.0)
+
     # Set the analytical boundary conditions
-    config.params["flather_bc_expr"] = Expression(
+    parameters["bctype"] = "flather"
+    parameters["flather_bc_expr"] = Expression(
         ("2*eta0*sqrt(g/depth)*cos(-sqrt(g*depth)*k*t)", "0"), 
         eta0=eta0, 
-        g=config.params["g"], 
-        depth=config.params["depth"], 
-        t=config.params["current_time"], 
+        g=parameters["g"], 
+        depth=parameters["depth"], 
+        t=parameters["current_time"], 
         k=k)
 
-    return config, eta0, k
+    problem = ShallowWaterProblem(parameters)
+
+    return problem, config, eta0, k
