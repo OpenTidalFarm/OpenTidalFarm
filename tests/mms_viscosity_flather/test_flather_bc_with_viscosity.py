@@ -10,7 +10,7 @@ class TestFlatherBoundaryConditionsWithViscosity(object):
     def error(self, problem, config, eta0, k):
         state = Function(config.function_space)
         ic_expr = SinusoidalInitialCondition(config, eta0, k,
-                                             problem.parameters["depth"])
+                                             problem.parameters.depth)
 
         ic = project(ic_expr, state.function_space())
         state.assign(ic, annotate=False)
@@ -25,14 +25,14 @@ class TestFlatherBoundaryConditionsWithViscosity(object):
         # The source term
         source = Expression((ddu_exact,
                             "0.0"),
-                            eta0=eta0, g=problem.parameters["g"],
-                            depth=problem.parameters["depth"],
-                            t=problem.parameters["current_time"],
-                            k=k, viscosity=problem.parameters["viscosity"])
+                            eta0=eta0, g=problem.parameters.g,
+                            depth=problem.parameters.depth,
+                            t=problem.parameters.current_time,
+                            k=k, viscosity=problem.parameters.viscosity)
 
         adj_reset()
         parameters = ShallowWaterSolver.default_parameters()
-        parameters["dump_period"] = -1
+        parameters.dump_period = -1
         solver = ShallowWaterSolver(problem, parameters, config)
         solver.solve(state, annotate=False,
                                      u_source=source)
@@ -40,9 +40,9 @@ class TestFlatherBoundaryConditionsWithViscosity(object):
         analytic_sol = Expression((u_exact,
                                   "0",
                                   eta_exact),
-                                  eta0=eta0, g=problem.parameters["g"],
-                                  depth=problem.parameters["depth"],
-                                  t=problem.parameters["current_time"],
+                                  eta0=eta0, g=problem.parameters.g,
+                                  depth=problem.parameters.depth,
+                                  t=problem.parameters.current_time,
                                   k=k)
         return errornorm(analytic_sol, state)
 
@@ -57,19 +57,19 @@ class TestFlatherBoundaryConditionsWithViscosity(object):
 
         eta0 = 2.0
         k = pi/config.domain.basin_x
-        problem_params["start_time"] = 0.0
-        problem_params["finish_time"] = (pi/(sqrt(problem_params["g"] *
-                                         problem_params["depth"]) * k) / 1000)
-        problem_params["dt"] = problem_params["finish_time"] / 2
-        problem_params["output_turbine_power"] = False
-        problem_params["include_viscosity"] = True
-        problem_params["viscosity"] = 10.0
-        problem_params["flather_bc_expr"] = Expression(
+        problem_params.start_time = 0.0
+        problem_params.finish_time = (pi/(sqrt(problem_params.g *
+                                         problem_params.depth) * k) / 1000)
+        problem_params.dt = problem_params.finish_time / 2
+        problem_params.output_turbine_power = False
+        problem_params.include_viscosity = True
+        problem_params.viscosity = 10.0
+        problem_params.flather_bc_expr = Expression(
             ("2*eta0*sqrt(g/depth)*cos(-sqrt(g*depth)*k*t)", "0"),
             eta0=eta0,
-            g=problem_params["g"],
-            depth=problem_params["depth"],
-            t=problem_params["current_time"],
+            g=problem_params.g,
+            depth=problem_params.depth,
+            t=problem_params.current_time,
             k=k
         )
 

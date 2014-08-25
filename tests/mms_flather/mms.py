@@ -23,14 +23,14 @@ def compute_error(problem, config, eta0, k):
 
     source = Expression((viscosity_source + "+" + advection_source, "0.0"),
                         eta0=eta0,
-                        g=problem.parameters["g"],
-                        depth=problem.parameters["depth"],
-                        t=problem.parameters["current_time"],
+                        g=problem.parameters.g,
+                        depth=problem.parameters.depth,
+                        t=problem.parameters.current_time,
                         k=k,
-                        friction=problem.parameters["friction"])
+                        friction=problem.parameters.friction)
 
     parameters = ShallowWaterSolver.default_parameters()
-    parameters["dump_period"] = -1
+    parameters.dump_period = -1
     solver = ShallowWaterSolver(problem, parameters, config)
 
     solver.solve(state, annotate=False,
@@ -38,9 +38,9 @@ def compute_error(problem, config, eta0, k):
 
     # Compare the difference to the analytical solution
     analytic_sol = Expression((u_exact, "0", eta_exact),
-                              eta0=eta0, g=problem.parameters["g"],
-                              depth=problem.parameters["depth"],
-                              t=problem.parameters["current_time"], k=k)
+                              eta0=eta0, g=problem.parameters.g,
+                              depth=problem.parameters.depth,
+                              t=problem.parameters.current_time, k=k)
     return errornorm(analytic_sol, state)
 
 
@@ -65,30 +65,30 @@ def setup_model(parameters, time_step, finish_time, mesh_x, mesh_y=2):
     config.params["output_turbine_power"] = False
 
     # Temporal settings
-    parameters["start_time"] = Constant(0)
-    parameters["finish_time"] = Constant(finish_time)
-    parameters["dt"] = Constant(time_step)
+    parameters.start_time = Constant(0)
+    parameters.finish_time = Constant(finish_time)
+    parameters.dt = Constant(time_step)
 
     # Use Crank-Nicolson to get a second-order time-scheme
-    parameters["theta"] = Constant(0.5)
+    parameters.theta = Constant(0.5)
 
     # Activate the relevant terms
-    parameters["include_advection"] = True
-    parameters["include_viscosity"] = False   
-    parameters["linear_divergence"] = True 
+    parameters.include_advection = True
+    parameters.include_viscosity = False   
+    parameters.linear_divergence = True 
 
     # Physical settings
-    parameters["friction"] = Constant(0.25)
-    parameters["viscosity"] = Constant(0.0)
+    parameters.friction = Constant(0.25)
+    parameters.viscosity = Constant(0.0)
 
     # Set the analytical boundary conditions
-    parameters["bctype"] = "flather"
-    parameters["flather_bc_expr"] = Expression(
+    parameters.bctype = "flather"
+    parameters.flather_bc_expr = Expression(
         ("2*eta0*sqrt(g/depth)*cos(-sqrt(g*depth)*k*t)", "0"), 
         eta0=eta0, 
-        g=parameters["g"], 
-        depth=parameters["depth"], 
-        t=parameters["current_time"], 
+        g=parameters.g, 
+        depth=parameters.depth, 
+        t=parameters.current_time, 
         k=k)
 
     problem = ShallowWaterProblem(parameters)

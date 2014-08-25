@@ -1,6 +1,14 @@
 opentidalfarm package
 =====================
 
+Subpackages
+-----------
+
+.. toctree::
+
+    opentidalfarm.problems
+    opentidalfarm.solvers
+
 Submodules
 ----------
 
@@ -68,14 +76,6 @@ opentidalfarm.memoize module
     :undoc-members:
     :show-inheritance:
 
-opentidalfarm.mini_model module
--------------------------------
-
-.. automodule:: opentidalfarm.mini_model
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 opentidalfarm.optimisation_helpers module
 -----------------------------------------
 
@@ -92,18 +92,18 @@ opentidalfarm.parameter_dict module
     :undoc-members:
     :show-inheritance:
 
-opentidalfarm.reduced_functional module
----------------------------------------
+opentidalfarm.parameter_dictionary module
+-----------------------------------------
 
-.. automodule:: opentidalfarm.reduced_functional
+.. automodule:: opentidalfarm.parameter_dictionary
     :members:
     :undoc-members:
     :show-inheritance:
 
-opentidalfarm.shallow_water_model module
-----------------------------------------
+opentidalfarm.reduced_functional module
+---------------------------------------
 
-.. automodule:: opentidalfarm.shallow_water_model
+.. automodule:: opentidalfarm.reduced_functional
     :members:
     :undoc-members:
     :show-inheritance:

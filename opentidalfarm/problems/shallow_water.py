@@ -1,41 +1,53 @@
-from dolfin import Constant
-from dolfin_adjoint import Constant
 from problem import Problem
+from steady_shallow_water import SteadyShallowWaterProblemParameters
 
 
-class SteadyShallowWaterProblem(Problem):
+class ShallowWaterProblemParameters(SteadyShallowWaterProblemParameters):
+    """ A set of parameters for a :class:`SteadyShallowWaterProblem`.
 
-    def __init__(self, parameters):
-        self.parameters = parameters
+    The parameters are described as in
+    :class:`SteadyShallowWaterProblemParameters`.
 
-    @property
-    def is_transient(self):
-        return False
+    In addition following parameters are available:
 
-    @staticmethod
-    def default_parameters():
-        ''' Returns a dictionary with the default parameters '''
+    Time parameters:
 
-        parameters = {}
+    :ivar theta: The theta value for the timestepping-scheme. Default 1.0.
+    :ivar dt: The timestep. Default: 1.0.
+    :ivar start_time: The start time. Default: 0.0.
+    :ivar current_time: The current simulation time. Default: 0.0.
+    :ivar finish_time: The finish time. Default: 100.0.
+    :ivar t: FIXME: Remove.
 
-        # Physical parameters
-        parameters["depth"] = Constant(50.)
-        parameters["g"] = Constant(9.81)
-        parameters["viscosity"] = Constant(3.0)
-        parameters["friction"] = Constant(0.0025)
+    Equation parameters:
 
-        # Equation settings
-        parameters["include_advection"] = True
-        parameters["include_viscosity"] = True
-        parameters["linear_divergence"] = False
+    :ivar include_time_term: Boolean indicating if the time term is included.
+                             Default: True
 
-        # Boundary conditions
-        parameters["bctype"] = 'strong_dirichlet'
-        parameters["strong_bc"] = None
-        parameters["free_slip_on_sides"] = True
-        parameters["eta_weak_dirichlet_bc_expr"] = None
+    Functional time integration paramters (FIXME: Move to reduced functional):
 
-        return parameters
+    :ivar functional_final_time_only: Boolean indicating if the functional
+        should be integrated over time or evaluated at the end of time only. 
+        Default: True.
+    :ivar functional_quadrature_degree: The quadrature degree of the functional
+        integration. Used only if :attr:`functional_final_time_only:` is True. 
+        Default: 1.
+    """
+
+    # Time parameters
+    theta = 1.0
+    dt = 1.
+    start_time = 0.0
+    current_time = 0.0
+    finish_time = 100.0
+    t = 0.0
+
+    # Equation settings
+    include_time_term = True
+
+    # Functional time integration parameters
+    functional_final_time_only = True
+    functional_quadrature_degree = 1
 
 
 class ShallowWaterProblem(Problem):
@@ -51,21 +63,4 @@ class ShallowWaterProblem(Problem):
     def default_parameters():
         ''' Returns a dictionary with the default parameters '''
 
-        parameters = SteadyShallowWaterProblem.default_parameters()
-
-        # Time parameters
-        parameters["theta"] = 1.0
-        parameters["dt"] = 1.
-        parameters["start_time"] = 0.0
-        parameters["current_time"] = 0.0
-        parameters["finish_time"] = 100.0
-        parameters["t"] = 0.0
-
-        # Equation settings
-        parameters["include_time_term"] = True
-
-        # Functional time integration parameters
-        parameters["functional_final_time_only"] = True
-        parameters["functional_quadrature_degree"] = 1
-
-        return parameters
+        return ShallowWaterProblemParameters()

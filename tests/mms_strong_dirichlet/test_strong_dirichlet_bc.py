@@ -13,22 +13,22 @@ class TestStringDirichletBoundaryConditions(object):
     def error(self, problem, config, eta0, k):
       state = Function(config.function_space)
       ic_expr = SinusoidalInitialCondition(config, eta0, k, 
-                                           problem.parameters["depth"])
+                                           problem.parameters.depth)
       ic = project(ic_expr, state.function_space())
       state.assign(ic, annotate=False)
 
       adj_reset()
       params = ShallowWaterSolver.default_parameters()
-      params["dump_period"] = -1
+      params.dump_period = -1
       solver = ShallowWaterSolver(problem, params, config)
       solver.solve(state, annotate=False)
 
       analytic_sol = Expression(
              ("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0", \
              "eta0*cos(k*x[0]-sqrt(g*depth)*k*t)"), \
-             eta0=eta0, g=problem.parameters["g"], \
-             depth=problem.parameters["depth"], \
-             t=problem.parameters["current_time"], k=k)
+             eta0=eta0, g=problem.parameters.g, \
+             depth=problem.parameters.depth, \
+             t=problem.parameters.current_time, k=k)
       return errornorm(analytic_sol, state)
 
     def compute_spatial_error(self, problem_params, refinement_level):
@@ -39,24 +39,24 @@ class TestStringDirichletBoundaryConditions(object):
         config.set_domain(domain)
         eta0 = 2.0
         k = pi/config.domain.basin_x
-        problem_params["finish_time"] = pi / (sqrt(problem_params["g"] * \
-                                        problem_params["depth"]) * k) / 20
-        problem_params["dt"] = problem_params["finish_time"] / 4
-        problem_params["output_turbine_power"] = False
-        problem_params["bctype"] = "strong_dirichlet"
+        problem_params.finish_time = pi / (sqrt(problem_params.g * \
+                                        problem_params.depth) * k) / 20
+        problem_params.dt = problem_params.finish_time / 4
+        problem_params.output_turbine_power = False
+        problem_params.bctype = "strong_dirichlet"
         bc = DirichletBCSet(config)
 
         expression = Expression(("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0"), 
                                 eta0=eta0, 
-                                g=problem_params["g"], 
-                                depth=problem_params["depth"], 
-                                t=problem_params["current_time"], 
+                                g=problem_params.g, 
+                                depth=problem_params.depth, 
+                                t=problem_params.current_time, 
                                 k=k)
 
         bc.add_analytic_u(1, expression)
         bc.add_analytic_u(2, expression)
         bc.add_analytic_u(3, expression)
-        problem_params["strong_bc"] = bc
+        problem_params.strong_bc = bc
 
         problem = ShallowWaterProblem(problem_params)
 
@@ -72,28 +72,28 @@ class TestStringDirichletBoundaryConditions(object):
         k = pi/config.domain.basin_x
 
 
-        problem_params["finish_time"] = 2 * pi / (sqrt(problem_params["g"] * 
-            problem_params["depth"]) * k)
-        problem_params["dt"] = Constant(problem_params["finish_time"] / 
+        problem_params.finish_time = 2 * pi / (sqrt(problem_params.g * 
+            problem_params.depth) * k)
+        problem_params.dt = Constant(problem_params.finish_time / 
                 (4 * 2**refinement_level))
-        problem_params["theta"] = 0.5
-        problem_params["dump_period"] = -1
-        problem_params["output_turbine_power"] = False
-        problem_params["bctype"] = "strong_dirichlet"
+        problem_params.theta = 0.5
+        problem_params.dump_period = -1
+        problem_params.output_turbine_power = False
+        problem_params.bctype = "strong_dirichlet"
         bc = DirichletBCSet(config)
 
         expression = Expression(
             ("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0"), 
             eta0=eta0, 
-            g=problem_params["g"], 
-            depth=problem_params["depth"], 
-            t=problem_params["current_time"], 
+            g=problem_params.g, 
+            depth=problem_params.depth, 
+            t=problem_params.current_time, 
             k=k)
 
         bc.add_analytic_u(1, expression)
         bc.add_analytic_u(2, expression)
         bc.add_analytic_u(3, expression)
-        problem_params["strong_bc"] = bc
+        problem_params.strong_bc = bc
 
         problem = ShallowWaterProblem(problem_params)
 
