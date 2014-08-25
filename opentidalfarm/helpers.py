@@ -1,5 +1,6 @@
 from __future__ import print_function
 import random
+import yaml
 from dolfin import *
 from dolfin_adjoint import *
 from numpy import dot, inf
@@ -236,3 +237,30 @@ def function_eval(func, point):
         raise RuntimeError("Point is outside the domain")
     else:
         return maxval
+
+
+class FrozenClass(object):
+    """ A class which can be (un-)frozen. If the class is frozen, no attributes
+        can be added to the class. """
+
+    __isfrozen = True
+
+    def __setattr__(self, key, value):
+        if self.__isfrozen and not hasattr(self, key):
+            raise TypeError("%r is a frozen class. Check that %r is a valid \
+attribute." % (self, key))
+
+        object.__setattr__(self, key, value)
+
+    def _freeze(self):
+        """ Disallows adding new attributes. """
+        self.__isfrozen = True
+
+    def _unfreeze(self):
+        """ Allows adding new attributes. """
+        self.__isfrozen = False
+
+    def __str__(self):
+        attrs = dir(self)
+        attrs_str = {k: getattr(self, k) for k in attrs if not k.startswith("_")}
+        return yaml.dump(attrs_str, default_flow_style=False)
