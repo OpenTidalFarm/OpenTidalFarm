@@ -20,7 +20,6 @@ class TestSmearedTurbine(object):
         config.params["turbine_parametrisation"] = "smeared"
 
         config.params['initial_condition'] = ConstantFlowInitialCondition(
-            config,
             val=[1, 0, 0]
         )
 
