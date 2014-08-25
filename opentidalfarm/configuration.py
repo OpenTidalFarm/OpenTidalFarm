@@ -51,7 +51,7 @@ class DefaultConfiguration(object):
         # Store the result as class variables
         self.params = params
 
-        params['initial_condition'] = ConstantFlowInitialCondition(self)
+        params['initial_condition'] = ConstantFlowInitialCondition()
 
         # Create a chaching object for the interpolated turbine friction fields
         # (as their computation is very expensive)

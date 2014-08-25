@@ -59,7 +59,8 @@ def BumpInitialCondition(config):
     return BumpExpr()
 
 
-def ConstantFlowInitialCondition(config, val=[1e-19, 0, 0, 0]):
+def ConstantFlowInitialCondition(val=[1e-19, 0, 0]):
+
     class ConstantFlow(Expression):
         def eval(self, values, X):
             values[0] = val[0]
