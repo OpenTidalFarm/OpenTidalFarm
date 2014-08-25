@@ -37,8 +37,8 @@ class TestFrictionOptimisation(object):
 
       k = pi/config.domain.basin_x
       config.params['k'] = k
-      config.params['initial_condition'] = SinusoidalInitialCondition(config,
-          2.0, k, 50.)
+      config.params['initial_condition'] = SinusoidalInitialCondition(2.0, k,
+              50., 0.0)
 
       problem = DummyProblem(problem_params)
       return problem, config

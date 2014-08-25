@@ -22,7 +22,6 @@ class DefaultConfiguration(object):
         self.functional = DefaultFunctional
 
         params = ParameterDictionary({
-            'dump_period': 1,
             'turbine_parametrisation': 'individual',
             'turbine_pos': [],
             'turbine_x': 20.,
@@ -31,7 +30,6 @@ class DefaultConfiguration(object):
             'cost_coef': 0.,
             'rho': 1000.,  # Use the density of water: 1000kg/m^3
             'controls': ['turbine_pos', 'turbine_friction'],
-            'solver_parameters': None,
             'postsolver_callback': None,
             'automatic_scaling': False,
             'print_individual_turbine_power': False,
@@ -40,7 +38,6 @@ class DefaultConfiguration(object):
             'save_checkpoints': False,
             'cache_forward_state': False,
             'base_path': os.curdir,
-            'nonlinear_solver': None,
             'revolve_parameters': None,  # (strategy,
                                          # snaps_on_disk,
                                          # snaps_in_ram,

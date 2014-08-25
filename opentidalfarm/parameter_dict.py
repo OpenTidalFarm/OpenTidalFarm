@@ -7,7 +7,6 @@ class ParameterDictionary(dict):
             self[key] = val
 
         self.required = {
-            'dump_period': 'dump period in timesteps; use 0 to deactivate disk outputs',
             'cost_coef': 'multiplicator that determines the cost per turbine friction',
             'turbine_parametrisation': 'parametrisation of the turbines. If its value is "individual" then the turbines are resolved individually, if "smooth" then the turbines are represented as an average friction over the site area',
             'turbine_pos': 'list of turbine positions',
@@ -17,7 +16,6 @@ class ParameterDictionary(dict):
             'rho': 'the density of the fluid',
             'controls': 'a list of the control variables. Valid list values: "turbine_pos" for the turbine position, "turbine_friction" for the friction of the turbine',
             'postsolver_callback': 'a function which is called after each solve',
-            'solver_parameters': 'a dictionary containing the solver settings. Must be compatible to DOLFIN\'s solve interface.',
             'automatic_scaling': 'activates the initial automatic scaling of the functional',
             'automatic_scaling_multiplier': 'defines the multiplier that determines the initial gradient length (= multiplier * turbine size)',
             'print_individual_turbine_power': 'print out the power output of each individual turbine',
@@ -25,7 +23,6 @@ class ParameterDictionary(dict):
             'save_checkpoints': 'automatically store checkpoints after each optimisation iteration',
             'cache_forward_state': 'caches the forward state for all timesteps and reuses them as initial guess for the next optimisation iteration',
             'base_path': 'root directory for output',
-            'nonlinear_solver': 'callback to solve the nonlinear problem. Called with callback(F, z, bcs, annotate, solver_parameters).',
             'revolve_parameters': '(strategy, snaps_on_disk, snaps_in_ram, verbose)',
              }
 

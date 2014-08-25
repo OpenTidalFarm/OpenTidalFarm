@@ -22,13 +22,14 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
 
         self.__config__ = config
         self.scale = scale
+        self.solver = solver
         self.automatic_scaling_factor = None
         self.save_functional_values = save_functional_values
         # Caching variables that store which controls the last forward run was performed
         self.last_m = None
         self.last_state = None
         self.in_euclidian_space = False  # FIXME: legacy dolfin-adjoint parameter
-        if self.__config__.params["dump_period"] > 0:
+        if self.solver.parameters.dump_period > 0:
             self.turbine_file = File(config.params['base_path'] + os.path.sep + "turbines.pvd", "compressed")
 
             if config.params['output_turbine_power']:
@@ -107,9 +108,10 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
             functional = config.functional(config)
 
             # Output power
-            if config.params['output_turbine_power']:
-                turbines = self.__config__.turbine_cache.cache["turbine_field"]
-                self.power_file << project(functional.power(state, turbines), config.turbine_function_space, annotate=False)
+            if self.solver.parameters.dump_period > 0:
+                if config.params['output_turbine_power']:
+                    turbines = self.__config__.turbine_cache.cache["turbine_field"]
+                    self.power_file << project(functional.power(state, turbines), config.turbine_function_space, annotate=False)
 
             # The functional depends on the turbine friction function which we do not have on scope here.
             # But dolfin-adjoint only cares about the name, so we can just create a dummy function with the desired name.
@@ -280,7 +282,7 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
         # counter.
         if optimisation_iteration:
             self.__config__.optimisation_iteration += 1
-            if self.__config__.params["dump_period"] > 0:
+            if self.solver.parameters.dump_period > 0:
                 # A cache hit skips the turbine cache update, so we need
                 # trigger it manually.
                 if self.compute_gradient_mem.has_cache(m, forget):

@@ -2,7 +2,10 @@ from dolfin import *
 from dolfin_adjoint import *
 from solver import Solver
 from ..problems import DummyProblem
+from ..helpers import FrozenClass
 
+class DummySolverParameters(FrozenClass):
+    dump_period = -1
 
 class DummySolver(Solver):
 
@@ -12,6 +15,7 @@ class DummySolver(Solver):
             raise TypeError, "problem must be of type DummyProblem"
 
         self.problem = problem
+        self.parameters = DummySolverParameters()
         self.config = config
         self.tf = None
 
