@@ -57,6 +57,7 @@ class TestDynamicTurbineControl(object):
 
         solver_params = ShallowWaterSolver.default_parameters() 
         solver_params.dump_period = -1
+        solver_params.cache_forward_state = False
         solver = ShallowWaterSolver(problem, solver_params, config)
 
         rf = ReducedFunctional(config, solver, scale=10**-6)
