@@ -1,42 +1,55 @@
 from opentidalfarm import *
-from dolfin import log, INFO, ERROR
+from dolfin import log, INFO
+set_log_level(INFO)
 import pytest
 
 
 class TestConfigurations(object):
 
     @pytest.mark.parametrize(("c"), [DefaultConfiguration, SteadyConfiguration])
-    def test_gradient_passes_taylor_test(self, c):
+    def test_gradient_passes_taylor_test(self, c,
+            sw_linear_problem_parameters, steady_sw_problem_parameters):
 
         # Define the discrete domain
         if c == SteadyConfiguration:
             path = os.path.dirname(__file__)
             meshfile = os.path.join(path, "mesh.xml")
-            config = c(meshfile, inflow_direction = [1, 1])
+            inflow_direction = [1, 1]
+            config = c(meshfile, inflow_direction=inflow_direction)
+            problem_params = steady_sw_problem_parameters
+
+            # Boundary conditions
+            bc = DirichletBCSet(config)
+            bc.add_constant_flow(1, 2.0 + 1e-10, direction=inflow_direction)
+            bc.add_analytic_eta(2, 0.0)
+            problem_params.bctype = 'strong_dirichlet'
+            problem_params.strong_bc = bc
+
         else:
             config = c(nx=15, ny=15)
             config.set_domain(domains.RectangularDomain(500, 500, 
                 5, 5))
 
-        config.params['dump_period'] = -1
-        config.params['output_turbine_power'] = False
-        config.params['finish_time'] = config.params["start_time"] + \
-                                       2*config.params["dt"]
+            problem_params = sw_linear_problem_parameters
 
-        config.params["flather_bc_expr"] = Expression((
-                         "2*eta0*sqrt(g/depth)*cos(-sqrt(g*depth)*k*t)", "0"), 
-                         eta0=2., 
-                         g=config.params["g"], 
-                         depth=config.params["depth"], 
-                         t=config.params["current_time"], 
-                         k=pi / 3000)
+            problem_params.finish_time = problem_params.start_time + \
+                                           2*problem_params.dt
+
+            # Boundary conditions
+            problem_params.flather_bc_expr = Expression((
+                             "2*eta0*sqrt(g/depth)*cos(-sqrt(g*depth)*k*t)", "0"), 
+                             eta0=2., 
+                             g=problem_params.g, 
+                             depth=problem_params.depth, 
+                             t=problem_params.current_time, 
+                             k=pi / 3000)
 
         # Deploy some turbines 
         turbine_pos = [] 
         if c == SteadyConfiguration:
             # The configuration does not converge for this (admittely unphysical) 
             # setup, so we help a little with some viscosity
-            config.params['viscosity'] = 40.0
+            steady_sw_problem_parameters.viscosity = 40.0
             basin_x = 640
             basin_y = 320
             site_x = 320
@@ -50,6 +63,9 @@ class TestConfigurations(object):
                 for y_r in numpy.linspace(site_y_start, site_y_start + site_y, 2):
                   turbine_pos.append((float(x_r), float(y_r)))
 
+
+            problem = SteadyShallowWaterProblem(problem_params)
+
         else:
             border_x = config.domain.basin_x/10
             border_y = config.domain.basin_y/10
@@ -60,10 +76,19 @@ class TestConfigurations(object):
                 for y_r in numpy.linspace(border_y, basin_y - border_y, 2):
                   turbine_pos.append((float(x_r), float(y_r)))
 
+            problem = ShallowWaterProblem(problem_params)
+
+
         config.set_turbine_pos(turbine_pos, friction=1.0)
         log(INFO, "Deployed " + str(len(turbine_pos)) + " turbines.")
 
-        solver = ShallowWaterSolver(config)
+        config.params["output_turbine_power"] = False
+
+        solver_params = ShallowWaterSolver.default_parameters()
+        solver_params.dump_period = -1
+        solver_params.cache_forward_state = True
+
+        solver = ShallowWaterSolver(problem, solver_params, config)
 
         model = ReducedFunctional(config, solver, scale=10**-6)
         m0 = model.initial_control()

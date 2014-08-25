@@ -13,8 +13,9 @@ class TestWeakDirichletBoundaryConditions(object):
     
     def error(self, problem, config, eta0, k):
         state = Function(config.function_space)
-        ic_expr = SinusoidalInitialCondition(config, eta0, k, 
-                                             problem.parameters.depth)
+        ic_expr = SinusoidalInitialCondition(eta0, k, 
+                                             problem.parameters.depth,
+                                             problem.parameters.start_time)
         ic = project(ic_expr, state.function_space())
         state.assign(ic, annotate=False)
 
@@ -45,7 +46,6 @@ class TestWeakDirichletBoundaryConditions(object):
         problem_params.finish_time = pi / (sqrt(problem_params.g *
                                         problem_params.depth) * k) / 20
         problem_params.dt = problem_params.finish_time / 10
-        problem_params.output_turbine_power = False
         problem_params.bctype = "dirichlet"
         problem_params.u_weak_dirichlet_bc_expr = Expression(
             ("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0"), 
@@ -72,8 +72,6 @@ class TestWeakDirichletBoundaryConditions(object):
                                         problem_params.depth) * k)
         problem_params.dt = problem_params.finish_time/(4*2**refinement_level)
         problem_params.theta = 0.5
-        problem_params.dump_period = -1
-        problem_params.output_turbine_power = False
         problem_params.bctype = "dirichlet"
         problem_params.u_weak_dirichlet_bc_expr = Expression(
             ("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0"), 
@@ -87,11 +85,11 @@ class TestWeakDirichletBoundaryConditions(object):
 
         return self.error(problem, config, eta0, k)
 
-    def test_spatial_convergence_is_two(self, sw_problem_parameters):
+    def test_spatial_convergence_is_two(self, sw_linear_problem_parameters):
         errors = []
         tests = 4
         for refinement_level in range(tests):
-            error = self.compute_spatial_error(sw_problem_parameters,
+            error = self.compute_spatial_error(sw_linear_problem_parameters,
                                                refinement_level)
             errors.append(error)
         # Compute the order of convergence 
@@ -102,11 +100,11 @@ class TestWeakDirichletBoundaryConditions(object):
         log(INFO, "Spatial order of convergence (expecting 2.0): %s" % str(conv))
         assert min(conv) > 1.8
 
-    def test_temporal_convergence_is_two(self, sw_problem_parameters):
+    def test_temporal_convergence_is_two(self, sw_linear_problem_parameters):
         errors = []
         tests = 4
         for refinement_level in range(tests):
-            error = self.compute_temporal_error(sw_problem_parameters,
+            error = self.compute_temporal_error(sw_linear_problem_parameters,
                                                 refinement_level)
             errors.append(error)
         # Compute the order of convergence 

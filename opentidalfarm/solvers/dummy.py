@@ -1,11 +1,17 @@
 from dolfin import *
 from dolfin_adjoint import *
 from solver import Solver
+from ..problems import DummyProblem
 
 
 class DummySolver(Solver):
 
-    def __init__(self, config):
+    def __init__(self, problem, config):
+
+        if not isinstance(problem, DummyProblem):
+            raise TypeError, "problem must be of type DummyProblem"
+
+        self.problem = problem
         self.config = config
         self.tf = None
 
@@ -33,9 +39,8 @@ class DummySolver(Solver):
 
         self.setup(turbine_field, functional, annotate)
 
-        params = self.config.params
-        if functional is not None and not params["functional_final_time_only"]:
-            j = 0.5 * assemble(params["dt"] * self.functional.Jt(state, self.tf))
+        if functional is not None and not self.problem.parameters.functional_final_time_only:
+            j = 0.5 * assemble(self.problem.parameters.dt * self.functional.Jt(state, self.tf))
 
         adjointer.time.start(0.0)
         tmpstate = Function(state.function_space(), name="tmp_state")
@@ -47,11 +52,11 @@ class DummySolver(Solver):
         state.assign(tmpstate, annotate=self.annotate)
 
         # Bump timestep to shut up libadjoint.
-        adj_inc_timestep(time=float(params["dt"]), finished=True)
+        adj_inc_timestep(time=float(self.problem.parameters.dt), finished=True)
 
         if self.functional is not None:
-            if params["functional_final_time_only"]:
+            if self.problem.parameters.functional_final_time_only:
                 j = assemble(self.functional.Jt(state, self.tf))
             else:
-                j += 0.5 * assemble(params["dt"] * self.functional.Jt(state, self.tf))
+                j += 0.5 * assemble(self.problem.parameters.dt * self.functional.Jt(state, self.tf))
             return j

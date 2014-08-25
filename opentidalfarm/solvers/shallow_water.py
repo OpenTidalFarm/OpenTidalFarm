@@ -4,11 +4,11 @@ from dolfin import *
 from dolfin_adjoint import *
 
 from solver import Solver
-from ..problems import Problem
-from ..helpers import StateWriter, norm_approx, smooth_uflmin
+from ..problems import ShallowWaterProblem, SteadyShallowWaterProblem
+from ..helpers import StateWriter, norm_approx, smooth_uflmin, FrozenClass
 
 
-class ShallowWaterSolverParameters(object):
+class ShallowWaterSolverParameters(FrozenClass):
     """ A set of parameters for a :class:`SteadyShallowWaterSolver`. 
 
     Following parameters are available:
@@ -55,8 +55,14 @@ class ShallowWaterSolver(Solver):
 
     def __init__(self, problem, parameters, config):
 
-        if not isinstance(problem, Problem):
-            raise ValueError, "problem must be of type Problem"
+        if not isinstance(problem, (ShallowWaterProblem,
+            SteadyShallowWaterProblem)):
+            raise TypeError, "problem must be of type Problem"
+
+        if not isinstance(parameters, ShallowWaterSolverParameters):
+            raise TypeError, "parameters must be of type \
+ShallowWaterSolverParameters."
+
         self.problem = problem
         self.parameters = parameters
         self.config = config
@@ -84,16 +90,16 @@ class ShallowWaterSolver(Solver):
 
         controls = config.params["controls"]
 
-        if self.problem.is_transient:
+        if self.problem._is_transient:
 
-            theta = params.theta
-            dt = float(params.dt)
-            finish_time = params.finish_time
-            start_time = params.start_time
+            theta = Constant(params.theta)
+            dt = Constant(params.dt)
+            finish_time = Constant(params.finish_time)
+            start_time = Constant(params.start_time)
 
             # Reset the time
-            params.current_time = params.start_time
-            t = float(params.current_time)
+            params.current_time = Constant(params.start_time)
+            t = Constant(params.current_time)
 
             functional_final_time_only = params.functional_final_time_only
             functional_quadrature_degree = params.functional_quadrature_degree
@@ -105,7 +111,7 @@ class ShallowWaterSolver(Solver):
             dt = Constant(1.)
             start_time = Constant(0.)
             finish_time = Constant(0.5)
-            t = float(start_time)
+            t = start_time
 
             functional_final_time_only = True
             functional_quadrature_degree = 1
@@ -168,7 +174,7 @@ class ShallowWaterSolver(Solver):
         #+inner(avg(u_mid),jump(q,n))*dS # This term is only needed for dg element pairs
 
         if bctype == 'dirichlet':
-            if not self.problem.is_transient:
+            if not self.problem._is_transient:
                 raise ValueError("Can not use a time dependent boundary condition for a steady state simulation")
             # The dirichlet boundary condition on the left hand side
             u_expr = params.u_weak_dirichlet_bc_expr
@@ -181,7 +187,7 @@ class ShallowWaterSolver(Solver):
             # bc_contr -= dot(u_mid, n) * q * ds(3)
 
         elif bctype == 'flather':
-            if not self.problem.is_transient:
+            if not self.problem._is_transient:
                 raise ValueError("Can not use a time dependent boundary condition for a steady state simulation")
             # The Flather boundary condition on the left hand side
             u_expr = params.flather_bc_expr
@@ -242,27 +248,32 @@ class ShallowWaterSolver(Solver):
 
         # Create the final form
         G_mid = C_mid + Ct_mid + R_mid
+
         # Add the advection term
         if include_advection:
             G_mid += Ad_mid
+
         # Add the viscosity term
         if include_viscosity:
             G_mid += D_mid
+
         # Add the source term
         if u_source:
             G_mid -= inner(u_source, v) * dx
         F = dt * G_mid - dt * bc_contr
+
         # Add the time term
-        if include_time_term and self.problem.is_transient:
+        if include_time_term:
             F += M - M0
 
         # Do some parameter checking:
         if "dynamic_turbine_friction" in controls:
-            if len(config.params["turbine_friction"]) != (float(finish_time) - t) / dt + 1:
-                log(INFO, "You control the turbine friction dynamically, but \
+            if len(config.params["turbine_friction"]) != float((finish_time - t)
+                    / dt + 1):
+                log(ERROR, "You control the turbine friction dynamically, but \
                         your turbine friction parameter is not an array of \
                         length 'number of timesteps' (here: %i)." %
-                        ((float(finish_time) - t) / dt + 1))
+                        float((finish_time - t) / dt + 1))
                 import sys
                 sys.exit(1)
 
@@ -275,14 +286,14 @@ class ShallowWaterSolver(Solver):
                 statewriter_cb = None 
 
             writer = StateWriter(config, optimisation_iteration=config.optimisation_iteration, callback=statewriter_cb)
-            if self.problem.is_transient and include_time_term:
+            if self.problem._is_transient and include_time_term:
                 log(INFO, "Writing state to disk...")
                 writer.write(state)
 
         step = 0
 
         if functional is not None:
-            if not self.problem.is_transient or functional_final_time_only:
+            if not self.problem._is_transient or functional_final_time_only:
                 j = 0.
                 if solver_parameters.print_individual_turbine_power:
                     j_individual = [0] * len(params["turbine_pos"])
@@ -304,24 +315,24 @@ class ShallowWaterSolver(Solver):
         log(INFO, "Start of time loop")
         adjointer.time.start(t)
         timestep = 0
-        while (t < float(finish_time)):
+        while (float(t) < float(finish_time)):
             timestep += 1
-            t += float(dt)
-            if self.problem.is_transient:
+            t = Constant(t + dt)
+            if self.problem._is_transient:
                 params.current_time = t
 
             # Update bc's
             if bctype == "strong_dirichlet":
                 strong_bc.update_time(t)
             else:
-                u_expr.t = float(t - (1.0 - theta) * dt)
+                u_expr.t = Constant(t - (1.0 - theta) * dt)
 
             if eta_expr is not None:
-                eta_expr.t = float(t - (1.0 - theta) * dt)
+                eta_expr.t = t - (1.0 - theta) * dt
 
             # Update source term
             if u_source:
-                u_source.t = float(t - (1.0 - theta) * dt)
+                u_source.t = Constant(t - (1.0 - theta) * dt)
             step += 1
 
             # Solve non-linear system with a Newton solver
@@ -335,7 +346,7 @@ class ShallowWaterSolver(Solver):
                 ic = config.params['initial_condition']
                 state_new.assign(ic, annotate=False)
 
-            if self.problem.is_transient:
+            if self.problem._is_transient:
                 log(INFO, "Solve shallow water equations at time %s (Newton iteration) ..." % float(params.current_time))
             else:
                 log(INFO, "Solve shallow water equations (Newton iteration) \
@@ -375,16 +386,17 @@ class ShallowWaterSolver(Solver):
                 writer.write(state)
 
             if functional is not None:
-                if not (functional_final_time_only and t < float(finish_time)):
-                    if not self.problem.is_transient or functional_final_time_only or functional_quadrature_degree == 0:
+                if not (functional_final_time_only and 
+                        float(t) < float(finish_time)):
+                    if not self.problem._is_transient or functional_final_time_only or functional_quadrature_degree == 0:
                         quad = 1.0
-                    elif t >= float(finish_time):
+                    elif float(t) >= float(finish_time):
                         quad = 0.5 * dt
                     else:
                         quad = 1.0 * dt
 
                     j += quad * assemble(functional.Jt(state, tf))
-                    if solver_parameters["print_individual_turbine_power"]:
+                    if solver_parameters.print_individual_turbine_power:
                         log(INFO, "Computing individual turbine power extraction contribution...")
                         individual_contribution_list = ['x_pos', 'y_pos', 'turbine_power', 'total_force_on_turbine', 'turbine_friction']
                         fr_individual = range(len(params["turbine_pos"]))
@@ -406,7 +418,7 @@ class ShallowWaterSolver(Solver):
                             log(INFO, "Contribution of turbine number %d at co-ordinates:" % (i + 1), params["turbine_pos"][i], ' is: ', j_individual[i] * 0.001, 'kW', 'with friction of', fr_individual[i])
 
             # Increase the adjoint timestep
-            adj_inc_timestep(time=t, finished=(not t < float(finish_time)))
+            adj_inc_timestep(time=t, finished=(not float(t) < float(finish_time)))
         log(INFO, "End of time loop.")
 
         # Write the turbine positions, power extraction and friction to a .csv file named turbine_info.csv

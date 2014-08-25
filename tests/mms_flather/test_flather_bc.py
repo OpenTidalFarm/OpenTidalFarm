@@ -6,7 +6,7 @@ import math
 
 class TestFlatherBoundaryConditions(object):
 
-    def test_spatial_convergence_is_two(self, sw_problem_parameters):
+    def test_spatial_convergence_is_two(self, sw_linear_problem_parameters):
         # Compute the errors
         errors = []
         levels = 3
@@ -18,7 +18,7 @@ class TestFlatherBoundaryConditions(object):
             mesh_y = 2
             time_step = 0.25
 
-            model = setup_model(sw_problem_parameters, time_step, 
+            model = setup_model(sw_linear_problem_parameters, time_step, 
                                 finish_time, mesh_x, mesh_y)
             error = compute_error(*model)
             errors.append(error)
@@ -35,7 +35,7 @@ class TestFlatherBoundaryConditions(object):
         assert min(conv) > 1.9
 
 
-    def test_temporal_convergence_is_two(self, sw_problem_parameters):
+    def test_temporal_convergence_is_two(self, sw_linear_problem_parameters):
         # Compute the errors
         errors = []
         levels = 4
@@ -46,7 +46,7 @@ class TestFlatherBoundaryConditions(object):
             mesh_x = 2**4
             time_step = finish_time/(2*2**l)
 
-            model = setup_model(sw_problem_parameters, time_step, 
+            model = setup_model(sw_linear_problem_parameters, time_step, 
                                 finish_time, mesh_x)
             error = compute_error(*model)
             errors.append(error)

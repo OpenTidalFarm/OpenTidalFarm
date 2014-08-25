@@ -82,7 +82,7 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
             # Get initial conditions
             state = Function(config.function_space, name="Current_state")
 
-            if config.params["steady_state"] and config.params["include_time_term"] and self.last_state is not None:
+            if False and not solver.problem._is_transient and self.last_state is not None:
                 # Speed up the nonlinear solves by starting the Newton solve with the most recent state solution
                 state.assign(self.last_state, annotate=False)
             else:
@@ -115,25 +115,26 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
             # But dolfin-adjoint only cares about the name, so we can just create a dummy function with the desired name.
             dummy_tf = Function(FunctionSpace(state.function_space().mesh(), "R", 0), name="turbine_friction")
 
-            if config.params['steady_state'] or config.params["functional_final_time_only"]:
+            if (not solver.problem._is_transient or
+                solver.problem.parameters.functional_final_time_only):
                 J = Functional(functional.Jt(state, dummy_tf) * dt[FINISH_TIME])
 
-            elif config.params['functional_quadrature_degree'] == 0:
+            elif solver.problem.parameters.functional_quadrature_degree == 0:
                 # Pseudo-redo the time loop to collect the necessary timestep information
-                t = float(config.params["start_time"])
+                t = float(solver.problem.parameters.start_time)
                 timesteps = [t]
-                while (t < float(config.params["finish_time"])):
-                    t += float(config.params["dt"])
+                while (t < float(solver.problem.parameters.finish_time)):
+                    t += float(solver.problem.parameters.dt)
                     timesteps.append(t)
 
-                if not config.params["include_time_term"]:
+                if not solver.problem.parameters.include_time_term:
                     timesteps.pop(0)
 
                 # Construct the functional
                 J = Functional(sum(functional.Jt(state, dummy_tf) * dt[t] for t in timesteps))
 
             else:
-                if not config.params["include_time_term"]:
+                if not solver.problem.parameters.include_time_term:
                     raise NotImplementedError, "Multi-steady state simulations only work with 'functional_quadrature_degree=0' or 'functional_final_time_only=True'" 
                 J = Functional(functional.Jt(state, dummy_tf) * dt)
 
@@ -191,7 +192,8 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
             state = self.last_state
 
             functional = config.functional(config)
-            if config.params['steady_state'] or config.params["functional_final_time_only"]:
+            if (not solver.problem.parameters._transient or
+                solver.problem.parameters.functional_final_time_only):
                 J = Functional(functional.Jt(state) * dt[FINISH_TIME])
             else:
                 J = Functional(functional.Jt(state) * dt)

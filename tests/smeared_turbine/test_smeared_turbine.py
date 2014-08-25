@@ -6,7 +6,7 @@ from opentidalfarm import *
 
 class TestSmearedTurbine(object):
 
-    def test_gradient_passes_taylor_test(self):
+    def test_gradient_passes_taylor_test(self, sw_linear_problem_parameters):
         parameters["form_compiler"]["quadrature_degree"] = 4
 
         nx = 5
@@ -14,31 +14,32 @@ class TestSmearedTurbine(object):
         config = DefaultConfiguration(nx, ny)
         domain = domains.RectangularDomain(3000, 1000, nx, ny)
         config.set_domain(domain)
-        config.params['finish_time'] = config.params["start_time"] + \
-            3*config.params["dt"]
 
         # Switch to a smeared turbine representation
         config.params["controls"] = ["turbine_friction"]
         config.params["turbine_parametrisation"] = "smeared"
-        config.params["dump_period"] = -1
-        config.params["output_turbine_power"] = False
+
         config.params['initial_condition'] = ConstantFlowInitialCondition(
             config,
             val=[1, 0, 0]
         )
 
+        sw_linear_problem_parameters.finish_time = sw_linear_problem_parameters.start_time + \
+            3*sw_linear_problem_parameters.dt
+
+        # Boundary conditions
         site_x_start = 750
         site_x = 1500
         site_y_start = 250
         site_y = 500
 
-        k = pi/site_x
-        config.params["flather_bc_expr"] = Expression(
+        k = Constant(pi/site_x)
+        sw_linear_problem_parameters.flather_bc_expr = Expression(
             ("2*eta0*sqrt(g/depth)*cos(-sqrt(g*depth)*k*t)", "0"),
             eta0=2.,
-            g=config.params["g"],
-            depth=config.params["depth"],
-            t=config.params["current_time"],
+            g=sw_linear_problem_parameters.g,
+            depth=sw_linear_problem_parameters.depth,
+            t=sw_linear_problem_parameters.current_time,
             k=k
         )
 
@@ -54,7 +55,12 @@ class TestSmearedTurbine(object):
         site.mark(d, 1)
         config.site_dx = Measure("dx")[d]
 
-        solver = ShallowWaterSolver(config)
+        problem = ShallowWaterProblem(sw_linear_problem_parameters)
+
+        solver_params = ShallowWaterSolver.default_parameters()
+        solver_params.dump_period = -1
+        solver = ShallowWaterSolver(problem, solver_params, config)
+
         rf = ReducedFunctional(config, solver)
         # Ensure the same seed value accross all CPUs
         numpy.random.seed(33)

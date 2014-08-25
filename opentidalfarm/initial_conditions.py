@@ -2,10 +2,10 @@ from math import exp
 from dolfin import *
 
 
-def SinusoidalInitialCondition(config, eta0, k, depth):
+def SinusoidalInitialCondition(eta0, k, depth, start_time):
     """Returns an expression that can be used as initial condition for a channel
     with a sinusoidal forcing"""
-    params = config.params
+    
 
     class SinusoidalExpr(Expression):
         '''This class implements the Expression class for the shallow water initial condition.'''
@@ -13,8 +13,7 @@ def SinusoidalInitialCondition(config, eta0, k, depth):
             pass
 
         def eval(self, values, X):
-            start_time = params["start_time"]
-            g = params["g"]
+            g = 9.81
 
             values[0] = eta0 * sqrt(g / depth) * cos(k * X[0] - sqrt(g * depth) * k * start_time)
             values[1] = 0.

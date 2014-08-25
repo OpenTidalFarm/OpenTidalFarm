@@ -9,8 +9,9 @@ class TestFlatherBoundaryConditionsWithViscosity(object):
 
     def error(self, problem, config, eta0, k):
         state = Function(config.function_space)
-        ic_expr = SinusoidalInitialCondition(config, eta0, k,
-                                             problem.parameters.depth)
+        ic_expr = SinusoidalInitialCondition(eta0, k,
+                                             problem.parameters.depth, 
+                                             problem.parameters.start_time)
 
         ic = project(ic_expr, state.function_space())
         state.assign(ic, annotate=False)
@@ -47,7 +48,7 @@ class TestFlatherBoundaryConditionsWithViscosity(object):
         return errornorm(analytic_sol, state)
 
 
-    def compute_spatial_error(self, problem_params, refinement_level):
+    def compute_spatial_error(self, linear_problem_params, refinement_level):
         nx = 2 * 2**refinement_level
         ny = 1
 
@@ -57,31 +58,30 @@ class TestFlatherBoundaryConditionsWithViscosity(object):
 
         eta0 = 2.0
         k = pi/config.domain.basin_x
-        problem_params.start_time = 0.0
-        problem_params.finish_time = (pi/(sqrt(problem_params.g *
-                                         problem_params.depth) * k) / 1000)
-        problem_params.dt = problem_params.finish_time / 2
-        problem_params.output_turbine_power = False
-        problem_params.include_viscosity = True
-        problem_params.viscosity = 10.0
-        problem_params.flather_bc_expr = Expression(
+        linear_problem_params.start_time = 0.0
+        linear_problem_params.finish_time = (pi/(sqrt(linear_problem_params.g *
+                                         linear_problem_params.depth) * k) / 1000)
+        linear_problem_params.dt = linear_problem_params.finish_time / 2
+        linear_problem_params.include_viscosity = True
+        linear_problem_params.viscosity = 10.0
+        linear_problem_params.flather_bc_expr = Expression(
             ("2*eta0*sqrt(g/depth)*cos(-sqrt(g*depth)*k*t)", "0"),
             eta0=eta0,
-            g=problem_params.g,
-            depth=problem_params.depth,
-            t=problem_params.current_time,
+            g=linear_problem_params.g,
+            depth=linear_problem_params.depth,
+            t=linear_problem_params.current_time,
             k=k
         )
 
-        problem = ShallowWaterProblem(problem_params)
+        problem = ShallowWaterProblem(linear_problem_params)
 
         return self.error(problem, config, eta0, k)
 
-    def test_spatial_convergence_is_two(self, sw_problem_parameters):
+    def test_spatial_convergence_is_two(self, sw_linear_problem_parameters):
         errors = []
         tests = 4
         for refinement_level in range(tests):
-            errors.append(self.compute_spatial_error(sw_problem_parameters,
+            errors.append(self.compute_spatial_error(sw_linear_problem_parameters,
                                                      refinement_level))
         # Compute the order of convergence
         conv = []

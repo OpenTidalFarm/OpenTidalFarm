@@ -5,8 +5,9 @@ from dolfin_adjoint import adj_reset
 def compute_error(problem, config, eta0, k):
     # Define the state function
     state = Function(config.function_space)
-    ic_expr = SinusoidalInitialCondition(config, eta0, k,
-                                         config.params["depth"])
+    ic_expr = SinusoidalInitialCondition(eta0, k,
+                                         problem.parameters.depth, 
+                                         problem.parameters.start_time)
     ic = project(ic_expr, state.function_space())
     state.assign(ic, annotate=False)
 
@@ -25,7 +26,7 @@ def compute_error(problem, config, eta0, k):
                         eta0=eta0,
                         g=problem.parameters.g,
                         depth=problem.parameters.depth,
-                        t=problem.parameters.current_time,
+                        t=Constant(problem.parameters.current_time),
                         k=k,
                         friction=problem.parameters.friction)
 
@@ -40,7 +41,8 @@ def compute_error(problem, config, eta0, k):
     analytic_sol = Expression((u_exact, "0", eta_exact),
                               eta0=eta0, g=problem.parameters.g,
                               depth=problem.parameters.depth,
-                              t=problem.parameters.current_time, k=k)
+                              t=Constant(problem.parameters.current_time),
+                              k=k)
     return errornorm(analytic_sol, state)
 
 
@@ -88,7 +90,7 @@ def setup_model(parameters, time_step, finish_time, mesh_x, mesh_y=2):
         eta0=eta0, 
         g=parameters.g, 
         depth=parameters.depth, 
-        t=parameters.current_time, 
+        t=Constant(parameters.current_time),
         k=k)
 
     problem = ShallowWaterProblem(parameters)

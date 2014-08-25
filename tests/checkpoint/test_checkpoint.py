@@ -20,8 +20,12 @@ class TestCheckpoint(object):
         config.set_domain(domains.RectangularDomain(3000, 1000, 20, 10))
         config.params["verbose"] = 0
       
+        problem_params = DummyProblem.default_parameters()
+        
         # dt is used in the functional only, so we set it here to 1.0
-        config.params["dt"] = 1.0
+        problem_params.dt = 1.0
+        problem_params.functional_final_time_only = True
+
         # Turbine settings
         config.params["turbine_pos"] = [[500., 500.]]
         # The turbine friction is the control variable 
@@ -29,22 +33,24 @@ class TestCheckpoint(object):
         config.params["turbine_x"] = 8000
         config.params["turbine_y"] = 8000
         config.params['controls'] = ['turbine_friction']
-        config.params["functional_final_time_only"] = True
         config.params["dump_period"] = -1
         config.params["output_turbine_power"] = False
       
         k = pi/config.domain.basin_x
-        config.params['initial_condition'] = SinusoidalInitialCondition(config, 2.0, k, config.params['depth'])
+        config.params['initial_condition'] = SinusoidalInitialCondition(2.0, k, 
+                50, start_time=0.0)
+
+        problem = DummyProblem(problem_params)
       
-        return config
+        return problem, config
 
     def test_speedup_is_larger_than_ten(self):
-        config = self.default_config()
+        problem, config = self.default_config()
         config.params["save_checkpoints"] = True
         config.info()
         friction0 = config.params["turbine_friction"]
 
-        solver = DummySolver(config)
+        solver = DummySolver(problem, config)
 
         rf = ReducedFunctional(config, solver)
         bounds = [0, 100]

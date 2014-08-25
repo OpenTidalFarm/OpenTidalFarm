@@ -20,8 +20,12 @@ class TestFrictionOptimisation(object):
       config.set_domain(domains.RectangularDomain(3000, 1000, 20, 10))
       config.params["verbose"] = 0
 
+      problem_params = DummyProblem.default_parameters()
+
       # dt is used in the functional only, so we set it here to 1.0
-      config.params["dt"] = 1.0
+      problem_params.dt = 1.0
+      problem_params.functional_final_time_only = True
+
       # Turbine settings
       config.params["turbine_pos"] = [[500., 500.]]
       # The turbine friction is the control variable 
@@ -29,20 +33,20 @@ class TestFrictionOptimisation(object):
       config.params["turbine_x"] = 1e10
       config.params["turbine_y"] = 1e10
       config.params['controls'] = ['turbine_friction']
-      config.params["functional_final_time_only"] = True
-      config.params["dump_period"] = -1
       config.params["output_turbine_power"] = False
 
       k = pi/config.domain.basin_x
       config.params['k'] = k
-      config.params['initial_condition'] = SinusoidalInitialCondition(config, 2.0, k, config.params['depth'])
+      config.params['initial_condition'] = SinusoidalInitialCondition(config,
+          2.0, k, 50.)
 
-      return config
+      problem = DummyProblem(problem_params)
+      return problem, config
 
     def test_optimisation_recovers_optimal_friction(self):
-        config = self.default_config()
 
-        solver = DummySolver(config)
+        problem, config = self.default_config()
+        solver = DummySolver(problem, config)
 
         rf = ReducedFunctional(config, solver, scale=1e-3)
         m0 = rf.initial_control()

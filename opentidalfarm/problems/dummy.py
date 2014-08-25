@@ -6,7 +6,8 @@ class DummyProblemParameters(FrozenClass):
     """ A set of parameters for a :class:`DummyProblem`.
     """
 
-    pass
+    dt = None
+    functional_final_time_only = False
 
 
 class DummyProblem(Problem):
@@ -18,9 +19,9 @@ class DummyProblem(Problem):
                 object containing the parameters of the problem.
         """
 
-        if not isinstance(parameters, DummyProblem):
+        if not isinstance(parameters, DummyProblemParameters):
             raise TypeError("parameters must be of type \
-ShallowWaterProblemParameters.")
+DummyProblemParameters.")
 
         self.parameters = parameters
 

@@ -5,11 +5,15 @@ import os
 
 class TestDynamicTurbineControl(object):
 
-    def test_gradient_passes_taylor_test(self):
+    def test_gradient_passes_taylor_test(self, sw_nonlinear_problem_parameters):
         path = os.path.dirname(__file__)
         meshfile = os.path.join(path, "mesh.xml")
         config = UnsteadyConfiguration(meshfile, inflow_direction = [1, 1])
-        config.params['finish_time'] = config.params["start_time"] + 2*config.params["dt"]
+        config.params["output_turbine_power"] = False
+
+        sw_nonlinear_problem_parameters.finish_time = \
+            sw_nonlinear_problem_parameters.start_time + \
+            2 * sw_nonlinear_problem_parameters.dt
 
         # Deploy some turbines 
         turbine_pos = [] 
@@ -24,9 +28,6 @@ class TestDynamicTurbineControl(object):
         config.params['controls'] = ["dynamic_turbine_friction"]
         config.params["automatic_scaling"] = False
 
-        config.params["dump_period"] = -1
-        config.params["output_turbine_power"] = False
-
         for x_r in numpy.linspace(site_x_start, site_x_start + site_x, 2):
             for y_r in numpy.linspace(site_y_start, site_y_start + site_y, 2):
               turbine_pos.append((float(x_r), float(y_r)))
@@ -36,7 +37,27 @@ class TestDynamicTurbineControl(object):
 
         config.params["turbine_friction"] = [config.params["turbine_friction"]]*3
 
-        solver = ShallowWaterSolver(config)
+        # Boundary conditions
+        bc = DirichletBCSet(config)
+        period = 12. * 60 * 60
+        eta0 = 2.0
+        k = Constant(2 * pi / (period * sqrt(sw_nonlinear_problem_parameters.g * \
+            sw_nonlinear_problem_parameters.depth)))
+        expression = Expression(
+            ("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0"),
+            eta0=eta0, g=sw_nonlinear_problem_parameters.g,
+            depth=sw_nonlinear_problem_parameters.depth,
+            t=sw_nonlinear_problem_parameters.current_time, k=k)
+        bc.add_analytic_u(1, expression)
+        bc.add_analytic_u(2, expression)
+        bc.add_noslip_u(3)
+        sw_nonlinear_problem_parameters.strong_bc = bc
+
+        problem = ShallowWaterProblem(sw_nonlinear_problem_parameters)
+
+        solver_params = ShallowWaterSolver.default_parameters() 
+        solver_params.dump_period = -1
+        solver = ShallowWaterSolver(problem, solver_params, config)
 
         rf = ReducedFunctional(config, solver, scale=10**-6)
         m0 = rf.initial_control()

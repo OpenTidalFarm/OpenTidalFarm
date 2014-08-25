@@ -53,10 +53,20 @@ class ShallowWaterProblemParameters(SteadyShallowWaterProblemParameters):
 class ShallowWaterProblem(Problem):
 
     def __init__(self, parameters):
+        """ Instantiates a new :class:`ShallowWaterProblem` object. 
+
+            :parameter parameters: A :class:`ShallowWaterProblemParameters`
+                object containing the parameters of the problem.
+        """
+
+        if not isinstance(parameters, ShallowWaterProblemParameters):
+            raise TypeError, "parameters must be of type \
+ShallowWaterProblemParameters."
+
         self.parameters = parameters
 
     @property
-    def is_transient(self):
+    def _is_transient(self):
         return True
 
     @staticmethod

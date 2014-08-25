@@ -22,25 +22,7 @@ class DefaultConfiguration(object):
         self.functional = DefaultFunctional
 
         params = ParameterDictionary({
-            'theta': 0.6,
-            'steady_state': False,
-            'functional_final_time_only': False,
-            'functional_quadrature_degree': 1,
-            'bctype': 'flather',
-            'strong_bc': None,
-            'flather_bc_expr': None,
-            'u_weak_dirichlet_bc_expr': None,
-            'eta_weak_dirichlet_bc_expr': None,
-            'free_slip_on_sides': False,
-            'include_advection': False,
-            'include_viscosity': False,
-            'include_time_term': True,
-            'linear_divergence': True,
-            'viscosity': 0.0,
-            'depth': 50.0,
-            'g': 9.81,
             'dump_period': 1,
-            'friction': Constant(0.0),
             'turbine_parametrisation': 'individual',
             'turbine_pos': [],
             'turbine_x': 20.,
@@ -51,9 +33,6 @@ class DefaultConfiguration(object):
             'controls': ['turbine_pos', 'turbine_friction'],
             'solver_parameters': None,
             'postsolver_callback': None,
-            'start_time': 0.,
-            'current_time': 0.,
-            'finish_time': 100.,
             'automatic_scaling': False,
             'print_individual_turbine_power': False,
             'automatic_scaling_multiplier': 5,
@@ -67,8 +46,6 @@ class DefaultConfiguration(object):
                                          # snaps_in_ram,
                                          # verbose)
             })
-
-        params['dt'] = params['finish_time'] / 4000.
 
         # Print log messages only from the root process in parallel
         # (See http://fenicsproject.org/documentation/dolfin/dev/python/demo/pde/navier-stokes/python/documentation.html)
@@ -131,20 +108,7 @@ class DefaultConfiguration(object):
         if rank == 0:
             # Physical parameters
             print "\n=== Physical parameters ==="
-            if isinstance(self.params["depth"], float):
-                print "Water depth: %f m" % self.params["depth"]
-            print "Gravity constant: %f m/s^2" % self.params["g"]
-            print "Viscosity constant: %f m^2/s" % self.params["viscosity"]
             print "Water density: %f kg/m^3" % self.params["rho"]
-            try:
-                print "Bottom friction: %e" % float(self.params["friction"])
-            except TypeError:
-                print "Bottom friction: %f - %f" %\
-                    (self.params["friction"].vector().array().min(),
-                     self.params["friction"].vector().array().max())
-            print "Advection term: %s" % self.params["include_advection"]
-            print "Viscosity term: %s" % self.params["include_viscosity"]
-            print "Steady state: %s" % self.params["steady_state"]
 
             # Turbine settings
             print "\n=== Turbine settings ==="
@@ -163,12 +127,6 @@ class DefaultConfiguration(object):
             # Discretisation settings
             print "\n=== Discretisation settings ==="
             print "Finite element pair: ", self.finite_element.func_name
-            print "Steady state: ", self.params["steady_state"]
-            if not self.params["steady_state"]:
-                print "Theta: %f" % self.params["theta"]
-                print "Start time: %f s" % float(self.params["start_time"])
-                print "Finish time: %f s" % float(self.params["finish_time"])
-                print "Time step: %f s" % float(self.params["dt"])
             print "Number of mesh elements: %i" % num_cells
             print "Mesh element size: %f - %f" % (hmin, hmax)
 
@@ -208,25 +166,8 @@ class SteadyConfiguration(DefaultConfiguration):
             finite_element=finite_element)
         # Model settings
         self.set_domain(GMeshDomain(mesh_file), warning=False)
-        self.params['steady_state'] = True
-        self.params['initial_condition'] = ConstantFlowInitialCondition(self)
-        self.params['include_advection'] = True
-        self.params['include_viscosity'] = True
-        self.params['linear_divergence'] = False
-        self.params['viscosity'] = 3.0
-        self.params['friction'] = Constant(0.0025)
-        self.params['theta'] = 1.0
-
-        # Boundary conditions
-        bc = DirichletBCSet(self)
-        bc.add_constant_flow(1, 2.0 + 1e-10, direction=inflow_direction)
-        bc.add_analytic_eta(2, 0.0)
-        self.params['bctype'] = 'strong_dirichlet'
-        self.params['strong_bc'] = bc
-        self.params['free_slip_on_sides'] = True
 
         # Optimisation settings
-        self.params['functional_final_time_only'] = True
         self.params['automatic_scaling'] = True
 
         # Turbine settings
@@ -250,28 +191,3 @@ class UnsteadyConfiguration(SteadyConfiguration):
                                                     inflow_direction,
                                                     finite_element)
 
-        # Switch to the unsteady shallow water equations
-        self.params['steady_state'] = False
-        self.params['functional_final_time_only'] = False
-
-        # Timing settings
-        self.params['theta'] = 1.0
-        self.params['start_time'] = 1. / 4 * period
-        self.params['dt'] = period / 50
-        self.params['finish_time'] = 5. / 4 * period
-
-        # Initial condition
-        k = 2 * pi / (period * sqrt(self.params['g'] * self.params['depth']))
-        self.params['initial_condition'] = SinusoidalInitialCondition(
-            self, eta0, k, self.params['depth'])
-
-        # Boundary conditions
-        bc = DirichletBCSet(self)
-        expression = Expression(
-            ("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0"),
-            eta0=eta0, g=self.params["g"], depth=self.params["depth"],
-            t=self.params["current_time"], k=k)
-        bc.add_analytic_u(1, expression)
-        bc.add_analytic_u(2, expression)
-        bc.add_noslip_u(3)
-        self.params['strong_bc'] = bc

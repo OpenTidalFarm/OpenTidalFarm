@@ -1,9 +1,10 @@
 from dolfin import Constant
 from dolfin_adjoint import Constant
 from problem import Problem
+from ..helpers import FrozenClass
 
 
-class SteadyShallowWaterProblemParameters(object):
+class SteadyShallowWaterProblemParameters(FrozenClass):
     """ A set of parameters for a :class:`SteadyShallowWaterProblem`. 
     
     Physical parameters:
@@ -25,13 +26,19 @@ class SteadyShallowWaterProblemParameters(object):
     Boundary conditions:
 
     :ivar bctype: Specifies how the boundary conditions should be enforced. Must
-        be either 'strong_dirichlet' or 'strong_dirichlet'. 
+        be one of 'dirichlet', 'strong_dirichlet' or 'flather'. 
         Default: 'strong_dirichlet'
     :ivar strong_bc: A list of strong boundary conditions. Default: None
+    :ivar flather_bc_expr: A :class:`dolfin.Expression` describing the Flather
+        boundary condition values. Default: None
+    :ivar u_weak_dirichlet_bc_expr: A :class:`dolfin.Expression` describing the weak
+        Dirichlet boundary condition values for the velocity.
+        Default: None.
+    :ivar eta_weak_dirichlet_bc_expr: A :class:`dolfin.Expression` describing the weak
+        Dirichlet boundary condition values for the free surface displacment.
+        Default: None.
     :ivar free_slip_on_sides: Indicates if a free-slip boundary conditions is to
         be applied on the sides. Default: True
-    :ivar eta_weak_dirichlet_bc_expr: A list of boundary conditions for the free
-        surface. Default: None
     """
 
     # Physical parameters
@@ -48,18 +55,30 @@ class SteadyShallowWaterProblemParameters(object):
     # Boundary conditions
     bctype = 'strong_dirichlet'
     strong_bc = None
-    free_slip_on_sides = True
+    flather_bc_expr = None
     eta_weak_dirichlet_bc_expr = None
+    u_weak_dirichlet_bc_expr = None
+    free_slip_on_sides = True
 
 
 
 class SteadyShallowWaterProblem(Problem):
 
     def __init__(self, parameters):
+        """ Instantiates a new :class:`SteadyShallowWaterProblem` object.
+
+            :parameter parameters: A :class:`SteadyShallowWaterProblemParameters`
+                object containing the parameters of the problem.
+        """
+
+        if not isinstance(parameters, SteadyShallowWaterProblemParameters):
+            raise TypeError, "parameters must be of type \
+ShallowWaterProblemParameters."
+
         self.parameters = parameters
 
     @property
-    def is_transient(self):
+    def _is_transient(self):
         return False
 
     @staticmethod

@@ -17,11 +17,13 @@ class TestPositionOptimisation(object):
       config = configuration.DefaultConfiguration(nx=40, ny=20, finite_element = finite_elements.p1dgp2)
       config.set_domain(opentidalfarm.domains.RectangularDomain(3000, 1000, 40, 20))
       config.params["verbose"] = 0
-      config.params["dump_period"] = -1
-      config.params["output_turbine_power"] = False
+      
+      problem_params = DummyProblem.default_parameters()
 
       # dt is used in the functional only
-      config.params["dt"] = 0.8
+      problem_params.dt = 0.8
+      problem_params.functional_final_time_only = False
+
       # Turbine settings
       # The turbine position is the control variable 
       config.params["turbine_pos"] = [[500., 200.]]
@@ -32,11 +34,14 @@ class TestPositionOptimisation(object):
       config.params["initial_condition"] = BumpInitialCondition(config)
       config.params["automatic_scaling"] = True
       
-      return config
+      problem = DummyProblem(problem_params)
+
+      return problem, config
 
     def test_optimisation_recovers_optimal_position(self):
-        config = self.default_config()
-        solver = DummySolver(config)
+        problem, config = self.default_config()
+
+        solver = DummySolver(problem, config)
         rf = ReducedFunctional(config, solver)
         m0 = rf.initial_control()
 
@@ -44,9 +49,7 @@ class TestPositionOptimisation(object):
 
         p = numpy.random.rand(len(m0))
         minconv = helpers.test_gradient_array(rf.j, rf.dj, m0, seed=0.005, perturbation_direction=p)
-        if minconv < 1.9:
-          info_red("The gradient taylor remainder test failed.")
-          sys.exit(1)
+        assert minconv > 1.9
 
         # If this option does not produce any ipopt outputs, delete the ipopt.opt file
         g = lambda m: []

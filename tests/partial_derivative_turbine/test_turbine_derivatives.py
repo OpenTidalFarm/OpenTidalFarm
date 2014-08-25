@@ -16,7 +16,6 @@ class TestTurbineDerivatives(object):
             nx, ny, finite_element=finite_elements.p1dgp2)
         domain = domains.RectangularDomain(3000, 1000, nx, ny)
         config.set_domain(domain)
-        config.params["dump_period"] = -1
         config.params["verbose"] = 0
 
         # Turbine settings
@@ -30,7 +29,7 @@ class TestTurbineDerivatives(object):
         return config
 
 
-    def j_and_dj(self, config, m, forward_only=None):
+    def j_and_dj(self, problem, config, m, forward_only=None):
         adj_reset()
 
         # Change the control variables to the config parameters
@@ -43,8 +42,9 @@ class TestTurbineDerivatives(object):
         state = Function(config.function_space, name="current_state")
         eta0 = 2.0
         k = pi/config.domain.basin_x
-        ic_expr = SinusoidalInitialCondition(config, eta0, k,
-                                             config.params["depth"])
+        ic_expr = SinusoidalInitialCondition(eta0, k,
+                                             problem.parameters.depth,
+                                             problem.parameters.start_time)
         ic = project(ic_expr, state.function_space())
         state.assign(ic, annotate=False)
 
@@ -85,11 +85,18 @@ class TestTurbineDerivatives(object):
     def test_turbine_derivatives_passes_taylor_test(self):
         # run the taylor remainder test
         config = self.default_config()
-        solver = ShallowWaterSolver(config)
+
+        problem_params = ShallowWaterProblem.default_parameters()
+        problem = ShallowWaterProblem(problem_params)
+
+        solver_params = ShallowWaterSolver.default_parameters()
+        solver_params.dump_period = -1
+        solver = ShallowWaterSolver(problem, solver_params, config)
+
         m0 = ReducedFunctional(config, solver).initial_control()
 
-        j = lambda m, forward_only = False: self.j_and_dj(config, m, forward_only)[0]
-        dj = lambda m, forget: self.j_and_dj(config, m, forward_only=False)[1]
+        j = lambda m, forward_only = False: self.j_and_dj(problem, config, m, forward_only)[0]
+        dj = lambda m, forget: self.j_and_dj(problem, config, m, forward_only=False)[1]
 
         # We set the perturbation_direction with a constant seed, so that it is
         # consistent in a parallel environment.
