@@ -21,8 +21,8 @@ class TestMultiSteadyState(object):
         config = UnsteadyConfiguration(meshfile, inflow_direction=inflow_direction)
         config.set_site_dimensions(site_x_start, site_x_start + site_x, site_y_start, site_y_start + site_y)
 
-        config.params.initial_condition = ConstantFlowInitialCondition([1, 1, 1])
-        config.params.output_turbine_power = False
+        config.params["initial_condition"] = ConstantFlowInitialCondition([1, 1, 1])
+        config.params["output_turbine_power"] = False
 
         # Change the parameters such that in fact two steady state problems are solved consecutively
         problem_params = sw_nonlinear_problem_parameters
@@ -56,7 +56,6 @@ class TestMultiSteadyState(object):
         bc.add_analytic_eta(2, expr)
         problem_params.strong_bc = bc
 
-        #print problem_params
         problem = ShallowWaterProblem(problem_params)
 
         # Place some turbines 

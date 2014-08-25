@@ -262,5 +262,5 @@ attribute." % (self, key))
 
     def __str__(self):
         attrs = dir(self)
-        attrs_str = {k: getattr(self, k) for k in attrs if not k.startswith("_")}
-        return yaml.dump(attrs_str, default_flow_style=False)
+        attrs_dict = {k: str(getattr(self, k)) for k in attrs if not k.startswith("_")}
+        return yaml.dump(attrs_dict, default_flow_style=False)

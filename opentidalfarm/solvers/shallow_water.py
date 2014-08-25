@@ -335,17 +335,19 @@ ShallowWaterSolverParameters."
                 u_source.t = Constant(t - (1.0 - theta) * dt)
             step += 1
 
-            # Solve non-linear system with a Newton solver
-            if cache_forward_state and self.state_cache.has_key(t):
-                log(INFO, "Load initial guess from cache for time %f." % t)
+            # Set the initial guess for the solve
+            if cache_forward_state and self.state_cache.has_key(float(t)):
+                log(INFO, "Read initial guess from cache for t=%f." % t)
                 # Load initial guess for solver from cache
-                state_new.assign(self.state_cache[t], annotate=False)
+                state_new.assign(self.state_cache[float(t)], annotate=False)
+
             elif not include_time_term:
                 log(INFO, "Set the initial guess for the nonlinear solver to the initial condition.")
                 # Reset the initial guess after each timestep
                 ic = config.params['initial_condition']
                 state_new.assign(ic, annotate=False)
 
+            # Solve non-linear system with a Newton solver
             if self.problem._is_transient:
                 log(INFO, "Solve shallow water equations at time %s (Newton iteration) ..." % float(params.current_time))
             else:
@@ -358,7 +360,9 @@ ShallowWaterSolverParameters."
                 F_bcs = []
 
             solve(F == 0, state_new, bcs=F_bcs,
-                      solver_parameters=solver_parameters.dolfin_solver, annotate=annotate, J=derivative(F, state_new))
+                  solver_parameters=solver_parameters.dolfin_solver, 
+                  annotate=annotate, 
+                  J=derivative(F, state_new))
 
             # Call user defined callback
             if postsolver_callback is not None:
@@ -368,10 +372,10 @@ ShallowWaterSolverParameters."
             state.assign(state_new)
             if cache_forward_state:
                 # Save state for initial guess cache
-                log(INFO, "Cache initial guess for time %f." % t)
-                if not self.state_cache.has_key(t):
-                    self.state_cache[t] = Function(state_new.function_space())
-                self.state_cache[t].assign(state_new, annotate=False)
+                log(INFO, "Cache solution t=%f as next initial guess." % t)
+                if not self.state_cache.has_key(float(t)):
+                    self.state_cache[float(t)] = Function(state_new.function_space())
+                self.state_cache[float(t)].assign(state_new, annotate=False)
 
             # Set the control function for the upcoming timestep.
             if turbine_field:
