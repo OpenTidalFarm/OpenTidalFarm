@@ -422,7 +422,7 @@ ShallowWaterSolverParameters."
                             log(INFO, "Contribution of turbine number %d at co-ordinates:" % (i + 1), params["turbine_pos"][i], ' is: ', j_individual[i] * 0.001, 'kW', 'with friction of', fr_individual[i])
 
             # Increase the adjoint timestep
-            adj_inc_timestep(time=t, finished=(not float(t) < float(finish_time)))
+            adj_inc_timestep(time=float(t), finished=(not float(t) < float(finish_time)))
         log(INFO, "End of time loop.")
 
         # Write the turbine positions, power extraction and friction to a .csv file named turbine_info.csv

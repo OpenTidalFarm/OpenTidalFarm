@@ -8,6 +8,7 @@ class DummyProblemParameters(FrozenClass):
 
     dt = None
     functional_final_time_only = False
+    functional_quadrature_degree = 1
 
 
 class DummyProblem(Problem):
@@ -27,7 +28,7 @@ DummyProblemParameters.")
 
     @property
     def _is_transient(self):
-        return False
+        return True
 
     @staticmethod
     def default_parameters():

@@ -77,8 +77,10 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
             parameters["adjoint"]["record_all"] = True
             if config.params['revolve_parameters'] is not None:
               (strategy, snaps_on_disk, snaps_in_ram, verbose) = config.params['revolve_parameters']
-              adj_checkpointing(strategy, config.params['finish_time'] / config.params['dt'],
-                                snaps_on_disk=snaps_on_disk, snaps_in_ram=snaps_in_ram, verbose=verbose)
+              adj_checkpointing(strategy, 
+                      solver.problem.parameters.finish_time / solver.problem.parameters.dt,
+                      snaps_on_disk=snaps_on_disk, snaps_in_ram=snaps_in_ram, 
+                      verbose=verbose)
 
             # Get initial conditions
             state = Function(config.function_space, name="Current_state")
@@ -136,8 +138,6 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
                 J = Functional(sum(functional.Jt(state, dummy_tf) * dt[t] for t in timesteps))
 
             else:
-                if not solver.problem.parameters.include_time_term:
-                    raise NotImplementedError, "Multi-steady state simulations only work with 'functional_quadrature_degree=0' or 'functional_final_time_only=True'" 
                 J = Functional(functional.Jt(state, dummy_tf) * dt)
 
             if 'dynamic_turbine_friction' in config.params["controls"]:
