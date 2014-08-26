@@ -18,10 +18,11 @@ class DummySolver(Solver):
         self.parameters = DummySolverParameters()
         self.config = config
         self.tf = None
+        self.current_state = None
 
-    def setup(self, turbine_field, functional=None, annotate=True):
-        (v, q) = TestFunctions(self.config.function_space)
-        (u, h) = TrialFunctions(self.config.function_space)
+    def setup(self, W, turbine_field, functional=None, annotate=True):
+        (v, q) = TestFunctions(W)
+        (u, h) = TrialFunctions(W)
 
         # Mass matrices
         self.M = inner(v, u) * dx
@@ -35,13 +36,28 @@ class DummySolver(Solver):
         self.annotate = annotate
         self.functional = functional
 
-    def solve(self, state, turbine_field, functional=None, annotate=True,
+    def solve(self, turbine_field, functional=None, annotate=True,
             linear_solver="default", preconditioner="default", u_source=None):
         '''Solve (1+turbine)*M*state = M*old_state.
            The solution is a x-velocity of old_state/(turbine_friction + 1) and a zero pressure value y-velocity.
         '''
 
-        self.setup(turbine_field, functional, annotate)
+        problem_params = self.problem.parameters
+        mesh = problem_params.domain.mesh
+        
+        # Create function spaces
+        V, H = problem_params.finite_element(mesh)
+        W = MixedFunctionSpace([V, H])
+
+        # Load initial condition
+        ic = project(problem_params.initial_condition, W)
+
+        # Define functions
+        state = Function(W, name="Current_state")  # solution of the next timestep
+        self.current_state = state
+        state.assign(ic, annotate=False)    
+
+        self.setup(W, turbine_field, functional, annotate)
 
         if functional is not None and not self.problem.parameters.functional_final_time_only:
             j = 0.5 * assemble(self.problem.parameters.dt * self.functional.Jt(state, self.tf))

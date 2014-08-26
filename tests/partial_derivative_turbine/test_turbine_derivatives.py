@@ -9,13 +9,8 @@ from opentidalfarm import *
 from dolfin import log, INFO, ERROR
 
 class TestTurbineDerivatives(object):
-    def default_config(self):
-        nx = 20
-        ny = 10
-        config = configuration.DefaultConfiguration(
-            nx, ny, finite_element=finite_elements.p1dgp2)
-        domain = domains.RectangularDomain(3000, 1000, nx, ny)
-        config.set_domain(domain)
+    def default_config(self, domain):
+        config = DefaultConfiguration(domain)
         config.params["verbose"] = 0
 
         # Turbine settings
@@ -38,24 +33,8 @@ class TestTurbineDerivatives(object):
         mp = m[len(config.params["turbine_friction"]):]
         config.params["turbine_pos"] = numpy.reshape(mp, (-1, 2))
 
-        # Get initial conditions
-        state = Function(config.function_space, name="current_state")
-        eta0 = 2.0
-        k = pi/config.domain.basin_x
-        ic_expr = SinusoidalInitialCondition(eta0, k,
-                                             problem.parameters.depth,
-                                             problem.parameters.start_time)
-        ic = project(ic_expr, state.function_space())
-        state.assign(ic, annotate=False)
-
-        # Set the control values
-        U = config.function_space.split()[0].sub(0)  # Extract the first component
-                                                     # of the velocity function
-                                                     # space
-        U = U.collapse()  # Recompute the DOF map
-
         # Set up the turbine friction field using the provided control variable
-        turbines = Turbines(U, config.params)
+        turbines = Turbines(config.turbine_function_space, config.params)
         tf = turbines()
         # The functional of interest is simply the l2 norm of the turbine field
         v = tf.vector()
@@ -84,9 +63,19 @@ class TestTurbineDerivatives(object):
 
     def test_turbine_derivatives_passes_taylor_test(self):
         # run the taylor remainder test
-        config = self.default_config()
+        nx = 20
+        ny = 10
+        domain = RectangularDomain(0, 0, 3000, 1000, nx, ny)
+        config = self.default_config(domain)
 
+        eta0 = 2.0
+        k = pi/3000.
         problem_params = ShallowWaterProblem.default_parameters()
+        problem_params.finite_element = finite_elements.p1dgp2
+        problem_params.domain = domain
+        problem_params.initial_condition = SinusoidalInitialCondition(eta0, k,
+                                             problem_params.depth,
+                                             problem_params.start_time)
         problem = ShallowWaterProblem(problem_params)
 
         solver_params = ShallowWaterSolver.default_parameters()

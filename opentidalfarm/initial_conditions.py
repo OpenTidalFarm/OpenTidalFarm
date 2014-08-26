@@ -24,7 +24,7 @@ def SinusoidalInitialCondition(eta0, k, depth, start_time):
     return SinusoidalExpr()
 
 
-def BumpInitialCondition(config):
+def BumpInitialCondition(x0, y0, x1, y1):
 
     class BumpExpr(Expression):
         '''This class implements a initial condition with a bump velocity profile.
@@ -46,8 +46,8 @@ def BumpInitialCondition(config):
             return bump
 
         def eval(self, values, X):
-            x_unit = 2 * (config.domain.basin_x - X[0]) / config.domain.basin_x - 1.0
-            y_unit = 2 * (config.domain.basin_y - X[1]) / config.domain.basin_y - 1.0
+            x_unit = 2 * (x1 - X[0]) / (x1-x0) - 1.0
+            y_unit = 2 * (y1 - X[1]) / (y1-y0) - 1.0
 
             values[0] = self.bump_function([x_unit, y_unit])
             values[1] = 0

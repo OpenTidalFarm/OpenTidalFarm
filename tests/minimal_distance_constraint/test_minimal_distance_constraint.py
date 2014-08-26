@@ -8,10 +8,9 @@ import math
 class TestMinimalDistanceConstraint(object):
 
     def test_derivative(self):
-        config = configuration.DefaultConfiguration()
-        domain = domains.RectangularDomain(3000, 1000, 20, 3)
+        domain = RectangularDomain(0, 0, 3000, 1000, 20, 3)
+        config = configuration.DefaultConfiguration(domain)
 
-        config.set_domain(domain)
         config.params["controls"] = ['turbine_pos']
 
         ieq = get_minimum_distance_constraint_func(config)

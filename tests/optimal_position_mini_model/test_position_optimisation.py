@@ -14,10 +14,9 @@ import opentidalfarm.domains
 
 class TestPositionOptimisation(object):
     def default_config(self):
-        config = configuration.DefaultConfiguration(nx=40, ny=20,
-                finite_element=finite_elements.p1dgp2)
-        domain = opentidalfarm.domains.RectangularDomain(3000, 1000, 40, 20)
-        config.set_domain(domain)
+        domain = RectangularDomain(0, 0, 3000, 1000, 40, 20)
+
+        config = DefaultConfiguration(domain)
         config.params["verbose"] = 0
   
         problem_params = DummyProblem.default_parameters()
@@ -25,7 +24,10 @@ class TestPositionOptimisation(object):
         # dt is used in the functional only
         problem_params.dt = 0.8
         problem_params.functional_final_time_only = False
-  
+        problem_params.finite_element = finite_elements.p1dgp2
+        problem_params.domain = domain
+        problem_params.initial_condition = BumpInitialCondition(0, 0, 3000, 1000)
+
         # Turbine settings
         # The turbine position is the control variable 
         config.params["turbine_pos"] = [[500., 200.]]
@@ -33,7 +35,6 @@ class TestPositionOptimisation(object):
         config.params["turbine_x"] = 800
         config.params["turbine_y"] = 800
         config.params["controls"] = ['turbine_pos']
-        config.params["initial_condition"] = BumpInitialCondition(config)
         config.params["automatic_scaling"] = True
         
         problem = DummyProblem(problem_params)

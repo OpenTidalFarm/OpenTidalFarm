@@ -1,5 +1,7 @@
 from problem import Problem
 from steady_shallow_water import SteadyShallowWaterProblemParameters
+from steady_shallow_water import SteadyShallowWaterProblem
+from dolfin_adjoint import Constant
 
 
 class ShallowWaterProblemParameters(SteadyShallowWaterProblemParameters):
@@ -9,6 +11,10 @@ class ShallowWaterProblemParameters(SteadyShallowWaterProblemParameters):
     :class:`SteadyShallowWaterProblemParameters`.
 
     In addition following parameters are available:
+
+    Domain parameters:
+
+    :ivar domain: The computational domain as an :class:`Domain` object.
 
     Time parameters:
 
@@ -50,7 +56,7 @@ class ShallowWaterProblemParameters(SteadyShallowWaterProblemParameters):
     functional_quadrature_degree = 1
 
 
-class ShallowWaterProblem(Problem):
+class ShallowWaterProblem(SteadyShallowWaterProblem):
 
     def __init__(self, parameters):
         """ Instantiates a new :class:`ShallowWaterProblem` object. 
@@ -59,11 +65,7 @@ class ShallowWaterProblem(Problem):
                 object containing the parameters of the problem.
         """
 
-        if not isinstance(parameters, ShallowWaterProblemParameters):
-            raise TypeError, "parameters must be of type \
-ShallowWaterProblemParameters."
-
-        self.parameters = parameters
+        super(ShallowWaterProblem, self).__init__(parameters)
 
     @property
     def _is_transient(self):

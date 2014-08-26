@@ -1,12 +1,22 @@
+from dolfin_adjoint import Constant
 from problem import Problem
 from ..helpers import FrozenClass
+from .. import finite_elements
 
 
 class DummyProblemParameters(FrozenClass):
     """ A set of parameters for a :class:`DummyProblem`.
     """
 
+    domain = None
     dt = None
+
+    # Finite element settings
+    finite_element = staticmethod(finite_elements.p2p1)
+
+    # Initial condition
+    initial_condition = Constant((1e-16, 0, 0))
+
     functional_final_time_only = False
     functional_quadrature_degree = 1
 

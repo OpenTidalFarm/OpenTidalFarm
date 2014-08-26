@@ -13,7 +13,7 @@ class ShallowWaterSolverParameters(FrozenClass):
 
     Following parameters are available:
 
-    :ivar solver_parameters: The dictionary with parameters for the dolfin
+    :ivar dolfin_solver: The dictionary with parameters for the dolfin
         Newton solver. A list of valid entries look at:
 
         .. code-block:: python
@@ -53,7 +53,7 @@ class ShallowWaterSolverParameters(FrozenClass):
 
 class ShallowWaterSolver(Solver):
 
-    def __init__(self, problem, parameters, config):
+    def __init__(self, problem, parameters, config=None):
 
         if not isinstance(problem, (ShallowWaterProblem,
             SteadyShallowWaterProblem)):
@@ -72,39 +72,40 @@ ShallowWaterSolverParameters."
         # next solve
         self.state_cache = {}
 
+        self.current_state = None
+
     @staticmethod
     def default_parameters():
         return ShallowWaterSolverParameters()
 
-    def solve(self, state, turbine_field=None, functional=None, annotate=True, u_source=None):
+    def solve(self, turbine_field=None, functional=None, annotate=True, u_source=None):
         ''' Solve the shallow water equations '''
-
-        config = self.config
 
         ############################### Setting up the equations ###########################
 
         # Define variables for all used parameters
-        ds = config.domain.ds
-        params = self.problem.parameters
-        solver_parameters = self.parameters
+        problem_params = self.problem.parameters
 
-        controls = config.params["controls"]
+        mesh = problem_params.domain.mesh
+        ds = problem_params.domain.ds
+
+        solver_params = self.parameters
 
         if self.problem._is_transient:
 
-            theta = Constant(params.theta)
-            dt = Constant(params.dt)
-            finish_time = Constant(params.finish_time)
-            start_time = Constant(params.start_time)
+            theta = Constant(problem_params.theta)
+            dt = Constant(problem_params.dt)
+            finish_time = Constant(problem_params.finish_time)
+            start_time = Constant(problem_params.start_time)
 
             # Reset the time
-            params.current_time = Constant(params.start_time)
-            t = Constant(params.current_time)
+            problem_params.current_time = Constant(problem_params.start_time)
+            t = Constant(problem_params.current_time)
 
-            functional_final_time_only = params.functional_final_time_only
-            functional_quadrature_degree = params.functional_quadrature_degree
+            functional_final_time_only = problem_params.functional_final_time_only
+            functional_quadrature_degree = problem_params.functional_quadrature_degree
 
-            include_time_term = params.include_time_term
+            include_time_term = problem_params.include_time_term
 
         else:
             theta = Constant(1.)
@@ -118,28 +119,33 @@ ShallowWaterSolverParameters."
 
             include_time_term = False
 
-        g = params.g
-        depth = params.depth
-        include_advection = params.include_advection
-        include_viscosity = params.include_viscosity
-        viscosity = params.viscosity
-        bctype = params.bctype
-        strong_bc = params.strong_bc
-        free_slip_on_sides = params.free_slip_on_sides
-        linear_divergence = params.linear_divergence
-        cache_forward_state = solver_parameters.cache_forward_state
-        postsolver_callback = config.params["postsolver_callback"]
+        g = problem_params.g
+        depth = problem_params.depth
+        include_advection = problem_params.include_advection
+        include_viscosity = problem_params.include_viscosity
+        viscosity = problem_params.viscosity
+        bcs = problem_params.bcs
+        linear_divergence = problem_params.linear_divergence
+        cache_forward_state = solver_params.cache_forward_state
         
         if not 0 <= functional_quadrature_degree <= 1:
             raise ValueError("functional_quadrature_degree must be 0 or 1.")
 
-        function_space = config.function_space
+        V, H = problem_params.finite_element(mesh)
+        function_space = MixedFunctionSpace([V, H])
 
         # Define test functions
         v, q = TestFunctions(function_space)
 
+
         # Define functions
+        state = Function(function_space, name="Current_state")  # solution of the next timestep
+        self.current_state = state
         state_new = Function(function_space, name="New_state")  # solution of the next timestep
+
+        # Load initial condition (or initial guess for stady problems)
+        ic = project(problem_params.initial_condition, function_space)
+        state.assign(ic, annotate=False)    
 
         # Split mixed functions
         u, h = split(state_new)
@@ -162,8 +168,7 @@ ShallowWaterSolverParameters."
         # The normal direction
         n = FacetNormal(function_space.mesh())
 
-        # Mass matrix
-
+        # Mass matrix contributions
         M = inner(v, u) * dx
         M += inner(q, h) * dx
         M0 = inner(v, u0) * dx
@@ -171,58 +176,62 @@ ShallowWaterSolverParameters."
 
         # Divergence term.
         Ct_mid = -H * inner(u_mid, grad(q)) * dx
-        #+inner(avg(u_mid),jump(q,n))*dS # This term is only needed for dg element pairs
+        #+inner(avg(u_mid),jump(q,n))*dS # This term is only needed for dg 
+                                         # element pairs which is not supported
 
-        if bctype == 'dirichlet':
-            if not self.problem._is_transient:
-                raise ValueError("Can not use a time dependent boundary condition for a steady state simulation")
-            # The dirichlet boundary condition on the left hand side
-            u_expr = params.u_weak_dirichlet_bc_expr
-            bc_contr = - H * dot(u_expr, n) * q * ds(1)
+        # The surface integral contribution from the divergence term
+        bc_contr = -H * dot(u_mid, n) * q * ds
 
-            # The dirichlet boundary condition on the right hand side
-            bc_contr -= H * dot(u_expr, n) * q * ds(2)
+        for function_name, u_expr, facet_id, bctype in problem_params.bcs:
+            if (function_name is not "u" or 
+                bctype not in ["flather", "weak_dirichlet"]):
+                continue
 
-            # We enforce a no-normal flow on the sides by removing the surface integral.
-            # bc_contr -= dot(u_mid, n) * q * ds(3)
+            if bctype == 'weak_dirichlet':
+                # Subtract the divergence integral again
+                bc_contr -= -H * dot(u_mid, n) * q * ds(facet_id)
+                bc_contr -= H * dot(u_expr, n) * q * ds(facet_id)
 
-        elif bctype == 'flather':
-            if not self.problem._is_transient:
-                raise ValueError("Can not use a time dependent boundary condition for a steady state simulation")
-            # The Flather boundary condition on the left hand side
-            u_expr = params.flather_bc_expr
-            bc_contr = - H * dot(u_expr, n) * q * ds(1)
-            Ct_mid += sqrt(g * H) * inner(h_mid, q) * ds(1)
+            elif bctype == 'flather':
+                # The Flather boundary condition requires two facet_ids.
+                assert len(facet_id) == 2
 
-            # The contributions of the Flather boundary condition on the right hand side
-            Ct_mid += sqrt(g * H) * inner(h_mid, q) * ds(2)
+                # Subtract the divergence integrals again
+                bc_contr -= -H * dot(u_mid, n) * q * ds(facet_id[0])
+                bc_contr -= -H * dot(u_mid, n) * q * ds(facet_id[1])
 
-        elif bctype == 'strong_dirichlet':
-            # Do not replace anything in the surface integrals as the strong Dirichlet Boundary condition will do that
-            bc_contr = -H * dot(u_mid, n) * q * ds(1)
-            bc_contr -= H * dot(u_mid, n) * q * ds(2)
-            if not free_slip_on_sides:
-                bc_contr -= H * dot(u_mid, n) * q * ds(3)
+                # The Flather boundary condition on the left hand side
+                bc_contr -= H * dot(u_expr, n) * q * ds(facet_id[0])
+                Ct_mid += sqrt(g * H) * inner(h_mid, q) * ds(facet_id[0])
+
+                # The contributions of the Flather boundary condition on the right hand side
+                Ct_mid += sqrt(g * H) * inner(h_mid, q) * ds(facet_id[1])
+
+
+        # Pressure gradient term
+        weak_eta_bcs = [bc for bc in problem_params.bcs if bc[0] is "eta" 
+                        and bc[-1] is "weak_dirichlet"]
+
+        if len(weak_eta_bcs) == 0:
+            # assume we don't want to integrate the pressure gradient by parts
+            C_mid = g * inner(v, grad(h_mid)) * dx
 
         else:
-            log(ERROR, "Unknown boundary condition type: %s" % bctype)
-            import sys
-            sys.exit(1)
+            C_mid = -g * inner(div(v), h_mid) * dx
+            C_mid += g * inner(dot(v, n), h_mid) * ds
 
-        # Pressure gradient operator
-        eta_expr = params.eta_weak_dirichlet_bc_expr
-        if eta_expr is None: # assume we don't want to integrate the pressure gradient by parts
-          C_mid = g * inner(v, grad(h_mid)) * dx
-          #+inner(avg(v),jump(h_mid,n))*dS # This term is only needed for dg element pairs
-        else:
-          # Apply the eta boundary conditions weakly on boundary IDs 1 and 2
-          C_mid =  -g * inner(div(v), h_mid) * dx
-          C_mid +=  g * inner(dot(v, n), eta_expr) * ds(1)
-          C_mid +=  g * inner(dot(v, n), eta_expr) * ds(2)
-          C_mid +=  g * inner(dot(v, n), h_mid)    * ds(3)
+            for function_name, eta_expr, facet_id, bctype in weak_eta_bcs:
+                # Remove the original boundary integral of that facet
+                C_mid -= g * inner(dot(v, n), h_mid) * ds(facet_id)
+
+                # Apply the eta boundary conditions weakly on boundary IDs 1 and 2
+                C_mid +=  g * inner(dot(v, n), eta_expr) * ds(facet_id)
+
+                #+inner(avg(v),jump(h_mid,n))*dS # This term is only needed 
+                                                 # for dg element pairs
 
         # Bottom friction
-        friction = params.friction
+        friction = problem_params.friction
 
         if turbine_field:
             if type(turbine_field) == list:
@@ -234,7 +243,7 @@ ShallowWaterSolverParameters."
         R_mid = friction / H * dot(u_mid, u_mid) ** 0.5 * inner(u_mid, v) * dx
 
         if turbine_field:
-            R_mid += tf / H * dot(u_mid, u_mid) ** 0.5 * inner(u_mid, v) * config.site_dx(1)
+            R_mid += tf / H * dot(u_mid, u_mid) ** 0.5 * inner(u_mid, v) * self.config.site_dx(1)
 
         # Advection term
         if include_advection:
@@ -243,7 +252,8 @@ ShallowWaterSolverParameters."
         if include_viscosity:
             # Check that we are not using a DG velocity function space, as the facet integrals are not implemented.
             if "Discontinuous" in str(function_space.split()[0]):
-                raise NotImplementedError("The viscosity term for discontinuous elements is not implemented yet.")
+                raise NotImplementedError("The viscosity term for \
+                    discontinuous elements is not supported.")
             D_mid = viscosity * inner(grad(u_mid), grad(v)) * dx
 
         # Create the final form
@@ -266,26 +276,15 @@ ShallowWaterSolverParameters."
         if include_time_term:
             F += M - M0
 
-        # Do some parameter checking:
-        if "dynamic_turbine_friction" in controls:
-            if len(config.params["turbine_friction"]) != float((finish_time - t)
-                    / dt + 1):
-                log(ERROR, "You control the turbine friction dynamically, but \
-                        your turbine friction parameter is not an array of \
-                        length 'number of timesteps' (here: %i)." %
-                        float((finish_time - t) / dt + 1))
-                import sys
-                sys.exit(1)
-
         ############################### Perform the simulation ###########################
 
-        if solver_parameters.dump_period > 0:
+        if solver_params.dump_period > 0:
             try:
-                statewriter_cb = config.statewriter_callback
+                statewriter_cb = self.config.statewriter_callback
             except AttributeError:
                 statewriter_cb = None 
 
-            writer = StateWriter(config, optimisation_iteration=config.optimisation_iteration, callback=statewriter_cb)
+            writer = StateWriter(self.config, optimisation_iteration=self.config.optimisation_iteration, callback=statewriter_cb)
             if self.problem._is_transient and include_time_term:
                 log(INFO, "Writing state to disk...")
                 writer.write(state)
@@ -295,7 +294,7 @@ ShallowWaterSolverParameters."
         if functional is not None:
             if not self.problem._is_transient or functional_final_time_only:
                 j = 0.
-                if solver_parameters.print_individual_turbine_power:
+                if solver_params.print_individual_turbine_power:
                     j_individual = [0] * len(params["turbine_pos"])
                     force_individual = [0] * len(params["turbine_pos"])
 
@@ -305,7 +304,7 @@ ShallowWaterSolverParameters."
                 else:
                     quad = 0.5
                 j = dt * quad * assemble(functional.Jt(state, tf))
-                if solver_parameters.print_individual_turbine_power:
+                if solver_params.print_individual_turbine_power:
                     j_individual = []
                     force_individual = []
                     for i in range(len(params["turbine_pos"])):
@@ -319,20 +318,16 @@ ShallowWaterSolverParameters."
             timestep += 1
             t = Constant(t + dt)
             if self.problem._is_transient:
-                params.current_time = t
+                problem_params.current_time = t
 
             # Update bc's
-            if bctype == "strong_dirichlet":
-                strong_bc.update_time(t)
-            else:
-                u_expr.t = Constant(t - (1.0 - theta) * dt)
-
-            if eta_expr is not None:
-                eta_expr.t = t - (1.0 - theta) * dt
+            t_theta = Constant(t - (1.0 - theta) * dt)
+            bcs.update_time(t, only_type=["strong_dirichlet"])
+            bcs.update_time(t_theta, exclude_type=["strong_dirichlet"])
 
             # Update source term
-            if u_source:
-                u_source.t = Constant(t - (1.0 - theta) * dt)
+            if u_source is not None:
+                u_source.t = Constant(t_theta)
             step += 1
 
             # Set the initial guess for the solve
@@ -344,29 +339,34 @@ ShallowWaterSolverParameters."
             elif not include_time_term:
                 log(INFO, "Set the initial guess for the nonlinear solver to the initial condition.")
                 # Reset the initial guess after each timestep
-                ic = config.params['initial_condition']
+                ic = problem_params.initial_condition
                 state_new.assign(ic, annotate=False)
 
             # Solve non-linear system with a Newton solver
             if self.problem._is_transient:
-                log(INFO, "Solve shallow water equations at time %s (Newton iteration) ..." % float(params.current_time))
+                log(INFO, "Solve shallow water equations at time %s (Newton iteration) ..." % float(problem_params.current_time))
             else:
                 log(INFO, "Solve shallow water equations (Newton iteration) \
 ...")
 
-            if bctype == 'strong_dirichlet':
-                F_bcs = strong_bc.bcs
-            else:
-                F_bcs = []
+            strong_bcs = []
+            for function_name, expr, facet_id, bctype in problem_params.bcs:
+                if bctype is not "strong_dirichlet":
+                    continue
 
-            solve(F == 0, state_new, bcs=F_bcs,
-                  solver_parameters=solver_parameters.dolfin_solver, 
+                if function_name is "u":
+                    subidx = 0
+                elif function_name is "eta":
+                    subidx = 1
+
+                bc = DirichletBC(function_space.sub(subidx), expr,
+                                 problem_params.domain.facet_ids, facet_id)
+                strong_bcs.append(bc)
+
+            solve(F == 0, state_new, bcs=strong_bcs,
+                  solver_parameters=solver_params.dolfin_solver, 
                   annotate=annotate, 
                   J=derivative(F, state_new))
-
-            # Call user defined callback
-            if postsolver_callback is not None:
-                postsolver_callback(config, state_new)
 
             # After the timestep solve, update state
             state.assign(state_new)
@@ -374,7 +374,7 @@ ShallowWaterSolverParameters."
                 # Save state for initial guess cache
                 log(INFO, "Cache solution t=%f as next initial guess." % t)
                 if not self.state_cache.has_key(float(t)):
-                    self.state_cache[float(t)] = Function(state_new.function_space())
+                    self.state_cache[float(t)] = Function(function_space)
                 self.state_cache[float(t)].assign(state_new, annotate=False)
 
             # Set the control function for the upcoming timestep.
@@ -384,8 +384,8 @@ ShallowWaterSolverParameters."
                 else:
                     tf.assign(turbine_field)
 
-            if (solver_parameters.dump_period > 0 and 
-                step % solver_parameters.dump_period == 0):
+            if (solver_params.dump_period > 0 and 
+                step % solver_params.dump_period == 0):
                 log(INFO, "Write state to disk...")
                 writer.write(state)
 
@@ -400,7 +400,7 @@ ShallowWaterSolverParameters."
                         quad = 1.0 * dt
 
                     j += quad * assemble(functional.Jt(state, tf))
-                    if solver_parameters.print_individual_turbine_power:
+                    if solver_params.print_individual_turbine_power:
                         log(INFO, "Computing individual turbine power extraction contribution...")
                         individual_contribution_list = ['x_pos', 'y_pos', 'turbine_power', 'total_force_on_turbine', 'turbine_friction']
                         fr_individual = range(len(params["turbine_pos"]))
@@ -426,10 +426,11 @@ ShallowWaterSolverParameters."
         log(INFO, "End of time loop.")
 
         # Write the turbine positions, power extraction and friction to a .csv file named turbine_info.csv
-        if solver_parameters.print_individual_turbine_power:
-            f = config.params['base_path'] + os.path.sep + "iter_" + str(config.optimisation_iteration) + '/'
+        if solver_params.print_individual_turbine_power:
+            f = self.config.params['base_path'] + os.path.sep + "iter_" + \
+                str(self.config.optimisation_iteration) + '/'
             # Save the very first result in a different file
-            if config.optimisation_iteration == 0 and not os.path.isfile(f):
+            if self.config.optimisation_iteration == 0 and not os.path.isfile(f):
                 f += 'initial_turbine_info.csv'
             else:
                 f += 'turbine_info.csv'
@@ -441,3 +442,5 @@ ShallowWaterSolverParameters."
 
         if functional is not None:
             return j
+        else:
+            return state_new

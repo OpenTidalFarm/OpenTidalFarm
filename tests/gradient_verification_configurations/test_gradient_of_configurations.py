@@ -14,35 +14,43 @@ class TestConfigurations(object):
         if c == SteadyConfiguration:
             path = os.path.dirname(__file__)
             meshfile = os.path.join(path, "mesh.xml")
-            inflow_direction = [1, 1]
-            config = c(meshfile, inflow_direction=inflow_direction)
+            domain = FileDomain(meshfile)
+
+            config = c(domain)
             problem_params = steady_sw_problem_parameters
 
+            # Domain
+            problem_params.domain = domain
+
             # Boundary conditions
-            bc = DirichletBCSet(config)
-            bc.add_constant_flow(1, 2.0 + 1e-10, direction=inflow_direction)
-            bc.add_analytic_eta(2, 0.0)
-            problem_params.bctype = 'strong_dirichlet'
-            problem_params.strong_bc = bc
+            bcs = BoundaryConditionSet()
+            bcs.add_bc("u", Constant((2.0 + 1e-10, 0)), 1, "strong_dirichlet")
+            bcs.add_bc("eta", Constant(2.0), 2, "strong_dirichlet")
+            problem_params.bcs = bcs
 
         else:
-            config = c(nx=15, ny=15)
-            config.set_domain(domains.RectangularDomain(500, 500, 
-                5, 5))
+            domain = RectangularDomain(500, 500, 5, 5)
+
+            config = c(domain)
 
             problem_params = sw_linear_problem_parameters
-
             problem_params.finish_time = problem_params.start_time + \
                                            2*problem_params.dt
 
+            # Domain
+            problem_params.domain = domain
+
             # Boundary conditions
-            problem_params.flather_bc_expr = Expression((
+            bcs = BoundaryConditionSet()
+            flather_bc_expr = Expression((
                              "2*eta0*sqrt(g/depth)*cos(-sqrt(g*depth)*k*t)", "0"), 
                              eta0=2., 
                              g=problem_params.g, 
                              depth=problem_params.depth, 
                              t=problem_params.current_time, 
                              k=pi / 3000)
+            bcs.add_bc("u", flather_bc_expr, [1, 2], "flater")
+            bcs.add_bc("u", Constant((0, 0)), 3, "weak_dirichlet")
 
         # Deploy some turbines 
         turbine_pos = [] 

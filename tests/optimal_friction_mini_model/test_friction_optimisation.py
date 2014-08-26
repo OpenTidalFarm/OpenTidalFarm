@@ -16,8 +16,9 @@ from opentidalfarm import *
 class TestFrictionOptimisation(object):
 
     def default_config(self):
-      config = configuration.DefaultConfiguration(nx=20, ny=10, finite_element=finite_elements.p1dgp2)
-      config.set_domain(domains.RectangularDomain(3000, 1000, 20, 10))
+      domain = RectangularDomain(0, 0, 3000, 1000, 20, 10)
+
+      config = DefaultConfiguration(domain)
       config.params["verbose"] = 0
 
       problem_params = DummyProblem.default_parameters()
@@ -35,11 +36,13 @@ class TestFrictionOptimisation(object):
       config.params['controls'] = ['turbine_friction']
       config.params["output_turbine_power"] = False
 
-      k = pi/config.domain.basin_x
+      k = pi/3000.
       config.params['k'] = k
-      config.params['initial_condition'] = SinusoidalInitialCondition(2.0, k,
+      problem_params.initial_condition = SinusoidalInitialCondition(2.0, k,
               50., 0.0)
 
+      problem_params.domain = domain
+      problem_params.finite_element = finite_elements.p1dgp2
       problem = DummyProblem(problem_params)
       return problem, config
 

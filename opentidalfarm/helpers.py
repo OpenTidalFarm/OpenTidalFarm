@@ -247,7 +247,7 @@ class FrozenClass(object):
 
     def __setattr__(self, key, value):
         if self.__isfrozen and not hasattr(self, key):
-            raise TypeError("%r is a frozen class. Check that %r is a valid \
+            raise TypeError("%r is a frozen class. %r is not a valid \
 attribute." % (self, key))
 
         object.__setattr__(self, key, value)

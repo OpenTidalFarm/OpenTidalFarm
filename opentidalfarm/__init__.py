@@ -19,10 +19,11 @@ from configuration import *
 
 from solvers import *
 from problems import *
+from domains import *
 
 from optimisation_helpers import friction_constraints, get_minimum_distance_constraint_func, get_domain_constraints, deploy_turbines, position_constraints, generate_site_constraints, plot_site_constraints, get_distance_function, MinimumDistanceConstraint, PolygonSiteConstraints, DomainRestrictionConstraints
 from reduced_functional import ReducedFunctional
-from dirichlet_bc import DirichletBCSet
+from boundary_conditions import BoundaryConditionSet
 from initial_conditions import SinusoidalInitialCondition, BumpInitialCondition
 from turbines import Turbines
 from functionals import DefaultFunctional, PowerCurveFunctional

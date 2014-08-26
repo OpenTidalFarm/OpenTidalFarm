@@ -11,17 +11,16 @@ class TestSmearedTurbine(object):
 
         nx = 5
         ny = 5
-        config = DefaultConfiguration(nx, ny)
-        domain = domains.RectangularDomain(3000, 1000, nx, ny)
-        config.set_domain(domain)
+        domain = RectangularDomain(0, 0, 3000, 1000, nx, ny)
+        config = DefaultConfiguration(domain)
 
         # Switch to a smeared turbine representation
         config.params["controls"] = ["turbine_friction"]
         config.params["turbine_parametrisation"] = "smeared"
 
-        config.params['initial_condition'] = ConstantFlowInitialCondition(
-            val=[1, 0, 0]
-        )
+        sw_linear_problem_parameters.domain = domain
+        sw_linear_problem_parameters.initial_condition = ConstantFlowInitialCondition(
+            val=[1, 0, 0])
 
         sw_linear_problem_parameters.finish_time = sw_linear_problem_parameters.start_time + \
             3*sw_linear_problem_parameters.dt
@@ -33,7 +32,8 @@ class TestSmearedTurbine(object):
         site_y = 500
 
         k = Constant(pi/site_x)
-        sw_linear_problem_parameters.flather_bc_expr = Expression(
+        bcs = BoundaryConditionSet()
+        bc_expr = Expression(
             ("2*eta0*sqrt(g/depth)*cos(-sqrt(g*depth)*k*t)", "0"),
             eta0=2.,
             g=sw_linear_problem_parameters.g,
@@ -41,7 +41,8 @@ class TestSmearedTurbine(object):
             t=sw_linear_problem_parameters.current_time,
             k=k
         )
-
+        bcs.add_bc("u", bc_expr, [1, 2], "flather")
+        bcs.add_bc("u", Constant((0, 0)), 3, "weak_dirichlet")
 
         class Site(SubDomain):
             def inside(self, x, on_boundary):

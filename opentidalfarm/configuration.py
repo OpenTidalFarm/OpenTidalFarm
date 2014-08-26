@@ -1,7 +1,5 @@
-import finite_elements
 import numpy
 from parameter_dict import ParameterDictionary
-from dirichlet_bc import DirichletBCSet
 from turbines import TurbineCache
 from dolfin import *
 from math import sqrt, pi
@@ -14,10 +12,7 @@ import os
 
 class DefaultConfiguration(object):
     ''' A default configuration setup that is used by all tests. '''
-    def __init__(self, nx=20, ny=3, finite_element=finite_elements.p2p1):
-
-        # Initialize function space and the domain
-        self.finite_element = finite_element
+    def __init__(self, domain):
 
         self.functional = DefaultFunctional
 
@@ -51,8 +46,6 @@ class DefaultConfiguration(object):
         # Store the result as class variables
         self.params = params
 
-        params['initial_condition'] = ConstantFlowInitialCondition()
-
         # Create a chaching object for the interpolated turbine friction fields
         # (as their computation is very expensive)
         self.turbine_cache = TurbineCache()
@@ -60,26 +53,17 @@ class DefaultConfiguration(object):
         # A counter for the current optimisation iteration
         self.optimisation_iteration = 0
 
-    def set_domain(self, domain, warning=True):
-        if warning and hasattr(self, 'domain'):
-            info_red("If you are overwriting the domain, make sure that you \
-                     reapply the boundary conditions as well")
         self.domain = domain
 
         # Define the subdomain for the turbine site. The default value should
         # only be changed for smeared turbine representations.
-        domains = CellFunction("size_t", self.domain.mesh)
+        domains = CellFunction("size_t", domain.mesh)
         domains.set_all(1)
         self.site_dx = Measure("dx")[domains]  # The measure used to integrate
                                                # the turbine friction
 
-        V, H = self.finite_element(self.domain.mesh)
-        T = FunctionSpace(self.domain.mesh, 'CG', 2)   # Turbine space
-
-        self.turbine_function_space = T
-        self.function_space = MixedFunctionSpace([V, H])
-        self.function_space_enriched = MixedFunctionSpace([V, H, T])
-        self.function_space_2enriched = MixedFunctionSpace([V, H, T, T])
+        # Turbine function space
+        self.turbine_function_space = FunctionSpace(self.domain.mesh, 'CG', 2)
 
     def set_turbine_pos(self, positions, friction=21.0):
         ''' Sets the turbine position and a equal friction parameter. '''
@@ -87,20 +71,7 @@ class DefaultConfiguration(object):
         self.params['turbine_friction'] = friction * numpy.ones(len(positions))
 
     def info(self):
-        if dolfin.__version__ >= '1.3.0+':
-            # I *hate* unannounced and intrusive API changes with no support
-            # for a transition.
-            comm = mpi_comm_world()  # self.domain.mesh.mpi_comm()
-                                     # when it works
-            hmin = MPI.min(comm, self.domain.mesh.hmin())
-            hmax = MPI.max(comm, self.domain.mesh.hmax())
-            num_cells = MPI.sum(comm, self.domain.mesh.num_cells())
-            rank = get_rank()
-        else:
-            hmin = MPI.min(self.domain.mesh.hmin())
-            hmax = MPI.max(self.domain.mesh.hmax())
-            num_cells = MPI.sum(self.domain.mesh.num_cells())
-            rank = MPI.process_number()
+        rank = get_rank()
 
         if rank == 0:
             # Physical parameters
@@ -120,12 +91,6 @@ class DefaultConfiguration(object):
                 print "Turbines frictions: %f - %f" % (
                     min(self.params["turbine_friction"]),
                     max(self.params["turbine_friction"]))
-
-            # Discretisation settings
-            print "\n=== Discretisation settings ==="
-            print "Finite element pair: ", self.finite_element.func_name
-            print "Number of mesh elements: %i" % num_cells
-            print "Mesh element size: %f - %f" % (hmin, hmax)
 
             # Optimisation settings
             print "\n=== Optimisation settings ==="
@@ -156,13 +121,9 @@ class DefaultConfiguration(object):
 
 
 class SteadyConfiguration(DefaultConfiguration):
-    def __init__(self, mesh_file, inflow_direction,
-                 finite_element=finite_elements.p2p1):
+    def __init__(self, domain): 
 
-        super(SteadyConfiguration, self).__init__(
-            finite_element=finite_element)
-        # Model settings
-        self.set_domain(GMeshDomain(mesh_file), warning=False)
+        super(SteadyConfiguration, self).__init__(domain)
 
         # Optimisation settings
         self.params['automatic_scaling'] = True
@@ -181,10 +142,5 @@ class SteadyConfiguration(DefaultConfiguration):
 
 
 class UnsteadyConfiguration(SteadyConfiguration):
-    def __init__(self, mesh_file, inflow_direction,
-                 finite_element=finite_elements.p2p1, period=12. * 60 * 60,
-                 eta0=2.0):
-        super(UnsteadyConfiguration, self).__init__(mesh_file,
-                                                    inflow_direction,
-                                                    finite_element)
-
+    def __init__(self, domain): 
+        super(UnsteadyConfiguration, self).__init__(domain)

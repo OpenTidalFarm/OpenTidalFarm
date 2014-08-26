@@ -26,7 +26,6 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
 
         # Caching variables that store which controls the last forward run was performed
         self.last_m = None
-        self.last_state = None
         self.in_euclidian_space = False  # FIXME: legacy dolfin-adjoint parameter
         if self.solver.parameters.dump_period > 0:
             self.turbine_file = File(config.params['base_path'] + os.path.sep + "turbines.pvd", "compressed")
@@ -81,20 +80,10 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
                       snaps_on_disk=snaps_on_disk, snaps_in_ram=snaps_in_ram, 
                       verbose=verbose)
 
-            # Get initial conditions
-            state = Function(config.function_space, name="Current_state")
-
-            if False and not solver.problem._is_transient and self.last_state is not None:
-                # Speed up the nonlinear solves by starting the Newton solve with the most recent state solution
-                state.assign(self.last_state, annotate=False)
-            else:
-                ic = config.params['initial_condition']
-                state.assign(ic, annotate=False)
-
             # Solve the shallow water system
             functional = config.functional(config)
-            j = solver.solve(state, functional=functional, turbine_field=tf, annotate=annotate)
-            self.last_state = state
+            j = solver.solve(functional=functional, turbine_field=tf, 
+                             annotate=annotate)
 
             return j
 
@@ -105,22 +94,24 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
             if numpy.any(m != self.last_m):
                 compute_functional(m, annotate=True)
 
-            state = self.last_state
             functional = config.functional(config)
 
             # Output power
             if self.solver.parameters.dump_period > 0:
                 if config.params['output_turbine_power']:
                     turbines = self.__config__.turbine_cache.cache["turbine_field"]
-                    self.power_file << project(functional.power(state, turbines), config.turbine_function_space, annotate=False)
+                    self.power_file << project(functional.power(solver.current_state, turbines), 
+                                               config.turbine_function_space, 
+                                               annotate=False)
 
             # The functional depends on the turbine friction function which we do not have on scope here.
             # But dolfin-adjoint only cares about the name, so we can just create a dummy function with the desired name.
-            dummy_tf = Function(FunctionSpace(state.function_space().mesh(), "R", 0), name="turbine_friction")
+            dummy_tf = Function(FunctionSpace(self.solver.problem.parameters.domain.mesh, 
+                                "R", 0), name="turbine_friction")
 
             if (not solver.problem._is_transient or
                 solver.problem.parameters.functional_final_time_only):
-                J = Functional(functional.Jt(state, dummy_tf) * dt[FINISH_TIME])
+                J = Functional(functional.Jt(solver.current_state, dummy_tf) * dt[FINISH_TIME])
 
             elif solver.problem.parameters.functional_quadrature_degree == 0:
                 # Pseudo-redo the time loop to collect the necessary timestep information
@@ -134,16 +125,16 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
                     timesteps.pop(0)
 
                 # Construct the functional
-                J = Functional(sum(functional.Jt(state, dummy_tf) * dt[t] for t in timesteps))
+                J = Functional(sum(functional.Jt(solver.current_state, dummy_tf) * dt[t] for t in timesteps))
 
             else:
-                J = Functional(functional.Jt(state, dummy_tf) * dt)
+                J = Functional(functional.Jt(solver.current_state, dummy_tf) * dt)
 
             if 'dynamic_turbine_friction' in config.params["controls"]:
-                parameters = [InitialConditionParameter("turbine_friction_cache_t_%i" % i) for i in range(len(config.params["turbine_friction"]))]
+                parameters = [FunctionControl("turbine_friction_cache_t_%i" % i) for i in range(len(config.params["turbine_friction"]))]
 
             else:
-                parameters = InitialConditionParameter("turbine_friction_cache")
+                parameters = FunctionControl("turbine_friction_cache")
 
             djdtf = dolfin_adjoint.compute_gradient(J, parameters, forget=forget)
             dolfin.parameters["adjoint"]["stop_annotating"] = False
@@ -190,8 +181,6 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
             if numpy.any(m != self.last_m):
                 self.run_adjoint_model_mem(m, forget=False)
 
-            state = self.last_state
-
             functional = config.functional(config)
             if (not solver.problem.parameters._transient or
                 solver.problem.parameters.functional_final_time_only):
@@ -199,7 +188,7 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
             else:
                 J = Functional(functional.Jt(state) * dt)
 
-            H = drivers.hessian(J, InitialConditionParameter("friction"), warn=False)
+            H = drivers.hessian(J, FunctionControl("friction"), warn=False)
             m_dot = project(Constant(1), config.turbine_function_space)
             return H(m_dot)
 
@@ -257,8 +246,8 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
         if self.__config__.params["save_checkpoints"]:
             self.save_checkpoint("checkpoint")
 
-        log(INFO, 'Runtime: ' + str(timer.value()) + " s")
-        log(INFO, 'j = ' + str(j))
+        log(INFO, 'Runtime: %f s.' % timer.value())
+        log(INFO, 'j = %f.' % float(j))
         self.last_j = j
 
         if self.__config__.params['automatic_scaling']:

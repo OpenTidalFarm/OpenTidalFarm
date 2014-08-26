@@ -7,14 +7,8 @@ from dolfin import log, INFO, ERROR
 
 class TestFlatherBoundaryConditionsWithViscosity(object):
 
-    def error(self, problem, config, eta0, k):
-        state = Function(config.function_space)
-        ic_expr = SinusoidalInitialCondition(eta0, k,
-                                             problem.parameters.depth, 
-                                             problem.parameters.start_time)
+    def error(self, problem, eta0, k):
 
-        ic = project(ic_expr, state.function_space())
-        state.assign(ic, annotate=False)
         # The analytical veclocity of the shallow water equations has been
         # multiplied by depth to account for the change of variable (\tilde u =
         # depth u) in this code.
@@ -34,9 +28,8 @@ class TestFlatherBoundaryConditionsWithViscosity(object):
         adj_reset()
         parameters = ShallowWaterSolver.default_parameters()
         parameters.dump_period = -1
-        solver = ShallowWaterSolver(problem, parameters, config)
-        solver.solve(state, annotate=False,
-                                     u_source=source)
+        solver = ShallowWaterSolver(problem, parameters)
+        state = solver.solve(annotate=False, u_source=source)
 
         analytic_sol = Expression((u_exact,
                                   "0",
@@ -52,19 +45,19 @@ class TestFlatherBoundaryConditionsWithViscosity(object):
         nx = 2 * 2**refinement_level
         ny = 1
 
-        config = configuration.DefaultConfiguration(nx=nx, ny=ny)
-        domain = domains.RectangularDomain(3000, 1000, nx, ny)
-        config.set_domain(domain)
+        linear_problem_params.domain = RectangularDomain(0, 0, 3000, 1000, nx, ny)
 
         eta0 = 2.0
-        k = pi/config.domain.basin_x
+        k = pi/3000.
         linear_problem_params.start_time = 0.0
         linear_problem_params.finish_time = (pi/(sqrt(linear_problem_params.g *
                                          linear_problem_params.depth) * k) / 1000)
         linear_problem_params.dt = linear_problem_params.finish_time / 2
         linear_problem_params.include_viscosity = True
         linear_problem_params.viscosity = 10.0
-        linear_problem_params.flather_bc_expr = Expression(
+
+        bcs = BoundaryConditionSet()
+        bc_expr = Expression(
             ("2*eta0*sqrt(g/depth)*cos(-sqrt(g*depth)*k*t)", "0"),
             eta0=eta0,
             g=linear_problem_params.g,
@@ -72,10 +65,18 @@ class TestFlatherBoundaryConditionsWithViscosity(object):
             t=linear_problem_params.current_time,
             k=k
         )
+        bcs.add_bc("u", bc_expr, [1, 2], "flater")
+        bcs.add_bc("u", Constant((0, 0)), 3, "weak_dirichlet")
+
+        # Initial condition
+        ic_expr = SinusoidalInitialCondition(eta0, k,
+                                             linear_problem_params.depth, 
+                                             linear_problem_params.start_time)
+        linear_problem_params.initial_condition = ic_expr
 
         problem = ShallowWaterProblem(linear_problem_params)
 
-        return self.error(problem, config, eta0, k)
+        return self.error(problem, eta0, k)
 
     def test_spatial_convergence_is_two(self, sw_linear_problem_parameters):
         errors = []

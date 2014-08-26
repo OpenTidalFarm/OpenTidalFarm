@@ -11,19 +11,13 @@ from dolfin import log, INFO, ERROR
 
 class TestWeakDirichletBoundaryConditions(object):
     
-    def error(self, problem, config, eta0, k):
-        state = Function(config.function_space)
-        ic_expr = SinusoidalInitialCondition(eta0, k, 
-                                             problem.parameters.depth,
-                                             problem.parameters.start_time)
-        ic = project(ic_expr, state.function_space())
-        state.assign(ic, annotate=False)
+    def error(self, problem, eta0, k):
 
         adj_reset()
         parameters = ShallowWaterSolver.default_parameters()
         parameters.dump_period = -1
-        solver = ShallowWaterSolver(problem, parameters, config)
-        solver.solve(state, annotate=False)
+        solver = ShallowWaterSolver(problem, parameters)
+        state = solver.solve(annotate=False)
 
         analytic_sol = Expression(
             ("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0",
@@ -37,17 +31,30 @@ class TestWeakDirichletBoundaryConditions(object):
     def compute_spatial_error(self, problem_params, refinement_level):
         nx = 2**refinement_level
         ny = 1
-        config = configuration.DefaultConfiguration(
-            nx, ny, finite_element=finite_elements.p1dgp2) 
-        domain = domains.RectangularDomain(3000, 1000, nx, ny)
-        config.set_domain(domain)
+
+        # Set domain
+        problem_params.domain = RectangularDomain(0, 0, 3000, 1000, nx, ny)
+
         eta0 = 2.0
-        k = pi/config.domain.basin_x
+        k = pi/3000.
+
+        # Finite element
+        problem_params.finite_element = finite_elements.p1dgp2
+
+        # Time settings
         problem_params.finish_time = pi / (sqrt(problem_params.g *
-                                        problem_params.depth) * k) / 20
+                                     problem_params.depth) * k) / 20
         problem_params.dt = problem_params.finish_time / 10
-        problem_params.bctype = "dirichlet"
-        problem_params.u_weak_dirichlet_bc_expr = Expression(
+
+        # Initial condition
+        ic_expr = SinusoidalInitialCondition(eta0, k, 
+                                             problem_params.depth,
+                                             problem_params.start_time)
+        problem_params.initial_condition = ic_expr
+
+
+        # Boundary conditions
+        bc_expr = Expression(
             ("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0"), 
             eta0=eta0,
             g=problem_params.g,
@@ -55,35 +62,57 @@ class TestWeakDirichletBoundaryConditions(object):
             t=problem_params.current_time,
             k=k)
 
+        bcs = BoundaryConditionSet()
+        bcs.add_bc("u", bc_expr, 1, "weak_dirichlet")
+        bcs.add_bc("u", bc_expr, 2, "weak_dirichlet")
+        bcs.add_bc("u", Constant((0, 0)), 3, "weak_dirichlet")
+        problem_params.bcs = bcs
+
         problem = ShallowWaterProblem(problem_params)
 
-        return self.error(problem, config, eta0, k)
+        return self.error(problem, eta0, k)
 
     def compute_temporal_error(self, problem_params, refinement_level):
         nx = 2**3
         ny = 1
-        config = configuration.DefaultConfiguration(
-            nx, ny, finite_element=finite_elements.p1dgp2) 
-        domain = domains.RectangularDomain(3000, 1000, nx, ny)
-        config.set_domain(domain)
         eta0 = 2.0
-        k = pi/config.domain.basin_x
+        k = pi/3000.
+
+        # Set domain
+        problem_params.domain = RectangularDomain(0, 0, 3000, 1000, nx, ny)
+
+        # Finite element
+        problem_params.finite_element = finite_elements.p1dgp2
+
+        # Time settings
         problem_params.finish_time = 2 * pi / (sqrt(problem_params.g * 
                                         problem_params.depth) * k)
         problem_params.dt = problem_params.finish_time/(4*2**refinement_level)
         problem_params.theta = 0.5
-        problem_params.bctype = "dirichlet"
-        problem_params.u_weak_dirichlet_bc_expr = Expression(
+
+        # Initial condition
+        ic_expr = SinusoidalInitialCondition(eta0, k, 
+                                             problem_params.depth,
+                                             problem_params.start_time)
+        problem_params.initial_condition = ic_expr
+
+        # Boundary conditions
+        bcs = BoundaryConditionSet()
+        bc_expr = Expression(
             ("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0"), 
             eta0=eta0,
             g=problem_params.g,
             depth=problem_params.depth,
             t=problem_params.current_time,
             k=k)
+        bcs.add_bc("u", bc_expr, 1, "weak_dirichlet")
+        bcs.add_bc("u", bc_expr, 2, "weak_dirichlet")
+        bcs.add_bc("u", Constant((0, 0)), 3, "weak_dirichlet")
+        problem_params.bcs = bcs
 
         problem = ShallowWaterProblem(problem_params)
 
-        return self.error(problem, config, eta0, k)
+        return self.error(problem, eta0, k)
 
     def test_spatial_convergence_is_two(self, sw_linear_problem_parameters):
         errors = []
@@ -97,6 +126,7 @@ class TestWeakDirichletBoundaryConditions(object):
         for i in range(len(errors)-1):
             conv.append(abs(math.log(errors[i+1] / errors[i], 2)))
 
+        log(INFO, "Spatial Taylor remainders are : %s" % str(errors))
         log(INFO, "Spatial order of convergence (expecting 2.0): %s" % str(conv))
         assert min(conv) > 1.8
 
@@ -112,5 +142,6 @@ class TestWeakDirichletBoundaryConditions(object):
         for i in range(len(errors)-1):
             conv.append(abs(math.log(errors[i+1] / errors[i], 2)))
 
+        log(INFO, "Temporal Taylor remainders are : %s" % str(errors))
         log(INFO, "Temporal order of convergence (expecting 2.0): %s" % str(conv))
         assert min(conv) > 1.8

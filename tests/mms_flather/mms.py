@@ -2,14 +2,7 @@ from opentidalfarm import *
 from dolfin_adjoint import adj_reset
 
 
-def compute_error(problem, config, eta0, k):
-    # Define the state function
-    state = Function(config.function_space)
-    ic_expr = SinusoidalInitialCondition(eta0, k,
-                                         problem.parameters.depth, 
-                                         problem.parameters.start_time)
-    ic = project(ic_expr, state.function_space())
-    state.assign(ic, annotate=False)
+def compute_error(problem, eta0, k):
 
     # Define the analytical (MMS) solution
     u_exact = "eta0*sqrt(g/depth) * cos(k*x[0]-sqrt(g*depth)*k*t)"
@@ -32,10 +25,9 @@ def compute_error(problem, config, eta0, k):
 
     parameters = ShallowWaterSolver.default_parameters()
     parameters.dump_period = -1
-    solver = ShallowWaterSolver(problem, parameters, config)
+    solver = ShallowWaterSolver(problem, parameters)
 
-    solver.solve(state, annotate=False,
-                                 u_source=source)
+    state = solver.solve(annotate=False, u_source=source)
 
     # Compare the difference to the analytical solution
     analytic_sol = Expression((u_exact, "0", eta_exact),
@@ -53,23 +45,16 @@ def setup_model(parameters, time_step, finish_time, mesh_x, mesh_y=2):
     # Reset the adjoint tape to keep dolfin-adjoint happy
     adj_reset()
 
-    config = configuration.DefaultConfiguration(
-        nx=mesh_x, 
-        ny=mesh_y, 
-        finite_element=finite_elements.p1dgp2)
-
-    domain = domains.RectangularDomain(3000, 1000, mesh_x, mesh_y)
-
-    config.set_domain(domain)
     eta0 = 2.0
-    k = pi/config.domain.basin_x
-
-    config.params["output_turbine_power"] = False
+    k = pi/3000.
 
     # Temporal settings
     parameters.start_time = Constant(0)
     parameters.finish_time = Constant(finish_time)
     parameters.dt = Constant(time_step)
+
+    # Finite element
+    parameters.finite_element = finite_elements.p1dgp2
 
     # Use Crank-Nicolson to get a second-order time-scheme
     parameters.theta = Constant(0.5)
@@ -82,10 +67,17 @@ def setup_model(parameters, time_step, finish_time, mesh_x, mesh_y=2):
     # Physical settings
     parameters.friction = Constant(0.25)
     parameters.viscosity = Constant(0.0)
+    parameters.domain = domains.RectangularDomain(0, 0, 3000, 1000, mesh_x, 
+                                                  mesh_y)
+
+    # Initial condition
+    ic_expr = SinusoidalInitialCondition(eta0, k,
+                                         parameters.depth, 
+                                         parameters.start_time)
+    parameters.initial_condition = ic_expr
 
     # Set the analytical boundary conditions
-    parameters.bctype = "flather"
-    parameters.flather_bc_expr = Expression(
+    flather_expr = Expression(
         ("2*eta0*sqrt(g/depth)*cos(-sqrt(g*depth)*k*t)", "0"), 
         eta0=eta0, 
         g=parameters.g, 
@@ -93,6 +85,11 @@ def setup_model(parameters, time_step, finish_time, mesh_x, mesh_y=2):
         t=Constant(parameters.current_time),
         k=k)
 
+    bcs = BoundaryConditionSet()
+    bcs.add_bc("u", flather_expr, facet_id=[1, 2], bctype="flather")
+    bcs.add_bc("u", Constant((0, 0)), facet_id=3, bctype="weak_dirichlet")
+    parameters.bcs = bcs
+
     problem = ShallowWaterProblem(parameters)
 
-    return problem, config, eta0, k
+    return problem, eta0, k

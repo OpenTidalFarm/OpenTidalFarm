@@ -8,7 +8,10 @@ class TestDynamicTurbineControl(object):
     def test_gradient_passes_taylor_test(self, sw_nonlinear_problem_parameters):
         path = os.path.dirname(__file__)
         meshfile = os.path.join(path, "mesh.xml")
-        config = UnsteadyConfiguration(meshfile, inflow_direction = [1, 1])
+
+        domain = FileDomain(meshfile)
+
+        config = UnsteadyConfiguration(domain)
         config.params["output_turbine_power"] = False
 
         sw_nonlinear_problem_parameters.finish_time = \
@@ -38,7 +41,7 @@ class TestDynamicTurbineControl(object):
         config.params["turbine_friction"] = [config.params["turbine_friction"]]*3
 
         # Boundary conditions
-        bc = DirichletBCSet(config)
+        bcs = BoundaryConditionSet()
         period = 12. * 60 * 60
         eta0 = 2.0
         k = Constant(2 * pi / (period * sqrt(sw_nonlinear_problem_parameters.g * \
@@ -48,10 +51,14 @@ class TestDynamicTurbineControl(object):
             eta0=eta0, g=sw_nonlinear_problem_parameters.g,
             depth=sw_nonlinear_problem_parameters.depth,
             t=sw_nonlinear_problem_parameters.current_time, k=k)
-        bc.add_analytic_u(1, expression)
-        bc.add_analytic_u(2, expression)
-        bc.add_noslip_u(3)
-        sw_nonlinear_problem_parameters.strong_bc = bc
+
+        bcs.add_bc("u", expression, 1, "weak_dirichlet")
+        bcs.add_bc("u", expression, 2, "weak_dirichlet")
+        bcs.add_bc("u", Constant((0, 0)), 3, "weak_dirichlet")
+
+        sw_nonlinear_problem_parameters.bcs = bcs
+
+        sw_nonlinear_problem_parameters.domain = domain
 
         problem = ShallowWaterProblem(sw_nonlinear_problem_parameters)
 

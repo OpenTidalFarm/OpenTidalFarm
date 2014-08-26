@@ -8,7 +8,6 @@ class TestMultiSteadyState(object):
     def test_gradient_passes_taylor_test(self, steps, 
             sw_nonlinear_problem_parameters):
 
-        inflow_direction = [1, 0]
         # Some domain information extracted from the geo file
         basin_x = 640.
         basin_y = 320.
@@ -16,12 +15,13 @@ class TestMultiSteadyState(object):
         site_y = 160.
         site_x_start = (basin_x - site_x)/2 
         site_y_start = (basin_y - site_y)/2 
+
         path = os.path.dirname(__file__)
         meshfile = os.path.join(path, "mesh_coarse.xml")
-        config = UnsteadyConfiguration(meshfile, inflow_direction=inflow_direction)
-        config.set_site_dimensions(site_x_start, site_x_start + site_x, site_y_start, site_y_start + site_y)
+        domain = FileDomain(meshfile)
 
-        config.params["initial_condition"] = ConstantFlowInitialCondition([1, 1, 1])
+        config = UnsteadyConfiguration(domain)
+        config.set_site_dimensions(site_x_start, site_x_start + site_x, site_y_start, site_y_start + site_y)
         config.params["output_turbine_power"] = False
 
         # Change the parameters such that in fact two steady state problems are solved consecutively
@@ -36,6 +36,11 @@ class TestMultiSteadyState(object):
         problem_params.functional_quadrature_degree = 0
         k = Constant(pi/basin_x)
 
+        # Domain
+        problem_params.domain = domain
+
+        problem_params.initial_condition = ConstantFlowInitialCondition([1, 1, 1])
+
         # Work out the expected delta eta for a free-stream of 2.5 m/s (without turbines) 
         # by assuming balance between the pressure and friction terms
         u_free_stream = 2.5
@@ -47,14 +52,14 @@ class TestMultiSteadyState(object):
         log(INFO, "Derived head-loss difference to achieve target free-stream: %s" % delta_eta)
 
         # Set Boundary conditions
-        bc = DirichletBCSet(config)
+        bcs = BoundaryConditionSet()
         expl = Expression("-delta_eta/2*cos(pi/steps*(t-1))",
                 delta_eta=delta_eta, t=Constant(0), steps=steps)
         expr = Expression("delta_eta/2*cos(pi/steps*(t-1))",
                 delta_eta=delta_eta, t=Constant(0), steps=steps)
-        bc.add_analytic_eta(1, expl)
-        bc.add_analytic_eta(2, expr)
-        problem_params.strong_bc = bc
+        bcs.add_bc("eta", expl, 1, "weak_dirichlet")
+        bcs.add_bc("eta", expr, 2, "weak_dirichlet")
+        problem_params.bcs = bcs
 
         problem = ShallowWaterProblem(problem_params)
 

@@ -16,11 +16,15 @@ from opentidalfarm import *
 class TestCheckpoint(object):
 
     def default_config(self):
-        config = configuration.DefaultConfiguration(nx=20, ny=10, finite_element=finite_elements.p1dgp2)
-        config.set_domain(domains.RectangularDomain(3000, 1000, 20, 10))
+        domain = RectangularDomain(0, 0, 3000, 1000, 20, 10)
+
+        config = configuration.DefaultConfiguration(domain)
         config.params["verbose"] = 0
       
         problem_params = DummyProblem.default_parameters()
+        problem_params.domain = domain
+
+        problem_params.finite_element = finite_elements.p1dgp2
         
         # dt is used in the functional only, so we set it here to 1.0
         problem_params.dt = 1.0
@@ -36,8 +40,8 @@ class TestCheckpoint(object):
         config.params["dump_period"] = -1
         config.params["output_turbine_power"] = False
       
-        k = pi/config.domain.basin_x
-        config.params['initial_condition'] = SinusoidalInitialCondition(2.0, k, 
+        k = pi/3000.
+        problem_params.initial_condition = SinusoidalInitialCondition(2.0, k, 
                 50, start_time=0.0)
 
         problem = DummyProblem(problem_params)

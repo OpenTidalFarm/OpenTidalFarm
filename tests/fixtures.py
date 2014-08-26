@@ -19,10 +19,6 @@ def steady_sw_problem_parameters():
     parameters.depth = Constant(50)
     parameters.g = Constant(9.81)
 
-    # Set the analytical boundary conditions
-    parameters.bctype = "flather"
-    parameters.free_slip_on_sides = True
-
     return parameters
 
 # Based on UnsteadyConfiguration
@@ -53,10 +49,6 @@ def sw_nonlinear_problem_parameters():
     parameters.depth = Constant(50)
     parameters.g = Constant(9.81)
 
-    # Set the analytical boundary conditions
-    parameters.bctype = "strong_dirichlet"
-    parameters.free_slip_on_sides = True
-
     parameters.functional_final_time_only = False
 
     return parameters
@@ -86,10 +78,6 @@ def sw_linear_problem_parameters():
     parameters.viscosity = Constant(0.0)
     parameters.depth = Constant(50)
     parameters.g = Constant(9.81)
-
-    # Set the analytical boundary conditions
-    parameters.bctype = "flather"
-    parameters.free_slip_on_sides = False
 
     parameters.functional_final_time_only = False
 

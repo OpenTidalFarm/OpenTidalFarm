@@ -1,7 +1,11 @@
+from types import MethodType
 from dolfin import Constant
 from dolfin_adjoint import Constant
 from problem import Problem
 from ..helpers import FrozenClass
+from ..boundary_conditions import BoundaryConditionSet
+from .. import finite_elements
+from ..domains.domain import Domain
 
 
 class SteadyShallowWaterProblemParameters(FrozenClass):
@@ -41,6 +45,9 @@ class SteadyShallowWaterProblemParameters(FrozenClass):
         be applied on the sides. Default: True
     """
 
+    # Domain
+    domain = None
+
     # Physical parameters
     depth = 50.
     g = 9.81
@@ -51,16 +58,13 @@ class SteadyShallowWaterProblemParameters(FrozenClass):
     include_advection = True
     include_viscosity = True
     linear_divergence = False
+    initial_condition = Constant((1e-16, 0, 0))
+
+    # Finite element settings
+    finite_element = staticmethod(finite_elements.p2p1)
 
     # Boundary conditions
-    bctype = 'strong_dirichlet'
-    strong_bc = None
-    flather_bc_expr = None
-    eta_weak_dirichlet_bc_expr = None
-    u_weak_dirichlet_bc_expr = None
-    free_slip_on_sides = True
-
-
+    bcs = BoundaryConditionSet()
 
 class SteadyShallowWaterProblem(Problem):
 
@@ -74,6 +78,9 @@ class SteadyShallowWaterProblem(Problem):
         if not isinstance(parameters, SteadyShallowWaterProblemParameters):
             raise TypeError, "parameters must be of type \
 ShallowWaterProblemParameters."
+
+        if not isinstance(parameters.domain, Domain):
+            raise TypeError, "parameters.domain is not a valid Domain."
 
         self.parameters = parameters
 
