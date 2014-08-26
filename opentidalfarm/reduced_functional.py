@@ -12,8 +12,7 @@ import os.path
 
 class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
 
-    def __init__(self, config, solver, scale=1.0,
-                 save_functional_values=False):
+    def __init__(self, config, solver, scale=1.0):
         ''' scale is ignored if automatic_scaling is active. '''
         # Hide the configuration since changes would break the memoize algorithm.
 
@@ -24,7 +23,7 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
         self.scale = scale
         self.solver = solver
         self.automatic_scaling_factor = None
-        self.save_functional_values = save_functional_values
+
         # Caching variables that store which controls the last forward run was performed
         self.last_m = None
         self.last_state = None
@@ -294,10 +293,6 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
                     # Compute the total amount of friction due to turbines
                     if self.__config__.params["turbine_parametrisation"] == "smeared":
                         print "Total amount of friction: ", assemble(self.__config__.turbine_cache.cache["turbine_field"] * dx)
-
-        if self.save_functional_values and MPI.process_number() == 0:
-            with open("functional_values.txt", "a") as functional_values:
-                functional_values.write(str(self.last_j) + "\n")
 
         if self.__config__.params["save_checkpoints"]:
             self.save_checkpoint("checkpoint")
