@@ -247,7 +247,7 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
             self.save_checkpoint("checkpoint")
 
         log(INFO, 'Runtime: %f s.' % timer.value())
-        log(INFO, 'j = %f.' % float(j))
+        log(INFO, 'j = %e.' % float(j))
         self.last_j = j
 
         if self.__config__.params['automatic_scaling']:

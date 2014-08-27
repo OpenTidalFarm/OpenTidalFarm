@@ -74,6 +74,11 @@ ShallowWaterSolverParameters."
 
         self.current_state = None
 
+        self.mesh = problem.parameters.domain.mesh
+        V, H = self.problem.parameters.finite_element(self.mesh)
+        self.function_space = MixedFunctionSpace([V, H])
+
+
     @staticmethod
     def default_parameters():
         return ShallowWaterSolverParameters()
@@ -86,7 +91,6 @@ ShallowWaterSolverParameters."
         # Define variables for all used parameters
         problem_params = self.problem.parameters
 
-        mesh = problem_params.domain.mesh
         ds = problem_params.domain.ds
 
         solver_params = self.parameters
@@ -131,20 +135,16 @@ ShallowWaterSolverParameters."
         if not 0 <= functional_quadrature_degree <= 1:
             raise ValueError("functional_quadrature_degree must be 0 or 1.")
 
-        V, H = problem_params.finite_element(mesh)
-        function_space = MixedFunctionSpace([V, H])
-
         # Define test functions
-        v, q = TestFunctions(function_space)
-
+        v, q = TestFunctions(self.function_space)
 
         # Define functions
-        state = Function(function_space, name="Current_state")  # solution of the next timestep
+        state = Function(self.function_space, name="Current_state")  # solution of the next timestep
         self.current_state = state
-        state_new = Function(function_space, name="New_state")  # solution of the next timestep
+        state_new = Function(self.function_space, name="New_state")  # solution of the next timestep
 
         # Load initial condition (or initial guess for stady problems)
-        ic = project(problem_params.initial_condition, function_space)
+        ic = project(problem_params.initial_condition, self.function_space)
         state.assign(ic, annotate=False)    
 
         # Split mixed functions
@@ -166,7 +166,7 @@ ShallowWaterSolverParameters."
         h_mid = (1.0 - theta) * h0 + theta * h
 
         # The normal direction
-        n = FacetNormal(function_space.mesh())
+        n = FacetNormal(self.mesh)
 
         # Mass matrix contributions
         M = inner(v, u) * dx
@@ -251,7 +251,7 @@ ShallowWaterSolverParameters."
 
         if include_viscosity:
             # Check that we are not using a DG velocity function space, as the facet integrals are not implemented.
-            if "Discontinuous" in str(function_space.split()[0]):
+            if "Discontinuous" in str(self.function_space.split()[0]):
                 raise NotImplementedError("The viscosity term for \
                     discontinuous elements is not supported.")
             D_mid = viscosity * inner(grad(u_mid), grad(v)) * dx
@@ -359,7 +359,7 @@ ShallowWaterSolverParameters."
                 elif function_name is "eta":
                     subidx = 1
 
-                bc = DirichletBC(function_space.sub(subidx), expr,
+                bc = DirichletBC(self.function_space.sub(subidx), expr,
                                  problem_params.domain.facet_ids, facet_id)
                 strong_bcs.append(bc)
 
@@ -374,7 +374,7 @@ ShallowWaterSolverParameters."
                 # Save state for initial guess cache
                 log(INFO, "Cache solution t=%f as next initial guess." % t)
                 if not self.state_cache.has_key(float(t)):
-                    self.state_cache[float(t)] = Function(function_space)
+                    self.state_cache[float(t)] = Function(self.function_space)
                 self.state_cache[float(t)].assign(state_new, annotate=False)
 
             # Set the control function for the upcoming timestep.
