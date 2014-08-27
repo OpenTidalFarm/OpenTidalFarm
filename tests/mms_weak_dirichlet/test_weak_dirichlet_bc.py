@@ -17,7 +17,9 @@ class TestWeakDirichletBoundaryConditions(object):
         parameters = ShallowWaterSolver.default_parameters()
         parameters.dump_period = -1
         solver = ShallowWaterSolver(problem, parameters)
-        state = solver.solve(annotate=False)
+        for sol in solver.solve(annotate=False):
+            pass
+        state = sol["state"]
 
         analytic_sol = Expression(
             ("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0",

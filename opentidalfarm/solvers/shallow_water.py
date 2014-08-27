@@ -144,6 +144,7 @@ ShallowWaterSolverParameters."
         state_new = Function(self.function_space, name="New_state")  # solution of the next timestep
 
         # Load initial condition (or initial guess for stady problems)
+        # Projection is necessary to obtain 2nd order convergence
         ic = project(problem_params.initial_condition, self.function_space)
         state.assign(ic, annotate=False)    
 
@@ -233,11 +234,12 @@ ShallowWaterSolverParameters."
         # Bottom friction
         friction = problem_params.friction
 
-        if turbine_field:
-            if type(turbine_field) == list:
-                tf = Function(turbine_field[0], name="turbine_friction", annotate=annotate)
-            else:
-                tf = Function(turbine_field, name="turbine_friction", annotate=annotate)
+        if not turbine_field:
+            tf = Constant(0)
+        elif type(turbine_field) == list:
+            tf = Function(turbine_field[0], name="turbine_friction", annotate=annotate)
+        else:
+            tf = Function(turbine_field, name="turbine_friction", annotate=annotate)
 
         # Friction term
         R_mid = friction / H * dot(u_mid, u_mid) ** 0.5 * inner(u_mid, v) * dx
@@ -291,25 +293,12 @@ ShallowWaterSolverParameters."
 
         step = 0
 
-        if functional is not None:
-            if not self.problem._is_transient or functional_final_time_only:
-                j = 0.
-                if solver_params.print_individual_turbine_power:
-                    j_individual = [0] * len(params["turbine_pos"])
-                    force_individual = [0] * len(params["turbine_pos"])
-
-            else:
-                if functional_quadrature_degree == 0:
-                    quad = 0.0
-                else:
-                    quad = 0.5
-                j = dt * quad * assemble(functional.Jt(state, tf))
-                if solver_params.print_individual_turbine_power:
-                    j_individual = []
-                    force_individual = []
-                    for i in range(len(params["turbine_pos"])):
-                        j_individual.append(dt * quad * assemble(functional.Jt_individual(state, i)))
-                        force_individual.append(dt * quad * assemble(functional.force_individual(state, i)))
+        yield({"time": t, 
+               "u": u0,
+               "eta": h0,
+               "tf": tf,
+               "state": state,
+               "is_final": float(t) < float(finish_time)})
 
         log(INFO, "Start of time loop")
         adjointer.time.start(t)
@@ -370,6 +359,7 @@ ShallowWaterSolverParameters."
 
             # After the timestep solve, update state
             state.assign(state_new)
+
             if cache_forward_state:
                 # Save state for initial guess cache
                 log(INFO, "Cache solution t=%f as next initial guess." % t)
@@ -389,58 +379,15 @@ ShallowWaterSolverParameters."
                 log(INFO, "Write state to disk...")
                 writer.write(state)
 
-            if functional is not None:
-                if not (functional_final_time_only and 
-                        float(t) < float(finish_time)):
-                    if not self.problem._is_transient or functional_final_time_only or functional_quadrature_degree == 0:
-                        quad = 1.0
-                    elif float(t) >= float(finish_time):
-                        quad = 0.5 * dt
-                    else:
-                        quad = 1.0 * dt
-
-                    j += quad * assemble(functional.Jt(state, tf))
-                    if solver_params.print_individual_turbine_power:
-                        log(INFO, "Computing individual turbine power extraction contribution...")
-                        individual_contribution_list = ['x_pos', 'y_pos', 'turbine_power', 'total_force_on_turbine', 'turbine_friction']
-                        fr_individual = range(len(params["turbine_pos"]))
-                        for i in range(len(params["turbine_pos"])):
-                            j_individual[i] += dt * quad * assemble(functional.Jt_individual(state, i))
-                            force_individual[i] += dt * quad * assemble(functional.force_individual(state, i))
-
-                            if len(params["turbine_friction"]) > 0:
-                                fr_individual[i] = params["turbine_friction"][i]
-                            else:
-                                fr_individual = [params["turbine_friction"]] * len(params["turbine_pos"])
-
-                            individual_contribution_list.append((params["turbine_pos"][i])[0])
-                            individual_contribution_list.append((params["turbine_pos"][i])[1])
-                            individual_contribution_list.append(j_individual[i])
-                            individual_contribution_list.append(force_individual[i])
-                            individual_contribution_list.append(fr_individual[i])
-
-                            log(INFO, "Contribution of turbine number %d at co-ordinates:" % (i + 1), params["turbine_pos"][i], ' is: ', j_individual[i] * 0.001, 'kW', 'with friction of', fr_individual[i])
 
             # Increase the adjoint timestep
             adj_inc_timestep(time=float(t), finished=(not float(t) < float(finish_time)))
+
+            yield({"time": t, 
+                   "u": u0,
+                   "eta": h0,
+                   "tf": tf,
+                   "state": state,
+                   "is_final": float(t) < float(finish_time)})
+
         log(INFO, "End of time loop.")
-
-        # Write the turbine positions, power extraction and friction to a .csv file named turbine_info.csv
-        if solver_params.print_individual_turbine_power:
-            f = self.config.params['base_path'] + os.path.sep + "iter_" + \
-                str(self.config.optimisation_iteration) + '/'
-            # Save the very first result in a different file
-            if self.config.optimisation_iteration == 0 and not os.path.isfile(f):
-                f += 'initial_turbine_info.csv'
-            else:
-                f += 'turbine_info.csv'
-
-            output_turbines = open(f, 'w')
-            for i in range(0, len(individual_contribution_list), 5):
-                print >> output_turbines, '%s, %s, %s, %s, %s' % (individual_contribution_list[i], individual_contribution_list[i + 1], individual_contribution_list[i + 2], individual_contribution_list[i + 3], individual_contribution_list[i + 4])
-            print 'Total of individual turbines is', sum(j_individual)
-
-        if functional is not None:
-            return j
-        else:
-            return state_new

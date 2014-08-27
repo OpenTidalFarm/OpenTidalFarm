@@ -7,6 +7,7 @@ from dolfin import *
 from dolfin_adjoint import *
 from turbines import *
 from solvers import Solver
+from integrator import FunctionalIntegrator
 import os.path
 
 
@@ -80,12 +81,20 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
                       snaps_on_disk=snaps_on_disk, snaps_in_ram=snaps_in_ram, 
                       verbose=verbose)
 
-            # Solve the shallow water system
+            # Solve the shallow water system and integrate the functional of
+            # interest.
             functional = config.functional(config)
-            j = solver.solve(functional=functional, turbine_field=tf, 
-                             annotate=annotate)
 
-            return j
+            final_only = not solver.problem._is_transient or \
+                         solver.problem.parameters.functional_final_time_only
+            integrator = FunctionalIntegrator(functional, final_only)
+
+            for sol in solver.solve(functional=functional, turbine_field=tf, 
+                                    annotate=annotate):
+                integrator.add(sol["time"], sol["state"], sol["tf"], 
+                               sol["is_final"])
+
+            return integrator.integrate()
 
         def compute_gradient(m, forget=True):
             ''' Compute the functional gradient for the turbine positions/frictions array '''
@@ -109,6 +118,7 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
             dummy_tf = Function(FunctionSpace(self.solver.problem.parameters.domain.mesh, 
                                 "R", 0), name="turbine_friction")
 
+            # FIXME: Move this code into integrator
             if (not solver.problem._is_transient or
                 solver.problem.parameters.functional_final_time_only):
                 J = Functional(functional.Jt(solver.current_state, dummy_tf) * dt[FINISH_TIME])

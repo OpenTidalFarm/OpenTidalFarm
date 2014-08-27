@@ -16,7 +16,9 @@ class TestStringDirichletBoundaryConditions(object):
       params = ShallowWaterSolver.default_parameters()
       params.dump_period = -1
       solver = ShallowWaterSolver(problem, params)
-      state = solver.solve(annotate=False)
+      for s in solver.solve(annotate=False):
+          pass
+      state = s["state"]
 
       analytic_sol = Expression(
              ("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0", \
@@ -118,7 +120,8 @@ class TestStringDirichletBoundaryConditions(object):
         for i in range(len(errors)-1):
           conv.append(abs(math.log(errors[i+1] / errors[i], 2)))
 
-        log(INFO, "Spatial order of convergence (expecting 2.0): %s" % str(conv))
+        log(INFO, "Spatial Taylor remainders: %s" % errors)
+        log(INFO, "Spatial order of convergence (expecting 2.0): %s" % conv)
         assert min(conv) > 1.8
 
     def test_temporal_convergence_is_two(self, sw_linear_problem_parameters):
@@ -133,5 +136,6 @@ class TestStringDirichletBoundaryConditions(object):
         for i in range(len(errors)-1):
           conv.append(abs(math.log(errors[i+1] / errors[i], 2)))
 
-        log(INFO, "Temporal order of convergence (expecting 2.0): %s" % str(conv))
+        log(INFO, "Temporal Taylor remainders: %s" % errors)
+        log(INFO, "Temporal order of convergence (expecting 2.0): %s" % conv)
         assert min(conv) > 1.8

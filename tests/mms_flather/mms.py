@@ -27,7 +27,11 @@ def compute_error(problem, eta0, k):
     parameters.dump_period = -1
     solver = ShallowWaterSolver(problem, parameters)
 
-    state = solver.solve(annotate=False, u_source=source)
+    solver.solve(annotate=False, u_source=source)
+
+    for s in solver.solve(annotate=False, u_source=source):
+        pass
+    state = s["state"]
 
     # Compare the difference to the analytical solution
     analytic_sol = Expression((u_exact, "0", eta_exact),

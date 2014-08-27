@@ -50,6 +50,7 @@ class DummySolver(Solver):
         W = MixedFunctionSpace([V, H])
 
         # Load initial condition
+        # Projection is necessary to obtain 2nd order convergence
         ic = project(problem_params.initial_condition, W)
 
         # Define functions
@@ -59,8 +60,12 @@ class DummySolver(Solver):
 
         self.setup(W, turbine_field, functional, annotate)
 
-        if functional is not None and not self.problem.parameters.functional_final_time_only:
-            j = 0.5 * assemble(self.problem.parameters.dt * self.functional.Jt(state, self.tf))
+        yield({"time": Constant(0),
+               "u": state[0],
+               "eta": state[1],
+               "tf": self.tf,
+               "state": state,
+               "is_final": False})
 
         adjointer.time.start(0.0)
         tmpstate = Function(state.function_space(), name="tmp_state")
@@ -74,9 +79,9 @@ class DummySolver(Solver):
         # Bump timestep to shut up libadjoint.
         adj_inc_timestep(time=float(self.problem.parameters.dt), finished=True)
 
-        if self.functional is not None:
-            if self.problem.parameters.functional_final_time_only:
-                j = assemble(self.functional.Jt(state, self.tf))
-            else:
-                j += 0.5 * assemble(self.problem.parameters.dt * self.functional.Jt(state, self.tf))
-            return j
+        yield({"time": self.problem.parameters.dt,
+               "u": state[0],
+               "eta": state[1],
+               "tf": self.tf,
+               "state": state,
+               "is_final": True})

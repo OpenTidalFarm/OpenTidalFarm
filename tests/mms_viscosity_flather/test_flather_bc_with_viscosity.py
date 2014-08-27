@@ -29,7 +29,9 @@ class TestFlatherBoundaryConditionsWithViscosity(object):
         parameters = ShallowWaterSolver.default_parameters()
         parameters.dump_period = -1
         solver = ShallowWaterSolver(problem, parameters)
-        state = solver.solve(annotate=False, u_source=source)
+        for sol in solver.solve(annotate=False, u_source=source):
+            pass
+        state = sol["state"]
 
         analytic_sol = Expression((u_exact,
                                   "0",

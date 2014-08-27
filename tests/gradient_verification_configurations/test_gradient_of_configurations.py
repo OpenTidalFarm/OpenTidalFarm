@@ -27,7 +27,8 @@ class TestConfigurations(object):
             # Boundary conditions
             bcs = BoundaryConditionSet()
             bcs.add_bc("u", Constant((2.0 + 1e-10, 0)), 1, "strong_dirichlet")
-            bcs.add_bc("eta", Constant(2.0), 2, "strong_dirichlet")
+            bcs.add_bc("eta", Constant(0.0), 2, "strong_dirichlet")
+            bcs.add_bc("u", Constant((0, 0)), 3, "weak_dirichlet")
             problem_params.bcs = bcs
 
             # Create the shallow water problem
@@ -48,7 +49,7 @@ class TestConfigurations(object):
 
             # Temporal settings
             problem_params.finish_time = problem_params.start_time + \
-                                         10*problem_params.dt
+                                         2*problem_params.dt
 
             # Boundary conditions
             bcs = BoundaryConditionSet()
@@ -112,5 +113,4 @@ class TestConfigurations(object):
         seed = 0.1
         minconv = helpers.test_gradient_array(model.j, model.dj, m0, 
                 seed=seed, perturbation_direction=p)
-        print minconv
         assert minconv > 1.85
