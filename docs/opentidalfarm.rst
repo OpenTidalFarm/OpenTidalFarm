@@ -1,43 +1,33 @@
 opentidalfarm package
 =====================
 
-Subpackages
------------
-
 .. toctree::
 
+    opentidalfarm.domains
     opentidalfarm.problems
     opentidalfarm.solvers
 
 Submodules
 ----------
 
-opentidalfarm.configuration module
-----------------------------------
+boundary_conditions module
+--------------------------
+
+.. automodule:: opentidalfarm.boundary_conditions
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+configuration module
+--------------------
 
 .. automodule:: opentidalfarm.configuration
     :members:
     :undoc-members:
     :show-inheritance:
 
-opentidalfarm.dirichlet_bc module
----------------------------------
-
-.. automodule:: opentidalfarm.dirichlet_bc
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-opentidalfarm.domains module
-----------------------------
-
-.. automodule:: opentidalfarm.domains
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-opentidalfarm.finite_elements module
-------------------------------------
+finite_elements module
+----------------------
 
 .. automodule:: opentidalfarm.finite_elements
     :members:
@@ -68,6 +58,14 @@ opentidalfarm.initial_conditions module
     :undoc-members:
     :show-inheritance:
 
+opentidalfarm.integrator module
+-------------------------------
+
+.. automodule:: opentidalfarm.integrator
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 opentidalfarm.memoize module
 ----------------------------
 
@@ -88,14 +86,6 @@ opentidalfarm.parameter_dict module
 -----------------------------------
 
 .. automodule:: opentidalfarm.parameter_dict
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-opentidalfarm.parameter_dictionary module
------------------------------------------
-
-.. automodule:: opentidalfarm.parameter_dictionary
     :members:
     :undoc-members:
     :show-inheritance:

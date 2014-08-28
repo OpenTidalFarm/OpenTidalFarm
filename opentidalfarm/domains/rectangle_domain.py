@@ -4,21 +4,20 @@ from domain import Domain
 
 
 class RectangularDomain(Domain):
-    """ Creates a rectangular domain. """
+    """ Create a rectangular domain. 
+
+    :param x0: The x coordinate of the bottom-left.
+    :type x0: float.
+    :param y0: The y coordinate of the bottom-left.
+    :type y0: float.
+    :param x1: The x coordinate of the top-right corner.
+    :type x1: float.
+    :param y1: The y coordinate of the top-right corner.
+    :type y1: float.
+    """
+
 
     def __init__(self, x0, y0, x1, y1, nx, ny):
-        """ Creates a rectangular domain. 
-
-        :param x0: The x coordinate of the bottom-left.
-        :type x0: float.
-        :param y0: The y coordinate of the bottom-left.
-        :type y0: float.
-        :param x1: The x coordinate of the top-right corner.
-        :type x1: float.
-        :param y1: The y coordinate of the top-right corner.
-        :type y1: float.
-        """
-
         self.mesh = RectangleMesh(x0, x0, x1, y1, nx, ny)
 
         class Left(SubDomain):

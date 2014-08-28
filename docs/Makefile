@@ -58,7 +58,7 @@ auto_apidoc:
 clean:
 	rm -rf $(BUILDDIR)/*
 
-html: build_examples auto_apidoc
+html: build_examples
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."

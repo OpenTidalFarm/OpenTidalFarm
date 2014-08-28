@@ -110,7 +110,7 @@ ShallowWaterSolverParameters."
 
             t = Constant(problem_params.start_time)
 
-            include_time_term = problem_params.include_time_term
+            include_time_term = True
 
         elif type(self.problem) == MultiSteadyShallowWaterProblem:
             log(INFO, "Solve a multi steady-state shallow water problem")

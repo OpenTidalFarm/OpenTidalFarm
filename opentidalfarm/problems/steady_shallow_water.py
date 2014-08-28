@@ -9,7 +9,11 @@ from ..domains.domain import Domain
 
 
 class SteadyShallowWaterProblemParameters(FrozenClass):
-    """ A set of parameters for a :class:`SteadyShallowWaterProblem`. 
+    """ A parameters set for a :class:`SteadyShallowWaterProblem`. 
+
+    Domain parameters:
+
+    :ivar domain: The computational domain as an :class:`Domain` object.
     
     Physical parameters:
 
@@ -29,20 +33,15 @@ class SteadyShallowWaterProblemParameters(FrozenClass):
 
     Boundary conditions:
 
-    :ivar bctype: Specifies how the boundary conditions should be enforced. Must
-        be one of 'dirichlet', 'strong_dirichlet' or 'flather'. 
+    :ivar bctype: Specifies how the boundary conditions should be enforced.
+        Valid options are: 'weak_dirichlet', 'strong_dirichlet' or 'flather'. 
         Default: 'strong_dirichlet'
-    :ivar strong_bc: A list of strong boundary conditions. Default: None
-    :ivar flather_bc_expr: A :class:`dolfin.Expression` describing the Flather
-        boundary condition values. Default: None
-    :ivar u_weak_dirichlet_bc_expr: A :class:`dolfin.Expression` describing the weak
-        Dirichlet boundary condition values for the velocity.
-        Default: None.
-    :ivar eta_weak_dirichlet_bc_expr: A :class:`dolfin.Expression` describing the weak
-        Dirichlet boundary condition values for the free surface displacment.
-        Default: None.
-    :ivar free_slip_on_sides: Indicates if a free-slip boundary conditions is to
-        be applied on the sides. Default: True
+    :ivar bcs: A :class:`BoundaryConditionSet` containing a list of boundary 
+        conditions for the problem.
+
+    Discretization settings:
+
+    :ivar finite_element: The finite-element pair to use. Default: P2P1
     """
 
     # Domain
@@ -67,6 +66,7 @@ class SteadyShallowWaterProblemParameters(FrozenClass):
     bcs = BoundaryConditionSet()
 
 class SteadyShallowWaterProblem(Problem):
+    """ A problem class for a steady-state shallow water problem. """
 
     def __init__(self, parameters, check_parameter_type=True):
         """ Instantiates a new :class:`SteadyShallowWaterProblem` object.

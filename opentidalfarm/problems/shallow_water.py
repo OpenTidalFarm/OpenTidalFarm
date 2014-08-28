@@ -12,21 +12,12 @@ class ShallowWaterProblemParameters(SteadyShallowWaterProblemParameters):
 
     In addition following parameters are available:
 
-    Domain parameters:
-
-    :ivar domain: The computational domain as an :class:`Domain` object.
-
     Time parameters:
 
     :ivar theta: The theta value for the timestepping-scheme. Default 1.0.
     :ivar dt: The timestep. Default: 1.0.
     :ivar start_time: The start time. Default: 0.0.
     :ivar finish_time: The finish time. Default: 100.0.
-
-    Equation parameters:
-
-    :ivar include_time_term: Boolean indicating if the time term is included.
-                             Default: True
 
     Functional time integration paramters (FIXME: Move to reduced functional):
 
@@ -40,9 +31,6 @@ class ShallowWaterProblemParameters(SteadyShallowWaterProblemParameters):
     dt = 1.
     start_time = 0.0
     finish_time = 100.0
-
-    # Equation settings
-    include_time_term = True
 
     # Functional time integration parameters
     functional_final_time_only = True

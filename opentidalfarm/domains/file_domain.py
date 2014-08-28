@@ -4,33 +4,34 @@ from domain import Domain
 
 
 class FileDomain(Domain):
-    ''' Loads a mesh from external files. '''
+    """ Create a domain from DOLFIN mesh files (*xml).
 
-    def __init__(self, mesh_xml, facet_ids_xml=None, cell_ids_xml=None):
-        """ Initialises a new mesh domain from external files. 
+    :param mesh_file: The .xml file of the mesh.
+    :type mesh_file: str.
+    :param facet_ids_file: The .xml file containing the facet ids of the mesh. 
+        If None, the default is to `mesh_file` + "_facet_region.xml".
+    :type facet_ids_file: str.
+    :param cell_ids_file: The .xml file containing the cell ids of the mesh. 
+        If None, the default is to `mesh_file` + "_physical_region.xml".
+    :type cell_ids_xml: str.
+    """
 
-        :param mesh_xml: The .xml file of the mesh.
-        :type mesh_xml: str.
-        :param facet_ids_xml: The .xml file containing the facet ids of the mesh. 
-            If None, this defaults to :param:`mesh_xml` + "_facet_region.xml".
-        :type facet_ids_xml: str.
-        :param cell_ids_xml: The .xml file containing the cell ids of the mesh. 
-            If None, this defaults to :param:`mesh_xml` + "_physical_region.xml".
-        :type cell_ids_xml: str.
-        """
+    def __init__(self, mesh_file, facet_ids_file=None, cell_ids_file=None):
 
-        self.mesh = Mesh(mesh_xml)
+        self.mesh = Mesh(mesh_file)
 
         # Read facet markers
-        if facet_ids_xml is None:
-            facet_ids_xml = os.path.splitext(mesh_xml)[0] + "_facet_region.xml"
+        if facet_ids_file is None:
+            facet_ids_file = os.path.splitext(mesh_file)[0] + \
+                             "_facet_region.xml"
 
-        self.facet_ids = MeshFunction('size_t', self.mesh, facet_ids_xml)
+        self.facet_ids = MeshFunction('size_t', self.mesh, facet_ids_file)
         self.ds = Measure('ds')[self.facet_ids]
 
         # Read cell markers
-        if cell_ids_xml is None:
-            cell_ids_xml = os.path.splitext(mesh_xml)[0] + "_physical_region.xml"
+        if cell_ids_file is None:
+            cell_ids_file = os.path.splitext(mesh_file)[0] + \
+                            "_physical_region.xml"
 
-        self.cell_ids = MeshFunction("size_t", self.mesh, cell_ids_xml)
+        self.cell_ids = MeshFunction("size_t", self.mesh, cell_ids_file)
         self.dx = Measure("dx")[self.cell_ids]  

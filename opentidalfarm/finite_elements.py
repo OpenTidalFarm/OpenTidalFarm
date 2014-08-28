@@ -50,7 +50,6 @@ def bdfmp1dg(mesh):
 
 
 def bdmp0(mesh):
-
     "Return a function space U*H on mesh from the BFDM1 space."
 
     V = FunctionSpace(mesh, 'BDM', 1)              # Velocity space

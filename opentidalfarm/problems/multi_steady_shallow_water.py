@@ -12,10 +12,6 @@ class MultiSteadyShallowWaterProblemParameters(SteadyShallowWaterProblemParamete
 
     In addition following parameters are available:
 
-    Domain parameters:
-
-    :ivar domain: The computational domain as an :class:`Domain` object.
-
     Time parameters:
 
     :ivar dt: The timestep. Default: 1.0.
