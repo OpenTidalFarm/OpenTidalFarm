@@ -66,14 +66,15 @@ class SteadyShallowWaterProblemParameters(FrozenClass):
     bcs = BoundaryConditionSet()
 
 class SteadyShallowWaterProblem(Problem):
-    """ A problem class for a steady-state shallow water problem. """
+    """ A problem class for a steady-state shallow water problem. 
+
+        :parameter parameters: A :class:`SteadyShallowWaterProblemParameters`
+            object containing the parameters of the problem.
+        :parameter check_parameter_type: Check the type of the parameter
+            argument for correctness. 
+    """
 
     def __init__(self, parameters, check_parameter_type=True):
-        """ Instantiates a new :class:`SteadyShallowWaterProblem` object.
-
-            :parameter parameters: A :class:`SteadyShallowWaterProblemParameters`
-                object containing the parameters of the problem.
-        """
 
         if (check_parameter_type and
             not type(parameters) == SteadyShallowWaterProblemParameters):

@@ -1,9 +1,6 @@
 Problems
 ========
 
-Module contents
----------------
-
 .. automodule:: opentidalfarm.problems
     :members:
 
