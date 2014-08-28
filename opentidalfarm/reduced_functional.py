@@ -171,28 +171,12 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
 
             return dj
 
-        def compute_hessian_action(m, m_dot):
-            if numpy.any(m != self.last_m):
-                self.run_adjoint_model_mem(m, forget=False)
-
-            functional = config.functional(config)
-            if (not solver.problem.parameters._transient or
-                solver.problem.parameters.functional_final_time_only):
-                J = Functional(functional.Jt(state) * dt[FINISH_TIME])
-            else:
-                J = Functional(functional.Jt(state) * dt)
-
-            H = drivers.hessian(J, FunctionControl("friction"), warn=False)
-            m_dot = project(Constant(1), config.turbine_function_space)
-            return H(m_dot)
-
         # For smeared turbine parametrisations we only want to store the 
         # hash of the control values into the pickle datastructure
         hash_keys = (config.params["turbine_parametrisation"] == "smeared")
 
         self.compute_functional_mem = memoize.MemoizeMutable(compute_functional, hash_keys)
         self.compute_gradient_mem = memoize.MemoizeMutable(compute_gradient, hash_keys)
-        self.compute_hessian_action_mem = memoize.MemoizeMutable(compute_hessian_action, hash_keys)
 
     def update_turbine_cache(self, m):
         ''' Reconstructs the parameters from the flattened parameter array m and updates the configuration. '''
@@ -348,11 +332,6 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
             return self.dj_with_check(m_array, seed, forget)
         else:
             return self.dj(m_array, forget)
-
-    def hessian(self, m_array, m_dot_array):
-        ''' Interface function for dolfin_adjoint.ReducedFunctional '''
-
-        raise NotImplementedError('The Hessian computation is not yet implemented')
 
     def obj_to_array(self, obj):
 
