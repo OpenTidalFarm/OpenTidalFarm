@@ -49,14 +49,16 @@ class FunctionalIntegrator(object):
         return sum(quads*dt*self.vals)
 
     def dolfin_adjoint_functional(self, solver):
-        # The functional depends on the turbine friction function which we do not have on scope here.
-        # But dolfin-adjoint only cares about the name, so we can just create a dummy function with the desired name.
+        # The functional depends on PDE functions which we do not have on scope
+        # here. But dolfin-adjoint only cares about the name, so we can just
+        # create a dummy function with the desired name.
         R = FunctionSpace(solver.problem.parameters.domain.mesh, "R", 0)
-        dummy_tf = Function(R, name="turbine_friction")
-        state = solver.current_state
+        Rvec = VectorFunctionSpace(solver.problem.parameters.domain.mesh, "R", 0)
+        tf = Function(R, name="turbine_friction")
+        state = Function(Rvec, name="Current_state")
 
         if self.final_only:
-            return Functional(self.functional.Jt(state, dummy_tf) * dt[FINISH_TIME])
+            return Functional(self.functional.Jt(state, tf) * dt[FINISH_TIME])
 
         elif solver.problem.parameters.functional_quadrature_degree == 0:
             # Pseudo-redo the time loop to collect the necessary timestep information
@@ -71,8 +73,8 @@ class FunctionalIntegrator(object):
                 timesteps.pop(0)
 
             # Construct the functional
-            return Functional(sum(self.functional.Jt(state, dummy_tf) * dt[t] for t in timesteps))
+            return Functional(sum(self.functional.Jt(state, tf) * dt[t] for t in timesteps))
 
         else:
-            return Functional(self.functional.Jt(state, dummy_tf) * dt)
+            return Functional(self.functional.Jt(state, tf) * dt)
 
