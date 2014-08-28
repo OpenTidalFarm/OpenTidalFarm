@@ -49,6 +49,12 @@ coverage.xml
 # Django stuff:
 *.log
 
+# Simulation results
+*.vtu
+*.pvd
+*.dat
+ffc_form*.h
+
 # Sphinx documentation
 docs/_build/
 

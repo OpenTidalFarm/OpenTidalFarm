@@ -22,7 +22,6 @@ class TestMultiSteadyState(object):
         problem_params.dt = Constant(1.)
         problem_params.finish_time = Constant(steps * problem_params.dt)
         problem_params.viscosity = Constant(16)
-        problem_params.functional_quadrature_degree = 1
         k = Constant(pi/basin_x)
 
         # Domain

@@ -21,12 +21,10 @@ class FunctionalIntegrator(object):
             self.vals.append(val)
             self.times.append(time)
 
-    def integrate(self, degree=1):
+    def integrate(self):
+
         if len(self.vals) == 0:
             raise ValueError("Cannot integrate empty set.")
-
-        print "*"*20
-        print "vals", self.vals
 
         if self.final_only:
             return self.vals[-1]
@@ -34,28 +32,22 @@ class FunctionalIntegrator(object):
         # FIXME: Don't assume constant timesteps
         dt = self.times[1]-self.times[0]
 
-        # FIXME: Remove this, it just does not make any sense
-        if degree == 0:
-            dt = 1
-
         # Compute quadrature weights
-        quads = numpy.ones(len(self.times))
+        w = numpy.ones(len(self.times))
 
-        if degree == 0:
-            quads[0] = 0
-        elif degree == 1:
-            if type(self.problem) == MultiSteadyShallowWaterProblem:
-                quads[0] = 0.
-                quads[1] = 0.5
-            else:
-                quads[0] = 0.5
-            quads[-1] = 0.5
+        # The multi-steady state case is special in that we want to integrate
+        # over time, but without the initial guess.
+        w[-1] = 0.0
+        if type(self.problem) == MultiSteadyShallowWaterProblem:
+            w[0] = 0.
+            w[1] = 0.5
         else:
-            raise ValueError("Unknown integration degree.")
+            w[0] = 0.5
+        w[-1] += 0.5
 
-        return sum(quads*dt*self.vals)
+        return sum(w * dt * self.vals)
 
-    def dolfin_adjoint_functional(self, degree):
+    def dolfin_adjoint_functional(self):
         # The functional depends on dolfin functions which are not in scope.
         # But dolfin-adjoint only cares about the name, hence it is sufficient 
         # to create dummy functions with the appropriate names.
@@ -67,18 +59,8 @@ class FunctionalIntegrator(object):
         if self.final_only:
             return Functional(self.functional.Jt(state, tf) * dt[FINISH_TIME])
 
-        elif degree == 0:
-            timesteps = list(self.times)
-
-            from problems.shallow_water import ShallowWaterProblemParameters
-            if not type(self.problem.parameters) is ShallowWaterProblemParameters:
-                timesteps.pop(0)
-
-            return Functional(sum(self.functional.Jt(state, tf) * dt[float(t)] for t in timesteps))
-
+        if type(self.problem) == MultiSteadyShallowWaterProblem:
+            return Functional(self.functional.Jt(state, tf) *
+                    dt[float(self.times[1]):])
         else:
-            if type(self.problem) == MultiSteadyShallowWaterProblem:
-                return Functional(self.functional.Jt(state, tf) *
-                        dt[float(self.times[1]):])
-            else:
-                return Functional(self.functional.Jt(state, tf) * dt)
+            return Functional(self.functional.Jt(state, tf) * dt)

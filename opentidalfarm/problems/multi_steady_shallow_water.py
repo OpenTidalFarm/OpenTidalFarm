@@ -30,7 +30,6 @@ class MultiSteadyShallowWaterProblemParameters(SteadyShallowWaterProblemParamete
 
     # Functional time integration parameters
     functional_final_time_only = False
-    functional_quadrature_degree = 0
 
 class MultiSteadyShallowWaterProblem(SteadyShallowWaterProblem):
 

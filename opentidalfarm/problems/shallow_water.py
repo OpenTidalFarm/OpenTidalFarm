@@ -33,9 +33,6 @@ class ShallowWaterProblemParameters(SteadyShallowWaterProblemParameters):
     :ivar functional_final_time_only: Boolean indicating if the functional
         should be integrated over time or evaluated at the end of time only. 
         Default: True.
-    :ivar functional_quadrature_degree: The quadrature degree of the functional
-        integration. Used only if :attr:`functional_final_time_only:` is True. 
-        Default: 1.
     """
 
     # Time parameters
@@ -49,7 +46,6 @@ class ShallowWaterProblemParameters(SteadyShallowWaterProblemParameters):
 
     # Functional time integration parameters
     functional_final_time_only = True
-    functional_quadrature_degree = 1
 
 
 class ShallowWaterProblem(SteadyShallowWaterProblem):

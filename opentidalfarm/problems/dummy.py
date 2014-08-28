@@ -18,7 +18,6 @@ class DummyProblemParameters(FrozenClass):
     initial_condition = Constant((1e-16, 0, 0))
 
     functional_final_time_only = False
-    functional_quadrature_degree = 1
 
 
 class DummyProblem(Problem):
