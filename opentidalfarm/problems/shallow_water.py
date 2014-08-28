@@ -38,22 +38,21 @@ class ShallowWaterProblemParameters(SteadyShallowWaterProblemParameters):
 
 class ShallowWaterProblem(SteadyShallowWaterProblem):
 
-    def __init__(self, parameters, check_parameter_type=True):
+    def __init__(self, parameters):
         """ Instantiates a new :class:`ShallowWaterProblem` object. 
 
             :parameter parameters: A :class:`ShallowWaterProblemParameters`
                 object containing the parameters of the problem.
         """
 
-        if (check_parameter_type and
-            not type(parameters) == ShallowWaterProblemParameters):
+        if not type(parameters) == ShallowWaterProblemParameters:
             raise TypeError("parameters must be of type \
 ShallowWaterProblemParameters.")
 
         if float(parameters.start_time) >= float(parameters.finish_time):
             raise ValueError("start_time must be < finish_time.")
 
-        super(ShallowWaterProblem, self).__init__(parameters, False)
+        super(ShallowWaterProblem, self).__init_without_type_check__(parameters)
 
     @property
     def _is_transient(self):

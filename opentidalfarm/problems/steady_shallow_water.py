@@ -70,16 +70,17 @@ class SteadyShallowWaterProblem(Problem):
 
         :parameter parameters: A :class:`SteadyShallowWaterProblemParameters`
             object containing the parameters of the problem.
-        :parameter check_parameter_type: Check the type of the parameter
-            argument for correctness. 
     """
 
-    def __init__(self, parameters, check_parameter_type=True):
+    def __init__(self, parameters):
 
-        if (check_parameter_type and
-            not type(parameters) == SteadyShallowWaterProblemParameters):
+        if not type(parameters) == SteadyShallowWaterProblemParameters:
             raise TypeError("parameters must be of type \
 SteadyShallowWaterProblemParameters.")
+
+        self.__init_without_type_check__(parameters)
+
+    def __init_without_type_check__(self, parameters):
 
         if not isinstance(parameters.domain, Domain):
             raise TypeError("parameters.domain is not a valid Domain.")

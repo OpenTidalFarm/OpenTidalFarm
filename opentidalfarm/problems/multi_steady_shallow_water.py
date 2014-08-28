@@ -29,22 +29,22 @@ class MultiSteadyShallowWaterProblemParameters(SteadyShallowWaterProblemParamete
 
 class MultiSteadyShallowWaterProblem(SteadyShallowWaterProblem):
 
-    def __init__(self, parameters, check_parameter_type=True):
+    def __init__(self, parameters):
         """ Instantiates a new :class:`ShallowWaterProblem` object. 
 
             :parameter parameters: A :class:`ShallowWaterProblemParameters`
                 object containing the parameters of the problem.
         """
 
-        if (check_parameter_type and
-            not type(parameters) == MultiSteadyShallowWaterProblemParameters):
+        if not type(parameters) == MultiSteadyShallowWaterProblemParameters:
             raise TypeError("parameters must be of type \
 MultiSteadyShallowWaterProblemParameters.")
 
         if float(parameters.start_time) >= float(parameters.finish_time):
             raise ValueError("start_time must be < finish_time.")
 
-        super(MultiSteadyShallowWaterProblem, self).__init__(parameters, False)
+        super(MultiSteadyShallowWaterProblem, \
+                self).__init_without_type_check__(parameters)
 
     @property
     def _is_transient(self):
