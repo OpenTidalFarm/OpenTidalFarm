@@ -126,7 +126,7 @@ class TestWeakDirichletBoundaryConditions(object):
         # Compute the order of convergence 
         conv = [] 
         for i in range(len(errors)-1):
-            conv.append(abs(math.log(errors[i+1] / errors[i], 2)))
+            conv.append(-math.log(errors[i+1] / errors[i], 2))
 
         log(INFO, "Spatial Taylor remainders are : %s" % str(errors))
         log(INFO, "Spatial order of convergence (expecting 2.0): %s" % str(conv))
@@ -142,7 +142,7 @@ class TestWeakDirichletBoundaryConditions(object):
         # Compute the order of convergence 
         conv = [] 
         for i in range(len(errors)-1):
-            conv.append(abs(math.log(errors[i+1] / errors[i], 2)))
+            conv.append(-math.log(errors[i+1] / errors[i], 2))
 
         log(INFO, "Temporal Taylor remainders are : %s" % str(errors))
         log(INFO, "Temporal order of convergence (expecting 2.0): %s" % str(conv))

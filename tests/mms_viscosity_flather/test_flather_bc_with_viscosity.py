@@ -89,7 +89,7 @@ class TestFlatherBoundaryConditionsWithViscosity(object):
         # Compute the order of convergence
         conv = []
         for i in range(len(errors)-1):
-            conv.append(abs(math.log(errors[i+1]/errors[i], 2)))
+            conv.append(-math.log(errors[i+1]/errors[i], 2))
 
         log(INFO, "Errors: %s" % errors)
         log(INFO, "Spatial order of convergence (expecting 2.0): %s" % conv)

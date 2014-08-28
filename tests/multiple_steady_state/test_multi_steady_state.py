@@ -11,18 +11,11 @@ class TestMultiSteadyState(object):
         # Some domain information extracted from the geo file
         basin_x = 640.
         basin_y = 320.
-        site_x = 320.
-        site_y = 160.
-        site_x_start = (basin_x - site_x)/2 
-        site_y_start = (basin_y - site_y)/2 
 
         path = os.path.dirname(__file__)
         meshfile = os.path.join(path, "mesh_coarse.xml")
         domain = FileDomain(meshfile)
 
-        config = UnsteadyConfiguration(domain)
-        config.set_site_dimensions(site_x_start, site_x_start + site_x, site_y_start, site_y_start + site_y)
-        config.params["output_turbine_power"] = False
 
         # Change the parameters such that in fact two steady state problems are solved consecutively
         problem_params = sw_nonlinear_problem_parameters
@@ -64,8 +57,14 @@ class TestMultiSteadyState(object):
         problem = ShallowWaterProblem(problem_params)
 
         # Place some turbines 
+        config = UnsteadyConfiguration(domain)
+        site_x = 320.
+        site_y = 160.
+        site_x_start = (basin_x - site_x)/2 
+        site_y_start = (basin_y - site_y)/2 
+        config.set_site_dimensions(site_x_start, site_x_start + site_x, site_y_start, site_y_start + site_y)
         deploy_turbines(config, nx=8, ny=4)
-        config.info()
+        config.params["output_turbine_power"] = False
 
         solver_params = ShallowWaterSolver.default_parameters()
         solver_params.cache_forward_state = True

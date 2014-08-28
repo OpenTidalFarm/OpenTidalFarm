@@ -26,7 +26,7 @@ class TestFlatherBoundaryConditions(object):
         # Compute the orders of convergence
         conv = []
         for i in range(len(errors)-1):
-            convergence_order = abs(math.log(errors[i+1]/errors[i], 2))
+            convergence_order = -math.log(errors[i+1]/errors[i], 2)
             conv.append(convergence_order)
 
         # Check the minimum convergence order and exit
@@ -54,7 +54,7 @@ class TestFlatherBoundaryConditions(object):
         # Compute the orders of convergence 
         conv = [] 
         for i in range(len(errors)-1):
-            convergence_order = abs(math.log(errors[i+1]/errors[i], 2))
+            convergence_order = -math.log(errors[i+1]/errors[i], 2)
             conv.append(convergence_order)
 
         # Check the minimum convergence order and exit

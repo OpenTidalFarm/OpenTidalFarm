@@ -333,7 +333,8 @@ ShallowWaterSolverParameters."
 
             # Solve non-linear system with a Newton solver
             if self.problem._is_transient:
-                log(INFO, "Solve shallow water equations at time %s (Newton iteration) ..." % float(problem_params.current_time))
+                log(INFO, "Solve shallow water equations at time %s (Newton \
+                        iteration) ..." % float(t))
             else:
                 log(INFO, "Solve shallow water equations (Newton iteration) \
 ...")
