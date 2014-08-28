@@ -21,7 +21,6 @@ class TestMultiSteadyState(object):
         problem_params = sw_nonlinear_problem_parameters
         problem_params.theta = Constant(1.)
         problem_params.start_time = Constant(0.)
-        problem_params.current_time = Constant(0.)
         problem_params.dt = Constant(1.)
         problem_params.finish_time = Constant(steps * problem_params.dt)
         problem_params.include_time_term = False

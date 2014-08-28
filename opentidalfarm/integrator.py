@@ -24,9 +24,6 @@ class FunctionalIntegrator(object):
         if self.final_only:
             return self.vals[-1]
 
-        print "*"*20
-        print "vars", self.vals
-
         # FIXME: Don't assume constante timesteps
         dt = self.times[1]-self.times[0]
 

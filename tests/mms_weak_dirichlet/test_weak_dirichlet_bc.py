@@ -26,7 +26,7 @@ class TestWeakDirichletBoundaryConditions(object):
              "eta0*cos(k*x[0]-sqrt(g*depth)*k*t)"),
             eta0=eta0, g=problem.parameters.g,
             depth=problem.parameters.depth,
-            t=problem.parameters.current_time, k=k)
+            t=problem.parameters.finish_time, k=k)
         return errornorm(analytic_sol, state)
 
 
@@ -44,9 +44,9 @@ class TestWeakDirichletBoundaryConditions(object):
         problem_params.finite_element = finite_elements.p1dgp2
 
         # Time settings
-        problem_params.finish_time = pi / (sqrt(problem_params.g *
-                                     problem_params.depth) * k) / 20
-        problem_params.dt = problem_params.finish_time / 10
+        problem_params.finish_time = Constant(pi / (sqrt(problem_params.g *
+                                     problem_params.depth) * k) / 20)
+        problem_params.dt = problem_params.finish_time / 10.
 
         # Initial condition
         ic_expr = SinusoidalInitialCondition(eta0, k, 
@@ -61,7 +61,7 @@ class TestWeakDirichletBoundaryConditions(object):
             eta0=eta0,
             g=problem_params.g,
             depth=problem_params.depth,
-            t=problem_params.current_time,
+            t=problem_params.start_time,
             k=k)
 
         bcs = BoundaryConditionSet()
@@ -87,8 +87,8 @@ class TestWeakDirichletBoundaryConditions(object):
         problem_params.finite_element = finite_elements.p1dgp2
 
         # Time settings
-        problem_params.finish_time = 2 * pi / (sqrt(problem_params.g * 
-                                        problem_params.depth) * k)
+        problem_params.finish_time = Constant(2 * pi / (sqrt(problem_params.g * 
+                                        problem_params.depth) * k))
         problem_params.dt = problem_params.finish_time/(4*2**refinement_level)
         problem_params.theta = 0.5
 
@@ -105,7 +105,7 @@ class TestWeakDirichletBoundaryConditions(object):
             eta0=eta0,
             g=problem_params.g,
             depth=problem_params.depth,
-            t=problem_params.current_time,
+            t=problem_params.start_time,
             k=k)
         bcs.add_bc("u", bc_expr, 1, "weak_dirichlet")
         bcs.add_bc("u", bc_expr, 2, "weak_dirichlet")

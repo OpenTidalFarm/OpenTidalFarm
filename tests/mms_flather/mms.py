@@ -19,7 +19,7 @@ def compute_error(problem, eta0, k):
                         eta0=eta0,
                         g=problem.parameters.g,
                         depth=problem.parameters.depth,
-                        t=Constant(problem.parameters.current_time),
+                        t=Constant(problem.parameters.start_time),
                         k=k,
                         friction=problem.parameters.friction)
 
@@ -37,7 +37,7 @@ def compute_error(problem, eta0, k):
     analytic_sol = Expression((u_exact, "0", eta_exact),
                               eta0=eta0, g=problem.parameters.g,
                               depth=problem.parameters.depth,
-                              t=Constant(problem.parameters.current_time),
+                              t=Constant(problem.parameters.finish_time),
                               k=k)
     return errornorm(analytic_sol, state)
 
@@ -86,7 +86,7 @@ def setup_model(parameters, time_step, finish_time, mesh_x, mesh_y=2):
         eta0=eta0, 
         g=parameters.g, 
         depth=parameters.depth, 
-        t=Constant(parameters.current_time),
+        t=Constant(parameters.start_time),
         k=k)
 
     bcs = BoundaryConditionSet()

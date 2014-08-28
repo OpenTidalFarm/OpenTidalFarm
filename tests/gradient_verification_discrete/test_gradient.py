@@ -41,7 +41,7 @@ def model(controls, problem_params):
         eta0=eta0, 
         g=problem_params.g, 
         depth=problem_params.depth,
-        t=problem_params.current_time, 
+        t=problem_params.start_time, 
         k=k)
   
     bcs = BoundaryConditionSet()

@@ -17,23 +17,15 @@ class TestStringDirichletBoundaryConditions(object):
       params.dump_period = -1
       solver = ShallowWaterSolver(problem, params)
       for s in solver.solve(annotate=False):
-          t = s["time"]
-          print "t", float(t)
-      print "finish", float(problem.parameters.finish_time) 
-      print "current", float(problem.parameters.current_time) 
+          pass
       state = s["state"]
-
-      print "Start time", float(problem.parameters.start_time)
-      print "time step", float(problem.parameters.dt)
-      print "current-finish", \
-          float(problem.parameters.current_time)-float(problem.parameters.finish_time)
 
       analytic_sol = Expression(
              ("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0", \
              "eta0*cos(k*x[0]-sqrt(g*depth)*k*t)"), \
              eta0=eta0, g=problem.parameters.g, \
              depth=problem.parameters.depth, \
-             t=float(problem.parameters.current_time), k=k)
+             t=float(problem.parameters.finish_time), k=k)
       return errornorm(analytic_sol, state)
 
     def compute_spatial_error(self, problem_params, refinement_level):

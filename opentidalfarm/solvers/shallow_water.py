@@ -83,6 +83,10 @@ ShallowWaterSolverParameters."
     def default_parameters():
         return ShallowWaterSolverParameters()
 
+    def _finished(self, current_time, finish_time):
+        return float(current_time - finish_time) >= - 1e3*DOLFIN_EPS
+
+
     def solve(self, turbine_field=None, functional=None, annotate=True, u_source=None):
         ''' Solve the shallow water equations '''
 
@@ -102,9 +106,7 @@ ShallowWaterSolverParameters."
             finish_time = Constant(problem_params.finish_time)
             start_time = Constant(problem_params.start_time)
 
-            # Reset the time
-            problem_params.current_time = Constant(problem_params.start_time)
-            t = Constant(problem_params.current_time)
+            t = Constant(problem_params.start_time)
 
             functional_final_time_only = problem_params.functional_final_time_only
             functional_quadrature_degree = problem_params.functional_quadrature_degree
@@ -298,16 +300,14 @@ ShallowWaterSolverParameters."
                "eta": h0,
                "tf": tf,
                "state": state,
-               "is_final": float(t) >= float(finish_time)})
+               "is_final": self._finished(t, finish_time)})
 
         log(INFO, "Start of time loop")
         adjointer.time.start(t)
         timestep = 0
-        while (float(t) < float(finish_time) + DOLFIN_EPS):
+        while not self._finished(t, finish_time):
             timestep += 1
             t = Constant(t + dt)
-            if self.problem._is_transient:
-                problem_params.current_time = t
 
             # Update bc's
             t_theta = Constant(t - (1.0 - theta) * dt)
@@ -382,13 +382,14 @@ ShallowWaterSolverParameters."
 
 
             # Increase the adjoint timestep
-            adj_inc_timestep(time=float(t), finished=(not float(t) < float(finish_time)))
+            adj_inc_timestep(time=float(t), finished=self._finished(t,
+                finish_time))
 
             yield({"time": t, 
                    "u": u0,
                    "eta": h0,
                    "tf": tf,
                    "state": state,
-                   "is_final": float(t) >= float(finish_time)})
+                   "is_final": self._finished(t, finish_time)})
 
         log(INFO, "End of time loop.")

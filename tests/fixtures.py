@@ -31,7 +31,6 @@ def sw_nonlinear_problem_parameters():
     # Temporal settings
     period = 12. * 60 * 60
     parameters.start_time = Constant(1. / 4 * period)
-    parameters.current_time = Constant(1. / 4 * period)
     parameters.finish_time = Constant(5. / 4 * period)
     parameters.dt = Constant(period / 50)
 
@@ -61,7 +60,6 @@ def sw_linear_problem_parameters():
 
     # Temporal settings
     parameters.start_time = Constant(0)
-    parameters.current_time = Constant(0)
     parameters.finish_time = Constant(100)
     parameters.dt = Constant(0.025)
 

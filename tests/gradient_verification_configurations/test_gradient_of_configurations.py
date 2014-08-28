@@ -58,7 +58,7 @@ class TestConfigurations(object):
                              eta0=2., 
                              g=problem_params.g, 
                              depth=problem_params.depth, 
-                             t=problem_params.current_time, 
+                             t=problem_params.start_time, 
                              k=pi / 3000)
             bcs.add_bc("u", flather_bc_expr, [1, 2], "flather")
             bcs.add_bc("u", Constant((1e-10, 1e-10)), 3, "weak_dirichlet")

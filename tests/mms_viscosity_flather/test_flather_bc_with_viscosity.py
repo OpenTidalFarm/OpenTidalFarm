@@ -22,7 +22,7 @@ class TestFlatherBoundaryConditionsWithViscosity(object):
                             "0.0"),
                             eta0=eta0, g=problem.parameters.g,
                             depth=problem.parameters.depth,
-                            t=problem.parameters.current_time,
+                            t=problem.parameters.start_time,
                             k=k, viscosity=problem.parameters.viscosity)
 
         adj_reset()
@@ -38,7 +38,7 @@ class TestFlatherBoundaryConditionsWithViscosity(object):
                                   eta_exact),
                                   eta0=eta0, g=problem.parameters.g,
                                   depth=problem.parameters.depth,
-                                  t=problem.parameters.current_time,
+                                  t=problem.parameters.finish_time,
                                   k=k)
         return errornorm(analytic_sol, state)
 
@@ -51,8 +51,8 @@ class TestFlatherBoundaryConditionsWithViscosity(object):
 
         eta0 = 2.0
         k = pi/3000.
-        linear_problem_params.start_time = 0.0
-        linear_problem_params.finish_time = (pi/(sqrt(linear_problem_params.g *
+        linear_problem_params.start_time = Constant(0.0)
+        linear_problem_params.finish_time = Constant(pi/(sqrt(linear_problem_params.g *
                                          linear_problem_params.depth) * k) / 1000)
         linear_problem_params.dt = linear_problem_params.finish_time / 2
         linear_problem_params.include_viscosity = True
@@ -64,7 +64,7 @@ class TestFlatherBoundaryConditionsWithViscosity(object):
             eta0=eta0,
             g=linear_problem_params.g,
             depth=linear_problem_params.depth,
-            t=linear_problem_params.current_time,
+            t=linear_problem_params.start_time,
             k=k
         )
         bcs.add_bc("u", bc_expr, [1, 2], "flater")

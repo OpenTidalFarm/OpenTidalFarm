@@ -38,7 +38,7 @@ class TestSmearedTurbine(object):
             eta0=2.,
             g=sw_linear_problem_parameters.g,
             depth=sw_linear_problem_parameters.depth,
-            t=sw_linear_problem_parameters.current_time,
+            t=sw_linear_problem_parameters.start_time,
             k=k
         )
         bcs.add_bc("u", bc_expr, [1, 2], "flather")
