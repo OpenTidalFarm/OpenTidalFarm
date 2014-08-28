@@ -88,7 +88,8 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
 
             final_only = not solver.problem._is_transient or \
                          solver.problem.parameters.functional_final_time_only
-            self.integrator = FunctionalIntegrator(functional, final_only)
+            self.integrator = FunctionalIntegrator(solver.problem, functional, 
+                                                   final_only)
 
             for sol in solver.solve(functional=functional, turbine_field=tf, 
                                     annotate=annotate):
@@ -113,13 +114,13 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
 
             final_only = not solver.problem._is_transient or \
                          solver.problem.parameters.functional_final_time_only
-            integrator = FunctionalIntegrator(functional, final_only)
+            integrator = FunctionalIntegrator(solver.problem, functional, final_only)
 
             try:
                 degree = solver.problem.parameters.functional_quadrature_degree
             except:
                 degree = 1
-            J = self.integrator.dolfin_adjoint_functional(solver, degree)
+            J = self.integrator.dolfin_adjoint_functional(degree)
 
             # Output power
             if self.solver.parameters.dump_period > 0:

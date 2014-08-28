@@ -121,8 +121,7 @@ ShallowWaterSolverParameters."
 
             # The multi steady-state case solves the steady-state equation also
             # for the start time
-            #t = Constant(problem_params.start_time - dt)
-            t = Constant(problem_params.start_time)
+            t = Constant(problem_params.start_time - dt)
 
             include_time_term = False
 
@@ -346,11 +345,9 @@ ShallowWaterSolverParameters."
 
             # Solve non-linear system with a Newton solver
             if self.problem._is_transient:
-                log(INFO, "Solve shallow water equations at time %s (Newton \
-iteration) ..." % float(t))
+                log(INFO, "Solve shallow water equations at time %s" % float(t))
             else:
-                log(INFO, "Solve shallow water equations (Newton iteration) \
-...")
+                log(INFO, "Solve shallow water equations.")
 
             strong_bcs = []
             for function_name, expr, facet_id, bctype in problem_params.bcs:

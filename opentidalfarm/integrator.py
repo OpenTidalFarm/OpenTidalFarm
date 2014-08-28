@@ -1,13 +1,16 @@
 import numpy
 from dolfin import *
 from dolfin_adjoint import *
+from problems import MultiSteadyShallowWaterProblem
 
 
 class FunctionalIntegrator(object):
 
-    def __init__(self, functional, final_only):
-        self.final_only = final_only
+    def __init__(self, problem, functional, final_only):
+        self.problem = problem
         self.functional = functional
+        self.final_only = final_only
+
         self.vals = []
         self.times = []
 
@@ -41,19 +44,23 @@ class FunctionalIntegrator(object):
         if degree == 0:
             quads[0] = 0
         elif degree == 1:
-            quads[0] = 0.5
+            if type(self.problem) == MultiSteadyShallowWaterProblem:
+                quads[0] = 0.
+                quads[1] = 0.5
+            else:
+                quads[0] = 0.5
             quads[-1] = 0.5
         else:
             raise ValueError("Unknown integration degree.")
 
         return sum(quads*dt*self.vals)
 
-    def dolfin_adjoint_functional(self, solver, degree):
-        # The functional depends on PDE functions which we do not have on scope
-        # here. But dolfin-adjoint only cares about the name, so we can just
-        # create a dummy function with the desired name.
-        R = FunctionSpace(solver.problem.parameters.domain.mesh, "R", 0)
-        Rvec = VectorFunctionSpace(solver.problem.parameters.domain.mesh, "R", 0)
+    def dolfin_adjoint_functional(self, degree):
+        # The functional depends on dolfin functions which are not in scope.
+        # But dolfin-adjoint only cares about the name, hence it is sufficient 
+        # to create dummy functions with the appropriate names.
+        R = FunctionSpace(self.problem.parameters.domain.mesh, "R", 0)
+        Rvec = VectorFunctionSpace(self.problem.parameters.domain.mesh, "R", 0)
         tf = Function(R, name="turbine_friction")
         state = Function(Rvec, name="Current_state")
 
@@ -64,12 +71,14 @@ class FunctionalIntegrator(object):
             timesteps = list(self.times)
 
             from problems.shallow_water import ShallowWaterProblemParameters
-            if not type(solver.problem.parameters) is ShallowWaterProblemParameters:
+            if not type(self.problem.parameters) is ShallowWaterProblemParameters:
                 timesteps.pop(0)
 
-            # Construct the functional
             return Functional(sum(self.functional.Jt(state, tf) * dt[float(t)] for t in timesteps))
 
         else:
-            return Functional(self.functional.Jt(state, tf) * dt)
-
+            if type(self.problem) == MultiSteadyShallowWaterProblem:
+                return Functional(self.functional.Jt(state, tf) *
+                        dt[float(self.times[1]):])
+            else:
+                return Functional(self.functional.Jt(state, tf) * dt)
