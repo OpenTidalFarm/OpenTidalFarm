@@ -107,7 +107,6 @@ ShallowWaterSolverParameters."
             theta = Constant(problem_params.theta)
             dt = Constant(problem_params.dt)
             finish_time = Constant(problem_params.finish_time)
-            start_time = Constant(problem_params.start_time)
 
             t = Constant(problem_params.start_time)
 
@@ -122,8 +121,10 @@ ShallowWaterSolverParameters."
             theta = Constant(1)
             dt = Constant(problem_params.dt)
             finish_time = Constant(problem_params.finish_time)
-            start_time = Constant(problem_params.start_time)
 
+            # The multi steady-state case solves the steady-state equation also
+            # for the start time
+            #t = Constant(problem_params.start_time - dt)
             t = Constant(problem_params.start_time)
 
             functional_final_time_only = problem_params.functional_final_time_only
@@ -136,9 +137,9 @@ ShallowWaterSolverParameters."
 
             theta = Constant(1.)
             dt = Constant(1.)
-            start_time = Constant(0.)
             finish_time = Constant(0.5)
-            t = start_time
+
+            t = Constant(0.)
 
             functional_final_time_only = True
             functional_quadrature_degree = 1
@@ -358,7 +359,7 @@ ShallowWaterSolverParameters."
             # Solve non-linear system with a Newton solver
             if self.problem._is_transient:
                 log(INFO, "Solve shallow water equations at time %s (Newton \
-                        iteration) ..." % float(t))
+iteration) ..." % float(t))
             else:
                 log(INFO, "Solve shallow water equations (Newton iteration) \
 ...")

@@ -66,6 +66,9 @@ class ShallowWaterProblem(SteadyShallowWaterProblem):
             raise TypeError("parameters must be of type \
 ShallowWaterProblemParameters.")
 
+        if float(parameters.start_time) >= float(parameters.finish_time):
+            raise ValueError("start_time must be < finish_time.")
+
         super(ShallowWaterProblem, self).__init__(parameters, False)
 
     @property
