@@ -25,7 +25,6 @@ class DefaultConfiguration(object):
             'cost_coef': 0.,
             'rho': 1000.,  # Use the density of water: 1000kg/m^3
             'controls': ['turbine_pos', 'turbine_friction'],
-            'postsolver_callback': None,
             'automatic_scaling': False,
             'print_individual_turbine_power': False,
             'automatic_scaling_multiplier': 5,
