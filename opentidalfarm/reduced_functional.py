@@ -94,7 +94,11 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
                 integrator.add(sol["time"], sol["state"], sol["tf"], 
                                sol["is_final"])
 
-            return integrator.integrate()
+            try:
+                degree = solver.problem.parameters.functional_quadrature_degree
+            except:
+                degree = 1
+            return integrator.integrate(degree)
 
         def compute_gradient(m, forget=True):
             ''' Compute the functional gradient for the turbine positions/frictions array '''

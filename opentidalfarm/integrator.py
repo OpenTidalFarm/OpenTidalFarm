@@ -11,9 +11,7 @@ class FunctionalIntegrator(object):
         self.times = []
 
     def add(self, time, state, tf, is_final):
-        # FIXME: is_final flag seems to be computed wrongly in the shallow water
-        # code
-        if True or not self.final_only or (self.final_only and is_final):
+        if not self.final_only or (self.final_only and is_final):
             val = assemble(self.functional.Jt(state, tf))
 
             self.vals.append(val)

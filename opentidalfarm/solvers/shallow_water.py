@@ -298,7 +298,7 @@ ShallowWaterSolverParameters."
                "eta": h0,
                "tf": tf,
                "state": state,
-               "is_final": float(t) < float(finish_time)})
+               "is_final": float(t) >= float(finish_time)})
 
         log(INFO, "Start of time loop")
         adjointer.time.start(t)
@@ -388,6 +388,6 @@ ShallowWaterSolverParameters."
                    "eta": h0,
                    "tf": tf,
                    "state": state,
-                   "is_final": float(t) < float(finish_time)})
+                   "is_final": float(t) >= float(finish_time)})
 
         log(INFO, "End of time loop.")

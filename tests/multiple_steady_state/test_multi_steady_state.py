@@ -38,7 +38,6 @@ class TestMultiSteadyState(object):
 
         # Domain
         problem_params.domain = domain
-
         problem_params.initial_condition = ConstantFlowInitialCondition([1, 1, 1])
 
         # Work out the expected delta eta for a free-stream of 2.5 m/s (without turbines) 
@@ -57,8 +56,9 @@ class TestMultiSteadyState(object):
                 delta_eta=delta_eta, t=Constant(0), steps=steps)
         expr = Expression("delta_eta/2*cos(pi/steps*(t-1))",
                 delta_eta=delta_eta, t=Constant(0), steps=steps)
-        bcs.add_bc("eta", expl, 1, "weak_dirichlet")
-        bcs.add_bc("eta", expr, 2, "weak_dirichlet")
+        bcs.add_bc("eta", expl, 1, "strong_dirichlet")
+        bcs.add_bc("eta", expr, 2, "strong_dirichlet")
+        bcs.add_bc("u", Constant((0, 0)), 3, "weak_dirichlet")
         problem_params.bcs = bcs
 
         problem = ShallowWaterProblem(problem_params)
