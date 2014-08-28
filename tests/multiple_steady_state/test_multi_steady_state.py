@@ -6,7 +6,7 @@ class TestMultiSteadyState(object):
 
     @pytest.mark.parametrize(("steps"), [1, 3])
     def test_gradient_passes_taylor_test(self, steps, 
-            sw_nonlinear_problem_parameters):
+            multi_steady_sw_problem_parameters):
 
         # Some domain information extracted from the geo file
         basin_x = 640.
@@ -16,14 +16,11 @@ class TestMultiSteadyState(object):
         meshfile = os.path.join(path, "mesh_coarse.xml")
         domain = FileDomain(meshfile)
 
-
         # Change the parameters such that in fact two steady state problems are solved consecutively
-        problem_params = sw_nonlinear_problem_parameters
-        problem_params.theta = Constant(1.)
+        problem_params = multi_steady_sw_problem_parameters
         problem_params.start_time = Constant(0.)
         problem_params.dt = Constant(1.)
         problem_params.finish_time = Constant(steps * problem_params.dt)
-        problem_params.include_time_term = False
         problem_params.viscosity = Constant(16)
         problem_params.functional_quadrature_degree = 0
         k = Constant(pi/basin_x)
@@ -53,7 +50,7 @@ class TestMultiSteadyState(object):
         bcs.add_bc("u", Constant((0, 0)), 3, "weak_dirichlet")
         problem_params.bcs = bcs
 
-        problem = ShallowWaterProblem(problem_params)
+        problem = MultiSteadyShallowWaterProblem(problem_params)
 
         # Place some turbines 
         config = UnsteadyConfiguration(domain)

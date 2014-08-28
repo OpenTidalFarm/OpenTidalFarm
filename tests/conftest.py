@@ -7,6 +7,7 @@ import opentidalfarm
 from fixtures import sw_linear_problem_parameters
 from fixtures import sw_nonlinear_problem_parameters
 from fixtures import steady_sw_problem_parameters
+from fixtures import multi_steady_sw_problem_parameters
 
 # Automatically parallelize over all cpus
 def pytest_cmdline_preparse(args):

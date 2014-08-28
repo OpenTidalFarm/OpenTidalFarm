@@ -52,6 +52,34 @@ def sw_nonlinear_problem_parameters():
 
     return parameters
 
+# Based on UnsteadyConfiguration
+@pytest.fixture
+def multi_steady_sw_problem_parameters():
+
+    # Set the parameters for the Shallow water problem
+    parameters = MultiSteadyShallowWaterProblem.default_parameters()
+
+    # Temporal settings
+    period = 12. * 60 * 60
+    parameters.start_time = Constant(1. / 4 * period)
+    parameters.finish_time = Constant(5. / 4 * period)
+    parameters.dt = Constant(period / 50)
+
+    # Activate the relevant terms
+    parameters.include_advection = True
+    parameters.include_viscosity = True
+    parameters.linear_divergence = False
+
+    # Physical settings
+    parameters.friction = Constant(0.0025)
+    parameters.viscosity = Constant(3.0)
+    parameters.depth = Constant(50)
+    parameters.g = Constant(9.81)
+
+    parameters.functional_final_time_only = False
+
+    return parameters
+
 # Based on DefaultConfiguration
 @pytest.fixture
 def sw_linear_problem_parameters():

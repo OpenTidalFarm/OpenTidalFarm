@@ -135,7 +135,8 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
                     t += float(solver.problem.parameters.dt)
                     timesteps.append(t)
 
-                if not solver.problem.parameters.include_time_term:
+                from problems.shallow_water import ShallowWaterProblemParameters
+                if not type(solver.problem.parameters) is ShallowWaterProblemParameters:
                     timesteps.pop(0)
 
                 # Construct the functional

@@ -4,7 +4,9 @@ from dolfin import *
 from dolfin_adjoint import *
 
 from solver import Solver
-from ..problems import ShallowWaterProblem, SteadyShallowWaterProblem
+from ..problems import ShallowWaterProblem
+from ..problems import SteadyShallowWaterProblem
+from ..problems import MultiSteadyShallowWaterProblem
 from ..helpers import StateWriter, norm_approx, smooth_uflmin, FrozenClass
 
 
@@ -86,20 +88,21 @@ ShallowWaterSolverParameters."
     def _finished(self, current_time, finish_time):
         return float(current_time - finish_time) >= - 1e3*DOLFIN_EPS
 
-
     def solve(self, turbine_field=None, functional=None, annotate=True, u_source=None):
         ''' Solve the shallow water equations '''
 
         ############################### Setting up the equations ###########################
 
-        # Define variables for all used parameters
+        # Get parameters
         problem_params = self.problem.parameters
-
-        ds = problem_params.domain.ds
-
         solver_params = self.parameters
 
-        if self.problem._is_transient:
+        # Get domain measures
+        ds = problem_params.domain.ds
+
+        # Initialise solver settings
+        if type(self.problem) == ShallowWaterProblem:
+            log(INFO, "Solve a transient shallow water problem")
 
             theta = Constant(problem_params.theta)
             dt = Constant(problem_params.dt)
@@ -113,7 +116,24 @@ ShallowWaterSolverParameters."
 
             include_time_term = problem_params.include_time_term
 
-        else:
+        elif type(self.problem) == MultiSteadyShallowWaterProblem:
+            log(INFO, "Solve a multi steady-state shallow water problem")
+
+            theta = Constant(1)
+            dt = Constant(problem_params.dt)
+            finish_time = Constant(problem_params.finish_time)
+            start_time = Constant(problem_params.start_time)
+
+            t = Constant(problem_params.start_time)
+
+            functional_final_time_only = problem_params.functional_final_time_only
+            functional_quadrature_degree = problem_params.functional_quadrature_degree
+
+            include_time_term = False
+
+        elif type(self.problem) == SteadyShallowWaterProblem:
+            log(INFO, "Solve a steady-state shallow water problem")
+
             theta = Constant(1.)
             dt = Constant(1.)
             start_time = Constant(0.)
@@ -124,6 +144,10 @@ ShallowWaterSolverParameters."
             functional_quadrature_degree = 1
 
             include_time_term = False
+        
+        else:
+            raise TypeError("Do not know how to solve problem of type %s." % 
+                type(problem))
 
         g = problem_params.g
         depth = problem_params.depth

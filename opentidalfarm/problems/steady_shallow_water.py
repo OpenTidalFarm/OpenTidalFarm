@@ -68,19 +68,20 @@ class SteadyShallowWaterProblemParameters(FrozenClass):
 
 class SteadyShallowWaterProblem(Problem):
 
-    def __init__(self, parameters):
+    def __init__(self, parameters, check_parameter_type=True):
         """ Instantiates a new :class:`SteadyShallowWaterProblem` object.
 
             :parameter parameters: A :class:`SteadyShallowWaterProblemParameters`
                 object containing the parameters of the problem.
         """
 
-        if not isinstance(parameters, SteadyShallowWaterProblemParameters):
-            raise TypeError, "parameters must be of type \
-ShallowWaterProblemParameters."
+        if (check_parameter_type and
+            not type(parameters) == SteadyShallowWaterProblemParameters):
+            raise TypeError("parameters must be of type \
+SteadyShallowWaterProblemParameters.")
 
         if not isinstance(parameters.domain, Domain):
-            raise TypeError, "parameters.domain is not a valid Domain."
+            raise TypeError("parameters.domain is not a valid Domain.")
 
         self.parameters = parameters
 
