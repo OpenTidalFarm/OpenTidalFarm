@@ -107,7 +107,14 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
             if numpy.any(m != self.last_m):
                 compute_functional(m, annotate=True)
 
+            # Get the dolfin adjoint functional
             functional = config.functional(config)
+
+            final_only = not solver.problem._is_transient or \
+                         solver.problem.parameters.functional_final_time_only
+            integrator = FunctionalIntegrator(functional, final_only)
+
+            J = integrator.dolfin_adjoint_functional(solver)
 
             # Output power
             if self.solver.parameters.dump_period > 0:
@@ -116,34 +123,6 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
                     self.power_file << project(functional.power(solver.current_state, turbines), 
                                                config.turbine_function_space, 
                                                annotate=False)
-
-            # The functional depends on the turbine friction function which we do not have on scope here.
-            # But dolfin-adjoint only cares about the name, so we can just create a dummy function with the desired name.
-            dummy_tf = Function(FunctionSpace(self.solver.problem.parameters.domain.mesh, 
-                                "R", 0), name="turbine_friction")
-
-            # FIXME: Move this code into integrator
-            if (not solver.problem._is_transient or
-                solver.problem.parameters.functional_final_time_only):
-                J = Functional(functional.Jt(solver.current_state, dummy_tf) * dt[FINISH_TIME])
-
-            elif solver.problem.parameters.functional_quadrature_degree == 0:
-                # Pseudo-redo the time loop to collect the necessary timestep information
-                t = float(solver.problem.parameters.start_time)
-                timesteps = [t]
-                while (t < float(solver.problem.parameters.finish_time)):
-                    t += float(solver.problem.parameters.dt)
-                    timesteps.append(t)
-
-                from problems.shallow_water import ShallowWaterProblemParameters
-                if not type(solver.problem.parameters) is ShallowWaterProblemParameters:
-                    timesteps.pop(0)
-
-                # Construct the functional
-                J = Functional(sum(functional.Jt(solver.current_state, dummy_tf) * dt[t] for t in timesteps))
-
-            else:
-                J = Functional(functional.Jt(solver.current_state, dummy_tf) * dt)
 
             if 'dynamic_turbine_friction' in config.params["controls"]:
                 parameters = [FunctionControl("turbine_friction_cache_t_%i" % i) for i in range(len(config.params["turbine_friction"]))]

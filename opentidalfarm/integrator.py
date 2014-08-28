@@ -1,5 +1,6 @@
 import numpy
 from dolfin import *
+from dolfin_adjoint import *
 
 
 class FunctionalIntegrator(object):
@@ -21,10 +22,13 @@ class FunctionalIntegrator(object):
         if len(self.vals) == 0:
             raise ValueError("Cannot integrate empty set.")
 
+        print "*"*20
+        print "vals", self.vals
+
         if self.final_only:
             return self.vals[-1]
 
-        # FIXME: Don't assume constante timesteps
+        # FIXME: Don't assume constant timesteps
         dt = self.times[1]-self.times[0]
 
         # FIXME: Remove this, it just does not make any sense
@@ -43,3 +47,32 @@ class FunctionalIntegrator(object):
             raise ValueError("Unknown integration degree.")
 
         return sum(quads*dt*self.vals)
+
+    def dolfin_adjoint_functional(self, solver):
+        # The functional depends on the turbine friction function which we do not have on scope here.
+        # But dolfin-adjoint only cares about the name, so we can just create a dummy function with the desired name.
+        R = FunctionSpace(solver.problem.parameters.domain.mesh, "R", 0)
+        dummy_tf = Function(R, name="turbine_friction")
+        state = solver.current_state
+
+        if self.final_only:
+            return Functional(self.functional.Jt(state, dummy_tf) * dt[FINISH_TIME])
+
+        elif solver.problem.parameters.functional_quadrature_degree == 0:
+            # Pseudo-redo the time loop to collect the necessary timestep information
+            t = float(solver.problem.parameters.start_time)
+            timesteps = [t]
+            while (t < float(solver.problem.parameters.finish_time)):
+                t += float(solver.problem.parameters.dt)
+                timesteps.append(t)
+
+            from problems.shallow_water import ShallowWaterProblemParameters
+            if not type(solver.problem.parameters) is ShallowWaterProblemParameters:
+                timesteps.pop(0)
+
+            # Construct the functional
+            return Functional(sum(self.functional.Jt(state, dummy_tf) * dt[t] for t in timesteps))
+
+        else:
+            return Functional(self.functional.Jt(state, dummy_tf) * dt)
+
