@@ -24,8 +24,8 @@ Time-dependent shallow water
     :members:
 
 
-Advanced problem options
-------------------------
+Advanced options
+----------------
 
 .. toctree::
     
