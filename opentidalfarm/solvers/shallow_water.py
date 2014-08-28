@@ -110,9 +110,6 @@ ShallowWaterSolverParameters."
 
             t = Constant(problem_params.start_time)
 
-            functional_final_time_only = problem_params.functional_final_time_only
-            functional_quadrature_degree = problem_params.functional_quadrature_degree
-
             include_time_term = problem_params.include_time_term
 
         elif type(self.problem) == MultiSteadyShallowWaterProblem:
@@ -127,9 +124,6 @@ ShallowWaterSolverParameters."
             #t = Constant(problem_params.start_time - dt)
             t = Constant(problem_params.start_time)
 
-            functional_final_time_only = problem_params.functional_final_time_only
-            functional_quadrature_degree = problem_params.functional_quadrature_degree
-
             include_time_term = False
 
         elif type(self.problem) == SteadyShallowWaterProblem:
@@ -140,9 +134,6 @@ ShallowWaterSolverParameters."
             finish_time = Constant(0.5)
 
             t = Constant(0.)
-
-            functional_final_time_only = True
-            functional_quadrature_degree = 1
 
             include_time_term = False
         
@@ -159,9 +150,6 @@ ShallowWaterSolverParameters."
         linear_divergence = problem_params.linear_divergence
         cache_forward_state = solver_params.cache_forward_state
         
-        if not 0 <= functional_quadrature_degree <= 1:
-            raise ValueError("functional_quadrature_degree must be 0 or 1.")
-
         # Define test functions
         v, q = TestFunctions(self.function_space)
 
