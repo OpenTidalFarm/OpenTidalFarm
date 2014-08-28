@@ -303,7 +303,7 @@ ShallowWaterSolverParameters."
         log(INFO, "Start of time loop")
         adjointer.time.start(t)
         timestep = 0
-        while (float(t) < float(finish_time)):
+        while (float(t) < float(finish_time) + DOLFIN_EPS):
             timestep += 1
             t = Constant(t + dt)
             if self.problem._is_transient:
