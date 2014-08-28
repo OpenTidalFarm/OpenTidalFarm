@@ -295,13 +295,9 @@ ShallowWaterSolverParameters."
         ############################### Perform the simulation ###########################
 
         if solver_params.dump_period > 0:
-            try:
-                statewriter_cb = self.config.statewriter_callback
-            except AttributeError:
-                statewriter_cb = None 
 
-            writer = StateWriter(self.config, optimisation_iteration=self.config.optimisation_iteration, callback=statewriter_cb)
-            if self.problem._is_transient and include_time_term:
+            writer = StateWriter(self.config, optimisation_iteration=self.config.optimisation_iteration)
+            if type(self.problem) == ShallowWaterProblem:
                 log(INFO, "Writing state to disk...")
                 writer.write(state)
 
