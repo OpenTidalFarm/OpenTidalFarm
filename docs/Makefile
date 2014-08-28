@@ -50,7 +50,7 @@ EXAMPLES_IN = ../examples
 EXAMPLES_OUT = examples
 
 build_examples:
-	bin/pylit.py $(EXAMPLES_IN)/scenario1/sw.py $(EXAMPLES_OUT)/scenario1/scenario1.rst
+	bin/pylit.py --overwrite yes $(EXAMPLES_IN)/scenario1/sw.py $(EXAMPLES_OUT)/scenario1/scenario1.rst
 
 auto_apidoc:
 	sphinx-apidoc -T -f -o . ../opentidalfarm/
