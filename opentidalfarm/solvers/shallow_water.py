@@ -166,9 +166,9 @@ ShallowWaterSolverParameters."
         v, q = TestFunctions(self.function_space)
 
         # Define functions
-        state = Function(self.function_space, name="Current_state")  # solution of the next timestep
+        state = Function(self.function_space, name="Current_state")
         self.current_state = state
-        state_new = Function(self.function_space, name="New_state")  # solution of the next timestep
+        state_new = Function(self.function_space, name="New_state")
 
         # Load initial condition (or initial guess for stady problems)
         # Projection is necessary to obtain 2nd order convergence

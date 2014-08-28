@@ -36,7 +36,7 @@ class FunctionalIntegrator(object):
             dt = 1
 
         # Compute quadrature weights
-        quads = numpy.ones(len(self.vals))
+        quads = numpy.ones(len(self.times))
 
         if degree == 0:
             quads[0] = 0
@@ -48,7 +48,7 @@ class FunctionalIntegrator(object):
 
         return sum(quads*dt*self.vals)
 
-    def dolfin_adjoint_functional(self, solver):
+    def dolfin_adjoint_functional(self, solver, degree):
         # The functional depends on PDE functions which we do not have on scope
         # here. But dolfin-adjoint only cares about the name, so we can just
         # create a dummy function with the desired name.
@@ -60,20 +60,15 @@ class FunctionalIntegrator(object):
         if self.final_only:
             return Functional(self.functional.Jt(state, tf) * dt[FINISH_TIME])
 
-        elif solver.problem.parameters.functional_quadrature_degree == 0:
-            # Pseudo-redo the time loop to collect the necessary timestep information
-            t = float(solver.problem.parameters.start_time)
-            timesteps = [t]
-            while (t < float(solver.problem.parameters.finish_time)):
-                t += float(solver.problem.parameters.dt)
-                timesteps.append(t)
+        elif degree == 0:
+            timesteps = list(self.times)
 
             from problems.shallow_water import ShallowWaterProblemParameters
             if not type(solver.problem.parameters) is ShallowWaterProblemParameters:
                 timesteps.pop(0)
 
             # Construct the functional
-            return Functional(sum(self.functional.Jt(state, tf) * dt[t] for t in timesteps))
+            return Functional(sum(self.functional.Jt(state, tf) * dt[float(t)] for t in timesteps))
 
         else:
             return Functional(self.functional.Jt(state, tf) * dt)
