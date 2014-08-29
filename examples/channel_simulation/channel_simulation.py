@@ -9,8 +9,14 @@
 # ============================
 #
 #
-# Background
-# **********
+# Introduction
+# ************
+#
+# This example simulates the flow in a channel with oscillating velocity 
+# in-/outflow on the west side, fixed surface height on the east side, and 
+# free-slip flow on the north and south sides.
+#
+# The shallow water equations to be solved are
 #
 # .. math::                                                                                                                                                                                                                                    
 #       \frac{\partial u}{\partial t} +  u \cdot \nabla  u - \nu \nabla^2 u  + g \nabla \eta + \frac{c_b}{H} \| u \|  u = 0, \\ 
@@ -20,14 +26,31 @@
 #
 # - :math:`u` is the velocity,
 # - :math:`\eta` is the free-surface displacement,
-# - :math:`H` is the water depth at rest,
-# - :math:`c_b` is the natural bottom friction,
+# - :math:`H=\eta + depth` is the total water depth where :math:`depth` is the
+#   water depth at rest,
+# - :math:`c_b` is the (quadratic) natural bottom friction coefficient,
+# - :math:`\nu` is the viscosity coefficient,
+# - :math:`g` is the gravitational constant.
+#
+# The boundary conditions are:
+#
+# .. math::
+#       u = \sin(2 \pi t/60) & \quad \textrm{on } \Gamma_1, \\
+#       \eta = 0 & \quad \textrm{on } \Gamma_2, \\
+#       u \cdot n = 0 & \quad \textrm{on } \Gamma_3, \\
+#
+# where :math:`n` is the normal vector pointing outside the domain,
+# :math:`\Gamma_1` is the west boundary of the channel, :math:`\Gamma_2` is the
+# east boundary of the channel, and :math:`\Gamma_3` is the north and south
+# boundaries of the channel.
+#
+#
 
 # Implementation
 # **************
 #
 
-# We begin with importing the OpentTidalFarm module.
+# We begin with importing the OpenTidalFarm module.
 
 from opentidalfarm import *
 
@@ -60,12 +83,21 @@ bcs.add_bc("u", Constant((0, 0)), facet_id=3, bctype="weak_dirichlet")
 # conditions
 
 prob_params = SWProblem.default_parameters()
+# Add domain and boundary conditions
 prob_params.domain = domain
 prob_params.bcs = bcs
+# Equation settings
+prob_params.viscosity = Constant(3)
 prob_params.depth = Constant(20)
+prob_params.friction = Constant(0.0)
+# Temporal settings
 prob_params.start_time = Constant(0)
 prob_params.finish_time = Constant(60)
 prob_params.dt = Constant(6)
+# The initial condition consists of three components: u_x, u_y and eta
+# Note that we do not set all components to zero, as the 
+prob_params.initial_condition = Constant((0, 0, 0)) 
+# Create the shallow water problem
 problem = SWProblem(prob_params)
 
 # Here we set only the necessary options. However, there are many more,

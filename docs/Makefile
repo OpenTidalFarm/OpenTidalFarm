@@ -50,7 +50,9 @@ EXAMPLES_IN = ../examples
 EXAMPLES_OUT = examples
 
 build_examples:
+	mkdir -p $(EXAMPLES_IN)/scenario1
 	bin/pylit.py --overwrite yes $(EXAMPLES_IN)/scenario1/sw.py $(EXAMPLES_OUT)/scenario1/scenario1.rst
+	mkdir -p $(EXAMPLES_IN)/channel
 	bin/pylit.py --overwrite yes $(EXAMPLES_IN)/channel_simulation/channel_simulation.py $(EXAMPLES_OUT)/channel/channel.rst
 
 auto_apidoc:
