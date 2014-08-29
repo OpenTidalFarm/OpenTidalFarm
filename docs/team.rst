@@ -1,5 +1,5 @@
-Developer team
-===============================
+Developers 
+==========
 
 OpenTidalFarm is developed by 
 

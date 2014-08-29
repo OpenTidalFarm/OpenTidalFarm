@@ -5,8 +5,8 @@
 
 .. py:currentmodule:: opentidalfarm
 
-Layout optimisation of 32 turbines in a simple channel
-======================================================
+Turbine farm layout optimisation in a channel
+=============================================
 
 
 Background

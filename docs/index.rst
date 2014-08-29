@@ -34,10 +34,10 @@ Contents
    features
    getting_started
    examples
-   team
-   contributing
-   citing
    reference
+   contributing
+   team
+   citing
 
 Indices and tables
 ==================
@@ -46,3 +46,4 @@ Indices and tables
 * :ref:`modindex`
 * :ref:`search`
 
+.. include:: licence.rst

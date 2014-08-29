@@ -7,6 +7,7 @@ Examples
    :maxdepth: 2
    :numbered:
 
+   examples/channel/channel
    examples/scenario1/scenario1
 
 This page contains examples of OpenTidaFarm applied to arrays:
