@@ -12,6 +12,16 @@
 # Background
 # **********
 #
+# .. math::                                                                                                                                                                                                                                    
+#       \frac{\partial u}{\partial t} +  u \cdot \nabla  u - \nu \nabla^2 u  + g \nabla \eta + \frac{c_b}{H} \| u \|  u = 0, \\ 
+#       \frac{\partial \eta}{\partial t} + \nabla \cdot \left(H u \right) = 0, \\ 
+#
+# where
+#
+# - :math:`u` is the velocity,
+# - :math:`\eta` is the free-surface displacement,
+# - :math:`H` is the water depth at rest,
+# - :math:`c_b` is the natural bottom friction,
 
 # Implementation
 # **************
@@ -39,8 +49,8 @@ bcs.add_bc("u", u_expr, facet_id=1)
 bcs.add_bc("eta", Constant(0), facet_id=2)
 
 # The free-slip boundary conditions are a special case. The boundary condition
-# type `weak_dirichlet` actually only enforces the boundary value in the
-# *normal* direction of the boudnary. Hence, a zero weak Dirichlet
+# type `weak_dirichlet` enforces the boundary value *only* in the
+# *normal* direction of the boundary. Hence, a zero weak Dirichlet
 # boundary condition gives us free-slip, while a zero `strong_dirichlet` boundary
 # condition would give us no-slip.
 
