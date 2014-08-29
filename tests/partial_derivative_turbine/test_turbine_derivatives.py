@@ -70,17 +70,17 @@ class TestTurbineDerivatives(object):
 
         eta0 = 2.0
         k = pi/3000.
-        problem_params = ShallowWaterProblem.default_parameters()
+        problem_params = SWProblem.default_parameters()
         problem_params.finite_element = finite_elements.p1dgp2
         problem_params.domain = domain
         problem_params.initial_condition = SinusoidalInitialCondition(eta0, k,
                                              problem_params.depth,
                                              problem_params.start_time)
-        problem = ShallowWaterProblem(problem_params)
+        problem = SWProblem(problem_params)
 
-        solver_params = ShallowWaterSolver.default_parameters()
+        solver_params = SWSolver.default_parameters()
         solver_params.dump_period = -1
-        solver = ShallowWaterSolver(problem, solver_params, config)
+        solver = SWSolver(problem, solver_params, config)
 
         m0 = ReducedFunctional(config, solver).initial_control()
 

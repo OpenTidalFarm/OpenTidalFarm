@@ -4,7 +4,7 @@ import pytest
 
 def test_IfUnkownParameterIsSet_then_ExceptionIsRaised():
 
-    param = ShallowWaterProblem.default_parameters()
+    param = SWProblem.default_parameters()
     try:
         param.depth = 10
     except Exception:

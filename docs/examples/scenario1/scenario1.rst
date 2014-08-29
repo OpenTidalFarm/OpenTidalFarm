@@ -36,17 +36,17 @@ Background
   
   config.info()
   
-  parameters = SteadyShallowWaterProblem.default_parameters()
+  parameters = SteadySWProblem.default_parameters()
   
   bc = DirichletBCSet(config)
   bc.add_constant_flow(1, 2.0 + 1e-10, direction=inflow_direction)
   bc.add_analytic_eta(2, 0.0)
   parameters["strong_bc"] = bc
   
-  problem = SteadyShallowWaterProblem(parameters)
+  problem = SteadySWProblem(parameters)
   
-  parameters = ShallowWaterSolver.default_parameters()
-  solver = ShallowWaterSolver(problem, parameters, config)
+  parameters = SWSolver.default_parameters()
+  solver = SWSolver(problem, parameters, config)
   
   rf = ReducedFunctional(config, solver)
   

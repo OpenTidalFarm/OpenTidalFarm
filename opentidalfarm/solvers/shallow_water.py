@@ -4,14 +4,14 @@ from dolfin import *
 from dolfin_adjoint import *
 
 from solver import Solver
-from ..problems import ShallowWaterProblem
-from ..problems import SteadyShallowWaterProblem
-from ..problems import MultiSteadyShallowWaterProblem
+from ..problems import SWProblem
+from ..problems import SteadySWProblem
+from ..problems import MultiSteadySWProblem
 from ..helpers import StateWriter, norm_approx, smooth_uflmin, FrozenClass
 
 
-class ShallowWaterSolverParameters(FrozenClass):
-    """ A set of parameters for a :class:`SteadyShallowWaterSolver`. 
+class SWSolverParameters(FrozenClass):
+    """ A set of parameters for a :class:`SteadySWSolver`. 
 
     Following parameters are available:
 
@@ -53,17 +53,17 @@ class ShallowWaterSolverParameters(FrozenClass):
         self.dolfin_solver["newton_solver"]["maximum_iterations"] = 20
 
 
-class ShallowWaterSolver(Solver):
+class SWSolver(Solver):
 
     def __init__(self, problem, parameters, config=None):
 
-        if not isinstance(problem, (ShallowWaterProblem,
-            SteadyShallowWaterProblem)):
+        if not isinstance(problem, (SWProblem,
+            SteadySWProblem)):
             raise TypeError, "problem must be of type Problem"
 
-        if not isinstance(parameters, ShallowWaterSolverParameters):
+        if not isinstance(parameters, SWSolverParameters):
             raise TypeError, "parameters must be of type \
-ShallowWaterSolverParameters."
+SWSolverParameters."
 
         self.problem = problem
         self.parameters = parameters
@@ -83,7 +83,7 @@ ShallowWaterSolverParameters."
 
     @staticmethod
     def default_parameters():
-        return ShallowWaterSolverParameters()
+        return SWSolverParameters()
 
     def _finished(self, current_time, finish_time):
         return float(current_time - finish_time) >= - 1e3*DOLFIN_EPS
@@ -101,7 +101,7 @@ ShallowWaterSolverParameters."
         ds = problem_params.domain.ds
 
         # Initialise solver settings
-        if type(self.problem) == ShallowWaterProblem:
+        if type(self.problem) == SWProblem:
             log(INFO, "Solve a transient shallow water problem")
 
             theta = Constant(problem_params.theta)
@@ -112,7 +112,7 @@ ShallowWaterSolverParameters."
 
             include_time_term = True
 
-        elif type(self.problem) == MultiSteadyShallowWaterProblem:
+        elif type(self.problem) == MultiSteadySWProblem:
             log(INFO, "Solve a multi steady-state shallow water problem")
 
             theta = Constant(1)
@@ -125,7 +125,7 @@ ShallowWaterSolverParameters."
 
             include_time_term = False
 
-        elif type(self.problem) == SteadyShallowWaterProblem:
+        elif type(self.problem) == SteadySWProblem:
             log(INFO, "Solve a steady-state shallow water problem")
 
             theta = Constant(1.)
@@ -297,7 +297,7 @@ ShallowWaterSolverParameters."
         if solver_params.dump_period > 0:
 
             writer = StateWriter(self.config, optimisation_iteration=self.config.optimisation_iteration)
-            if type(self.problem) == ShallowWaterProblem:
+            if type(self.problem) == SWProblem:
                 log(INFO, "Writing state to disk...")
                 writer.write(state)
 

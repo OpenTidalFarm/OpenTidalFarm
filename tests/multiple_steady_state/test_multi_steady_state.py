@@ -49,7 +49,7 @@ class TestMultiSteadyState(object):
         bcs.add_bc("u", Constant((0, 0)), 3, "weak_dirichlet")
         problem_params.bcs = bcs
 
-        problem = MultiSteadyShallowWaterProblem(problem_params)
+        problem = MultiSteadySWProblem(problem_params)
 
         # Place some turbines 
         config = UnsteadyConfiguration(domain)
@@ -61,11 +61,11 @@ class TestMultiSteadyState(object):
         deploy_turbines(config, nx=8, ny=4)
         config.params["output_turbine_power"] = False
 
-        solver_params = ShallowWaterSolver.default_parameters()
+        solver_params = SWSolver.default_parameters()
         solver_params.cache_forward_state = True
         solver_params.dump_period = -1
         solver_params.dolfin_solver = {"newton_solver": {"relative_tolerance": 1e-15}}
-        solver = ShallowWaterSolver(problem, solver_params, config)
+        solver = SWSolver(problem, solver_params, config)
 
         rf = ReducedFunctional(config, solver)
         m0 = rf.initial_control()

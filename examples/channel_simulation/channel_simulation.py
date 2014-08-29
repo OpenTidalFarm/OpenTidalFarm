@@ -23,7 +23,7 @@ from opentidalfarm import *
 
 # Next we create a rectangular domain.
 
-domain = RectangularDomain(x0=0, y0=0, x1=100, y1=100, nx=10, ny=5)
+domain = RectangularDomain(x0=0, y0=0, x1=100, y1=50, nx=10, ny=5)
 
 # You can plot and inspect the boundary ids with
 
@@ -49,14 +49,14 @@ bcs.add_bc("u", Constant((0, 0)), facet_id=3, bctype="weak_dirichlet")
 # Now we create shallow water problem and attach the domain and boundary
 # conditions
 
-prob_params = ShallowWaterProblem.default_parameters()
+prob_params = SWProblem.default_parameters()
 prob_params.domain = domain
 prob_params.bcs = bcs
 prob_params.depth = Constant(20)
 prob_params.start_time = Constant(0)
 prob_params.finish_time = Constant(60)
 prob_params.dt = Constant(6)
-problem = ShallowWaterProblem(prob_params)
+problem = SWProblem(prob_params)
 
 # Here we set only the necessary options. However, there are many more,
 # such as the `viscosity`, and the `bottom drag`. A full option list 
@@ -67,9 +67,9 @@ print prob_params
 # Next we create a shallow water solver. Here we choose to solve the shallow
 # water equations in its fully coupled form:
 
-sol_params = ShallowWaterSolver.default_parameters()
+sol_params = SWSolver.default_parameters()
 sol_params.dump_period = -1
-solver = ShallowWaterSolver(problem, sol_params)
+solver = SWSolver(problem, sol_params)
 
 # Now we are ready to solve
 

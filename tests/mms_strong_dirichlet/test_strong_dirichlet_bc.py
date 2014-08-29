@@ -13,9 +13,9 @@ class TestStringDirichletBoundaryConditions(object):
     def error(self, problem, eta0, k):
 
       adj_reset()
-      params = ShallowWaterSolver.default_parameters()
+      params = SWSolver.default_parameters()
       params.dump_period = -1
-      solver = ShallowWaterSolver(problem, params)
+      solver = SWSolver(problem, params)
       for s in solver.solve(annotate=False):
           pass
       state = s["state"]
@@ -62,7 +62,7 @@ class TestStringDirichletBoundaryConditions(object):
                                              problem_params.start_time)
         problem_params.initial_condition = ic_expr
 
-        problem = ShallowWaterProblem(problem_params)
+        problem = SWProblem(problem_params)
 
         return self.error(problem, eta0, k)
 
@@ -102,7 +102,7 @@ class TestStringDirichletBoundaryConditions(object):
                                              problem_params.start_time)
         problem_params.initial_condition = ic_expr
 
-        problem = ShallowWaterProblem(problem_params)
+        problem = SWProblem(problem_params)
 
         return self.error(problem, eta0, k)
 

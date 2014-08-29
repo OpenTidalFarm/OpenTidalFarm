@@ -6,7 +6,7 @@ from opentidalfarm import *
 def steady_sw_problem_parameters():
 
     # Set the parameters for the Shallow water problem
-    parameters = SteadyShallowWaterProblem.default_parameters()
+    parameters = SteadySWProblem.default_parameters()
 
     # Activate the relevant terms
     parameters.include_advection = True
@@ -26,7 +26,7 @@ def steady_sw_problem_parameters():
 def sw_nonlinear_problem_parameters():
 
     # Set the parameters for the Shallow water problem
-    parameters = ShallowWaterProblem.default_parameters()
+    parameters = SWProblem.default_parameters()
 
     # Temporal settings
     period = 12. * 60 * 60
@@ -57,7 +57,7 @@ def sw_nonlinear_problem_parameters():
 def multi_steady_sw_problem_parameters():
 
     # Set the parameters for the Shallow water problem
-    parameters = MultiSteadyShallowWaterProblem.default_parameters()
+    parameters = MultiSteadySWProblem.default_parameters()
 
     # Temporal settings
     period = 12. * 60 * 60
@@ -84,7 +84,7 @@ def multi_steady_sw_problem_parameters():
 @pytest.fixture
 def sw_linear_problem_parameters():
     # Set the parameters for the Shallow water problem
-    parameters = ShallowWaterProblem.default_parameters()
+    parameters = SWProblem.default_parameters()
 
     # Temporal settings
     parameters.start_time = Constant(0)

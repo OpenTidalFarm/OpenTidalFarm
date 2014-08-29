@@ -14,9 +14,9 @@ class TestWeakDirichletBoundaryConditions(object):
     def error(self, problem, eta0, k):
 
         adj_reset()
-        parameters = ShallowWaterSolver.default_parameters()
+        parameters = SWSolver.default_parameters()
         parameters.dump_period = -1
-        solver = ShallowWaterSolver(problem, parameters)
+        solver = SWSolver(problem, parameters)
         for sol in solver.solve(annotate=False):
             pass
         state = sol["state"]
@@ -70,7 +70,7 @@ class TestWeakDirichletBoundaryConditions(object):
         bcs.add_bc("u", Constant((0, 0)), 3, "weak_dirichlet")
         problem_params.bcs = bcs
 
-        problem = ShallowWaterProblem(problem_params)
+        problem = SWProblem(problem_params)
 
         return self.error(problem, eta0, k)
 
@@ -112,7 +112,7 @@ class TestWeakDirichletBoundaryConditions(object):
         bcs.add_bc("u", Constant((0, 0)), 3, "weak_dirichlet")
         problem_params.bcs = bcs
 
-        problem = ShallowWaterProblem(problem_params)
+        problem = SWProblem(problem_params)
 
         return self.error(problem, eta0, k)
 

@@ -1,14 +1,14 @@
 from problem import Problem
-from steady_shallow_water import SteadyShallowWaterProblemParameters
-from steady_shallow_water import SteadyShallowWaterProblem
+from steady_shallow_water import SteadySWProblemParameters
+from steady_shallow_water import SteadySWProblem
 from dolfin_adjoint import Constant
 
 
-class MultiSteadyShallowWaterProblemParameters(SteadyShallowWaterProblemParameters):
-    """ A set of parameters for a :class:`MultiSteadyShallowWaterProblem`.
+class MultiSteadySWProblemParameters(SteadySWProblemParameters):
+    """ A set of parameters for a :class:`MultiSteadySWProblem`.
 
     The parameters are described as in
-    :class:`SteadyShallowWaterProblemParameters`.
+    :class:`SteadySWProblemParameters`.
 
     In addition following parameters are available:
 
@@ -27,23 +27,23 @@ class MultiSteadyShallowWaterProblemParameters(SteadyShallowWaterProblemParamete
     # Functional time integration parameters
     functional_final_time_only = False
 
-class MultiSteadyShallowWaterProblem(SteadyShallowWaterProblem):
+class MultiSteadySWProblem(SteadySWProblem):
 
     def __init__(self, parameters):
-        """ Instantiates a new :class:`ShallowWaterProblem` object. 
+        """ Instantiates a new :class:`SWProblem` object. 
 
-            :parameter parameters: A :class:`ShallowWaterProblemParameters`
+            :parameter parameters: A :class:`SWProblemParameters`
                 object containing the parameters of the problem.
         """
 
-        if not type(parameters) == MultiSteadyShallowWaterProblemParameters:
+        if not type(parameters) == MultiSteadySWProblemParameters:
             raise TypeError("parameters must be of type \
-MultiSteadyShallowWaterProblemParameters.")
+MultiSteadySWProblemParameters.")
 
         if float(parameters.start_time) >= float(parameters.finish_time):
             raise ValueError("start_time must be < finish_time.")
 
-        super(MultiSteadyShallowWaterProblem, \
+        super(MultiSteadySWProblem, \
                 self).__init_without_type_check__(parameters)
 
     @property
@@ -54,4 +54,4 @@ MultiSteadyShallowWaterProblemParameters.")
     def default_parameters():
         ''' Returns a dictionary with the default parameters '''
 
-        return MultiSteadyShallowWaterProblemParameters()
+        return MultiSteadySWProblemParameters()

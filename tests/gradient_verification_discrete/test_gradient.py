@@ -57,12 +57,12 @@ def model(controls, problem_params):
     # Physical parameters
     problem_params.friction = 0.0025
 
-    problem = ShallowWaterProblem(problem_params)
+    problem = SWProblem(problem_params)
 
-    solver_params = ShallowWaterSolver.default_parameters()
+    solver_params = SWSolver.default_parameters()
     solver_params.dump_period = -1
   
-    solver = ShallowWaterSolver(problem, solver_params, config)
+    solver = SWSolver(problem, solver_params, config)
     rf = ReducedFunctional(config, solver)
     return rf
 

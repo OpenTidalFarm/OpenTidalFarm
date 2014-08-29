@@ -26,9 +26,9 @@ class TestFlatherBoundaryConditionsWithViscosity(object):
                             k=k, viscosity=problem.parameters.viscosity)
 
         adj_reset()
-        parameters = ShallowWaterSolver.default_parameters()
+        parameters = SWSolver.default_parameters()
         parameters.dump_period = -1
-        solver = ShallowWaterSolver(problem, parameters)
+        solver = SWSolver(problem, parameters)
         for sol in solver.solve(annotate=False, u_source=source):
             pass
         state = sol["state"]
@@ -76,7 +76,7 @@ class TestFlatherBoundaryConditionsWithViscosity(object):
                                              linear_problem_params.start_time)
         linear_problem_params.initial_condition = ic_expr
 
-        problem = ShallowWaterProblem(linear_problem_params)
+        problem = SWProblem(linear_problem_params)
 
         return self.error(problem, eta0, k)
 

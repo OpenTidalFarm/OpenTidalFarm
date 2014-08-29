@@ -55,11 +55,11 @@ class TestSmearedTurbine(object):
         site.mark(d, 1)
         config.site_dx = Measure("dx")[d]
 
-        problem = ShallowWaterProblem(sw_linear_problem_parameters)
+        problem = SWProblem(sw_linear_problem_parameters)
 
-        solver_params = ShallowWaterSolver.default_parameters()
+        solver_params = SWSolver.default_parameters()
         solver_params.dump_period = -1
-        solver = ShallowWaterSolver(problem, solver_params, config)
+        solver = SWSolver(problem, solver_params, config)
 
         rf = ReducedFunctional(config, solver)
         # Ensure the same seed value accross all CPUs

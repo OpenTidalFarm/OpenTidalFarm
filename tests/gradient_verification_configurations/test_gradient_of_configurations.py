@@ -32,7 +32,7 @@ class TestConfigurations(object):
             problem_params.bcs = bcs
 
             # Create the shallow water problem
-            problem = SteadyShallowWaterProblem(problem_params)
+            problem = SteadySWProblem(problem_params)
 
         elif c == DefaultConfiguration:
             basin_x = 500.
@@ -67,7 +67,7 @@ class TestConfigurations(object):
             problem_params.initial_condition = Constant((1e-9, 0, 0))
 
             # Create the shallow water problem
-            problem = ShallowWaterProblem(problem_params)
+            problem = SWProblem(problem_params)
 
         # Deploy some turbines 
         config = c(domain)
@@ -101,10 +101,10 @@ class TestConfigurations(object):
         config.params["output_turbine_power"] = False
 
         # Create shallow water solver
-        solver_params = ShallowWaterSolver.default_parameters()
+        solver_params = SWSolver.default_parameters()
         solver_params.dump_period = -1
         solver_params.cache_forward_state = True
-        solver = ShallowWaterSolver(problem, solver_params, config)
+        solver = SWSolver(problem, solver_params, config)
 
         model = ReducedFunctional(config, solver, scale=10**-6)
         m0 = model.initial_control()

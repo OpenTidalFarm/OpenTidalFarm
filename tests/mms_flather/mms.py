@@ -23,9 +23,9 @@ def compute_error(problem, eta0, k):
                         k=k,
                         friction=problem.parameters.friction)
 
-    parameters = ShallowWaterSolver.default_parameters()
+    parameters = SWSolver.default_parameters()
     parameters.dump_period = -1
-    solver = ShallowWaterSolver(problem, parameters)
+    solver = SWSolver(problem, parameters)
 
     solver.solve(annotate=False, u_source=source)
 
@@ -94,6 +94,6 @@ def setup_model(parameters, time_step, finish_time, mesh_x, mesh_y=2):
     bcs.add_bc("u", Constant((0, 0)), facet_id=3, bctype="weak_dirichlet")
     parameters.bcs = bcs
 
-    problem = ShallowWaterProblem(parameters)
+    problem = SWProblem(parameters)
 
     return problem, eta0, k

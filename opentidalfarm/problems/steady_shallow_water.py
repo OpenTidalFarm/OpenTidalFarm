@@ -8,8 +8,8 @@ from .. import finite_elements
 from ..domains.domain import Domain
 
 
-class SteadyShallowWaterProblemParameters(FrozenClass):
-    """ A parameters set for a :class:`SteadyShallowWaterProblem`. 
+class SteadySWProblemParameters(FrozenClass):
+    """ A parameters set for a :class:`SteadySWProblem`. 
 
     Domain parameters:
 
@@ -65,18 +65,18 @@ class SteadyShallowWaterProblemParameters(FrozenClass):
     # Boundary conditions
     bcs = BoundaryConditionSet()
 
-class SteadyShallowWaterProblem(Problem):
+class SteadySWProblem(Problem):
     """ A problem class for a steady-state shallow water problem. 
 
-        :parameter parameters: A :class:`SteadyShallowWaterProblemParameters`
+        :parameter parameters: A :class:`SteadySWProblemParameters`
             object containing the parameters of the problem.
     """
 
     def __init__(self, parameters):
 
-        if not type(parameters) == SteadyShallowWaterProblemParameters:
+        if not type(parameters) == SteadySWProblemParameters:
             raise TypeError("parameters must be of type \
-SteadyShallowWaterProblemParameters.")
+SteadySWProblemParameters.")
 
         self.__init_without_type_check__(parameters)
 
@@ -93,7 +93,7 @@ SteadyShallowWaterProblemParameters.")
 
     @staticmethod
     def default_parameters():
-        ''' Returns a :class:`SteadyShallowWaterProblemParameters` with default
+        ''' Returns a :class:`SteadySWProblemParameters` with default
             parameters. '''
 
-        return SteadyShallowWaterProblemParameters()
+        return SteadySWProblemParameters()

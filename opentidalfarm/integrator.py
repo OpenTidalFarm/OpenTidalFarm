@@ -1,7 +1,7 @@
 import numpy
 from dolfin import *
 from dolfin_adjoint import *
-from problems import MultiSteadyShallowWaterProblem
+from problems import MultiSteadySWProblem
 
 
 class FunctionalIntegrator(object):
@@ -38,7 +38,7 @@ class FunctionalIntegrator(object):
         # The multi-steady state case is special in that we want to integrate
         # over time, but without the initial guess.
         w[-1] = 0.0
-        if type(self.problem) == MultiSteadyShallowWaterProblem:
+        if type(self.problem) == MultiSteadySWProblem:
             w[0] = 0.
             w[1] = 0.5
         else:
@@ -59,7 +59,7 @@ class FunctionalIntegrator(object):
         if self.final_only:
             return Functional(self.functional.Jt(state, tf) * dt[FINISH_TIME])
 
-        if type(self.problem) == MultiSteadyShallowWaterProblem:
+        if type(self.problem) == MultiSteadySWProblem:
             return Functional(self.functional.Jt(state, tf) *
                     dt[float(self.times[1]):])
         else:

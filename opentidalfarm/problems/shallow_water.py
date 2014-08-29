@@ -1,14 +1,14 @@
 from problem import Problem
-from steady_shallow_water import SteadyShallowWaterProblemParameters
-from steady_shallow_water import SteadyShallowWaterProblem
+from steady_shallow_water import SteadySWProblemParameters
+from steady_shallow_water import SteadySWProblem
 from dolfin_adjoint import Constant
 
 
-class ShallowWaterProblemParameters(SteadyShallowWaterProblemParameters):
-    """ A set of parameters for a :class:`ShallowWaterProblem`.
+class SWProblemParameters(SteadySWProblemParameters):
+    """ A set of parameters for a :class:`SWProblem`.
 
     The parameters are described as in
-    :class:`SteadyShallowWaterProblemParameters`.
+    :class:`SteadySWProblemParameters`.
 
     In addition following parameters are available:
 
@@ -36,23 +36,23 @@ class ShallowWaterProblemParameters(SteadyShallowWaterProblemParameters):
     functional_final_time_only = True
 
 
-class ShallowWaterProblem(SteadyShallowWaterProblem):
+class SWProblem(SteadySWProblem):
 
     def __init__(self, parameters):
-        """ Instantiates a new :class:`ShallowWaterProblem` object. 
+        """ Instantiates a new :class:`SWProblem` object. 
 
-            :parameter parameters: A :class:`ShallowWaterProblemParameters`
+            :parameter parameters: A :class:`SWProblemParameters`
                 object containing the parameters of the problem.
         """
 
-        if not type(parameters) == ShallowWaterProblemParameters:
+        if not type(parameters) == SWProblemParameters:
             raise TypeError("parameters must be of type \
-ShallowWaterProblemParameters.")
+SWProblemParameters.")
 
         if float(parameters.start_time) >= float(parameters.finish_time):
             raise ValueError("start_time must be < finish_time.")
 
-        super(ShallowWaterProblem, self).__init_without_type_check__(parameters)
+        super(SWProblem, self).__init_without_type_check__(parameters)
 
     @property
     def _is_transient(self):
@@ -62,4 +62,4 @@ ShallowWaterProblemParameters.")
     def default_parameters():
         ''' Returns a dictionary with the default parameters '''
 
-        return ShallowWaterProblemParameters()
+        return SWProblemParameters()
