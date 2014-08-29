@@ -1,3 +1,5 @@
+from dolfin import Expression  # Keep readthedocs happy
+
 from dolfin import *
 from dolfin_adjoint import *
 from helpers import print0
@@ -20,7 +22,12 @@ class TidalForcing(Expression):
        the grid is stored in a separate file (with "lon_z", "lat_z" and "mz"
        fields). The actual data is read from a seperate file with hRe and hIm
        fields. """
+
     def __init__(self, grid_file_name, data_file_name, ranges, utm_zone, utm_band, initial_time, constituents):
+        """ This function initializes a new TidalForcing object.
+            The parameters are: 
+        """
+
         self.t = 0
         self.utm_zone = utm_zone
         self.utm_band = utm_band
@@ -32,6 +39,7 @@ class TidalForcing(Expression):
 
 
     def eval(self, values, X):
+        """ Evaluates the tidal forcing. """
         global tnci_time
         if tnci_time != self.t:
             print0("Setting tidal forcing time to %f " % self.t)
@@ -70,5 +78,6 @@ class BathymetryDepthExpression(Expression):
         self.interpolator = scipy.interpolate.RectBivariateSpline(lat, lon, values)
 
     def eval(self, values, x):
+	" Evaluates the bathymetry at a point. """
         lat, lon = utm.to_latlon(x[0], x[1], self.utm_zone, self.utm_band)
         values[0] = max(10, -self.interpolator(lat, lon))

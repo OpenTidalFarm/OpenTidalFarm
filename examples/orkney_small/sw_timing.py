@@ -15,7 +15,7 @@ print "inflow_direction: ", inflow_direction
 
 config = SteadyConfiguration("mesh/earth_orkney_converted.xml", inflow_direction = inflow_direction) 
 config.set_site_dimensions(site_x_start, site_x_start + site_x, site_y_start, site_y_start + site_y)
-config.params['diffusion_coef'] = 90.0
+config.params['viscosity'] = 90.0
 config.params["turbine_x"] = 40.
 config.params["turbine_y"] = 40.
 config.params["dump_period"] = 0
@@ -24,7 +24,7 @@ config.params["dump_period"] = 0
 deploy_turbines(config, nx = 8, ny = 4)
 config.params["turbine_friction"] = 0.5*numpy.array(config.params["turbine_friction"]) 
 
-model = ReducedFunctional(config, scale = -1, plot = True)
+model = ReducedFunctional(config, scale = -1)
 m0 = model.initial_control()
 
 # Build the turbine cache 

@@ -1,7 +1,7 @@
 from opentidalfarm import *
 
 config = SteadyConfiguration("mesh/earth_orkney_converted.xml", inflow_direction=[0.9865837220518425, -0.16325611591095968]) 
-config.params['diffusion_coef'] = 90.0
+config.params['viscosity'] = 90.0
 config.params['turbine_x'] = 40.
 config.params['turbine_y'] = 40.
 config.params['controls'] = ['turbine_pos']
@@ -24,5 +24,5 @@ lb, ub = position_constraints(config)
 ineq = get_minimum_distance_constraint_func(config)
 
 # Solve the optimisation problem
-rf = ReducedFunctional(config, plot = True)
-maximize(rf, bounds = [lb, ub], constraints = ineq, method = "SLSQP") 
+rf = ReducedFunctional(config)
+maximize(rf, bounds=[lb, ub], constraints=ineq, method="SLSQP")

@@ -46,10 +46,22 @@ help:
 	@echo "  linkcheck  to check all external links for integrity"
 	@echo "  doctest    to run all doctests embedded in the documentation (if enabled)"
 
+EXAMPLES_IN = ../examples
+EXAMPLES_OUT = examples
+
+build_examples:
+	mkdir -p $(EXAMPLES_IN)/scenario1
+	bin/pylit.py --overwrite yes $(EXAMPLES_IN)/scenario1/sw.py $(EXAMPLES_OUT)/scenario1/scenario1.rst
+	mkdir -p $(EXAMPLES_IN)/channel
+	bin/pylit.py --overwrite yes $(EXAMPLES_IN)/channel_simulation/channel_simulation.py $(EXAMPLES_OUT)/channel/channel.rst
+
+auto_apidoc:
+	sphinx-apidoc -T -f -o . ../opentidalfarm/
+
 clean:
 	rm -rf $(BUILDDIR)/*
 
-html:
+html: build_examples
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."

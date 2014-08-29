@@ -20,7 +20,7 @@ deploy_turbines(config, nx = 8, ny = 4)
 
 config.info()
 
-rf = ReducedFunctional(config, plot = True)
+rf = ReducedFunctional(config)
 # Get the upper and lower bounds for the turbine positions and friction
 lb_f, ub_f = friction_constraints(config, lb = 0., ub = 21.)
 lb, ub = position_constraints(config) 

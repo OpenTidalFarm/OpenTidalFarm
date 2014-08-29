@@ -15,10 +15,52 @@
 import sys
 import os
 
+# Our make file calls sphinx-apidoc, but read-the-docs uses our config instead
+# (so it skips that step). Calling apidoc here instead if we're being built
+# there.
+on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
+if on_rtd:
+    os.system("sphinx-apidoc -f -o . ../opentidalfarm")
+
+ 
+# No need to install dolfin to generate the docs
+class Mock(object):
+
+    __all__ = []
+
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def __call__(self, *args, **kwargs):
+        return Mock()
+
+    @classmethod
+    def __getattr__(cls, name):
+        if name in ('__file__', '__path__'):
+            return '/dev/null'
+        elif name[0] == name[0].upper():
+            mockType = type(name, (), {})
+            mockType.__module__ = __name__
+            return mockType
+        else:
+            return Mock()
+
+try:
+    import dolfin
+except ImportError:
+    MOCK_MODULES = ['dolfin', 'dolfin_adjoint',
+            'dolfin_adjoint.ReducedFunctionalNumPy', 'ufl',
+            'uptide', 'uptide.netcdf_reader', 'uptide.tidal_netcdf', 'numpy',
+            'utm', 'scipy', 'scipy.interpolate'] 
+    for mod_name in MOCK_MODULES:
+        print "Generating mock module %s." % mod_name
+        sys.modules[mod_name] = Mock()
+
+#
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-#sys.path.insert(0, os.path.abspath('.'))
+sys.path.insert(0, os.path.abspath('..'))
 
 # -- General configuration ------------------------------------------------
 
@@ -47,7 +89,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'OpenTidalFarm'
-copyright = u'2014, SW Funke et al'
+copyright = u'2014, The OpenTidalFarm team'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -200,7 +242,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
   ('index', 'OpenTidalFarm.tex', u'OpenTidalFarm Documentation',
-   u'SW Funke et al', 'manual'),
+   u'The OpenTidalFarm team', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -230,7 +272,7 @@ latex_documents = [
 # (source start file, name, description, authors, manual section).
 man_pages = [
     ('index', 'opentidalfarm', u'OpenTidalFarm Documentation',
-     [u'SW Funke et al'], 1)
+     [u'The OpenTidalFarm team'], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -244,7 +286,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
   ('index', 'OpenTidalFarm', u'OpenTidalFarm Documentation',
-   u'SW Funke et al', 'OpenTidalFarm', 'One line description of project.',
+   u'The OpenTidalFarm team', 'OpenTidalFarm', 'One line description of project.',
    'Miscellaneous'),
 ]
 
@@ -259,3 +301,5 @@ texinfo_documents = [
 
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 #texinfo_no_detailmenu = False
+
+# Ensure that the __init__ method gets documented.

@@ -16,7 +16,7 @@ deploy_turbines(config, nx = 8, ny = 4)
 
 config.info()
 
-rf = ReducedFunctional(config, plot = True)
+rf = ReducedFunctional(config)
 
 lb, ub = position_constraints(config) 
 maximize(rf, bounds = [lb, ub], method = "SLSQP", options = {"maxiter": 200})

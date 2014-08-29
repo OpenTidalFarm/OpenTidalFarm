@@ -2,10 +2,10 @@ from math import exp
 from dolfin import *
 
 
-def SinusoidalInitialCondition(config, eta0, k, depth):
+def SinusoidalInitialCondition(eta0, k, depth, start_time):
     """Returns an expression that can be used as initial condition for a channel
     with a sinusoidal forcing"""
-    params = config.params
+    
 
     class SinusoidalExpr(Expression):
         '''This class implements the Expression class for the shallow water initial condition.'''
@@ -13,8 +13,7 @@ def SinusoidalInitialCondition(config, eta0, k, depth):
             pass
 
         def eval(self, values, X):
-            start_time = params["start_time"]
-            g = params["g"]
+            g = 9.81
 
             values[0] = eta0 * sqrt(g / depth) * cos(k * X[0] - sqrt(g * depth) * k * start_time)
             values[1] = 0.
@@ -25,7 +24,7 @@ def SinusoidalInitialCondition(config, eta0, k, depth):
     return SinusoidalExpr()
 
 
-def BumpInitialCondition(config):
+def BumpInitialCondition(x0, y0, x1, y1):
 
     class BumpExpr(Expression):
         '''This class implements a initial condition with a bump velocity profile.
@@ -47,45 +46,28 @@ def BumpInitialCondition(config):
             return bump
 
         def eval(self, values, X):
-            x_unit = 2 * (config.domain.basin_x - X[0]) / config.domain.basin_x - 1.0
-            y_unit = 2 * (config.domain.basin_y - X[1]) / config.domain.basin_y - 1.0
+            x_unit = 2 * (x1 - X[0]) / (x1-x0) - 1.0
+            y_unit = 2 * (y1 - X[1]) / (y1-y0) - 1.0
 
             values[0] = self.bump_function([x_unit, y_unit])
             values[1] = 0
             values[2] = 0
-            if config.params['turbine_thrust_parametrisation']:
-                values[3] = 0.
-            if config.params['implicit_turbine_thrust_parametrisation']:
-                values[4] = 0.
 
         def value_shape(self):
-            if config.params['implicit_turbine_thrust_parametrisation']:
-                return (5,)
-            elif config.params['turbine_thrust_parametrisation']:
-                return (4,)
-            else:
-                return (3,)
+            return (3,)
 
     return BumpExpr()
 
 
-def ConstantFlowInitialCondition(config, val=[1e-19, 0, 0, 0]):
+def ConstantFlowInitialCondition(val=[1e-19, 0, 0]):
+
     class ConstantFlow(Expression):
         def eval(self, values, X):
             values[0] = val[0]
             values[1] = val[1]
             values[2] = val[2]
-            if config.params['turbine_thrust_parametrisation']:
-                values[3] = val[3]
-            if config.params['implicit_turbine_thrust_parametrisation']:
-                values[4] = 0.
 
         def value_shape(self):
-            if config.params['implicit_turbine_thrust_parametrisation']:
-                return (5,)
-            elif config.params['turbine_thrust_parametrisation']:
-                return (4,)
-            else:
-                return (3,)
+            return (3,)
 
     return ConstantFlow()

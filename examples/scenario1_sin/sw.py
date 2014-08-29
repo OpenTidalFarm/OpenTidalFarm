@@ -16,7 +16,7 @@ deploy_turbines(config, nx = 8, ny = 4)
 
 config.info()
 
-rf = ReducedFunctional(config, plot = True)
+rf = ReducedFunctional(config)
 
 lb, ub = position_constraints(config) 
 ineq = get_minimum_distance_constraint_func(config)

@@ -13,16 +13,16 @@ config.set_site_dimensions(site_x_start, site_x_start + site_x, site_y_start, si
 config.params["controls"] = ["turbine_friction", "turbine_pos"]
 
 # Place some turbines 
-deploy_turbines(config, nx = 8, ny = 4)
+deploy_turbines(config, nx=8, ny=4)
 
-rf = ReducedFunctional(config, plot = True)
+rf = ReducedFunctional(config)
 
 # Get the upper and lower bounds for the turbine positions and friction
-lb_f, ub_f = friction_constraints(config, lb = 0., ub = 21.)
+lb_f, ub_f = friction_constraints(config, lb=0., ub=21.)
 lb, ub = position_constraints(config) 
 # The first part of the control vector consists of the turbine friction values followed by their positions
 bounds = [lb_f + lb, ub_f + ub]
 
 ineq = get_minimum_distance_constraint_func(config)
 
-maximize(rf, bounds = bounds, constraints = ineq, method = "SLSQP", options = {"maxiter": 200})
+maximize(rf, bounds=bounds, constraints=ineq, method="SLSQP", options={"maxiter": 200})

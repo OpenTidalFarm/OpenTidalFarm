@@ -10,7 +10,7 @@ utm_band = 'V'
 
 config = UnsteadyConfiguration("mesh/orkney.xml", [1, 1]) 
 config.params['initial_condition'] = ConstantFlowInitialCondition(config) 
-config.params['diffusion_coef'] = Constant(250.0)
+config.params['viscosity'] = Constant(250.0)
 config.params["controls"] = ["turbine_friction"]
 config.params["turbine_parametrisation"] = "smeared"
 config.params["automatic_scaling"] = False 
@@ -25,9 +25,6 @@ config.params['dt'] = 3600.
 config.params['finish_time'] = 48.*3600.
 config.params['theta'] = 1.0 
 config.params['functional_quadrature_degree'] = 0
-
-#config.params['newton_solver'] = False
-#config.params['picard_iterations'] = 2
 
 # Tidal boundary forcing
 bc = DirichletBCSet(config)

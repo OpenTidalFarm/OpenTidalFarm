@@ -14,7 +14,7 @@ config.params["controls"] = ["turbine_friction"]
 config.params['automatic_scaling'] = False
 
 deploy_turbines(config, nx = 8, ny = 6)
-rf = ReducedFunctional(config, plot = True)
+rf = ReducedFunctional(config)
 
 config.info()
 

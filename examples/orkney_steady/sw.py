@@ -13,7 +13,7 @@ import sys
 set_log_level(PROGRESS)
 
 config = SteadyConfiguration("mesh/coast_idBoundary_utm.xml", [1, 1])
-config.params['diffusion_coef'] = Constant(360.0)
+config.params['viscosity'] = Constant(360.0)
 config.params['save_checkpoints'] = True
 config.params['turbine_x'] = 100
 config.params['turbine_y'] = 100

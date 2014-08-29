@@ -15,7 +15,6 @@ def default_config():
   config.params["finish_time"] = 2./4*period
   config.params["dt"] = config.params["finish_time"]/20
   config.params["dump_period"] = 1
-  config.params["verbose"] = 100
 
   # Start at rest state
   config.params["start_time"] = config.params["finish_time"] - 3*config.params["dt"] #period/4 
