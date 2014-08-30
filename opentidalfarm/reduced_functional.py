@@ -7,7 +7,7 @@ from dolfin import *
 from dolfin_adjoint import *
 from turbines import *
 from solvers import Solver
-from integrator import FunctionalIntegrator
+from functionals import FunctionalIntegrator
 import os.path
 
 

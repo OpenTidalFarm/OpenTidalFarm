@@ -1,6 +1,5 @@
-from turbines import *
-from parameter_dict import ParameterDictionary
-from helpers import smooth_uflmin
+from ..turbines import *
+from ..helpers import smooth_uflmin
 
 
 class FunctionalPrototype(object):
@@ -24,7 +23,7 @@ class DefaultFunctional(FunctionalPrototype):
         config.turbine_cache.update(config)
         self.config = config
         # Create a copy of the parameters so that future changes will not affect the definition of this object.
-        self.params = ParameterDictionary(dict(config.params))
+        self.params = dict(config.params)
 
     def cost_per_friction(self, turbines):
         if float(self.params['cost_coef']) <= 0:
@@ -65,7 +64,7 @@ class PowerCurveFunctional(FunctionalPrototype):
         config.turbine_cache.update(config)
         self.config = config
         # Create a copy of the parameters so that future changes will not affect the definition of this object.
-        self.params = ParameterDictionary(dict(config.params))
+        self.params = dict(config.params)
 
     def Jt(self, state, tf):
         up_u = state[3]  # Extract the upstream velocity

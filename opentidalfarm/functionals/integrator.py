@@ -1,7 +1,7 @@
 import numpy
 from dolfin import *
 from dolfin_adjoint import *
-from problems import MultiSteadySWProblem
+from ..problems import MultiSteadySWProblem
 
 
 class FunctionalIntegrator(object):
