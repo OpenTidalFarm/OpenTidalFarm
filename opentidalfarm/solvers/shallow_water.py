@@ -35,6 +35,8 @@ class SWSolverParameters(FrozenClass):
         turbine. Default: False
     :ivar quadrature_degree: The quadrature degree for the matrix assembly.
         Default: 5
+    :ivar cpp_flags: A list of cpp compiler options for the code generation.
+        Default: ["-O3", "-ffast-math", "-march=native"]
 
     """
 
@@ -45,6 +47,7 @@ class SWSolverParameters(FrozenClass):
     # Performance settings
     cache_forward_state = True
     quadrature_degree = 5
+    cpp_flags = ["-O3", "-ffast-math", "-march=native"]
 
     def __init__(self):
 
@@ -100,12 +103,16 @@ SWSolverParameters."
         problem_params = self.problem.parameters
         solver_params = self.parameters
 
-        # Get domain measures
-        ds = problem_params.domain.ds
-
         # Performance settings
         parameters['form_compiler']['quadrature_degree'] = \
             solver_params.quadrature_degree
+        parameters['form_compiler']['cpp_optimize_flags'] = \
+            " ".join(solver_params.cpp_flags)
+        parameters['form_compiler']['cpp_optimize'] = True
+        parameters['form_compiler']['optimize'] = True
+
+        # Get domain measures
+        ds = problem_params.domain.ds
 
         # Initialise solver settings
         if type(self.problem) == SWProblem:

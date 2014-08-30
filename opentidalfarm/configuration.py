@@ -134,10 +134,6 @@ class SteadyConfiguration(DefaultConfiguration):
         self.params['turbine_y'] = 20.
         self.params['controls'] = ['turbine_pos']
 
-        # Finally set some DOLFIN optimisation flags
-        dolfin.parameters['form_compiler']['cpp_optimize'] = True
-        dolfin.parameters['form_compiler']['cpp_optimize_flags'] = '-O3'
-        dolfin.parameters['form_compiler']['optimize'] = True
 
 
 class UnsteadyConfiguration(SteadyConfiguration):
