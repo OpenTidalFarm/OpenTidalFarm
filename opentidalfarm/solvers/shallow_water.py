@@ -33,6 +33,8 @@ class SWSolverParameters(FrozenClass):
         Default: True
     :ivar print_individual_turbine_power: Print out the turbine power for each
         turbine. Default: False
+    :ivar quadrature_degree: The quadrature degree for the matrix assembly.
+        Default: 5
 
     """
 
@@ -42,6 +44,7 @@ class SWSolverParameters(FrozenClass):
 
     # Performance settings
     cache_forward_state = True
+    quadrature_degree = 5
 
     def __init__(self):
 
@@ -99,6 +102,10 @@ SWSolverParameters."
 
         # Get domain measures
         ds = problem_params.domain.ds
+
+        # Performance settings
+        parameters['form_compiler']['quadrature_degree'] = \
+            solver_params.quadrature_degree
 
         # Initialise solver settings
         if type(self.problem) == SWProblem:
@@ -256,7 +263,12 @@ SWSolverParameters."
             tf = Function(turbine_field, name="turbine_friction", annotate=annotate)
 
         # Friction term
-        R_mid = friction / H * dot(u_mid, u_mid) ** 0.5 * inner(u_mid, v) * dx
+        # FIXME: FEniCS fails on assembling the below form for u_mid = 0, even
+        # though it is differentiable. Even this potential fix does not help:
+        #norm_u_mid = conditional(inner(u_mid, u_mid)**0.5 < DOLFIN_EPS, Constant(0),
+        #        inner(u_mid, u_mid)**0.5)
+        norm_u_mid = inner(u_mid, u_mid)**0.5
+        R_mid = friction / H * norm_u_mid * inner(u_mid, v) * dx
 
         if turbine_field:
             R_mid += tf / H * dot(u_mid, u_mid) ** 0.5 * inner(u_mid, v) * self.config.site_dx(1)
@@ -399,3 +411,6 @@ SWSolverParameters."
                    "is_final": self._finished(t, finish_time)})
 
         log(INFO, "End of time loop.")
+
+        # Reset quadrature degree
+        parameters['form_compiler']['quadrature_degree'] = -1
