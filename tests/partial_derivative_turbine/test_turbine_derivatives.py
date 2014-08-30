@@ -78,9 +78,9 @@ class TestTurbineDerivatives(object):
                                              problem_params.start_time)
         problem = SWProblem(problem_params)
 
-        solver_params = SWSolver.default_parameters()
+        solver_params = CoupledSWSolver.default_parameters()
         solver_params.dump_period = -1
-        solver = SWSolver(problem, solver_params, config)
+        solver = CoupledSWSolver(problem, solver_params, config)
 
         m0 = ReducedFunctional(config, solver).initial_control()
 

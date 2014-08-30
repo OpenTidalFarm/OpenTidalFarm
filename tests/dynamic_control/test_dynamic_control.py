@@ -62,10 +62,10 @@ class TestDynamicTurbineControl(object):
 
         problem = SWProblem(sw_nonlinear_problem_parameters)
 
-        solver_params = SWSolver.default_parameters() 
+        solver_params = CoupledSWSolver.default_parameters() 
         solver_params.dump_period = -1
         solver_params.cache_forward_state = False
-        solver = SWSolver(problem, solver_params, config)
+        solver = CoupledSWSolver(problem, solver_params, config)
 
         rf = ReducedFunctional(config, solver, scale=10**-6)
         m0 = rf.initial_control()

@@ -10,8 +10,8 @@ from ..problems import MultiSteadySWProblem
 from ..helpers import StateWriter, norm_approx, smooth_uflmin, FrozenClass
 
 
-class SWSolverParameters(FrozenClass):
-    """ A set of parameters for a :class:`SteadySWSolver`. 
+class CoupledSWSolverParameters(FrozenClass):
+    """ A set of parameters for a :class:`SteadyCoupledSWSolver`. 
 
     Following parameters are available:
 
@@ -59,7 +59,7 @@ class SWSolverParameters(FrozenClass):
         self.dolfin_solver["newton_solver"]["maximum_iterations"] = 20
 
 
-class SWSolver(Solver):
+class CoupledSWSolver(Solver):
 
     def __init__(self, problem, parameters, config=None):
 
@@ -67,9 +67,9 @@ class SWSolver(Solver):
             SteadySWProblem)):
             raise TypeError, "problem must be of type Problem"
 
-        if not isinstance(parameters, SWSolverParameters):
+        if not isinstance(parameters, CoupledSWSolverParameters):
             raise TypeError, "parameters must be of type \
-SWSolverParameters."
+CoupledSWSolverParameters."
 
         self.problem = problem
         self.parameters = parameters
@@ -89,7 +89,7 @@ SWSolverParameters."
 
     @staticmethod
     def default_parameters():
-        return SWSolverParameters()
+        return CoupledSWSolverParameters()
 
     def _finished(self, current_time, finish_time):
         return float(current_time - finish_time) >= - 1e3*DOLFIN_EPS

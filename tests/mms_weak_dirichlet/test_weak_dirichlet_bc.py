@@ -14,9 +14,9 @@ class TestWeakDirichletBoundaryConditions(object):
     def error(self, problem, eta0, k):
 
         adj_reset()
-        parameters = SWSolver.default_parameters()
+        parameters = CoupledSWSolver.default_parameters()
         parameters.dump_period = -1
-        solver = SWSolver(problem, parameters)
+        solver = CoupledSWSolver(problem, parameters)
         for sol in solver.solve(annotate=False):
             pass
         state = sol["state"]

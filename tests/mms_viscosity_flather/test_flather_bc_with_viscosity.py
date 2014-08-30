@@ -26,9 +26,9 @@ class TestFlatherBoundaryConditionsWithViscosity(object):
                             k=k, viscosity=problem.parameters.viscosity)
 
         adj_reset()
-        parameters = SWSolver.default_parameters()
+        parameters = CoupledSWSolver.default_parameters()
         parameters.dump_period = -1
-        solver = SWSolver(problem, parameters)
+        solver = CoupledSWSolver(problem, parameters)
         for sol in solver.solve(annotate=False, u_source=source):
             pass
         state = sol["state"]

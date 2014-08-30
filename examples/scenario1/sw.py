@@ -43,8 +43,8 @@ parameters["strong_bc"] = bc
 
 problem = SteadySWProblem(parameters)
 
-parameters = SWSolver.default_parameters()
-solver = SWSolver(problem, parameters, config)
+parameters = CoupledSWSolver.default_parameters()
+solver = CoupledSWSolver(problem, parameters, config)
 
 rf = ReducedFunctional(config, solver)
 

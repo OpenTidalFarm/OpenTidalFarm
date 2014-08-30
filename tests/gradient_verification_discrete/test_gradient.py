@@ -59,10 +59,10 @@ def model(controls, problem_params):
 
     problem = SWProblem(problem_params)
 
-    solver_params = SWSolver.default_parameters()
+    solver_params = CoupledSWSolver.default_parameters()
     solver_params.dump_period = -1
   
-    solver = SWSolver(problem, solver_params, config)
+    solver = CoupledSWSolver(problem, solver_params, config)
     rf = ReducedFunctional(config, solver)
     return rf
 

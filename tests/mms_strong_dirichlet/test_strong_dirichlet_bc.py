@@ -13,9 +13,9 @@ class TestStringDirichletBoundaryConditions(object):
     def error(self, problem, eta0, k):
 
       adj_reset()
-      params = SWSolver.default_parameters()
+      params = CoupledSWSolver.default_parameters()
       params.dump_period = -1
-      solver = SWSolver(problem, params)
+      solver = CoupledSWSolver(problem, params)
       for s in solver.solve(annotate=False):
           pass
       state = s["state"]

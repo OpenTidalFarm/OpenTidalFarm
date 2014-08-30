@@ -101,10 +101,10 @@ class TestConfigurations(object):
         config.params["output_turbine_power"] = False
 
         # Create shallow water solver
-        solver_params = SWSolver.default_parameters()
+        solver_params = CoupledSWSolver.default_parameters()
         solver_params.dump_period = -1
         solver_params.cache_forward_state = True
-        solver = SWSolver(problem, solver_params, config)
+        solver = CoupledSWSolver(problem, solver_params, config)
 
         model = ReducedFunctional(config, solver, scale=10**-6)
         m0 = model.initial_control()

@@ -23,9 +23,9 @@ def compute_error(problem, eta0, k):
                         k=k,
                         friction=problem.parameters.friction)
 
-    parameters = SWSolver.default_parameters()
+    parameters = CoupledSWSolver.default_parameters()
     parameters.dump_period = -1
-    solver = SWSolver(problem, parameters)
+    solver = CoupledSWSolver(problem, parameters)
 
     solver.solve(annotate=False, u_source=source)
 

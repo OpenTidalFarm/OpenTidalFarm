@@ -110,9 +110,9 @@ print prob_params
 # Next we create a shallow water solver. Here we choose to solve the shallow
 # water equations in its fully coupled form:
 
-sol_params = SWSolver.default_parameters()
+sol_params = CoupledSWSolver.default_parameters()
 sol_params.dump_period = -1
-solver = SWSolver(problem, sol_params)
+solver = CoupledSWSolver(problem, sol_params)
 
 # Now we are ready to solve
 

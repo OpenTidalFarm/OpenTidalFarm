@@ -3,5 +3,5 @@
 """
 
 from solver import Solver
-from shallow_water import SWSolver
+from shallow_water import CoupledSWSolver
 from dummy import DummySolver
