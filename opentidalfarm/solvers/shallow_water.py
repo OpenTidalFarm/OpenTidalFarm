@@ -411,6 +411,3 @@ SWSolverParameters."
                    "is_final": self._finished(t, finish_time)})
 
         log(INFO, "End of time loop.")
-
-        # Reset quadrature degree
-        parameters['form_compiler']['quadrature_degree'] = -1
