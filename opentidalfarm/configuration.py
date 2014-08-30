@@ -30,7 +30,6 @@ class DefaultConfiguration(object):
             'automatic_scaling_multiplier': 5,
             'output_turbine_power': True,
             'save_checkpoints': False,
-            'cache_forward_state': False,
             'base_path': os.curdir,
             'revolve_parameters': None,  # (strategy,
                                          # snaps_on_disk,
@@ -105,9 +104,6 @@ class DefaultConfiguration(object):
             # Other
             print "\n=== Other ==="
             print "Dolfin version: %s" % dolfin.__version__
-            print "Cache forward solution for initial solver guess: %s" % \
-                self.params["cache_forward_state"]
-            print ""
 
     def set_site_dimensions(self, site_x_start, site_x_end, site_y_start,
                             site_y_end):
