@@ -42,7 +42,7 @@ def compute_error(problem, eta0, k):
     return errornorm(analytic_sol, state)
 
 
-def setup_model(parameters, time_step, finish_time, mesh_x, mesh_y=2):
+def setup_model(parameters, sin_ic, time_step, finish_time, mesh_x, mesh_y=2):
     # Note: The analytical solution is constant in the
     # y-direction, hence a coarse y-resolution is sufficient.
 
@@ -75,9 +75,7 @@ def setup_model(parameters, time_step, finish_time, mesh_x, mesh_y=2):
                                                   mesh_y)
 
     # Initial condition
-    ic_expr = SinusoidalInitialCondition(eta0, k,
-                                         parameters.depth, 
-                                         parameters.start_time)
+    ic_expr = sin_ic(eta0, k, parameters.depth, parameters.start_time)
     parameters.initial_condition = ic_expr
 
     # Set the analytical boundary conditions

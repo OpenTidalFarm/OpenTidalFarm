@@ -15,7 +15,7 @@ from opentidalfarm import *
 
 class TestFrictionOptimisation(object):
 
-    def default_config(self):
+    def default_config(self, sin_ic):
       domain = RectangularDomain(0, 0, 3000, 1000, 20, 10)
 
       config = DefaultConfiguration(domain)
@@ -38,17 +38,16 @@ class TestFrictionOptimisation(object):
 
       k = pi/3000.
       config.params['k'] = k
-      problem_params.initial_condition = SinusoidalInitialCondition(2.0, k,
-              50., 0.0)
+      problem_params.initial_condition = sin_ic(2.0, k, 50., 0.0)
 
       problem_params.domain = domain
       problem_params.finite_element = finite_elements.p1dgp2
       problem = DummyProblem(problem_params)
       return problem, config
 
-    def test_optimisation_recovers_optimal_friction(self):
+    def test_optimisation_recovers_optimal_friction(self, sin_ic):
 
-        problem, config = self.default_config()
+        problem, config = self.default_config(sin_ic)
         solver = DummySolver(problem, config)
 
         rf = ReducedFunctional(config, solver, scale=1e-3)

@@ -3,7 +3,7 @@
 import numpy
 from opentidalfarm import *
 
-def model(controls, problem_params):
+def model(controls, problem_params, sin_ic):
     domain = domains.RectangularDomain(0, 0, 3000, 1000, 5, 5)
 
     # Turbine settings
@@ -51,7 +51,7 @@ def model(controls, problem_params):
     problem_params.bcs = bcs
   
     # Initial condition
-    problem_params.initial_condition = SinusoidalInitialCondition(eta0, 
+    problem_params.initial_condition = sin_ic(eta0, 
             k, problem_params.depth, problem_params.start_time)
   
     # Physical parameters
@@ -69,8 +69,8 @@ def model(controls, problem_params):
 class TestDiscreteTurbine(object):
 
     def test_gradient_of_peak_friction_passes_taylor_test(self,
-            sw_linear_problem_parameters):
-        rf = model(["turbine_pos"], sw_linear_problem_parameters)
+            sw_linear_problem_parameters, sin_ic):
+        rf = model(["turbine_pos"], sw_linear_problem_parameters, sin_ic)
         m0 = rf.initial_control()
 
         p = numpy.random.rand(len(m0))
@@ -80,8 +80,8 @@ class TestDiscreteTurbine(object):
         assert minconv > 1.97
 
     def test_gradient_of_position_passes_taylor_test(self,
-            sw_linear_problem_parameters):
-        rf = model(["turbine_friction"], sw_linear_problem_parameters)
+            sw_linear_problem_parameters, sin_ic):
+        rf = model(["turbine_friction"], sw_linear_problem_parameters, sin_ic)
         m0 = rf.initial_control()
 
         p = numpy.random.rand(len(m0))

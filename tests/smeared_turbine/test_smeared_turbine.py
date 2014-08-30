@@ -19,8 +19,7 @@ class TestSmearedTurbine(object):
         config.params["turbine_parametrisation"] = "smeared"
 
         sw_linear_problem_parameters.domain = domain
-        sw_linear_problem_parameters.initial_condition = ConstantFlowInitialCondition(
-            val=[1, 0, 0])
+        sw_linear_problem_parameters.initial_condition = Constant((1, 0, 0))
 
         sw_linear_problem_parameters.finish_time = sw_linear_problem_parameters.start_time + \
             3*sw_linear_problem_parameters.dt

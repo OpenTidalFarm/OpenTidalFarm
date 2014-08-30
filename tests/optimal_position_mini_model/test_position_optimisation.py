@@ -9,8 +9,41 @@
 from opentidalfarm import *
 from opentidalfarm import helpers
 from dolfin import log, INFO
-import opentidalfarm.domains
 
+
+def BumpInitialCondition(x0, y0, x1, y1):
+
+    class BumpExpr(Expression):
+        '''This class implements a initial condition with a bump velocity profile.
+           With that we know that the optimal turbine location must be in the center of the domain. '''
+
+        def bump_function(self, x):
+            '''The velocity is initially a bump function (a smooth function with limited support):
+                       /  e**-1/(1-x**2)   for |x| < 1
+              psi(x) = |
+                       \  0   otherwise
+              For more information see http://en.wikipedia.org/wiki/Bump_function
+            '''
+            if x[0] ** 2 < 1 and x[1] ** 2 < 1:
+                bump = exp(-1.0 / (1.0 - x[0] ** 2))
+                bump *= exp(-1.0 / (1.0 - x[1] ** 2))
+                bump /= exp(-1) ** 2
+            else:
+                bump = 0.0
+            return bump
+
+        def eval(self, values, X):
+            x_unit = 2 * (x1 - X[0]) / (x1-x0) - 1.0
+            y_unit = 2 * (y1 - X[1]) / (y1-y0) - 1.0
+
+            values[0] = self.bump_function([x_unit, y_unit])
+            values[1] = 0
+            values[2] = 0
+
+        def value_shape(self):
+            return (3,)
+
+    return BumpExpr()
 
 class TestPositionOptimisation(object):
     def default_config(self):
@@ -56,7 +89,7 @@ class TestPositionOptimisation(object):
         assert minconv > 1.9
 
         bounds = [[Constant(0), Constant(0)], [Constant(3000), Constant(1000)]] 
-        maximize(rf, bounds = bounds, method = "SLSQP") 
+        maximize(rf, bounds=bounds, method="SLSQP") 
 
         m = config.params["turbine_pos"][0]
         log(INFO, "Solution of the primal variables: m=" + repr(m) + "\n")

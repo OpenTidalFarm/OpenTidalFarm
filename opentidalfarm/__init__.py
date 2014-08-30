@@ -13,14 +13,13 @@ __email__ = 'simon.funke@gmail.com'
 
 import finite_elements
 import helpers
-import mini_model
-import initial_conditions
-from configuration import *
 
+from configuration import *
 from solvers import *
 from problems import *
 from domains import *
 from functionals import DefaultFunctional, PowerCurveFunctional
+from tidal import TidalForcing, BathymetryDepthExpression 
 
 from optimisation_helpers import friction_constraints, \
     get_minimum_distance_constraint_func, get_domain_constraints, \
@@ -29,14 +28,13 @@ from optimisation_helpers import friction_constraints, \
     PolygonSiteConstraints, DomainRestrictionConstraints
 from reduced_functional import ReducedFunctional
 from boundary_conditions import BoundaryConditionSet
-from initial_conditions import SinusoidalInitialCondition, BumpInitialCondition
 from turbines import Turbines
-from tidal import TidalForcing, BathymetryDepthExpression 
 
 from dolfin import *
 from dolfin_adjoint import minimize, maximize, Function, solve
 from helpers import info_green, info_red, info_blue, info, print0
 
-# We set the perturbation_direction with a constant seed, so that it is consistent in a parallel environment.
+# We set the perturbation_direction with a constant seed, so that it is
+# consistent in a parallel environment.
 import numpy
 numpy.random.seed(21)

@@ -12,7 +12,7 @@ site_y_start = (basin_y - site_y)/2
 config = SteadyConfiguration("mesh_coarse.xml", inflow_direction=inflow_direction)
 config.set_site_dimensions(site_x_start, site_x_start + site_x, site_y_start, site_y_start + site_y)
 
-config.params['initial_condition'] = ConstantFlowInitialCondition(config, val=[1, 1, 1])
+config.params['initial_condition'] = Constant((1, 1, 1))
 config.params['viscosity'] = 12
 
 # Work out the expected delta eta for a free-stream of 2.5 m/s (without turbines) 

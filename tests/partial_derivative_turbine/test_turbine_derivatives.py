@@ -61,7 +61,7 @@ class TestTurbineDerivatives(object):
             return j, None
 
 
-    def test_turbine_derivatives_passes_taylor_test(self):
+    def test_turbine_derivatives_passes_taylor_test(self, sin_ic):
         # run the taylor remainder test
         nx = 20
         ny = 10
@@ -73,7 +73,7 @@ class TestTurbineDerivatives(object):
         problem_params = SWProblem.default_parameters()
         problem_params.finite_element = finite_elements.p1dgp2
         problem_params.domain = domain
-        problem_params.initial_condition = SinusoidalInitialCondition(eta0, k,
+        problem_params.initial_condition = sin_ic(eta0, k,
                                              problem_params.depth,
                                              problem_params.start_time)
         problem = SWProblem(problem_params)

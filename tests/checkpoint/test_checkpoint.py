@@ -15,7 +15,7 @@ from opentidalfarm import *
 
 class TestCheckpoint(object):
 
-    def default_config(self):
+    def default_config(self, sin_ic):
         domain = RectangularDomain(0, 0, 3000, 1000, 20, 10)
 
         config = configuration.DefaultConfiguration(domain)
@@ -41,15 +41,15 @@ class TestCheckpoint(object):
         config.params["output_turbine_power"] = False
       
         k = pi/3000.
-        problem_params.initial_condition = SinusoidalInitialCondition(2.0, k, 
+        problem_params.initial_condition = sin_ic(2.0, k, 
                 50, start_time=0.0)
 
         problem = DummyProblem(problem_params)
       
         return problem, config
 
-    def test_speedup_is_larger_than_ten(self):
-        problem, config = self.default_config()
+    def test_speedup_is_larger_than_ten(self, sin_ic):
+        problem, config = self.default_config(sin_ic)
         config.params["save_checkpoints"] = True
         config.info()
         friction0 = config.params["turbine_friction"]

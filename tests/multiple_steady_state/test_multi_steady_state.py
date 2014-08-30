@@ -26,7 +26,7 @@ class TestMultiSteadyState(object):
 
         # Domain
         problem_params.domain = domain
-        problem_params.initial_condition = ConstantFlowInitialCondition([1, 1, 1])
+        problem_params.initial_condition = Constant((1, 1, 1))
 
         # Work out the expected delta eta for a free-stream of 2.5 m/s (without turbines) 
         # by assuming balance between the pressure and friction terms

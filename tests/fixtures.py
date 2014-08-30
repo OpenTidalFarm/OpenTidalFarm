@@ -1,7 +1,30 @@
 import pytest
 from opentidalfarm import *
 
-# Based on UnsteadyConfiguration
+@pytest.fixture
+def sin_ic():
+    class SinusoidalExpr(Expression):
+        '''An Expression class for a sinusoidal initial condition.'''
+        def __init__(self, eta0, k, depth, start_time):
+            self.eta0 = eta0
+            self.k = k
+            self.depth = depth
+            self.start_time = start_time
+
+        def eval(self, values, X):
+            g = 9.81
+
+            values[0] = self.eta0 * sqrt(g / self.depth) * cos(self.k * X[0] - \
+                    sqrt(g * self.depth) * self.k * self.start_time)
+            values[1] = 0.
+            values[2] = self.eta0 * cos(self.k * X[0] - sqrt(g * self.depth) * \
+                    self.k * self.start_time)
+
+        def value_shape(self):
+            return (3,)
+    return SinusoidalExpr
+
+
 @pytest.fixture
 def steady_sw_problem_parameters():
 
@@ -21,7 +44,6 @@ def steady_sw_problem_parameters():
 
     return parameters
 
-# Based on UnsteadyConfiguration
 @pytest.fixture
 def sw_nonlinear_problem_parameters():
 
@@ -52,7 +74,6 @@ def sw_nonlinear_problem_parameters():
 
     return parameters
 
-# Based on UnsteadyConfiguration
 @pytest.fixture
 def multi_steady_sw_problem_parameters():
 
