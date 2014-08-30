@@ -1,11 +1,11 @@
 """ Problems for OpenTidalFarm """
 
 from problem import Problem
-from steady_shallow_water import SteadySWProblemParameters
-from steady_shallow_water import SteadySWProblem
-from multi_steady_shallow_water import MultiSteadySWProblemParameters
-from multi_steady_shallow_water import MultiSteadySWProblem
-from shallow_water import SWProblemParameters
-from shallow_water import SWProblem
+from steady_sw import SteadySWProblemParameters
+from steady_sw import SteadySWProblem
+from multi_steady_sw import MultiSteadySWProblemParameters
+from multi_steady_sw import MultiSteadySWProblem
+from sw import SWProblemParameters
+from sw import SWProblem
 from dummy import DummyProblemParameters
 from dummy import DummyProblem

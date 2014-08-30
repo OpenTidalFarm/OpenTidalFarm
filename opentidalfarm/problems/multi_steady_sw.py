@@ -1,6 +1,6 @@
 from problem import Problem
-from steady_shallow_water import SteadySWProblemParameters
-from steady_shallow_water import SteadySWProblem
+from steady_sw import SteadySWProblemParameters
+from steady_sw import SteadySWProblem
 from dolfin_adjoint import Constant
 
 
