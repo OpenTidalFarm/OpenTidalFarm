@@ -44,17 +44,17 @@ domain = FileDomain("../data/meshes/orkney/orkney_utm.xml")
 # Next we specify boundary conditions. We apply tidal boundary forcing, by using
 # the :class:`TidalForcing` class.
 
-eta_expr = TidalForcing(grid_file_name='netcdf/gridES2008.nc',
-                        data_file_name='netcdf/hf.ES2008.nc',
+eta_expr = TidalForcing(grid_file_name='../data/netcdf/gridES2008.nc',
+                        data_file_name='../data/netcdf/hf.ES2008.nc',
                         ranges=((-4.0,0.0), (58.0,61.0)),
                         utm_zone=utm_zone, 
                         utm_band=utm_band, 
                         initial_time=datetime.datetime(2001, 9, 18, 0),
                         constituents=['Q1', 'O1', 'P1', 'K1', 'N2', 'M2', 'S2', 'K2'])
 
-bc = DirichletBCSet(config)
-bc.add_bc("eta", eta_expr, facet_id=1)
-bc.add_bc("eta", eta_expr, facet_id=2)
+bcs = BoundaryConditionSet()
+bcs.add_bc("eta", eta_expr, facet_id=1)
+bcs.add_bc("eta", eta_expr, facet_id=2)
 
 # The free-slip boundary conditions are a special case. The boundary condition
 # type `weak_dirichlet` enforces the boundary value *only* in the
