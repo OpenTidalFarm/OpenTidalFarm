@@ -50,10 +50,11 @@ EXAMPLES_IN = ../examples
 EXAMPLES_OUT = examples
 
 build_examples:
-	mkdir -p $(EXAMPLES_IN)/scenario1
-	bin/pylit.py --overwrite yes $(EXAMPLES_IN)/scenario1/sw.py $(EXAMPLES_OUT)/scenario1/scenario1.rst
-	mkdir -p $(EXAMPLES_IN)/channel
+	rm -R $(EXAMPLES_OUT)/
+	mkdir -p $(EXAMPLES_OUT)/channel
 	bin/pylit.py --overwrite yes $(EXAMPLES_IN)/channel_simulation/channel_simulation.py $(EXAMPLES_OUT)/channel/channel.rst
+	mkdir -p $(EXAMPLES_OUT)/tidal
+	bin/pylit.py --overwrite yes $(EXAMPLES_IN)/tidal_simulation/orkney.py $(EXAMPLES_OUT)/tidal/orkney.rst
 
 auto_apidoc:
 	sphinx-apidoc -T -f -o . ../opentidalfarm/

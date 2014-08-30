@@ -9,12 +9,7 @@ Internal classes
     :undoc-members:
     :show-inheritance:
 
-.. automodule:: opentidalfarm.integrator
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-.. automodule:: opentidalfarm.initial_conditions
+.. automodule:: opentidalfarm.functionals.integrator
     :members:
     :undoc-members:
     :show-inheritance:
