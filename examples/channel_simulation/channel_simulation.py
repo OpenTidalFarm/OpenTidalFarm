@@ -95,8 +95,9 @@ prob_params.start_time = Constant(0)
 prob_params.finish_time = Constant(60)
 prob_params.dt = Constant(6)
 # The initial condition consists of three components: u_x, u_y and eta
-# Note that we do not set all components to zero, as the 
-prob_params.initial_condition = Constant((0, 0, 0)) 
+# Note that we do not set all components to zero, as some components of the
+# Jacobian of the quadratic friction term is non-differentiable.
+prob_params.initial_condition = Constant((DOLFIN_EPS, 0, 0)) 
 # Create the shallow water problem
 problem = SWProblem(prob_params)
 
