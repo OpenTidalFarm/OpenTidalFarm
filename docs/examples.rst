@@ -8,7 +8,7 @@ Examples
    :numbered:
 
    examples/channel/channel
-   examples/scenario1/scenario1
+   examples/tidal/orkney
 
 This page contains examples of OpenTidaFarm applied to arrays:
 
