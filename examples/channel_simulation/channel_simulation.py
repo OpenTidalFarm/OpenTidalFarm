@@ -35,7 +35,7 @@
 # The boundary conditions are:
 #
 # .. math::
-#       u = \sin(2 \pi t/60) & \quad \textrm{on } \Gamma_1, \\
+#       u = \sin(\pi t/60) & \quad \textrm{on } \Gamma_1, \\
 #       \eta = 0 & \quad \textrm{on } \Gamma_2, \\
 #       u \cdot n = 0 & \quad \textrm{on } \Gamma_3, \\
 #
@@ -56,7 +56,7 @@ from opentidalfarm import *
 
 # Next we create a rectangular domain.
 
-domain = RectangularDomain(x0=0, y0=0, x1=100, y1=50, nx=10, ny=5)
+domain = RectangularDomain(x0=0, y0=0, x1=100, y1=50, nx=20, ny=10)
 
 # You can plot and inspect the boundary ids with
 
@@ -67,7 +67,7 @@ plot(domain.facet_ids, interactive=True)
 # timelevel during the solve.
 
 bcs = BoundaryConditionSet()
-u_expr = Expression(("sin(2*pi*t/60)", "0"), t=Constant(0))
+u_expr = Expression(("sin(pi*t/60)", "0"), t=Constant(0))
 bcs.add_bc("u", u_expr, facet_id=1)
 bcs.add_bc("eta", Constant(0), facet_id=2)
 
@@ -92,7 +92,7 @@ prob_params.depth = Constant(20)
 prob_params.friction = Constant(0.0)
 # Temporal settings
 prob_params.start_time = Constant(0)
-prob_params.finish_time = Constant(60)
+prob_params.finish_time = Constant(120)
 prob_params.dt = Constant(6)
 # The initial condition consists of three components: u_x, u_y and eta
 # Note that we do not set all components to zero, as some components of the
@@ -121,5 +121,4 @@ for s in solver.solve():
     plot(s["state"])
 
 # Finally we hold the plot unti the user presses q.
-
 interactive()
