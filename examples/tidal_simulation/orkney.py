@@ -41,8 +41,8 @@ domain = FileDomain("../data/meshes/orkney/orkney_utm.xml")
 #plot(domain.facet_ids, interactive=True)
 
 
-# Next we specify boundary conditions. We want to use real tidal boundary 
-# forcing, hence we use the :class:`TidalForcing` class.
+# Next we specify boundary conditions. We apply tidal boundary forcing, by using
+# the :class:`TidalForcing` class.
 
 eta_expr = TidalForcing(grid_file_name='netcdf/gridES2008.nc',
                         data_file_name='netcdf/hf.ES2008.nc',
@@ -53,8 +53,8 @@ eta_expr = TidalForcing(grid_file_name='netcdf/gridES2008.nc',
                         constituents=['Q1', 'O1', 'P1', 'K1', 'N2', 'M2', 'S2', 'K2'])
 
 bc = DirichletBCSet(config)
-bc.add_bc("eta", 1, eta_expr)
-bc.add_bc("eta", 2, eta_expr)
+bc.add_bc("eta", eta_expr, facet_id=1)
+bc.add_bc("eta", eta_expr, facet_id=2)
 
 # The free-slip boundary conditions are a special case. The boundary condition
 # type `weak_dirichlet` enforces the boundary value *only* in the
@@ -69,7 +69,8 @@ bcs.add_bc("u", Constant((0, 0)), facet_id=3, bctype="weak_dirichlet")
 bathy_expr = BathymetryDepthExpression('../data/netcdf/bathymetry.nc', utm_zone=utm_zone, 
                                   utm_band=utm_band)
 
-# We can visualise the bathymetry with
+# The bathymetry can be visualised with
+
 plot(bathy_expr, mesh=domain.mesh, title="Bathymetry", interactive=True)
 
 # Now we create shallow water problem and attach the domain and boundary
