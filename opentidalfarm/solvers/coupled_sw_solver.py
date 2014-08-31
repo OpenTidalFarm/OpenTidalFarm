@@ -320,8 +320,6 @@ CoupledSWSolverParameters."
                 log(INFO, "Writing state to disk...")
                 writer.write(state)
 
-        step = 0
-
         yield({"time": t, 
                "u": u0,
                "eta": h0,
@@ -333,6 +331,7 @@ CoupledSWSolverParameters."
         adjointer.time.start(t)
         timestep = 0
         while not self._finished(t, finish_time):
+            # Update timestep
             timestep += 1
             t = Constant(t + dt)
 
@@ -344,7 +343,6 @@ CoupledSWSolverParameters."
             # Update source term
             if u_source is not None:
                 u_source.t = Constant(t_theta)
-            step += 1
 
             # Set the initial guess for the solve
             if cache_forward_state and self.state_cache.has_key(float(t)):
@@ -401,7 +399,7 @@ CoupledSWSolverParameters."
                     tf.assign(turbine_field)
 
             if (solver_params.dump_period > 0 and 
-                step % solver_params.dump_period == 0):
+                timestep % solver_params.dump_period == 0):
                 log(INFO, "Write state to disk...")
                 writer.write(state)
 
