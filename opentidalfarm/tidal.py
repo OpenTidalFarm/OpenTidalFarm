@@ -43,7 +43,7 @@ class TidalForcing(Expression):
         global tnci_time
         if tnci_time != self.t:
             print0("Setting tidal forcing time to %f " % self.t)
-            self.tnci.set_time(self.t)
+            self.tnci.set_time(float(self.t))
             tnci_time = self.t
 
         latlon = utm.to_latlon(X[0], X[1], self.utm_zone, self.utm_band)
