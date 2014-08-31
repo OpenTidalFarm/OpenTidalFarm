@@ -94,6 +94,26 @@ CoupledSWSolverParameters."
     def _finished(self, current_time, finish_time):
         return float(current_time - finish_time) >= - 1e3*DOLFIN_EPS
 
+    def _generate_strong_bcs(self):
+
+        bcs = self.problem.parameters.bcs
+        facet_ids = self.problem.parameters.domain.facet_ids
+        fs = self.function_space
+
+        # Generate velocity boundary conditions
+        bcs_u = []
+        for _, expr, facet_id, _ in bcs.filter("u", "strong_dirichlet"):
+            bc = DirichletBC(fs.sub(0), expr, facet_ids, facet_id)
+            bcs_u.append(bc)
+
+        # Generate free-surface boundary conditions
+        bcs_eta = []
+        for _, expr, facet_id, _ in bcs.filter("eta", "strong_dirichlet"):
+            bc = DirichletBC(fs.sub(1), expr, facet_ids, facet_id)
+            bcs_eta.append(bc)
+
+        return bcs_u + bcs_eta
+
     def solve(self, turbine_field=None, functional=None, annotate=True, u_source=None):
         ''' Solve the shallow water equations '''
 
@@ -311,6 +331,9 @@ CoupledSWSolverParameters."
         if include_time_term:
             F += M - M0
 
+        # Generate the scheme specific strong boundary conditions
+        strong_bcs = self._generate_strong_bcs()
+
         ############################### Perform the simulation ###########################
 
         if solver_params.dump_period > 0:
@@ -361,20 +384,6 @@ CoupledSWSolverParameters."
                 log(INFO, "Solve shallow water equations at time %s" % float(t))
             else:
                 log(INFO, "Solve shallow water equations.")
-
-            strong_bcs = []
-            for function_name, expr, facet_id, bctype in problem_params.bcs:
-                if bctype is not "strong_dirichlet":
-                    continue
-
-                if function_name is "u":
-                    subidx = 0
-                elif function_name is "eta":
-                    subidx = 1
-
-                bc = DirichletBC(self.function_space.sub(subidx), expr,
-                                 problem_params.domain.facet_ids, facet_id)
-                strong_bcs.append(bc)
 
             solve(F == 0, state_new, bcs=strong_bcs,
                   solver_parameters=solver_params.dolfin_solver, 
