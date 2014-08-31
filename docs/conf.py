@@ -40,7 +40,7 @@ class Mock(object):
         if name in ('__file__', '__path__'):
             return '/dev/null'
         elif name[0] == name[0].upper():
-            mockType = type(name, (), {})
+            mockType = type(name, (Mock, ), {})
             mockType.__module__ = __name__
             return mockType
         else:
