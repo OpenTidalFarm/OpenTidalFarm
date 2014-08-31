@@ -19,9 +19,9 @@ import importlib
 # Our make file calls sphinx-apidoc, but read-the-docs uses our config instead
 # (so it skips that step). Calling apidoc here instead if we're being built
 # there.
-on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
-if on_rtd:
-    os.system("sphinx-apidoc -f -o . ../opentidalfarm")
+#on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
+#if on_rtd:
+#    os.system("sphinx-apidoc -f -o . ../opentidalfarm")
 
  
 # No need to install 3rd party packages to generate the docs
