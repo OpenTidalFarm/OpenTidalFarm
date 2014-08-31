@@ -14,6 +14,7 @@
 
 import sys
 import os
+import importlib
 
 # Our make file calls sphinx-apidoc, but read-the-docs uses our config instead
 # (so it skips that step). Calling apidoc here instead if we're being built
@@ -23,7 +24,7 @@ if on_rtd:
     os.system("sphinx-apidoc -f -o . ../opentidalfarm")
 
  
-# No need to install dolfin to generate the docs
+# No need to install 3rd party packages to generate the docs
 class Mock(object):
 
     __all__ = []
@@ -45,16 +46,16 @@ class Mock(object):
         else:
             return Mock()
 
-try:
-    import dolfin
-except ImportError:
-    MOCK_MODULES = ['dolfin', 'dolfin_adjoint',
-            'dolfin_adjoint.ReducedFunctionalNumPy', 'ufl',
-            'uptide', 'uptide.netcdf_reader', 'uptide.tidal_netcdf', 'numpy',
-            'utm', 'scipy', 'scipy.interpolate'] 
-    for mod_name in MOCK_MODULES:
-        print "Generating mock module %s." % mod_name
-        sys.modules[mod_name] = Mock()
+MOCK_MODULES = ['dolfin', 'dolfin_adjoint',
+        'dolfin_adjoint.ReducedFunctionalNumPy', 'ufl',
+        'uptide', 'uptide.netcdf_reader', 'uptide.tidal_netcdf', 'numpy',
+        'utm', 'scipy', 'scipy.interpolate'] 
+for mod_name in MOCK_MODULES:
+    try:
+        importlib.import_module(mod_name)
+    except:
+            print "Generating mock module %s." % mod_name
+            sys.modules[mod_name] = Mock()
 
 #
 # If extensions (or modules to document with autodoc) are in another directory,
