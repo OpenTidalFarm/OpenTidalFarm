@@ -57,7 +57,10 @@ class SteadySWProblemParameters(FrozenClass):
     include_advection = True
     include_viscosity = True
     linear_divergence = False
+    # FIXME: Replace initial_condition with initial_condition_*
     initial_condition = Constant((1e-16, 0, 0))
+    initial_condition_u = Constant((1e-16, 0))
+    initial_condition_eta = Constant(0)
 
     # Finite element settings
     finite_element = staticmethod(finite_elements.p2p1)

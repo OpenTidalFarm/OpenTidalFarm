@@ -60,6 +60,8 @@ class CoupledSWSolverParameters(FrozenClass):
 
 
 class CoupledSWSolver(Solver):
+    """ A solver class that solves the shallow water equations fully coupled.
+    """
 
     def __init__(self, problem, parameters, config=None):
 

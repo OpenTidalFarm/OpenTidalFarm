@@ -71,7 +71,7 @@ bathy_expr = BathymetryDepthExpression('../data/netcdf/bathymetry.nc', utm_zone=
 
 # The bathymetry can be visualised with
 
-plot(bathy_expr, mesh=domain.mesh, title="Bathymetry", interactive=True)
+#plot(bathy_expr, mesh=domain.mesh, title="Bathymetry", interactive=True)
 
 # Now we create shallow water problem and attach the domain and boundary
 # conditions
@@ -91,22 +91,23 @@ prob_params.dt = Constant(60)
 # The initial condition consists of three components: u_x, u_y and eta
 # Note that we do not set all components to zero, as some components of the
 # Jacobian of the quadratic friction term is non-differentiable.
-prob_params.initial_condition = Constant((DOLFIN_EPS, 0, 0)) 
+prob_params.initial_condition_u = Constant((DOLFIN_EPS, 0)) 
+prob_params.initial_condition_eta = Constant(0) 
 # Create the shallow water problem
 problem = SWProblem(prob_params)
 
 # Next we create a shallow water solver. Here we choose to solve the shallow
 # water equations in its fully coupled form:
 
-sol_params = CoupledSWSolver.default_parameters()
+sol_params = IPCSSWSolver.default_parameters()
 sol_params.dump_period = -1
-solver = CoupledSWSolver(problem, sol_params)
+solver = IPCSSWSolver(problem, sol_params)
 
 # Now we are ready to solve
 
 for s in solver.solve():
     print "Computed solution at time %f" % s["time"]
-    plot(s["state"])
+    plot(s["u"])
 
 # Finally we hold the plot unti the user presses q.
 interactive()
