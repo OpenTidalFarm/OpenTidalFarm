@@ -24,16 +24,16 @@ Time-dependent shallow water
     :members:
 
 
-Problem options
----------------
+Common options
+--------------
 
 .. toctree::
     
     opentidalfarm.bcs
     opentidalfarm.tides
 
-Advanced problem options
-------------------------
+Advanced options
+----------------
 
 .. toctree::
     
