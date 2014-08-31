@@ -6,8 +6,8 @@ Note: This installation procedure assumes that you are running the `Ubuntu`_ ope
 The installation consists of following steps:
 
 1. Download and install the dependencies:
-    - `FEniCS`_ (Follow the Ubuntu PPA installation order to get a recent installation)
-    - `dolfin-adjoint`_
+    - `FEniCS`_ (Follow the Ubuntu PPA installation)
+    - `dolfin-adjoint`_ (Follow the Ubuntu PPA installation)
     - `SciPy >=0.11`_ - e.g. with:
 
        ``sudo pip install scipy``

@@ -1,9 +1,10 @@
 """ This module contains classes to store domain information in OpenTidalFarm. 
 In particular each :class:`Domain` includes:
 
-* the computational mesh.
-* subdomains markers (used to identify turbine site areas).
-* boundary markers (used to identify where boundary conditions shall be applied)
+* the computational mesh;
+* subdomains markers (used to identify turbine site areas);
+* boundary markers (used to identify where boundary conditions shall be
+  applied).
 
 The mesh, and subdomain and surface makers can be visualised with 
 
