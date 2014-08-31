@@ -11,7 +11,7 @@ from ..helpers import StateWriter, norm_approx, smooth_uflmin, FrozenClass
 
 
 class CoupledSWSolverParameters(FrozenClass):
-    """ A set of parameters for a :class:`SteadyCoupledSWSolver`. 
+    """ A set of parameters for a :class:`CoupledSWSolver`. 
 
     Following parameters are available:
 
