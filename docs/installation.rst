@@ -1,37 +1,50 @@
 Installation
 ============
 
-Note: This installation procedure assumes that you are running the `Ubuntu`_ operating system.
+It is recommended to use OpenTidalFarm on the `Ubuntu`_ operating system.
 
-The installation consists of following steps:
+Quick install
+-------------
 
-1. Download and install the dependencies:
-    - `FEniCS`_ (Follow the Ubuntu PPA installation)
-    - `dolfin-adjoint`_ (Follow the Ubuntu PPA installation)
-    - `SciPy >=0.11`_ - e.g. with:
+Install using git:
 
-       ``sudo pip install scipy``
+.. code-block:: bash
 
-    - `Uptide`_
-    - `UTM`_ - e.g. with:
+   git clone git@github.com:OpenTidalFarm/OpenTidalFarm.git
+   cd OpenTidalFarm
+   git submodule init
+   git submodule update
+   python setup.py install
 
-       ``sudo pip install utm``
+Install using pip:
 
-2. `Download OpenTidalFarm`_ and extract it.
+.. code-block:: bash
 
-3. Open a terminal and change into the extracted directory and run:
+   pip install git+git://github.com/OpenTidalFarm/OpenTidalFarm.git
 
-   ``sudo python setup.py install``
+Test the installation with
 
-   to install it. A simple test to check if the installation was correct is to open a Python shell and type:
+.. code-block:: bash
 
-   ``from opentidalfarm import *``
+    python -c "import opentidalfarm"
 
-   If you get an error, make sure that you have set the `PYTHONPATH` correctly. In Linux, this can be done with:
+If no errors occur, your installation was succesfull.    
 
-   ``export PYTHONPATH=/XYZ:$PYTHONPATH``
+Dependencies
+------------
 
-   where ``XYZ`` should be replaced with the path to your OpenTidalFarm installation. 
+OpenTidalFarm depends on following packages:
+
+- `FEniCS`_ (Follow the Ubuntu PPA installation)
+- `dolfin-adjoint`_ (Follow the Ubuntu PPA installation)
+- `SciPy >=0.11`_ - e.g. with:
+
+   ``sudo pip install scipy``
+
+- `Uptide`_
+- `UTM`_ - e.g. with:
+
+   ``sudo pip install utm``
 
 .. _Ubuntu: http://www.ubuntu.com/
 .. _FEniCS: http://fenicsproject.org/download/

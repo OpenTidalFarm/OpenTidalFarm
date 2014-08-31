@@ -107,7 +107,7 @@ conditions
   # Temporal settings
   prob_params.start_time = Constant(0)
   prob_params.finish_time = Constant(12.5*60*60)
-  prob_params.dt = Constant(600)
+  prob_params.dt = Constant(60)
   # The initial condition consists of three components: u_x, u_y and eta
   # Note that we do not set all components to zero, as some components of the
   # Jacobian of the quadratic friction term is non-differentiable.
