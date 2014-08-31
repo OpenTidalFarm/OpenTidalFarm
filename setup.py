@@ -4,5 +4,9 @@ setup(name='OpenTidalFarm',
       author='Simon Funke',
       author_email='simon.funke@gmail.com',
       url='http://www.opentidalfarm.com',
-      packages = ['opentidalfarm'] 
+      packages = ['opentidalfarm',
+                  'opentidalfarm.problems',
+                  'opentidalfarm.solvers',
+                  'opentidalfarm.domains',
+                  'opentidalfarm.functionals'] 
       )
