@@ -23,9 +23,9 @@ class CoupledSWSolverParameters(FrozenClass):
             info(NonlinearVariationalSolver.default_parameters(), True)
         
         By default, the MUMPS direct solver is used for the linear system. If
-        not availabe, the default solver and preconditioner of FEniCS is used.
+        not available, the default solver and preconditioner of FEniCS is used.
 
-    :ivar dump_period: Specfies how often the solution should be dumped to disk.
+    :ivar dump_period: Specifies how often the solution should be dumped to disk.
         Use a negative value to disable it. Default 1.
     :ivar cache_forward_state: If True, the shallow water solutions are stored
         for every timestep and are used as initial guesses for the next solve. 
@@ -152,7 +152,7 @@ CoupledSWSolverParameters."
         
         else:
             raise TypeError("Do not know how to solve problem of type %s." % 
-                type(problem))
+                type(self.problem))
 
         g = problem_params.g
         depth = problem_params.depth
