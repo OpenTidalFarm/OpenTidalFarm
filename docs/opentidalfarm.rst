@@ -7,8 +7,6 @@
 
     opentidalfarm.domains
     opentidalfarm.problems
-    opentidalfarm.bcs
-    opentidalfarm.tides
     opentidalfarm.solvers
     opentidalfarm.functionals
     opentidalfarm.farm

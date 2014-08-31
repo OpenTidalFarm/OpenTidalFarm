@@ -13,7 +13,7 @@ Introduction
 ************
 
 This example demonstrates how OpenTidalFarm can be used for simulating the
-tides in a realsitic domain.
+tides in a realistic domain.
 
 Implementation
 **************
