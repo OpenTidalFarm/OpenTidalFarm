@@ -188,7 +188,7 @@ IPCSSWSolverParameters."
         u_mean = theta * u + (1. - theta) * u0
         u_diff = u - u0
         F_u_tent = ((1/dt) * inner(v, u_diff) * dx()
-                    + inner(v, grad(u0)*u0) * dx()
+                    #+ inner(v, grad(u0)*u0) * dx()
                     + inner(grad(v), grad(u_mean)) * dx()
                     - inner(div(v), eta0) * dx()
                     + inner(v, eta0*n) * ds()
@@ -198,8 +198,8 @@ IPCSSWSolverParameters."
         L_u_tent = rhs(F_u_tent)
 
         # Pressure correction
-        a_p_corr = (q*p - dt**2 * theta**2 * h * inner(grad(q), grad(p)))*dx()
-        L_p_corr = (q*eta0 - dt**2 * theta**2 * h * inner(grad(q), grad(eta0)))*dx() \
+        a_p_corr = (q*p + dt**2 * theta**2 * h * inner(grad(q), grad(p)))*dx()
+        L_p_corr = (q*eta0 + dt**2 * theta**2 * h * inner(grad(q), grad(eta0)))*dx() \
                  - dt*theta*h*q*div(u1)*dx()
 
         # Velocity correction
@@ -240,19 +240,19 @@ IPCSSWSolverParameters."
             b = assemble(L_u_tent)
             for bc in bcu: bc.apply(A_u_tent, b)
 
-            iter = solve(A_u_tent, u1.vector(), b)
+            solve(A_u_tent, u1.vector(), b)
 
             # Pressure correction
             b = assemble(L_p_corr)
             for bc in bceta: bc.apply(A_p_corr, b)
 
-            iter = solve(A_p_corr, eta1.vector(), b)
+            solve(A_p_corr, eta1.vector(), b)
 
             # Velocity correction
             b = assemble(L_u_corr)
             for bc in bcu: bc.apply(A_u_corr, b)
 
-            iter = solve(A_u_corr, u1.vector(), b)
+            solve(A_u_corr, u1.vector(), b)
 
             # Rotate functions for next timestep
             u0.assign(u1)

@@ -62,7 +62,7 @@ bcs.add_bc("eta", eta_expr, facet_id=2)
 # boundary condition gives us free-slip, while a zero `strong_dirichlet` boundary
 # condition would give us no-slip.
 
-bcs.add_bc("u", Constant((0, 0)), facet_id=3, bctype="weak_dirichlet")
+bcs.add_bc("u", Constant((0, 0)), facet_id=3, bctype="strong_dirichlet")
 
 # Next we load the bathymetry from the NetCDF file.
 
@@ -98,7 +98,6 @@ problem = SWProblem(prob_params)
 
 # Next we create a shallow water solver. Here we choose to solve the shallow
 # water equations in its fully coupled form:
-
 sol_params = IPCSSWSolver.default_parameters()
 sol_params.dump_period = -1
 solver = IPCSSWSolver(problem, sol_params)
@@ -107,7 +106,7 @@ solver = IPCSSWSolver(problem, sol_params)
 
 for s in solver.solve():
     print "Computed solution at time %f" % s["time"]
-    plot(s["u"])
+    plot(s["eta"])
 
 # Finally we hold the plot unti the user presses q.
 interactive()
