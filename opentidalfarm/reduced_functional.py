@@ -123,10 +123,10 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
                                                annotate=False)
 
             if 'dynamic_turbine_friction' in config.params["controls"]:
-                parameters = [FunctionControl("turbine_friction_cache_t_%i" % i) for i in range(len(config.params["turbine_friction"]))]
+                parameters = [InitialConditionParameter("turbine_friction_cache_t_%i" % i) for i in range(len(config.params["turbine_friction"]))]
 
             else:
-                parameters = FunctionControl("turbine_friction_cache")
+                parameters = InitialConditionParameter("turbine_friction_cache")
 
             djdtf = dolfin_adjoint.compute_gradient(J, parameters, forget=forget)
             dolfin.parameters["adjoint"]["stop_annotating"] = False
