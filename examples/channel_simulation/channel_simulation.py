@@ -67,7 +67,7 @@ plot(domain.facet_ids, interactive=True)
 # timelevel during the solve.
 
 bcs = BoundaryConditionSet()
-u_expr = Expression(("sin(pi*t/60)", "0"), t=Constant(0))
+u_expr = Expression(("x[1]*(50-x[1])/625", "0"), t=Constant(0))
 bcs.add_bc("u", u_expr, facet_id=1)
 bcs.add_bc("eta", Constant(0), facet_id=2)
 
@@ -77,7 +77,7 @@ bcs.add_bc("eta", Constant(0), facet_id=2)
 # boundary condition gives us free-slip, while a zero `strong_dirichlet` boundary
 # condition would give us no-slip.
 
-bcs.add_bc("u", Constant((0, 0)), facet_id=3, bctype="weak_dirichlet")
+bcs.add_bc("u", Constant((0, 0)), facet_id=3, bctype="strong_dirichlet")
 
 # Now we create shallow water problem and attach the domain and boundary
 # conditions
@@ -87,13 +87,14 @@ prob_params = SWProblem.default_parameters()
 prob_params.domain = domain
 prob_params.bcs = bcs
 # Equation settings
-prob_params.viscosity = Constant(3)
+prob_params.viscosity = Constant(30)
 prob_params.depth = Constant(20)
 prob_params.friction = Constant(0.0)
 # Temporal settings
+prob_params.theta = Constant(0.5)
 prob_params.start_time = Constant(0)
-prob_params.finish_time = Constant(120)
-prob_params.dt = Constant(6)
+prob_params.finish_time = Constant(500)
+prob_params.dt = Constant(0.5)
 # The initial condition consists of three components: u_x, u_y and eta
 # Note that we do not set all components to zero, as some components of the
 # Jacobian of the quadratic friction term is non-differentiable.
