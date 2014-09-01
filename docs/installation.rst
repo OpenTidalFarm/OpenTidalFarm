@@ -39,12 +39,15 @@ OpenTidalFarm depends on following packages:
 - `dolfin-adjoint`_ (Follow the Ubuntu PPA installation)
 - `SciPy >=0.11`_ - e.g. with:
 
-   ``sudo pip install scipy``
+   ``pip install scipy``
 
 - `Uptide`_
+
+   ``pip install git+git://github.com/stephankramer/uptide.git``
+
 - `UTM`_ - e.g. with:
 
-   ``sudo pip install utm``
+   ``pip install utm``
 
 .. _Ubuntu: http://www.ubuntu.com/
 .. _FEniCS: http://fenicsproject.org/download/
