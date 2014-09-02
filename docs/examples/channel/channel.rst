@@ -1,7 +1,7 @@
 ..  #!/usr/bin/env python 
   # -*- coding: utf-8 -*-
   
-.. _channel:
+.. _channel_simulation:
 
 .. py:currentmodule:: opentidalfarm
 
