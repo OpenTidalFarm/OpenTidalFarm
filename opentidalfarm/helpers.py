@@ -262,5 +262,15 @@ attribute." % (self, key))
 
     def __str__(self):
         attrs = dir(self)
-        attrs_dict = {k: str(getattr(self, k)) for k in attrs if not k.startswith("_")}
+        attrs_dict = {}
+
+        for k in attrs:
+            if k.startswith("_"):
+                continue
+            try:
+                val = float(getattr(self, k))
+            except:
+                val = str(getattr(self, k))
+            attrs_dict[k] = val
+
         return yaml.dump(attrs_dict, default_flow_style=False)
