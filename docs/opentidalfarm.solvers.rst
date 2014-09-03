@@ -9,7 +9,7 @@ Solvers
 Coupled shallow water solver
 ----------------------------
 
-.. automodule:: opentidalfarm.solvers.shallow_water
+.. automodule:: opentidalfarm.solvers.coupled_sw_solver
     :members:
     :undoc-members:
     :show-inheritance:

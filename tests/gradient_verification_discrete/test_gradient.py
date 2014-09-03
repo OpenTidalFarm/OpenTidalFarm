@@ -63,7 +63,7 @@ def model(controls, problem_params, sin_ic):
     solver_params.dump_period = -1
   
     solver = CoupledSWSolver(problem, solver_params, config)
-    rf = ReducedFunctional(config, solver)
+    rf = ReducedFunctional(config, solver, automatic_scaling=False)
     return rf
 
 class TestDiscreteTurbine(object):

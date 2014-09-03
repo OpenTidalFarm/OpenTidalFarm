@@ -24,9 +24,7 @@ class DefaultConfiguration(object):
             'cost_coef': 0.,
             'rho': 1000.,  # Use the density of water: 1000kg/m^3
             'controls': ['turbine_pos', 'turbine_friction'],
-            'automatic_scaling': False,
             'print_individual_turbine_power': False,
-            'automatic_scaling_multiplier': 5,
             'output_turbine_power': True,
             'save_checkpoints': False,
             'base_path': os.curdir,
@@ -91,11 +89,6 @@ class DefaultConfiguration(object):
 
             # Optimisation settings
             print "\n=== Optimisation settings ==="
-            print "Automatic functional rescaling: %s" % \
-                self.params["automatic_scaling"]
-            if self.params["automatic_scaling"]:
-                print "Automatic functional rescaling multiplier: %s" % \
-                    self.params["automatic_scaling_multiplier"]
             print "Automatic checkpoint generation: %s" % \
                 self.params["save_checkpoints"]
             print ""
@@ -119,17 +112,12 @@ class SteadyConfiguration(DefaultConfiguration):
 
         super(SteadyConfiguration, self).__init__(domain)
 
-        # Optimisation settings
-        self.params['automatic_scaling'] = True
-
         # Turbine settings
         self.params['turbine_pos'] = []
         self.params['turbine_friction'] = []
         self.params['turbine_x'] = 20.
         self.params['turbine_y'] = 20.
         self.params['controls'] = ['turbine_pos']
-
-
 
 class UnsteadyConfiguration(SteadyConfiguration):
     def __init__(self, domain): 

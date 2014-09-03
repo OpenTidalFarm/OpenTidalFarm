@@ -68,7 +68,6 @@ class TestPositionOptimisation(object):
         config.params["turbine_x"] = 800
         config.params["turbine_y"] = 800
         config.params["controls"] = ['turbine_pos']
-        config.params["automatic_scaling"] = True
         
         problem = DummyProblem(problem_params)
   
@@ -78,7 +77,7 @@ class TestPositionOptimisation(object):
         problem, config = self.default_config()
 
         solver = DummySolver(problem, config)
-        rf = ReducedFunctional(config, solver)
+        rf = ReducedFunctional(config, solver, automatic_scaling=5.)
         m0 = rf.initial_control()
 
         config.info()
