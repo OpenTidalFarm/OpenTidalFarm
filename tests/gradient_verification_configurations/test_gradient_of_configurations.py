@@ -106,7 +106,8 @@ class TestConfigurations(object):
         solver_params.cache_forward_state = True
         solver = CoupledSWSolver(problem, solver_params, config)
 
-        model = ReducedFunctional(config, solver, scale=10**-6)
+        model = ReducedFunctional(config, solver, scale=10**-6,
+                                  automatic_scaling=False)
         m0 = model.initial_control()
 
         p = numpy.random.rand(len(m0))

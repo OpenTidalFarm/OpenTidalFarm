@@ -29,7 +29,6 @@ class TestDynamicTurbineControl(object):
         config.params['turbine_x'] = 50. 
         config.params['turbine_y'] = 50. 
         config.params['controls'] = ["dynamic_turbine_friction"]
-        config.params["automatic_scaling"] = False
 
         for x_r in numpy.linspace(site_x_start, site_x_start + site_x, 2):
             for y_r in numpy.linspace(site_y_start, site_y_start + site_y, 2):
@@ -67,7 +66,8 @@ class TestDynamicTurbineControl(object):
         solver_params.cache_forward_state = False
         solver = CoupledSWSolver(problem, solver_params, config)
 
-        rf = ReducedFunctional(config, solver, scale=10**-6)
+        rf = ReducedFunctional(config, solver, scale=10**-6,
+                               automatic_scaling=False)
         m0 = rf.initial_control()
 
         rf.j(m0)

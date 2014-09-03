@@ -67,7 +67,7 @@ class TestMultiSteadyState(object):
         solver_params.dolfin_solver = {"newton_solver": {"relative_tolerance": 1e-15}}
         solver = CoupledSWSolver(problem, solver_params, config)
 
-        rf = ReducedFunctional(config, solver)
+        rf = ReducedFunctional(config, solver, automatic_scaling=5.)
         m0 = rf.initial_control()
         p = numpy.random.rand(len(m0))
         seed = 0.1
