@@ -12,8 +12,21 @@ import os.path
 
 
 class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
+    """ 
 
-    def __init__(self, config, solver, scale=1.0):
+    Following parameters are available:
+
+    :ivar config: FIXME: should be renamed to farm
+    :ivar functional: FIXME: should be added
+    :ivar solver: a :class:`Solver` object.
+    :ivar scale: an optional scaling factor. Default: 1.0
+    :ivar automatic_scaling: if not False, the reduced functional will be
+        automatically scaled such that the maximum absolute value of the initial
+        gradient is equal to the specified factor. Default: 5.
+
+    """
+
+    def __init__(self, config, solver, scale=1.0, automatic_scaling=5):
         ''' scale is ignored if automatic_scaling is active. '''
         # Hide the configuration since changes would break the memoize algorithm.
 
@@ -23,6 +36,7 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
         self.__config__ = config
         self.scale = scale
         self.solver = solver
+        self.automatic_scaling = automatic_scaling
         self.automatic_scaling_factor = None
         self.integrator = None
 
@@ -226,8 +240,8 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
         log(INFO, 'j = %e.' % float(j))
         self.last_j = j
 
-        if self.__config__.params['automatic_scaling']:
-            if not self.automatic_scaling_factor:
+        if self.automatic_scaling:
+            if self.automatic_scaling_factor is None:
                 # Computing dj will set the automatic scaling factor.
                 log(INFO, "Computing derivative to determine the automatic scaling factor")
                 self.dj(m, forget=False, optimisation_iteration=False)
@@ -262,8 +276,19 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
         if self.__config__.params["save_checkpoints"]:
             self.save_checkpoint("checkpoint")
 
-        # Compute the scaling factor if never done before
-        if self.__config__.params['automatic_scaling'] and not self.automatic_scaling_factor:
+        log(INFO, 'Runtime: ' + str(timer.stop()) + " s")
+        log(INFO, '|dj| = ' + str(numpy.linalg.norm(dj)))
+
+        if self.automatic_scaling:
+            self._set_automatic_scaling_factor(dj)
+            return dj * self.scale * self.automatic_scaling_factor
+        else:
+            return dj * self.scale
+
+    def _set_automatic_scaling_factor(self, dj):
+        """ Compute the scaling factor if never done before. """
+
+        if self.automatic_scaling_factor is None:
             if not 'turbine_pos' in self.__config__.params['controls']:
                 raise NotImplementedError("Automatic scaling only works if the turbine positions are control parameters")
 
@@ -275,18 +300,10 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
                 djl2 = max(abs(dj))
 
             if djl2 == 0:
-                raise ValueError("Automatic scaling failed: The gradient at the parameter point is zero")
+                log(ERROR, "Automatic scaling failed: The gradient at the parameter point is zero.")
             else:
-                self.automatic_scaling_factor = abs(self.__config__.params['automatic_scaling_multiplier'] * max(self.__config__.params['turbine_x'], self.__config__.params['turbine_y']) / djl2 / self.scale)
-                log(INFO, "The automatic scaling factor was set to " + str(self.automatic_scaling_factor * self.scale) + ".")
-
-        log(INFO, 'Runtime: ' + str(timer.stop()) + " s")
-        log(INFO, '|dj| = ' + str(numpy.linalg.norm(dj)))
-
-        if self.__config__.params['automatic_scaling']:
-            return dj * self.scale * self.automatic_scaling_factor
-        else:
-            return dj * self.scale
+                self.automatic_scaling_factor = abs(self.automatic_scaling * max(self.__config__.params['turbine_x'], self.__config__.params['turbine_y']) / djl2 / self.scale)
+                log(INFO, "Set automatic scaling factor to %e." % self.automatic_scaling_factor)
 
     def dj_with_check(self, m, seed=0.1, tol=1.8, forget=True):
         ''' This function checks the correctness and returns the gradient of the functional for the parameter choice m. '''

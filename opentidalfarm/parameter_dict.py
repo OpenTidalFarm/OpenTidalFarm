@@ -15,8 +15,6 @@ class ParameterDictionary(dict):
             'turbine_friction': 'turbine friction',
             'rho': 'the density of the fluid',
             'controls': 'a list of the control variables. Valid list values: "turbine_pos" for the turbine position, "turbine_friction" for the friction of the turbine',
-            'automatic_scaling': 'activates the initial automatic scaling of the functional',
-            'automatic_scaling_multiplier': 'defines the multiplier that determines the initial gradient length (= multiplier * turbine size)',
             'print_individual_turbine_power': 'print out the power output of each individual turbine',
             'output_turbine_power': 'output the power generation of the individual turbines',
             'save_checkpoints': 'automatically store checkpoints after each optimisation iteration',

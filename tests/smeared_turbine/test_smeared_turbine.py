@@ -60,7 +60,7 @@ class TestSmearedTurbine(object):
         solver_params.dump_period = -1
         solver = CoupledSWSolver(problem, solver_params, config)
 
-        rf = ReducedFunctional(config, solver)
+        rf = ReducedFunctional(config, solver, automatic_scaling=False)
         # Ensure the same seed value accross all CPUs
         numpy.random.seed(33)
         m0 = numpy.random.rand(len(rf.initial_control()))

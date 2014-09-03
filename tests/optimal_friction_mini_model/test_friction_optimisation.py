@@ -50,13 +50,15 @@ class TestFrictionOptimisation(object):
         problem, config = self.default_config(sin_ic)
         solver = DummySolver(problem, config)
 
-        rf = ReducedFunctional(config, solver, scale=1e-3)
+        rf = ReducedFunctional(config, solver, scale=1e-3,
+                               automatic_scaling=False)
         m0 = rf.initial_control()
         rf(m0)
         rf.dj(m0, forget=False)
 
         p = numpy.random.rand(len(m0))
-        minconv = helpers.test_gradient_array(rf.j, rf.dj, m0, seed=0.001, perturbation_direction=p)
+        minconv = helpers.test_gradient_array(rf.j, rf.dj, m0, seed=0.001, 
+                                              perturbation_direction=p)
         assert minconv > 1.98
 
         bounds = [0, 100]
