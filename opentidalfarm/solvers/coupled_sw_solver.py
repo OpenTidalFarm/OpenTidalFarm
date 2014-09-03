@@ -34,7 +34,7 @@ class CoupledSWSolverParameters(FrozenClass):
     :ivar print_individual_turbine_power: Print out the turbine power for each
         turbine. Default: False
     :ivar quadrature_degree: The quadrature degree for the matrix assembly.
-        Default: 5
+        Default: -1 (automatic)
     :ivar cpp_flags: A list of cpp compiler options for the code generation.
         Default: ["-O3", "-ffast-math", "-march=native"]
 
@@ -46,7 +46,7 @@ class CoupledSWSolverParameters(FrozenClass):
 
     # Performance settings
     cache_forward_state = True
-    quadrature_degree = 5
+    quadrature_degree = -1
     cpp_flags = ["-O3", "-ffast-math", "-march=native"]
 
     def __init__(self):
