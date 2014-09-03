@@ -56,7 +56,7 @@ class TestCheckpoint(object):
 
         solver = DummySolver(problem, config)
 
-        rf = ReducedFunctional(config, solver)
+        rf = ReducedFunctional(config, solver, automatic_scaling=False)
         bounds = [0, 100]
         
         # First optimize without checkpoints
