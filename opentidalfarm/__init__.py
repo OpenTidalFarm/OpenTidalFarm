@@ -14,7 +14,7 @@ __email__ = 'simon.funke@gmail.com'
 import finite_elements
 import helpers
 
-from configuration import *
+from tidal_farm import TidalFarm
 from solvers import *
 from problems import *
 from domains import *

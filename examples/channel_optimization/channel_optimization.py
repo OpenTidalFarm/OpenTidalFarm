@@ -45,23 +45,22 @@ problem = SteadySWProblem(prob_params)
 # farm consists of 32 turbines, initialloy deployed in a regular grid layout.
 # This layout will be the starting guess for the optimization.
 
-farm = DefaultConfiguration(domain)
+farm = TidalFarm(domain)
 farm.set_site_dimensions(x0=160, x1=480, 
                          y0=80, y1=240)
 farm.params['controls'] = ['turbine_pos']
 farm.params['turbine_x'] = 20
 farm.params['turbine_y'] = 20
+prob_params.tidal_farm = farm
 
 deploy_turbines(farm, nx=8, ny=4)
-
-farm.info()
 
 # Next we create a shallow water solver. Here we choose to solve the shallow
 # water equations in its fully coupled form:
 
 sol_params = CoupledSWSolver.default_parameters()
 sol_params.dump_period = -1
-solver = CoupledSWSolver(problem, sol_params, farm)
+solver = CoupledSWSolver(problem, sol_params)
 
 functional = PowerFunctional
 rf = ReducedFunctional(farm, functional, solver, automatic_scaling=5)

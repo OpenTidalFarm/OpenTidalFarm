@@ -13,11 +13,11 @@ class TestSmearedTurbine(object):
         nx = 5
         ny = 5
         domain = RectangularDomain(0, 0, 3000, 1000, nx, ny)
-        farm = DefaultConfiguration(domain)
-
+        farm = TidalFarm(domain)
         # Switch to a smeared turbine representation
         farm.params["controls"] = ["turbine_friction"]
         farm.params["turbine_parametrisation"] = "smeared"
+        prob_params.tidal_farm = farm
 
         prob_params.domain = domain
         prob_params.initial_condition = Constant((1, 0, 0))
@@ -59,7 +59,7 @@ class TestSmearedTurbine(object):
 
         solver_params = CoupledSWSolver.default_parameters()
         solver_params.dump_period = -1
-        solver = CoupledSWSolver(problem, solver_params, farm)
+        solver = CoupledSWSolver(problem, solver_params)
 
         functional = PowerFunctional
         rf = ReducedFunctional(farm, functional, solver, 

@@ -1,23 +1,22 @@
-''' This test checks the correctness of the functional gradient 
-    with respect to the turbine position '''
 import numpy
 from opentidalfarm import *
 
 def model(controls, problem_params, sin_ic):
     domain = domains.RectangularDomain(0, 0, 3000, 1000, 5, 5)
 
-    # Turbine settings
-    config = DefaultConfiguration(domain)
-    config.params["controls"] = controls
-    config.params["output_turbine_power"] = False
+    # Create tidal farm
+    farm = TidalFarm(domain)
+    farm.params["controls"] = controls
+    farm.params["output_turbine_power"] = False
     # The turbine position is the control variable 
-    config.params["turbine_pos"] = [[1000, 400], [2000, 600]] 
+    farm.params["turbine_pos"] = [[1000, 400], [2000, 600]] 
     # Choosing a friction coefficient of > 0.02 ensures that 
     # overlapping turbines lead to less power output.
-    nb_turbines = len(config.params["turbine_pos"])
-    config.params["turbine_friction"] = 0.2*numpy.ones(nb_turbines)
-    config.params["turbine_x"] = 400
-    config.params["turbine_y"] = 400
+    nb_turbines = len(farm.params["turbine_pos"])
+    farm.params["turbine_friction"] = 0.2*numpy.ones(nb_turbines)
+    farm.params["turbine_x"] = 400
+    farm.params["turbine_y"] = 400
+    problem_params.tidal_farm = farm
 
     # Domain
     problem_params.domain = domain
@@ -43,7 +42,6 @@ def model(controls, problem_params, sin_ic):
         depth=problem_params.depth,
         t=problem_params.start_time, 
         k=k)
-  
     bcs = BoundaryConditionSet()
     bcs.add_bc("u", expression, 1, "strong_dirichlet")
     bcs.add_bc("u", expression, 2, "strong_dirichlet")
@@ -57,15 +55,16 @@ def model(controls, problem_params, sin_ic):
     # Physical parameters
     problem_params.friction = 0.0025
 
+    # Create problem
     problem = SWProblem(problem_params)
 
+    # Create solver
     solver_params = CoupledSWSolver.default_parameters()
     solver_params.dump_period = -1
-  
-    solver = CoupledSWSolver(problem, solver_params, config)
+    solver = CoupledSWSolver(problem, solver_params)
 
     functional = PowerFunctional
-    rf = ReducedFunctional(config, functional, solver, automatic_scaling=False)
+    rf = ReducedFunctional(farm, functional, solver, automatic_scaling=False)
     return rf
 
 class TestDiscreteTurbine(object):

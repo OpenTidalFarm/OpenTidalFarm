@@ -9,14 +9,13 @@ class DummySolverParameters(FrozenClass):
 
 class DummySolver(Solver):
 
-    def __init__(self, problem, config):
+    def __init__(self, problem):
 
         if not isinstance(problem, DummyProblem):
             raise TypeError, "problem must be of type DummyProblem"
 
         self.problem = problem
         self.parameters = DummySolverParameters()
-        self.config = config
         self.tf = None
         self.current_state = None
 

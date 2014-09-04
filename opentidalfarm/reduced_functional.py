@@ -105,8 +105,9 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
             # interest.
             final_only = not solver.problem._is_transient or \
                          solver.problem.parameters.functional_final_time_only
+            functional = self.functional(config, rho=solver.problem.parameters.rho)
             self.integrator = FunctionalIntegrator(solver.problem, 
-                                                   self.functional(config), 
+                                                   functional, 
                                                    final_only)
 
             for sol in solver.solve(turbine_field=tf, 
@@ -125,7 +126,8 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
 
             final_only = not solver.problem._is_transient or \
                          solver.problem.parameters.functional_final_time_only
-            integrator = FunctionalIntegrator(solver.problem, self.functional(config),
+            functional = self.functional(config, rho=solver.problem.parameters.rho)
+            integrator = FunctionalIntegrator(solver.problem, functional,
                                               final_only)
 
             J = self.integrator.dolfin_adjoint_functional()

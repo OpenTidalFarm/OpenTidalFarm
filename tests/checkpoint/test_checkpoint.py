@@ -15,49 +15,43 @@ from opentidalfarm import *
 
 class TestCheckpoint(object):
 
-    def default_config(self, sin_ic):
+    def default_problem(self, ic):
         domain = RectangularDomain(0, 0, 3000, 1000, 20, 10)
 
-        config = configuration.DefaultConfiguration(domain)
-        config.params["verbose"] = 0
+        # Create the farm
+        farm = TidalFarm(domain)
+        farm.params["turbine_pos"] = [[500., 500.]]
+        # The turbine friction is the control variable 
+        farm.params["turbine_friction"] = 12.0*numpy.random.rand(len(farm.params["turbine_pos"]))
+        farm.params["turbine_x"] = 8000
+        farm.params["turbine_y"] = 8000
+        farm.params['controls'] = ['turbine_friction']
+        farm.params["dump_period"] = -1
+        farm.params["output_turbine_power"] = False
+        farm.params["save_checkpoints"] = True
       
+        # Set the problem parameters
         problem_params = DummyProblem.default_parameters()
         problem_params.domain = domain
-
         problem_params.finite_element = finite_elements.p1dgp2
-        
-        # dt is used in the functional only, so we set it here to 1.0
-        problem_params.dt = 1.0
+        problem_params.initial_condition = ic(2.0, pi/3000., 50, start_time=0.0)
+        problem_params.dt = 1.0  # dt is used in the functional only, 
+                                 # so we set it here to 1.0
         problem_params.functional_final_time_only = True
+        problem_params.tidal_farm = farm
 
-        # Turbine settings
-        config.params["turbine_pos"] = [[500., 500.]]
-        # The turbine friction is the control variable 
-        config.params["turbine_friction"] = 12.0*numpy.random.rand(len(config.params["turbine_pos"]))
-        config.params["turbine_x"] = 8000
-        config.params["turbine_y"] = 8000
-        config.params['controls'] = ['turbine_friction']
-        config.params["dump_period"] = -1
-        config.params["output_turbine_power"] = False
-      
-        k = pi/3000.
-        problem_params.initial_condition = sin_ic(2.0, k, 
-                50, start_time=0.0)
-
+        # Create the problem
         problem = DummyProblem(problem_params)
       
-        return problem, config
+        return problem
 
     def test_speedup_is_larger_than_ten(self, sin_ic):
-        problem, config = self.default_config(sin_ic)
-        config.params["save_checkpoints"] = True
-        config.info()
-        friction0 = config.params["turbine_friction"]
+        problem = self.default_problem(ic=sin_ic)
+        farm = problem.parameters.tidal_farm
+        friction0 = farm.params["turbine_friction"]
 
-        solver = DummySolver(problem, config)
-
-        functional = PowerFunctional
-        rf = ReducedFunctional(config, functional, solver,
+        solver = DummySolver(problem)
+        rf = ReducedFunctional(farm, PowerFunctional, solver,
                                automatic_scaling=False)
         bounds = [0, 100]
         
@@ -68,7 +62,7 @@ class TestCheckpoint(object):
         t1 = t.stop()
 
         # Then optimize again
-        config.params["turbine_friction"] = friction0
+        farm.params["turbine_friction"] = friction0
         maxiter = 2
         t = Timer("First optimisation")
         m = maximize(rf, bounds=bounds, method="SLSQP", scale=1e-3, options={'maxiter': maxiter}) 
