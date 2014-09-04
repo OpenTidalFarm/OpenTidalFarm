@@ -5,15 +5,12 @@ from dolfin import *
 from math import sqrt, pi
 from domains import *
 from helpers import info_red, get_rank
-from functionals import DefaultFunctional
 import os
 
 
 class DefaultConfiguration(object):
     ''' A default configuration setup that is used by all tests. '''
     def __init__(self, domain):
-
-        self.functional = DefaultFunctional
 
         params = ParameterDictionary({
             'turbine_parametrisation': 'individual',
@@ -97,14 +94,13 @@ class DefaultConfiguration(object):
             print "\n=== Other ==="
             print "Dolfin version: %s" % dolfin.__version__
 
-    def set_site_dimensions(self, site_x_start, site_x_end, site_y_start,
-                            site_y_end):
-        if not site_x_start < site_x_end or not site_y_start < site_y_end:
+    def set_site_dimensions(self, x0, x1, y0, y1):
+        if not x0 < x1 or not y0 < y1:
             raise ValueError("Site must have a positive area")
-        self.domain.site_x_start = site_x_start
-        self.domain.site_y_start = site_y_start
-        self.domain.site_x_end = site_x_end
-        self.domain.site_y_end = site_y_end
+        self.domain.site_x_start = x0
+        self.domain.site_x_end = x1
+        self.domain.site_y_start = y0
+        self.domain.site_y_end = y1
 
 
 class SteadyConfiguration(DefaultConfiguration):

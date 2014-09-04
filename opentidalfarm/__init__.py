@@ -18,7 +18,7 @@ from configuration import *
 from solvers import *
 from problems import *
 from domains import *
-from functionals import DefaultFunctional, PowerCurveFunctional
+from functionals import *
 from tidal import TidalForcing, BathymetryDepthExpression 
 
 from optimisation_helpers import friction_constraints, \

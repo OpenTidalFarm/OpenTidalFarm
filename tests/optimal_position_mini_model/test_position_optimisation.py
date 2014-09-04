@@ -77,7 +77,8 @@ class TestPositionOptimisation(object):
         problem, config = self.default_config()
 
         solver = DummySolver(problem, config)
-        rf = ReducedFunctional(config, solver, automatic_scaling=5.)
+        functional = PowerFunctional
+        rf = ReducedFunctional(config, functional, solver, automatic_scaling=5.)
         m0 = rf.initial_control()
 
         config.info()

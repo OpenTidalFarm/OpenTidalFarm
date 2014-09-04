@@ -13,13 +13,12 @@ class FunctionalPrototype(object):
         raise NotImplementedError("FunctionalPrototyp.__Jt__ needs to be overloaded.")
 
 
-class DefaultFunctional(FunctionalPrototype):
+class PowerFunctional(FunctionalPrototype):
     ''' Implements a simple functional of the form:
           J(u, m) = rho * turbines(m) * (||u||**3)
         where turbines(m) defines the friction function due to the turbines.
     '''
     def __init__(self, config):
-        ''' Constructs a new DefaultFunctional. The turbine settings are derived from the settings params. '''
         config.turbine_cache.update(config)
         self.config = config
         # Create a copy of the parameters so that future changes will not affect the definition of this object.
@@ -60,7 +59,6 @@ class PowerCurveFunctional(FunctionalPrototype):
         where m controls the strength of each turbine.
     '''
     def __init__(self, config):
-        ''' Constructs a new DefaultFunctional. The turbine settings are derived from the settings params. '''
         config.turbine_cache.update(config)
         self.config = config
         # Create a copy of the parameters so that future changes will not affect the definition of this object.

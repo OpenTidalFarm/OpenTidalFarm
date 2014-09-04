@@ -7,7 +7,7 @@ from dolfin import *
 from dolfin_adjoint import *
 from turbines import *
 from solvers import Solver
-from functionals import FunctionalIntegrator
+from functionals import FunctionalIntegrator, FunctionalPrototype
 import os.path
 
 
@@ -16,8 +16,8 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
 
     Following parameters are available:
 
-    :ivar config: FIXME: should be renamed to farm
-    :ivar functional: FIXME: should be added
+    :ivar config: FIXME: should be renamed to Control.
+    :ivar functional: a :class:`FunctionalPrototype` class.
     :ivar solver: a :class:`Solver` object.
     :ivar scale: an optional scaling factor. Default: 1.0
     :ivar automatic_scaling: if not False, the reduced functional will be
@@ -26,12 +26,16 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
 
     """
 
-    def __init__(self, config, solver, scale=1.0, automatic_scaling=5):
+    def __init__(self, config, functional, solver, scale=1.0, 
+                 automatic_scaling=5):
         ''' scale is ignored if automatic_scaling is active. '''
         # Hide the configuration since changes would break the memoize algorithm.
 
         if not isinstance(solver, Solver):
-            raise ValueError, "solver must be of type Solver."
+            raise ValueError, "solver argument of wrong type."
+
+        #if not isinstance(functional, FunctionalPrototype):
+        #    raise ValueError, "invalid functional argument."
 
         self.__config__ = config
         self.scale = scale
@@ -39,6 +43,7 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
         self.automatic_scaling = automatic_scaling
         self.automatic_scaling_factor = None
         self.integrator = None
+        self.functional = functional
 
         # Caching variables that store which controls the last forward run was performed
         self.last_m = None
@@ -98,14 +103,13 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
 
             # Solve the shallow water system and integrate the functional of
             # interest.
-            functional = config.functional(config)
-
             final_only = not solver.problem._is_transient or \
                          solver.problem.parameters.functional_final_time_only
-            self.integrator = FunctionalIntegrator(solver.problem, functional, 
+            self.integrator = FunctionalIntegrator(solver.problem, 
+                                                   self.functional(config), 
                                                    final_only)
 
-            for sol in solver.solve(functional=functional, turbine_field=tf, 
+            for sol in solver.solve(turbine_field=tf, 
                                     annotate=annotate):
                 self.integrator.add(sol["time"], sol["state"], sol["tf"], 
                                sol["is_final"])
@@ -119,12 +123,10 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
             if numpy.any(m != self.last_m):
                 compute_functional(m, annotate=True)
 
-            # Get the dolfin adjoint functional
-            functional = config.functional(config)
-
             final_only = not solver.problem._is_transient or \
                          solver.problem.parameters.functional_final_time_only
-            integrator = FunctionalIntegrator(solver.problem, functional, final_only)
+            integrator = FunctionalIntegrator(solver.problem, self.functional(config),
+                                              final_only)
 
             J = self.integrator.dolfin_adjoint_functional()
 
@@ -132,7 +134,8 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
             if self.solver.parameters.dump_period > 0:
                 if config.params['output_turbine_power']:
                     turbines = self.__config__.turbine_cache.cache["turbine_field"]
-                    self.power_file << project(functional.power(solver.current_state, turbines), 
+                    power = self.functional(config).power(solver.current_state, turbines)
+                    self.power_file << project(power,
                                                config.turbine_function_space, 
                                                annotate=False)
 

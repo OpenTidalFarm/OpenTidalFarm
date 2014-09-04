@@ -94,7 +94,7 @@ CoupledSWSolverParameters."
     def _finished(self, current_time, finish_time):
         return float(current_time - finish_time) >= - 1e3*DOLFIN_EPS
 
-    def solve(self, turbine_field=None, functional=None, annotate=True, u_source=None):
+    def solve(self, turbine_field=None, annotate=True, u_source=None):
         ''' Solve the shallow water equations '''
 
         ############################### Setting up the equations ###########################

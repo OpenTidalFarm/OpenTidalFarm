@@ -82,7 +82,8 @@ class TestTurbineDerivatives(object):
         solver_params.dump_period = -1
         solver = CoupledSWSolver(problem, solver_params, config)
 
-        m0 = ReducedFunctional(config, solver).initial_control()
+        functional = PowerFunctional
+        m0 = ReducedFunctional(config, functional, solver).initial_control()
 
         j = lambda m, forward_only = False: self.j_and_dj(problem, config, m, forward_only)[0]
         dj = lambda m, forget: self.j_and_dj(problem, config, m, forward_only=False)[1]
