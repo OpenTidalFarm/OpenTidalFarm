@@ -23,7 +23,7 @@ import importlib
 #if on_rtd:
 #    os.system("sphinx-apidoc -f -o . ../opentidalfarm")
 
- 
+
 # No need to install 3rd party packages to generate the docs
 class Mock(object):
 
@@ -49,7 +49,7 @@ class Mock(object):
 MOCK_MODULES = ['dolfin', 'dolfin_adjoint',
         'dolfin_adjoint.ReducedFunctionalNumPy', 'ufl',
         'uptide', 'uptide.netcdf_reader', 'uptide.tidal_netcdf', 'numpy',
-        'utm', 'scipy', 'scipy.interpolate'] 
+        'utm', 'scipy', 'scipy.interpolate']
 for mod_name in MOCK_MODULES:
     try:
         importlib.import_module(mod_name)
@@ -152,7 +152,7 @@ html_theme = 'default'
 #html_theme_options = {}
 
 # Add any paths that contain custom themes here, relative to this directory.
-#html_theme_path = []
+#html_theme_path = ['_themes']
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
@@ -163,7 +163,7 @@ html_theme = 'default'
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-#html_logo = None
+html_logo = "media/OTF.png"
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
@@ -248,7 +248,7 @@ latex_documents = [
 
 # The name of an image file (relative to this directory) to place at the top of
 # the title page.
-#latex_logo = None
+latex_logo = "media/OTF_logo.jpg"
 
 # For "manual" documents, if this is true, then toplevel headings are parts,
 # not chapters.
