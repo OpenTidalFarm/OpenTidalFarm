@@ -21,16 +21,22 @@ class ReducedFunctionalParameters(helpers.FrozenClass):
         automatically scaled such that the maximum absolute value of the initial
         gradient is equal to the specified factor. Set to False to deactivate the 
         automatic scaling. Default: 5.
+    :ivar load_checkpoints: If True, the checkpoints are loaded from file and
+        used. Default: False
     :ivar save_checkpoints: Automatically store checkpoints after each
         optimisation iteration. Default: False
+    :ivar checkpoint_basefilename: The base filename (without extensions) for
+        storing or loading the checkpoints. Default: 'checkpoints'.
     """
 
     scale = 1.
     automatic_scaling = 5.
     save_checkpoints = False
+    load_checkpoints = False
+    checkpoints_basefilename = "checkpoints"
 
 
-class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
+class ReducedFunctional(dolfin_adjoint.ReducedFunctionalNumPy):
     """ 
     Following parameters are expected:
 
@@ -86,17 +92,28 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
         # hash of the control values into the pickle datastructure
         use_hash_keys = (self._farm.params["turbine_parametrisation"] == "smeared")
 
-        self.compute_functional_mem = MemoizeMutable(self.compute_functional, 
+        self._compute_functional_mem = MemoizeMutable(self._compute_functional, 
             use_hash_keys)
-        self.compute_gradient_mem = MemoizeMutable(self.compute_gradient, 
+        self._compute_gradient_mem = MemoizeMutable(self._compute_gradient, 
             use_hash_keys)
 
-    def compute_gradient(self, m, forget=True):
+        # Load checkpoints from file
+        if self.parameters.load_checkpoints:
+            self.load_checkpoints()
+
+
+    @staticmethod
+    def default_parameters():
+        """ Return the default parameters for the :class:`ReducedFunctional`.
+        """
+        return ReducedFunctionalParameters()
+
+    def _compute_gradient(self, m, forget=True):
         ''' Compute the functional gradient for the turbine positions/frictions array '''
 
         # If any of the parameters changed, the forward model needs to re-run
         if numpy.any(m != self.last_m):
-            self.compute_functional(m, annotate=True)
+            self._compute_functional(m, annotate=True)
 
         final_only = not self.solver.problem._is_transient or \
                      self._problem_params.functional_final_time_only
@@ -163,12 +180,12 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
 
         return dj
 
-    def compute_functional(self, m, annotate=True):
+    def _compute_functional(self, m, annotate=True):
         ''' Compute the functional of interest for the turbine positions/frictions array '''
 
         self.last_m = m
 
-        self.update_turbine_cache(m)
+        self._update_turbine_farm(m)
         tf = self._farm.turbine_cache.cache["turbine_field"]
 
         return self._compute_functional_from_tf(tf, annotate=annotate)
@@ -207,8 +224,8 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
                   snaps_on_disk=snaps_on_disk, snaps_in_ram=snaps_in_ram, 
                   verbose=verbose)
 
-    def update_turbine_cache(self, m):
-        ''' Reconstructs the parameters from the flattened parameter array m and updates the configuration. '''
+    def _update_turbine_farm(self, m):
+        ''' Update the turbine farm from the flattened parameter array m. '''
 
         if self._farm.params["turbine_parametrisation"] == "smeared":
             self._farm.params["turbine_friction"] = m
@@ -231,27 +248,29 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
         # Set up the turbine field
         self._farm.turbine_cache.update(self._farm)
 
-    def save_checkpoint(self, base_filename):
-        ''' Checkpoint the reduceduced functional from which can be used to restart the turbine optimisation. '''
-        base_path = os.path.join(self._farm.params["base_path"], base_filename)
-        self.compute_functional_mem.save_checkpoint(base_path + "_fwd.dat")
-        self.compute_gradient_mem.save_checkpoint(base_path + "_adj.dat")
+    def _save_checkpoint(self):
+        ''' Checkpoint the reduced functional from which can be used to restart the turbine optimisation. '''
+        base_filename = self.params.checkpoints_basefilename
+        base_path = os.path.join(self.params["base_path"], base_filename)
+        self._compute_functional_mem.save_checkpoint(base_path + "_fwd.dat")
+        self._compute_gradient_mem.save_checkpoint(base_path + "_adj.dat")
 
-    def load_checkpoint(self, base_filename='checkpoint'):
+    def _load_checkpoint(self):
         ''' Checkpoint the reduceduced functional from which can be used to restart the turbine optimisation. '''
+        base_filename = self.params.checkpoints_basefilename
         base_path = os.path.join(self._farm.params["base_path"], base_filename)
-        self.compute_functional_mem.load_checkpoint(base_path + "_fwd.dat")
-        self.compute_gradient_mem.load_checkpoint(base_path + "_adj.dat")
+        self._compute_functional_mem.load_checkpoint(base_path + "_fwd.dat")
+        self._compute_gradient_mem.load_checkpoint(base_path + "_adj.dat")
 
-    def j(self, m, annotate=True):
-        ''' This memoised function returns the functional value for the parameter choice m. '''
+    def evaluate(self, m, annotate=True):
+        ''' Return the functional value for the given parameter array. '''
         log(INFO, 'Start evaluation of j')
         timer = dolfin.Timer("j evaluation")
-        j = self.compute_functional_mem(m, annotate=annotate)
+        j = self._compute_functional_mem(m, annotate=annotate)
         timer.stop()
 
         if self.parameters.save_checkpoints:
-            self.save_checkpoint("checkpoint")
+            self._save_checkpoint()
 
         log(INFO, 'Runtime: %f s.' % timer.value())
         log(INFO, 'j = %e.' % float(j))
@@ -261,16 +280,16 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
             if self._automatic_scaling_factor is None:
                 # Computing dj will set the automatic scaling factor.
                 log(INFO, "Computing derivative to determine the automatic scaling factor")
-                self.dj(m, forget=False, optimisation_iteration=False)
+                self._dj(m, forget=False, optimisation_iteration=False)
             return j * self.scale * self._automatic_scaling_factor
         else:
             return j * self.scale
 
-    def dj(self, m, forget, optimisation_iteration=True):
+    def _dj(self, m, forget, optimisation_iteration=True):
         ''' This memoised function returns the gradient of the functional for the parameter choice m. '''
         log(INFO, 'Start evaluation of dj')
         timer = dolfin.Timer("dj evaluation")
-        dj = self.compute_gradient_mem(m, forget)
+        dj = self._compute_gradient_mem(m, forget)
 
         # We assume that the gradient is computed at and only at the beginning of each new optimisation iteration.
         # Hence, this is the right moment to store the turbine friction field and to increment the optimisation iteration
@@ -280,8 +299,8 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
             if self.solver.parameters.dump_period > 0:
                 # A cache hit skips the turbine cache update, so we need
                 # trigger it manually.
-                if self.compute_gradient_mem.has_cache(m, forget):
-                    self.update_turbine_cache(m)
+                if self._compute_gradient_mem.has_cache(m, forget):
+                    self._update_turbine_farm(m)
                 if "dynamic_turbine_friction" in self._farm.params["controls"]:
                     log(WARNING, "Turbine VTU output not yet implemented for dynamic turbine control")
                 else:
@@ -291,7 +310,7 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
                         print "Total amount of friction: ", assemble(self._farm.turbine_cache.cache["turbine_field"] * dx)
 
         if self.parameters.save_checkpoints:
-            self.save_checkpoint("checkpoint")
+            self._save_checkpoint()
 
         log(INFO, 'Runtime: ' + str(timer.stop()) + " s")
         log(INFO, '|dj| = ' + str(numpy.linalg.norm(dj)))
@@ -325,48 +344,16 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
                         self.scale)
                 log(INFO, "Set automatic scaling factor to %e." % self._automatic_scaling_factor)
 
-    def dj_with_check(self, m, seed=0.1, tol=1.8, forget=True):
-        ''' This function checks the correctness and returns the gradient of the functional for the parameter choice m. '''
-
-        log(INFO, "Checking derivative at m = " + str(m))
-        p = numpy.random.rand(len(m))
-        minconv = helpers.test_gradient_array(self.j, self.dj, m, seed=seed, perturbation_direction=p)
-        if minconv < tol:
-            log(ERROR, "The gradient taylor remainder test failed.")
-            sys.exit(1)
-        else:
-            log(INFO, "The gradient taylor remainder test passed.")
-
-        return self.dj(m, forget)
-
-    def initial_control(self):
-        ''' This function returns the control variable array that derives from the initial configuration. '''
-        res = []
-        if self._farm.params["turbine_parametrisation"] == "smeared":
-            res = numpy.zeros(self._farm.turbine_function_space.dim())
-
-        else:
-            if ('turbine_friction' in self._farm.params["controls"] or
-                'dynamic_turbine_friction' in self._farm.params["controls"]):
-                res += numpy.reshape(self._farm.params['turbine_friction'], -1).tolist()
-
-            if 'turbine_pos' in self._farm.params["controls"]:
-                res += numpy.reshape(self._farm.params['turbine_pos'], -1).tolist()
-
-        return numpy.array(res)
-
     def __call__(self, m):
         ''' Interface function for dolfin_adjoint.ReducedFunctional '''
 
-        return self.j(m)
+        return self.evaluate(m)
 
-    def derivative(self, m_array, taylor_test=False, seed=0.001, forget=True, **kwargs):
-        ''' Interface function for dolfin_adjoint.ReducedFunctional '''
+    def derivative(self, m_array, forget=True, **kwargs):
+        ''' Computes the first derivative of the functional with respect to its 
+        parameters by solving the adjoint equations. '''
 
-        if taylor_test:
-            return self.dj_with_check(m_array, seed, forget)
-        else:
-            return self.dj(m_array, forget)
+        return self._dj(m_array, forget)
 
     def obj_to_array(self, obj):
 
@@ -378,7 +365,7 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
         dolfin_adjoint.optimization.set_local(m, m_array)
 
 
-class ReducedFunctional(ReducedFunctionalNumPy):
+class ReducedFunctionalNumPy(ReducedFunctional):
     pass
 
 

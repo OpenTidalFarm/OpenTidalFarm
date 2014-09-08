@@ -66,11 +66,12 @@ class TestDynamicTurbineControl(object):
         rf_params.scale = 10**-6
         rf_params.automatic_scaling = False
         rf = ReducedFunctional(functional, solver, rf_params)
-        m0 = rf.initial_control()
+        m0 = farm.control_array()
 
-        rf.j(m0)
+        rf(m0)
 
         p = numpy.random.rand(len(m0))
         seed = 0.1
-        minconv = helpers.test_gradient_array(rf.j, rf.dj, m0, seed=seed, perturbation_direction=p)
+        minconv = helpers.test_gradient_array(rf.__call__, rf.derivative, m0, 
+                seed=seed, perturbation_direction=p)
         assert minconv > 1.9

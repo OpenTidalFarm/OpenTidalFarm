@@ -80,7 +80,7 @@ class TestTurbineDerivatives(object):
 
         functional = PowerFunctional
         rf_params = ReducedFunctionalParameters()
-        m0 = ReducedFunctional(functional, solver, rf_params).initial_control()
+        m0 = farm.control_array()
 
         j = lambda m, forward_only = False: self.j_and_dj(problem, farm, m, forward_only)[0]
         dj = lambda m, forget: self.j_and_dj(problem, farm, m, forward_only=False)[1]

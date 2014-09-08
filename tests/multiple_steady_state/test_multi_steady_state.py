@@ -75,9 +75,10 @@ class TestMultiSteadyState(object):
         rf_params = ReducedFunctionalParameters()
         rf_params.automatic_scaling = 5.
         rf = ReducedFunctional(functional, solver, rf_params)
-        m0 = rf.initial_control()
+        m0 = farm.control_array()
         p = numpy.random.rand(len(m0))
         seed = 0.1
-        minconv = helpers.test_gradient_array(rf.j, rf.dj, m0, seed=seed, perturbation_direction=p)
+        minconv = helpers.test_gradient_array(rf.__call__, rf.derivative, m0, 
+                seed=seed, perturbation_direction=p)
 
         assert minconv > 1.9

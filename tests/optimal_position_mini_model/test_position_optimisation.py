@@ -80,10 +80,10 @@ class TestPositionOptimisation(object):
         rf_params = ReducedFunctionalParameters()
         rf_params.automatic_scaling = 5.
         rf = ReducedFunctional(functional, solver, rf_params)
-        m0 = rf.initial_control()
+        m0 = farm.control_array()
 
         p = numpy.random.rand(len(m0))
-        minconv = helpers.test_gradient_array(rf.j, rf.dj, m0, seed=0.005, 
+        minconv = helpers.test_gradient_array(rf.__call__, rf.derivative, m0, seed=0.005, 
                                               perturbation_direction=p)
         assert minconv > 1.9
 

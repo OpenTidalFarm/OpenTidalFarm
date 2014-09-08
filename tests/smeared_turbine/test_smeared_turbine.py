@@ -67,9 +67,9 @@ class TestSmearedTurbine(object):
         rf = ReducedFunctional(functional, solver, rf_params)
         # Ensure the same seed value accross all CPUs
         numpy.random.seed(33)
-        m0 = numpy.random.rand(len(rf.initial_control()))
+        m0 = numpy.random.rand(len(farm.control_array()))
 
         seed = 0.1
-        minconv = helpers.test_gradient_array(rf.j, rf.dj, m0, seed=seed)
+        minconv = helpers.test_gradient_array(rf.__call__, rf.derivative, m0, seed=seed)
 
         assert minconv > 1.9

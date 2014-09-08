@@ -44,9 +44,29 @@ class TidalFarm(object):
         self.params['turbine_friction'] = friction * numpy.ones(len(positions))
 
     def set_site_dimensions(self, x0, x1, y0, y1):
+        ''' Sets the site dimension of a rectangular site. FIXME: move to
+        RectangularFarm?''' 
         if not x0 < x1 or not y0 < y1:
             raise ValueError("Site must have a positive area")
         self.domain.site_x_start = x0
         self.domain.site_x_end = x1
         self.domain.site_y_start = y0
         self.domain.site_y_end = y1
+
+    def control_array(self):
+        ''' This function returns the control parameters as array to be used in
+        combination with :class:`ReducedFunctional`. '''
+        res = []
+        if self.params["turbine_parametrisation"] == "smeared":
+            res = numpy.zeros(self.turbine_function_space.dim())
+
+        else:
+            if ('turbine_friction' in self.params["controls"] or
+                'dynamic_turbine_friction' in self.params["controls"]):
+                res += numpy.reshape(self.params['turbine_friction'], -1).tolist()
+
+            if 'turbine_pos' in self.params["controls"]:
+                res += numpy.reshape(self.params['turbine_pos'], -1).tolist()
+
+        return numpy.array(res)
+

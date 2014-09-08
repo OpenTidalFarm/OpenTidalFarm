@@ -74,21 +74,21 @@ class TestDiscreteTurbine(object):
     def test_gradient_of_peak_friction_passes_taylor_test(self,
             sw_linear_problem_parameters, sin_ic):
         rf = model(["turbine_pos"], sw_linear_problem_parameters, sin_ic)
-        m0 = rf.initial_control()
+        m0 = rf.solver.problem.parameters.tidal_farm.control_array()
 
         p = numpy.random.rand(len(m0))
-        minconv = helpers.test_gradient_array(rf.j, rf.dj, m0, seed=0.1, 
-                perturbation_direction=p, number_of_tests=4)
+        minconv = helpers.test_gradient_array(rf.evaluate, rf.derivative, m0, 
+                seed=0.1, perturbation_direction=p, number_of_tests=4)
 
         assert minconv > 1.97
 
     def test_gradient_of_position_passes_taylor_test(self,
             sw_linear_problem_parameters, sin_ic):
         rf = model(["turbine_friction"], sw_linear_problem_parameters, sin_ic)
-        m0 = rf.initial_control()
+        m0 = rf.solver.problem.parameters.tidal_farm.control_array()
 
         p = numpy.random.rand(len(m0))
-        minconv = helpers.test_gradient_array(rf.j, rf.dj, m0, seed=0.1, 
-                perturbation_direction=p, number_of_tests=4)
+        minconv = helpers.test_gradient_array(rf.evaluate, rf.derivative, m0, 
+                seed=0.1, perturbation_direction=p, number_of_tests=4)
 
         assert minconv > 1.97

@@ -120,10 +120,10 @@ class TestConfigurations(object):
         rf_params.scale = 10**-6
         rf_params.automatic_scaling = False
         model = ReducedFunctional(functional, solver, rf_params)
-        m0 = model.initial_control()
+        m0 = control.control_array()
 
         p = numpy.random.rand(len(m0))
         seed = 0.1
-        minconv = helpers.test_gradient_array(model.j, model.dj, m0, 
-                seed=seed, perturbation_direction=p)
+        minconv = helpers.test_gradient_array(model.__call__, model.derivative, 
+                m0, seed=seed, perturbation_direction=p)
         assert minconv > 1.85

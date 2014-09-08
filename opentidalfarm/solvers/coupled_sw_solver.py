@@ -101,6 +101,8 @@ CoupledSWSolverParameters."
 
     @staticmethod
     def default_parameters():
+        """ Return the default parameters for the :class:`CoupledSWSolver`.
+        """
         return CoupledSWSolverParameters()
 
     def _finished(self, current_time, finish_time):

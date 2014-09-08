@@ -54,12 +54,12 @@ class TestFrictionOptimisation(object):
         rf_params.scale = 1e-3
         rf_params.automatic_scaling = False
         rf = ReducedFunctional(functional, solver, rf_params)
-        m0 = rf.initial_control()
-        rf(m0)
-        rf.dj(m0, forget=False)
+        m0 = farm.control_array()
+        rf.evaluate(m0)
+        rf.derivative(m0, forget=False)
 
         p = numpy.random.rand(len(m0))
-        minconv = helpers.test_gradient_array(rf.j, rf.dj, m0, seed=0.001, 
+        minconv = helpers.test_gradient_array(rf.evaluate, rf.derivative, m0, seed=0.001, 
                                               perturbation_direction=p)
         assert minconv > 1.98
 
