@@ -32,7 +32,6 @@ Contents
 
    installation
    features
-   getting_started
    examples
    reference
    contributing
