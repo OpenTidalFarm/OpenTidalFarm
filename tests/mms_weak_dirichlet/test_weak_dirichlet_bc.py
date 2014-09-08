@@ -4,7 +4,6 @@
 import sys
 import math
 from opentidalfarm import *
-from opentidalfarm.initial_conditions import SinusoidalInitialCondition
 from dolfin_adjoint import adj_reset
 from dolfin import log, INFO, ERROR
 
@@ -30,7 +29,7 @@ class TestWeakDirichletBoundaryConditions(object):
         return errornorm(analytic_sol, state)
 
 
-    def compute_spatial_error(self, problem_params, refinement_level):
+    def compute_spatial_error(self, problem_params, refinement_level, sin_ic):
         nx = 2**refinement_level
         ny = 1
 
@@ -49,9 +48,9 @@ class TestWeakDirichletBoundaryConditions(object):
         problem_params.dt = problem_params.finish_time / 10.
 
         # Initial condition
-        ic_expr = SinusoidalInitialCondition(eta0, k, 
-                                             problem_params.depth,
-                                             problem_params.start_time)
+        ic_expr = sin_ic(eta0, k, 
+                         problem_params.depth,
+                         problem_params.start_time)
         problem_params.initial_condition = ic_expr
 
 
@@ -74,7 +73,7 @@ class TestWeakDirichletBoundaryConditions(object):
 
         return self.error(problem, eta0, k)
 
-    def compute_temporal_error(self, problem_params, refinement_level):
+    def compute_temporal_error(self, problem_params, refinement_level, sin_ic):
         nx = 2**3
         ny = 1
         eta0 = 2.0
@@ -93,9 +92,9 @@ class TestWeakDirichletBoundaryConditions(object):
         problem_params.theta = 0.5
 
         # Initial condition
-        ic_expr = SinusoidalInitialCondition(eta0, k, 
-                                             problem_params.depth,
-                                             problem_params.start_time)
+        ic_expr = sin_ic(eta0, k, 
+                         problem_params.depth,
+                         problem_params.start_time)
         problem_params.initial_condition = ic_expr
 
         # Boundary conditions
@@ -116,12 +115,13 @@ class TestWeakDirichletBoundaryConditions(object):
 
         return self.error(problem, eta0, k)
 
-    def test_spatial_convergence_is_two(self, sw_linear_problem_parameters):
+    def test_spatial_convergence_is_two(self, sw_linear_problem_parameters,
+            sin_ic):
         errors = []
         tests = 4
         for refinement_level in range(tests):
             error = self.compute_spatial_error(sw_linear_problem_parameters,
-                                               refinement_level)
+                                               refinement_level, sin_ic)
             errors.append(error)
         # Compute the order of convergence 
         conv = [] 
@@ -132,12 +132,13 @@ class TestWeakDirichletBoundaryConditions(object):
         log(INFO, "Spatial order of convergence (expecting 2.0): %s" % str(conv))
         assert min(conv) > 1.8
 
-    def test_temporal_convergence_is_two(self, sw_linear_problem_parameters):
+    def test_temporal_convergence_is_two(self, sw_linear_problem_parameters,
+            sin_ic):
         errors = []
         tests = 4
         for refinement_level in range(tests):
             error = self.compute_temporal_error(sw_linear_problem_parameters,
-                                                refinement_level)
+                                                refinement_level, sin_ic)
             errors.append(error)
         # Compute the order of convergence 
         conv = [] 

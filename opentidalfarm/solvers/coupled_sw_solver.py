@@ -37,17 +37,30 @@ class CoupledSWSolverParameters(FrozenClass):
         Default: -1 (automatic)
     :ivar cpp_flags: A list of cpp compiler options for the code generation.
         Default: ["-O3", "-ffast-math", "-march=native"]
-
+    :ivar revolve_parameters: The adjoint checkpointing settings as a set of the
+        form (strategy, snaps_on_disk, snaps_in_ram, verbose). Default: None
+    :ivar output_dir: The base directory in which to store the file ouputs.
+        Default: :py:`os.curdir`
+    :ivar output_turbine_power: Output the power generation of the individual
+        turbines. Default: False
     """
 
     dolfin_solver = {"newton_solver": {}}
     dump_period = 1
     print_individual_turbine_power = False
 
+    # Output settings
+    output_dir = os.curdir
+    output_turbine_power = False
+
     # Performance settings
     cache_forward_state = True
     quadrature_degree = -1
     cpp_flags = ["-O3", "-ffast-math", "-march=native"]
+    revolve_parameters = None  # (strategy,
+                               # snaps_on_disk,
+                               # snaps_in_ram,
+                               # verbose)
 
     def __init__(self):
 
@@ -61,19 +74,18 @@ class CoupledSWSolverParameters(FrozenClass):
 
 class CoupledSWSolver(Solver):
 
-    def __init__(self, problem, parameters, config=None):
+    def __init__(self, problem, solver_params):
 
         if not isinstance(problem, (SWProblem,
             SteadySWProblem)):
             raise TypeError, "problem must be of type Problem"
 
-        if not isinstance(parameters, CoupledSWSolverParameters):
-            raise TypeError, "parameters must be of type \
+        if not isinstance(solver_params, CoupledSWSolverParameters):
+            raise TypeError, "solver_params must be of type \
 CoupledSWSolverParameters."
 
         self.problem = problem
-        self.parameters = parameters
-        self.config = config
+        self.parameters = solver_params
 
         # If cache_for_nonlinear_initial_guess is true, then we store all
         # intermediate state variables in this dictionary to be used for the
@@ -89,12 +101,14 @@ CoupledSWSolverParameters."
 
     @staticmethod
     def default_parameters():
+        """ Return the default parameters for the :class:`CoupledSWSolver`.
+        """
         return CoupledSWSolverParameters()
 
     def _finished(self, current_time, finish_time):
         return float(current_time - finish_time) >= - 1e3*DOLFIN_EPS
 
-    def solve(self, turbine_field=None, functional=None, annotate=True, u_source=None):
+    def solve(self, turbine_field=None, annotate=True, u_source=None):
         ''' Solve the shallow water equations '''
 
         ############################### Setting up the equations ###########################
@@ -102,6 +116,7 @@ CoupledSWSolverParameters."
         # Get parameters
         problem_params = self.problem.parameters
         solver_params = self.parameters
+        farm = problem_params.tidal_farm
 
         # Performance settings
         parameters['form_compiler']['quadrature_degree'] = \
@@ -278,7 +293,7 @@ CoupledSWSolverParameters."
         R_mid = friction / H * norm_u_mid * inner(u_mid, v) * dx
 
         if turbine_field:
-            R_mid += tf / H * dot(u_mid, u_mid) ** 0.5 * inner(u_mid, v) * self.config.site_dx(1)
+            R_mid += tf / H * dot(u_mid, u_mid) ** 0.5 * inner(u_mid, v) * farm.site_dx(1)
 
         # Advection term
         if include_advection:
@@ -315,7 +330,7 @@ CoupledSWSolverParameters."
 
         if solver_params.dump_period > 0:
 
-            writer = StateWriter(self.config, optimisation_iteration=self.config.optimisation_iteration)
+            writer = StateWriter(farm, optimisation_iteration=farm.optimisation_iteration)
             if type(self.problem) == SWProblem:
                 log(INFO, "Writing state to disk...")
                 writer.write(state)

@@ -260,7 +260,24 @@ attribute." % (self, key))
         """ Allows adding new attributes. """
         self.__isfrozen = False
 
+    def _convert_type(self, k):
+        attr = getattr(self, k)
+
+        if isinstance(attr, bool):
+            return attr
+        try:
+            return float(attr)
+        except:
+            return str(attr)
+
     def __str__(self):
         attrs = dir(self)
-        attrs_dict = {k: str(getattr(self, k)) for k in attrs if not k.startswith("_")}
+        attrs_dict = {}
+
+        for k in attrs:
+            if k.startswith("_"):
+                continue
+            val = self._convert_type(k)
+            attrs_dict[k] = val
+
         return yaml.dump(attrs_dict, default_flow_style=False)

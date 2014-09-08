@@ -1,6 +1,6 @@
 Turbine farms
 =============
 
-.. automodule:: opentidalfarm.configuration
+.. automodule:: opentidalfarm.tidal_farm
     :members:
 

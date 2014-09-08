@@ -10,12 +10,16 @@ class DummyProblemParameters(FrozenClass):
 
     domain = None
     dt = None
+    rho = 1000.
 
     # Finite element settings
     finite_element = staticmethod(finite_elements.p2p1)
 
     # Initial condition
     initial_condition = Constant((1e-16, 0, 0))
+
+    # Tidal farm
+    tidal_farm = None
 
     functional_final_time_only = False
 
