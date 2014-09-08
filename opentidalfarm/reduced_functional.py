@@ -355,48 +355,36 @@ class ReducedFunctional(dolfin_adjoint.ReducedFunctionalNumPy):
 
         return self._dj(m_array, forget)
 
-    def obj_to_array(self, obj):
-
-        return dolfin_adjoint.optimization.get_global(obj)
-
-    def set_parameters(self, m_array):
-
-        m = [p.data() for p in self.parameter]
-        dolfin_adjoint.optimization.set_local(m, m_array)
-
 
 class ReducedFunctionalNumPy(ReducedFunctional):
     pass
 
 
-class TurbineFarmVariable(object):
-    name = ""
-
 class TurbineFarmParameter(object):
-    var = TurbineFarmVariable()
 
     def __init__(self, farm):
-        self._farm = farm
+        self.farm = farm
 
     def data(self):
-        if self._farm.params["turbine_parametrisation"] == "smeared":
+        if self.farm.params["turbine_parametrisation"] == "smeared":
             m = self._smeared_data()
         else:
             m = self._discrete_data()
         return numpy.array(m)
 
     def _smeared_data(self):
-        if len(self._farm.params["turbine_friction"]) == 0:
-            # If the user has not set the turbine friction it is initialised here
-            return numpy.zeros(self._farm.turbine_function_space.dim())
+        if len(self.farm.params["turbine_friction"]) == 0:
+            # If the user has not set the turbine friction it is initialised
+            # here
+            return numpy.zeros(self.farm.turbine_function_space.dim())
         else:
-            return self._farm.params["turbine_friction"]
+            return self.farm.params["turbine_friction"]
 
     def _discrete_data(self):
         m = []
-        if 'turbine_friction' in self._farm.params["controls"]:
-            m += list(self._farm.params['turbine_friction'])
-        if 'turbine_pos' in self._farm.params["controls"]:
-            m += numpy.reshape(self._farm.params['turbine_pos'], -1).tolist()
+        if 'turbine_friction' in self.farm.params["controls"]:
+            m += list(self.farm.params['turbine_friction'])
+        if 'turbine_pos' in self.farm.params["controls"]:
+            m += numpy.reshape(self.farm.params['turbine_pos'], -1).tolist()
         return m
 
