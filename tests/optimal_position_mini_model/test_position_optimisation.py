@@ -77,7 +77,9 @@ class TestPositionOptimisation(object):
 
         solver = DummySolver(problem)
         functional = PowerFunctional
-        rf = ReducedFunctional(farm, functional, solver, automatic_scaling=5.)
+        rf_params = ReducedFunctionalParameters()
+        rf_params.automatic_scaling = 5.
+        rf = ReducedFunctional(functional, solver, rf_params)
         m0 = rf.initial_control()
 
         p = numpy.random.rand(len(m0))

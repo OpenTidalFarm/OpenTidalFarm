@@ -51,8 +51,9 @@ class TestCheckpoint(object):
         friction0 = farm.params["turbine_friction"]
 
         solver = DummySolver(problem)
-        rf = ReducedFunctional(farm, PowerFunctional, solver,
-                               automatic_scaling=False)
+        rf_params = ReducedFunctionalParameters()
+        rf_params.automatic_scaling = False
+        rf = ReducedFunctional(PowerFunctional, solver, rf_params)
         bounds = [0, 100]
         
         # First optimize without checkpoints

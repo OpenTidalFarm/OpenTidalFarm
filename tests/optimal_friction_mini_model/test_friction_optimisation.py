@@ -50,8 +50,10 @@ class TestFrictionOptimisation(object):
 
         functional = PowerFunctional
         farm = problem.parameters.tidal_farm
-        rf = ReducedFunctional(farm, functional, solver, scale=1e-3,
-                               automatic_scaling=False)
+        rf_params = ReducedFunctionalParameters()
+        rf_params.scale = 1e-3
+        rf_params.automatic_scaling = False
+        rf = ReducedFunctional(functional, solver, rf_params)
         m0 = rf.initial_control()
         rf(m0)
         rf.dj(m0, forget=False)

@@ -62,8 +62,9 @@ class TestSmearedTurbine(object):
         solver = CoupledSWSolver(problem, solver_params)
 
         functional = PowerFunctional
-        rf = ReducedFunctional(farm, functional, solver, 
-                               automatic_scaling=False)
+        rf_params = ReducedFunctionalParameters()
+        rf_params.automatic_scaling = False
+        rf = ReducedFunctional(functional, solver, rf_params)
         # Ensure the same seed value accross all CPUs
         numpy.random.seed(33)
         m0 = numpy.random.rand(len(rf.initial_control()))

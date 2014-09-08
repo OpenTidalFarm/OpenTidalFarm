@@ -62,8 +62,10 @@ class TestDynamicTurbineControl(object):
         solver = CoupledSWSolver(problem, solver_params)
 
         functional = PowerFunctional
-        rf = ReducedFunctional(farm, functional, solver, scale=10**-6,
-                               automatic_scaling=False)
+        rf_params = ReducedFunctionalParameters()
+        rf_params.scale = 10**-6
+        rf_params.automatic_scaling = False
+        rf = ReducedFunctional(functional, solver, rf_params)
         m0 = rf.initial_control()
 
         rf.j(m0)

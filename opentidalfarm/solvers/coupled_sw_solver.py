@@ -37,17 +37,30 @@ class CoupledSWSolverParameters(FrozenClass):
         Default: -1 (automatic)
     :ivar cpp_flags: A list of cpp compiler options for the code generation.
         Default: ["-O3", "-ffast-math", "-march=native"]
-
+    :ivar revolve_parameters: The adjoint checkpointing settings as a set of the
+        form (strategy, snaps_on_disk, snaps_in_ram, verbose). Default: None
+    :ivar output_dir: The base directory in which to store the file ouputs.
+        Default: :py:`os.curdir`
+    :ivar output_turbine_power: Output the power generation of the individual
+        turbines. Default: False
     """
 
     dolfin_solver = {"newton_solver": {}}
     dump_period = 1
     print_individual_turbine_power = False
 
+    # Output settings
+    output_dir = os.curdir
+    output_turbine_power = False
+
     # Performance settings
     cache_forward_state = True
     quadrature_degree = -1
     cpp_flags = ["-O3", "-ffast-math", "-march=native"]
+    revolve_parameters = None  # (strategy,
+                               # snaps_on_disk,
+                               # snaps_in_ram,
+                               # verbose)
 
     def __init__(self):
 

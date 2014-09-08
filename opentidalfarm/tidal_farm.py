@@ -1,11 +1,7 @@
 import numpy
+from dolfin import *
 from parameter_dict import ParameterDictionary
 from turbines import TurbineCache
-from dolfin import *
-from math import sqrt, pi
-from domains import *
-from helpers import info_red, get_rank
-import os
 
 
 class TidalFarm(object):
@@ -21,13 +17,6 @@ class TidalFarm(object):
             'cost_coef': 0.,
             'controls': ['turbine_pos', 'turbine_friction'],
             'print_individual_turbine_power': False,
-            'output_turbine_power': False,
-            'save_checkpoints': False,
-            'base_path': os.curdir,
-            'revolve_parameters': None,  # (strategy,
-                                         # snaps_on_disk,
-                                         # snaps_in_ram,
-                                         # verbose)
             })
 
         # Store the result as class variables
@@ -36,9 +25,6 @@ class TidalFarm(object):
         # Create a chaching object for the interpolated turbine friction fields
         # (as their computation is very expensive)
         self.turbine_cache = TurbineCache()
-
-        # A counter for the current optimisation iteration
-        self.optimisation_iteration = 0
 
         self.domain = domain
 
