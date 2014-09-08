@@ -1,7 +1,6 @@
 import sys
 import os.path
 import numpy
-import memoize
 import helpers
 import dolfin_adjoint
 from dolfin import *
@@ -9,6 +8,8 @@ from dolfin_adjoint import *
 from turbines import *
 from solvers import Solver
 from functionals import FunctionalIntegrator, FunctionalPrototype
+from memoize import MemoizeMutable
+
 
 class ReducedFunctionalParameters(helpers.FrozenClass):
     """ A set of parameters for a :class:`ReducedFunctional`. 
@@ -35,6 +36,7 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
 
     :ivar functional: a :class:`FunctionalPrototype` class.
     :ivar solver: a :class:`Solver` object.
+    :ivar parameters: a :class:`ReducedFunctionalParameters` object.
 
     This class has a parameter attribute for further adjustments.
     """
@@ -61,14 +63,13 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
 
         # Hidden attributes
         self._solver_params = solver.parameters
+        self._problem_params = solver.problem.parameters
         self._integrator = None
         self._optimisation_iteration = 0
         self._automatic_scaling_factor = None
 
-
         # Caching variables that store which controls the last forward run was performed
         self.last_m = None
-        self.in_euclidian_space = False  # FIXME: legacy dolfin-adjoint parameter
         if self.solver.parameters.dump_period > 0:
             turbine_filename = solver_parameters.output_dir + os.path.sep + \
                                "turbines.pvd"
@@ -79,149 +80,130 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
                                  "power.pvd"
                 self.power_file = File(power_filename, "compressed")
 
-        class Variable:
-            name = ""
-
-        class Parameter:
-            var = Variable()
-
-            def data(_):
-                m = []
-                if self._farm.params["turbine_parametrisation"] == "smeared":
-                    if len(self._farm.params["turbine_friction"]) == 0:
-                        # If the user has not set the turbine friction it is initialised here
-                        m = numpy.zeros(self._farm.turbine_function_space.dim())
-                    else:
-                        m = self._farm.params["turbine_friction"]
-                else:
-                    if 'turbine_friction' in self._farm.params["controls"]:
-                        m += list(self._farm.params['turbine_friction'])
-                    if 'turbine_pos' in self._farm.params["controls"]:
-                        m += numpy.reshape(self._farm.params['turbine_pos'], -1).tolist()
-                return numpy.array(m)
-
-        self.parameter = [Parameter()]
-
-        def compute_functional(m, annotate=True):
-            ''' Compute the functional of interest for the turbine positions/frictions array '''
-
-            self.last_m = m
-
-            self.update_turbine_cache(m)
-            tf = self._farm.turbine_cache.cache["turbine_field"]
-
-            return compute_functional_from_tf(tf, annotate=annotate)
-
-        def compute_functional_from_tf(tf, annotate=True):
-            ''' Computes the functional of interest for a given turbine friction function. '''
-
-            # Reset the dolfin-adjoint tape
-            adj_reset()
-
-            dolfin.parameters["adjoint"]["record_all"] = True
-            self._set_revolve_parameters()
-
-            # Solve the shallow water system and integrate the functional of
-            # interest.
-            final_only = not solver.problem._is_transient or \
-                         solver.problem.parameters.functional_final_time_only
-            functional = self.functional(self._farm, rho=solver.problem.parameters.rho)
-            self.integrator = FunctionalIntegrator(solver.problem, 
-                                                   functional, 
-                                                   final_only)
-
-            for sol in solver.solve(turbine_field=tf, 
-                                    annotate=annotate):
-                self.integrator.add(sol["time"], sol["state"], sol["tf"], 
-                               sol["is_final"])
-
-            return self.integrator.integrate()
-
-        def compute_gradient(m, forget=True):
-            ''' Compute the functional gradient for the turbine positions/frictions array '''
-
-            # If any of the parameters changed, the forward model needs to re-run
-            if numpy.any(m != self.last_m):
-                compute_functional(m, annotate=True)
-
-            final_only = not solver.problem._is_transient or \
-                         solver.problem.parameters.functional_final_time_only
-            functional = self.functional(self._farm, rho=solver.problem.parameters.rho)
-            integrator = FunctionalIntegrator(solver.problem, functional,
-                                              final_only)
-
-            J = self.integrator.dolfin_adjoint_functional()
-
-            # Output power
-            if self.solver.parameters.dump_period > 0:
-                if self._farm.params['output_turbine_power']:
-                    turbines = self._farm.turbine_cache.cache["turbine_field"]
-                    power = self.functional(self._farm).power(solver.current_state, turbines)
-                    self.power_file << project(power,
-                                               self._farm.turbine_function_space, 
-                                               annotate=False)
-
-            if 'dynamic_turbine_friction' in self._farm.params["controls"]:
-                parameters = [FunctionControl("turbine_friction_cache_t_%i" % i)
-                        for i in range(len(self._farm.params["turbine_friction"]))]
-
-            else:
-                parameters = FunctionControl("turbine_friction_cache")
-
-            djdtf = dolfin_adjoint.compute_gradient(J, parameters, forget=forget)
-            dolfin.parameters["adjoint"]["stop_annotating"] = False
-
-            # Decide if we need to apply the chain rule to get the gradient of interest
-            if self._farm.params['turbine_parametrisation'] == 'smeared':
-                # We are looking for the gradient with respect to the friction
-                dj = dolfin_adjoint.optimization.get_global(djdtf)
-
-            else:
-                # Let J be the functional, m the parameter and u the solution of the PDE equation F(u) = 0.
-                # Then we have
-                # dJ/dm = (\partial J)/(\partial u) * (d u) / d m + \partial J / \partial m
-                #               = adj_state * \partial F / \partial u + \partial J / \partial m
-                # In this particular case m = turbine_friction, J = \sum_t(ft)
-                dj = []
-
-                if 'turbine_friction' in self._farm.params["controls"]:
-                    # Compute the derivatives with respect to the turbine friction
-                    for tfd in self._farm.turbine_cache.cache["turbine_derivative_friction"]:
-                        self._farm.turbine_cache.update(self._farm)
-                        dj.append(djdtf.vector().inner(tfd.vector()))
-
-                elif 'dynamic_turbine_friction' in self._farm.params["controls"]:
-                    # Compute the derivatives with respect to the turbine friction
-                    for djdtf_arr, t in zip(djdtf, self._farm.turbine_cache.cache["turbine_derivative_friction"]):
-                        for tfd in t:
-                            self._farm.turbine_cache.update(self._farm)
-                            dj.append(djdtf_arr.vector().inner(tfd.vector()))
-
-                if 'turbine_pos' in self._farm.params["controls"]:
-                    # Compute the derivatives with respect to the turbine position
-                    for d in self._farm.turbine_cache.cache["turbine_derivative_pos"]:
-                        for var in ('turbine_pos_x', 'turbine_pos_y'):
-                            self._farm.turbine_cache.update(self._farm)
-                            tfd = d[var]
-                            dj.append(djdtf.vector().inner(tfd.vector()))
-
-                dj = numpy.array(dj)
-
-            return dj
+        self.parameter = [TurbineFarmParameter(self._farm)]
 
         # For smeared turbine parametrisations we only want to store the 
         # hash of the control values into the pickle datastructure
-        hash_keys = (self._farm.params["turbine_parametrisation"] == "smeared")
+        use_hash_keys = (self._farm.params["turbine_parametrisation"] == "smeared")
 
-        self.compute_functional_mem = memoize.MemoizeMutable(compute_functional, hash_keys)
-        self.compute_gradient_mem = memoize.MemoizeMutable(compute_gradient, hash_keys)
+        self.compute_functional_mem = MemoizeMutable(self.compute_functional, 
+            use_hash_keys)
+        self.compute_gradient_mem = MemoizeMutable(self.compute_gradient, 
+            use_hash_keys)
+
+    def compute_gradient(self, m, forget=True):
+        ''' Compute the functional gradient for the turbine positions/frictions array '''
+
+        # If any of the parameters changed, the forward model needs to re-run
+        if numpy.any(m != self.last_m):
+            self.compute_functional(m, annotate=True)
+
+        final_only = not self.solver.problem._is_transient or \
+                     self._problem_params.functional_final_time_only
+        functional = self.functional(self._farm, rho=self._problem_params.rho)
+        integrator = FunctionalIntegrator(self.solver.problem, functional,
+                                          final_only)
+
+        J = self.integrator.dolfin_adjoint_functional()
+
+        # Output power
+        if self.solver.parameters.dump_period > 0:
+            if self._farm.params['output_turbine_power']:
+                turbines = self._farm.turbine_cache.cache["turbine_field"]
+                power = self.functional(self._farm).power(solver.current_state, turbines)
+                self.power_file << project(power,
+                                           self._farm.turbine_function_space, 
+                                           annotate=False)
+
+        if 'dynamic_turbine_friction' in self._farm.params["controls"]:
+            parameters = [FunctionControl("turbine_friction_cache_t_%i" % i)
+                    for i in range(len(self._farm.params["turbine_friction"]))]
+
+        else:
+            parameters = FunctionControl("turbine_friction_cache")
+
+        djdtf = dolfin_adjoint.compute_gradient(J, parameters, forget=forget)
+        dolfin.parameters["adjoint"]["stop_annotating"] = False
+
+        # Decide if we need to apply the chain rule to get the gradient of interest
+        if self._farm.params['turbine_parametrisation'] == 'smeared':
+            # We are looking for the gradient with respect to the friction
+            dj = dolfin_adjoint.optimization.get_global(djdtf)
+
+        else:
+            # Let J be the functional, m the parameter and u the solution of the PDE equation F(u) = 0.
+            # Then we have
+            # dJ/dm = (\partial J)/(\partial u) * (d u) / d m + \partial J / \partial m
+            #               = adj_state * \partial F / \partial u + \partial J / \partial m
+            # In this particular case m = turbine_friction, J = \sum_t(ft)
+            dj = []
+
+            if 'turbine_friction' in self._farm.params["controls"]:
+                # Compute the derivatives with respect to the turbine friction
+                for tfd in self._farm.turbine_cache.cache["turbine_derivative_friction"]:
+                    self._farm.turbine_cache.update(self._farm)
+                    dj.append(djdtf.vector().inner(tfd.vector()))
+
+            elif 'dynamic_turbine_friction' in self._farm.params["controls"]:
+                # Compute the derivatives with respect to the turbine friction
+                for djdtf_arr, t in zip(djdtf, self._farm.turbine_cache.cache["turbine_derivative_friction"]):
+                    for tfd in t:
+                        self._farm.turbine_cache.update(self._farm)
+                        dj.append(djdtf_arr.vector().inner(tfd.vector()))
+
+            if 'turbine_pos' in self._farm.params["controls"]:
+                # Compute the derivatives with respect to the turbine position
+                for d in self._farm.turbine_cache.cache["turbine_derivative_pos"]:
+                    for var in ('turbine_pos_x', 'turbine_pos_y'):
+                        self._farm.turbine_cache.update(self._farm)
+                        tfd = d[var]
+                        dj.append(djdtf.vector().inner(tfd.vector()))
+
+            dj = numpy.array(dj)
+
+        return dj
+
+    def compute_functional(self, m, annotate=True):
+        ''' Compute the functional of interest for the turbine positions/frictions array '''
+
+        self.last_m = m
+
+        self.update_turbine_cache(m)
+        tf = self._farm.turbine_cache.cache["turbine_field"]
+
+        return self._compute_functional_from_tf(tf, annotate=annotate)
+
+    def _compute_functional_from_tf(self, tf, annotate=True):
+        ''' Computes the functional of interest for a given turbine friction function. '''
+
+        # Reset the dolfin-adjoint tape
+        adj_reset()
+
+        dolfin.parameters["adjoint"]["record_all"] = True
+        self._set_revolve_parameters()
+
+        # Solve the shallow water system and integrate the functional of
+        # interest.
+        final_only = not self.solver.problem._is_transient or \
+                     self._problem_params.functional_final_time_only
+        functional = self.functional(self._farm, rho=self._problem_params.rho)
+        self.integrator = FunctionalIntegrator(self.solver.problem, 
+                                               functional, 
+                                               final_only)
+
+        for sol in self.solver.solve(turbine_field=tf, 
+                                annotate=annotate):
+            self.integrator.add(sol["time"], sol["state"], sol["tf"], 
+                           sol["is_final"])
+
+        return self.integrator.integrate()
 
     def _set_revolve_parameters(self):
         if (hasattr(self._solver_params, "revolve_parameters") and 
             self._solver_params.revolve_parameters is not None):
           (strategy, snaps_on_disk, snaps_in_ram, verbose) = self._farm.params['revolve_parameters']
           adj_checkpointing(strategy, 
-                  solver.problem.parameters.finish_time / solver.problem.parameters.dt,
+                  self._problem_params.finish_time / self._problem_params.dt,
                   snaps_on_disk=snaps_on_disk, snaps_in_ram=snaps_in_ram, 
                   verbose=verbose)
 
@@ -398,3 +380,36 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
 
 class ReducedFunctional(ReducedFunctionalNumPy):
     pass
+
+
+class TurbineFarmVariable(object):
+    name = ""
+
+class TurbineFarmParameter(object):
+    var = TurbineFarmVariable()
+
+    def __init__(self, farm):
+        self._farm = farm
+
+    def data(self):
+        if self._farm.params["turbine_parametrisation"] == "smeared":
+            m = self._smeared_data()
+        else:
+            m = self._discrete_data()
+        return numpy.array(m)
+
+    def _smeared_data(self):
+        if len(self._farm.params["turbine_friction"]) == 0:
+            # If the user has not set the turbine friction it is initialised here
+            return numpy.zeros(self._farm.turbine_function_space.dim())
+        else:
+            return self._farm.params["turbine_friction"]
+
+    def _discrete_data(self):
+        m = []
+        if 'turbine_friction' in self._farm.params["controls"]:
+            m += list(self._farm.params['turbine_friction'])
+        if 'turbine_pos' in self._farm.params["controls"]:
+            m += numpy.reshape(self._farm.params['turbine_pos'], -1).tolist()
+        return m
+
