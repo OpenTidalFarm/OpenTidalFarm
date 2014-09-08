@@ -62,10 +62,20 @@ sol_params = CoupledSWSolver.default_parameters()
 sol_params.dump_period = -1
 solver = CoupledSWSolver(problem, sol_params)
 
+# Next we create a reduced functional, that is the functional considered as a
+# pure function of the control by implicitly solving the shallow water PDE.
+
 functional = PowerFunctional
 rf_params = ReducedFunctional.default_parameters()
 rf_params.automatic_scaling = 5
 rf = ReducedFunctional(functional, solver, rf_params)
+
+# As always, we can print all options of the :class:`ReducedFunctional` with:
+
+print rf_params
+
+# Finally, we can define the constraints for the controls and start the 
+# optimisation.
 
 lb, ub = position_constraints(farm) 
 ineq = get_minimum_distance_constraint_func(farm)
