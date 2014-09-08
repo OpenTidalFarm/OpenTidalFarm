@@ -46,12 +46,9 @@ def BumpInitialCondition(x0, y0, x1, y1):
     return BumpExpr()
 
 class TestPositionOptimisation(object):
-    def default_config(self):
+    def default_problem(self):
         domain = RectangularDomain(0, 0, 3000, 1000, 40, 20)
 
-        config = DefaultConfiguration(domain)
-        config.params["verbose"] = 0
-  
         problem_params = DummyProblem.default_parameters()
   
         # dt is used in the functional only
@@ -61,36 +58,39 @@ class TestPositionOptimisation(object):
         problem_params.domain = domain
         problem_params.initial_condition = BumpInitialCondition(0, 0, 3000, 1000)
 
-        # Turbine settings
-        # The turbine position is the control variable 
-        config.params["turbine_pos"] = [[500., 200.]]
-        config.params["turbine_friction"] = 12.0*numpy.random.rand(len(config.params["turbine_pos"]))
-        config.params["turbine_x"] = 800
-        config.params["turbine_y"] = 800
-        config.params["controls"] = ['turbine_pos']
+        # Create turbine farm
+        farm = TidalFarm(domain)
+        farm.params["turbine_pos"] = [[500., 200.]]
+        farm.params["turbine_friction"] = 12.0*numpy.random.rand(len(farm.params["turbine_pos"]))
+        farm.params["turbine_x"] = 800
+        farm.params["turbine_y"] = 800
+        farm.params["controls"] = ['turbine_pos']
+        problem_params.tidal_farm = farm
         
         problem = DummyProblem(problem_params)
   
-        return problem, config
+        return problem
 
     def test_optimisation_recovers_optimal_position(self):
-        problem, config = self.default_config()
+        problem = self.default_problem()
+        farm = problem.parameters.tidal_farm
 
-        solver = DummySolver(problem, config)
-        rf = ReducedFunctional(config, solver, automatic_scaling=5.)
-        m0 = rf.initial_control()
-
-        config.info()
+        solver = DummySolver(problem)
+        functional = PowerFunctional
+        rf_params = ReducedFunctionalParameters()
+        rf_params.automatic_scaling = 5.
+        rf = ReducedFunctional(functional, solver, rf_params)
+        m0 = farm.control_array()
 
         p = numpy.random.rand(len(m0))
-        minconv = helpers.test_gradient_array(rf.j, rf.dj, m0, seed=0.005, 
+        minconv = helpers.test_gradient_array(rf.__call__, rf.derivative, m0, seed=0.005, 
                                               perturbation_direction=p)
         assert minconv > 1.9
 
         bounds = [[Constant(0), Constant(0)], [Constant(3000), Constant(1000)]] 
         maximize(rf, bounds=bounds, method="SLSQP") 
 
-        m = config.params["turbine_pos"][0]
+        m = farm.params["turbine_pos"][0]
         log(INFO, "Solution of the primal variables: m=" + repr(m) + "\n")
 
         assert abs(m[0]-1500) < 40

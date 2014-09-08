@@ -127,32 +127,6 @@ class MinimumDistanceConstraint(InequalityConstraint):
 def get_minimum_distance_constraint_func(config, min_distance=None):
     return MinimumDistanceConstraint(config, min_distance)
 
-def plot_site_constraints(config, vertices):
-
-    ineqs = []
-    for p in range(len(vertices)):
-        # x1 and x2 are the two points that describe one of the sites edge
-        x1 = numpy.array(vertices[p])
-        x2 = numpy.array(vertices[(p + 1) % len(vertices)])
-        c = x2 - x1
-        # Normal vector of c
-        n = [c[1], -c[0]]
-
-        ineqs.append((x1, n))
-
-    class SiteConstraintExpr(dolfin.Expression):
-        def eval(self, value, x):
-            inside = True
-            for x1, n in ineqs:
-                # The inequality for this edge is: g(x) := n^T.(x1-x) >= 0
-                inside = inside and (numpy.dot(n, x1 - x) >= 0)
-
-            value[0] = int(inside)
-
-    f = dolfin.project(SiteConstraintExpr(), config.turbine_function_space)
-    out_file = dolfin.File(config.params['base_path'] + os.path.sep + "site_constraints.pvd", "compressed")
-    out_file << f
-
 class PolygonSiteConstraints(InequalityConstraint):
     def __init__(self, config, vertices, penalty_factor=1e3, slack_eps=0):
         self.config = config
@@ -223,8 +197,6 @@ def generate_site_constraints(config, vertices, penalty_factor=1e3, slack_eps=0)
         must be a list of point coordinates that describes the site edges in anti-clockwise order.
         The argument slack_eps is used to increase or decrease the site by an epsilon value - this is useful to avoid rounding problems. '''
 
-    # To begin with, lets save a vtu that visualises the constraints
-    plot_site_constraints(config, vertices)
     return PolygonSiteConstraints(config, vertices, penalty_factor, slack_eps)
 
 class DomainRestrictionConstraints(InequalityConstraint):

@@ -9,6 +9,7 @@ Examples
 
    examples/channel/channel
    examples/tidal/orkney
+   examples/channel_opt/channel_opt
 
 This page contains examples of OpenTidaFarm applied to arrays:
 

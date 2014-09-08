@@ -1,6 +1,5 @@
 import math
 from opentidalfarm import *
-from opentidalfarm.initial_conditions import SinusoidalInitialCondition
 from dolfin_adjoint import adj_reset
 from dolfin import log, INFO, ERROR
 
@@ -43,7 +42,8 @@ class TestFlatherBoundaryConditionsWithViscosity(object):
         return errornorm(analytic_sol, state)
 
 
-    def compute_spatial_error(self, linear_problem_params, refinement_level):
+    def compute_spatial_error(self, linear_problem_params, refinement_level,
+            sin_ic):
         nx = 2 * 2**refinement_level
         ny = 1
 
@@ -71,21 +71,22 @@ class TestFlatherBoundaryConditionsWithViscosity(object):
         bcs.add_bc("u", Constant((0, 0)), 3, "weak_dirichlet")
 
         # Initial condition
-        ic_expr = SinusoidalInitialCondition(eta0, k,
-                                             linear_problem_params.depth, 
-                                             linear_problem_params.start_time)
+        ic_expr = sin_ic(eta0, k,
+                         linear_problem_params.depth, 
+                         linear_problem_params.start_time)
         linear_problem_params.initial_condition = ic_expr
 
         problem = SWProblem(linear_problem_params)
 
         return self.error(problem, eta0, k)
 
-    def test_spatial_convergence_is_two(self, sw_linear_problem_parameters):
+    def test_spatial_convergence_is_two(self, sw_linear_problem_parameters,
+            sin_ic):
         errors = []
         tests = 4
         for refinement_level in range(tests):
             errors.append(self.compute_spatial_error(sw_linear_problem_parameters,
-                                                     refinement_level))
+                                                     refinement_level, sin_ic))
         # Compute the order of convergence
         conv = []
         for i in range(len(errors)-1):

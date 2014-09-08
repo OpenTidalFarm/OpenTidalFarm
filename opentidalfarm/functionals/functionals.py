@@ -13,17 +13,17 @@ class FunctionalPrototype(object):
         raise NotImplementedError("FunctionalPrototyp.__Jt__ needs to be overloaded.")
 
 
-class DefaultFunctional(FunctionalPrototype):
+class PowerFunctional(FunctionalPrototype):
     ''' Implements a simple functional of the form:
           J(u, m) = rho * turbines(m) * (||u||**3)
         where turbines(m) defines the friction function due to the turbines.
     '''
-    def __init__(self, config):
-        ''' Constructs a new DefaultFunctional. The turbine settings are derived from the settings params. '''
+    def __init__(self, config, rho):
         config.turbine_cache.update(config)
         self.config = config
         # Create a copy of the parameters so that future changes will not affect the definition of this object.
         self.params = dict(config.params)
+        self.rho = rho
 
     def cost_per_friction(self, turbines):
         if float(self.params['cost_coef']) <= 0:
@@ -35,10 +35,10 @@ class DefaultFunctional(FunctionalPrototype):
         return Constant(self.params['cost_coef']) * turbines
 
     def power(self, state, turbines):
-            return self.params['rho'] * turbines * (dot(state[0], state[0]) + dot(state[1], state[1])) ** 1.5
+            return self.rho * turbines * (dot(state[0], state[0]) + dot(state[1], state[1])) ** 1.5
 
     def force(self, state, turbines):
-            return self.params['rho'] * turbines * dot(state[0], state[0]) + dot(state[1], state[1])
+            return self.rho * turbines * dot(state[0], state[0]) + dot(state[1], state[1])
 
     def Jt(self, state, tf):
         return (self.power(state, tf) - self.cost_per_friction(tf)) * self.config.site_dx(1)
@@ -60,7 +60,6 @@ class PowerCurveFunctional(FunctionalPrototype):
         where m controls the strength of each turbine.
     '''
     def __init__(self, config):
-        ''' Constructs a new DefaultFunctional. The turbine settings are derived from the settings params. '''
         config.turbine_cache.update(config)
         self.config = config
         # Create a copy of the parameters so that future changes will not affect the definition of this object.
