@@ -63,7 +63,9 @@ sol_params.dump_period = -1
 solver = CoupledSWSolver(problem, sol_params)
 
 functional = PowerFunctional
-rf = ReducedFunctional(farm, functional, solver, automatic_scaling=5)
+rf_params = ReducedFunctional.default_parameters()
+rf_params.automatic_scaling = 5
+rf = ReducedFunctional(functional, solver, rf_params)
 
 lb, ub = position_constraints(farm) 
 ineq = get_minimum_distance_constraint_func(farm)
