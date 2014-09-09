@@ -16,7 +16,7 @@ class CoupledSWSolverParameters(FrozenClass):
     Following parameters are available:
 
     :ivar dolfin_solver: The dictionary with parameters for the dolfin
-        Newton solver. A list of valid entries look at:
+        Newton solver. A list of valid entries can be printed with:
 
         .. code-block:: python
 
@@ -114,6 +114,9 @@ class CoupledSWSolver(Solver):
     - :math:`\nu` is the viscosity coefficient,
     - :math:`g` is the gravitational constant.
     - :math:`\Delta t` is the time step.
+
+    Some terms, such as the advection or the diffusion term, may be deactivated
+    in the problem specification.
 
     The resulting equations are solved with Newton-iterations and the linear
     problems solved as specified in the `dolfin_solver` setting in
