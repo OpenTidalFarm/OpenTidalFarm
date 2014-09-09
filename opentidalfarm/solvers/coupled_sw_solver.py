@@ -80,7 +80,7 @@ class CoupledSWSolver(Solver):
     :math:`u` and :math:`\eta` such that:
 
     .. math:: u \cdot \nabla  u - \nu \Delta  u +
-        g \nabla \eta + \frac{c_b + c_t}{H} \| u\|  u & = 0, \\
+        g \nabla \eta + \frac{c_b + c_t}{H} \| u\|  u & = f_u, \\
         \nabla \cdot \left(H u\right) & = 0.
 
     For a :class:`opentidalfarm.problems.multi_steady_sw.MultiSteadySWProblem`,
@@ -88,7 +88,8 @@ class CoupledSWSolver(Solver):
     (including the initial time) such that:
 
     .. math:: u^{n+1} \cdot \nabla  u^{n+1} - \nu \Delta  u^{n+1} +
-        g \nabla \eta^{n+1} + \frac{c_b + c_t}{H^{n+1}} \| u^{n+1}\|  u^{n+1} & = 0, \\
+        g \nabla \eta^{n+1} + \frac{c_b + c_t}{H^{n+1}} \| u^{n+1}\|  u^{n+1} &
+        = f_u^{n+1}, \\
         \nabla \cdot \left(H^{n+1} u^{n+1}\right) & = 0.
 
     For a :class:`opentidalfarm.problems.sw.SWProblem`, and given an initial
@@ -96,7 +97,8 @@ class CoupledSWSolver(Solver):
     :math:`\eta^{n+1}` for each timelevel such that:
 
     .. math:: \frac{1}{\Delta t} \left(u^{n+1} - u^{n}\right) + u^{n+\theta} \cdot \nabla  u^{n+\theta} - \nu \Delta  u^{n+\theta} +
-        g \nabla \eta^{n+\theta} + \frac{c_b + c_t}{H^{n+\theta}} \| u^{n+\theta}\|  u^{n+\theta} & = 0, \\
+        g \nabla \eta^{n+\theta} + \frac{c_b + c_t}{H^{n+\theta}} \|
+        u^{n+\theta}\|  u^{n+\theta} & = f_u^{n+\theta}, \\
         \frac{1}{\Delta t} \left(\eta^{n+1} - \eta^{n}\right) + \nabla \cdot \left(H^{n+\theta} u^{n+\theta}\right) & = 0.
 
     with :math:`\theta \in [0, 1]` and :math:`u^{n+\theta} := \theta u^{n+1} + (1-\theta) u^n`
@@ -108,6 +110,7 @@ class CoupledSWSolver(Solver):
     - :math:`\eta` is the free-surface displacement,
     - :math:`H=\eta + h` is the total water depth where :math:`h` is the
        water depth at rest,
+    - :math:`f_u` is the velocity forcing term,
     - :math:`c_b` is the (quadratic) natural bottom friction coefficient,
     - :math:`c_t` is the (quadratic) friction coefficient due to the turbine
       farm,
