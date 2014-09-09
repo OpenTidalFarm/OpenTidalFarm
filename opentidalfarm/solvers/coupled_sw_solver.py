@@ -112,7 +112,7 @@ class CoupledSWSolver(Solver):
     - :math:`c_t` is the (quadratic) friction coefficient due to the turbine
       farm,
     - :math:`\nu` is the viscosity coefficient,
-    - :math:`g` is the gravitational constant.
+    - :math:`g` is the gravitational constant,
     - :math:`\Delta t` is the time step.
 
     Some terms, such as the advection or the diffusion term, may be deactivated
@@ -179,7 +179,7 @@ CoupledSWSolverParameters."
         return bcs_u + bcs_eta
 
     def solve(self, turbine_field=None, annotate=True, u_source=None):
-        ''' Returns an iterator for solving the shallow water equations '''
+        ''' Returns an iterator for solving the shallow water equations. '''
 
         ############################### Setting up the equations ###########################
 

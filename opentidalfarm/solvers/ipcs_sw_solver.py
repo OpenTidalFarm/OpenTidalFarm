@@ -11,25 +11,25 @@ from ..helpers import StateWriter, norm_approx, smooth_uflmin, FrozenClass
 
 
 class IPCSSWSolverParameters(FrozenClass):
-    """ A set of parameters for a :class:`IPCSSWSolver`. 
+    """ A set of parameters for a :class:`IPCSSWSolver`.
 
     Following parameters are available:
 
     :ivar dolfin_solver: The dictionary with parameters for the dolfin
-        Newton solver. A list of valid entries look at:
+        Newton solver. A list of valid entries can be printed with:
 
         .. code-block:: python
 
             info(NonlinearVariationalSolver.default_parameters(), True)
-        
+
         By default, the MUMPS direct solver is used for the linear system. If
         not availabe, the default solver and preconditioner of FEniCS is used.
 
     :ivar dump_period: Specfies how often the solution should be dumped to disk.
         Use a negative value to disable it. Default 1.
     :ivar cache_forward_state: If True, the shallow water solutions are stored
-        for every timestep and are used as initial guesses for the next solve. 
-        If False, the solution of the previous timestep is used as an initial guess. 
+        for every timestep and are used as initial guesses for the next solve.
+        If False, the solution of the previous timestep is used as an initial guess.
         Default: True
     :ivar print_individual_turbine_power: Print out the turbine power for each
         turbine. Default: False
@@ -60,8 +60,63 @@ class IPCSSWSolverParameters(FrozenClass):
 
 
 class IPCSSWSolver(Solver):
-    """ A solver class that implements a pressure correction scheme for the
-    shallow water equations. """
+    r"""
+    This incremental pressure correction scheme (IPCS) is an operator splitting scheme that
+    follows the idea of Goda [1]_.
+    This scheme preserves the exact same stability properties
+    as Navier-Stokes and hence does not introduce additional dissipation in the flow.
+
+    The :class:`IPCSSWSolver` only works with transient problems, that is with
+    :class:`opentidalfarm.problems.sw.SWProblem`.
+
+    The idea is to replace the unknown pressure with an approximation. This is chosen as
+    the pressure solution from the previous solution.
+
+    The time discretization is done using backward Euler, the diffusion term is handled with Crank-Nicholson, and the convection is handled explicitly, making the
+    equations completely linear. Thus, we have a discretized version of the Navier-Stokes equations as
+
+    .. math:: \frac{1}{\Delta t}\left( u^{n+1}-u^{n} \right)-\nabla\cdot\nu\nabla u^{n+\frac{1}{2}}+u^n\cdot\nabla u^{n}+\frac{1}{\rho}\nabla p^{n+1}=f^{n+1}, \\
+        \nabla \cdot u^{n+1} = 0,
+
+    where :math:`\tilde{u}^{n+\frac{1}{2}} = \frac{1}{2}\tilde{u}^{n+1}+\frac{1}{2}u^n.`
+
+    For the operator splitting, we use the pressure solution from the previous timestep as an estimation, giving an equation for a tentative velocity, :math:`\tilde{u}^{n+1}`:
+
+    .. math:: \frac{1}{\Delta t}\left( \tilde{u}^{n+1}-u^{n} \right)-\nabla\cdot\nu\nabla \tilde{u}^{n+\frac{1}{2}}+u^n\cdot\nabla u^{n}+\frac{1}{\rho}\nabla p^{n}=f^{n+1}.
+
+    This tenative velocity is not divergence free, and thus we define a velocity correction :math:`u^c=u^{n+1}-\tilde{u}^{n+1}`. Substracting the second equation from the first, we see that
+
+    .. math::
+        \frac{1}{\Delta t}u^c-\nabla\cdot\nu\nabla u^c+\frac{1}{\rho}\nabla\left( p^{n+1} - p^n\right)=0, \\
+        \nabla \cdot u^c = -\nabla \cdot \tilde{u}^{n+1}.
+
+    The operator splitting is a first order approximation, :math:`O(\Delta t)`, so we can, without reducing the order of the approximation simplify the above to
+
+    .. math::
+        \frac{1}{\Delta t}u^c+\frac{1}{\rho}\nabla\left( p^{n+1} - p^n\right)=0, \\
+        \nabla \cdot u^c = -\nabla \cdot \tilde{u}^{n+1},
+
+    which is reducible to a Poisson problem:
+
+    .. math::
+       \Delta p^{n+1} = \Delta p^n+\frac{\rho}{\Delta t}\nabla \cdot \tilde{u}^{n+1}.
+
+    The corrected velocity is then easily calculated from
+
+    .. math::
+        u^{n+1} = \tilde{u}^{n+1}-\frac{\Delta t}{\rho}\nabla\left(p^{n+1}-p^n\right)
+
+    The scheme can be summarized in the following steps:
+        #. Replace the pressure with a known approximation and solve for a tenative velocity :math:`u^{n+1}`.
+
+        #. Solve a Poisson equation for the pressure, :math:`p^{n+1}`
+
+        #. Use the corrected pressure to find the velocity correction and calculate :math:`u^{n+1}`
+
+        #. Update t, and repeat.
+
+    .. [1] Goda, Katuhiko. *A multistep technique with implicit difference schemes for calculating two-or three-dimensional cavity flows.* Journal of Computational Physics 30.1 (1979): 76-95.
+    """
 
     def __init__(self, problem, parameters, config=None):
 
@@ -118,7 +173,7 @@ IPCSSWSolverParameters."
 
         # Initialise solver settings
         if not type(self.problem) == SWProblem:
-            raise TypeError("Do not know how to solve problem of type %s." % 
+            raise TypeError("Do not know how to solve problem of type %s." %
                 type(self.problem))
 
         # Get parameters
@@ -160,7 +215,7 @@ IPCSSWSolverParameters."
 
         # Get function spaces
         V, Q = self.V, self.Q
-        
+
         # Test and trial functions
         v = TestFunction(V)
         q = TestFunction(Q)
@@ -182,7 +237,7 @@ IPCSSWSolverParameters."
         u_ic = project(problem_params.initial_condition_u, self.V)
         u0.assign(u_ic, annotate=False)
         eta_ic = project(problem_params.initial_condition_eta, self.Q)
-        eta0.assign(eta_ic, annotate=False)    
+        eta0.assign(eta_ic, annotate=False)
 
         # Tentative velocity step
         u_mean = theta * u + (1. - theta) * u0
@@ -211,7 +266,7 @@ IPCSSWSolverParameters."
         A_p_corr = assemble(a_p_corr)
         A_u_corr = assemble(a_u_corr)
 
-        yield({"time": t, 
+        yield({"time": t,
                "u": u0,
                "eta": eta0,
                "is_final": self._finished(t, finish_time)})
@@ -262,7 +317,7 @@ IPCSSWSolverParameters."
             adj_inc_timestep(time=float(t), finished=self._finished(t,
                 finish_time))
 
-            yield({"time": t, 
+            yield({"time": t,
                    "u": u0,
                    "eta": eta0,
                    "is_final": self._finished(t, finish_time)})
