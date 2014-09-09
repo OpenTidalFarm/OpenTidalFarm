@@ -26,7 +26,7 @@ where
 
 - :math:`u` is the velocity,
 - :math:`\eta` is the free-surface displacement,
-- :math:`H=\eta + depth` is the total water depth where :math:`depth` is the
+- :math:`H=\eta + h` is the total water depth where :math:`h` is the
   water depth at rest,
 - :math:`c_b` is the (quadratic) natural bottom friction coefficient,
 - :math:`\nu` is the viscosity coefficient,
@@ -82,7 +82,7 @@ and inspect the boundary ids with:
 
 ::
 
-  plot(domain.facet_ids, interactive=True)
+  plot(domain.facet_ids)
   
 Once the domain is created we attach it to the problem parameters:
 
