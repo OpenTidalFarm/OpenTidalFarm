@@ -100,9 +100,9 @@ class IPCSSWSolver(Solver):
 
     .. math::
         \frac{1}{\Delta t}u^c - \theta \nabla\cdot\nu\nabla
-        u^c+g\nabla\left( \eta^{n+1} - \eta^n\right)=0, \\
+        u^c+g\nabla\left( \eta^{n+1} - \eta^n\right) &= 0, \\
         \frac{1}{\Delta t}\left( \eta^{n+1}-\eta^{n} \right) + \nabla \cdot
-        \left( H^{n+1} u^c \right) = -\nabla \cdot \left( H^{n+1}
+        \left( H^{n+1} u^c \right) &= -\nabla \cdot \left( H^{n+1}
         \tilde{u}^{n+1} \right).
 
     The operator splitting is a first order approximation, :math:`O(\Delta t)`,
@@ -110,9 +110,9 @@ class IPCSSWSolver(Solver):
     above to
 
     .. math::
-        \frac{1}{\Delta t}u^c + g\nabla\left( \eta^{n+1} - \eta^n\right)=0, \\
+        \frac{1}{\Delta t}u^c + g\nabla\left( \eta^{n+1} - \eta^n\right) &= 0, \\
         \frac{1}{\Delta t}\left( \eta^{n+1}-\eta^{n} \right) + \nabla \cdot
-        \left( H^{n+1} u^c \right) = -\nabla \cdot \left( H^{n+1}
+        \left( H^{n+1} u^c \right) &= -\nabla \cdot \left( H^{n+1}
         \tilde{u}^{n+1} \right),
 
     which is reducible to the problem:
