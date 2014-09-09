@@ -35,7 +35,7 @@
 # The boundary conditions are:
 #
 # .. math::
-#       u = \sin(\pi t/60) & \quad \textrm{on } \Gamma_1, \\
+#       u = \begin{pmatrix}\sin(\frac{\pi t}{5}) \frac{y (50-y)}{625}\\0\end{pmatrix} & \quad \textrm{on } \Gamma_1, \\
 #       \eta = 0 & \quad \textrm{on } \Gamma_2, \\
 #       u \cdot n = 0 & \quad \textrm{on } \Gamma_3, \\
 #
@@ -54,24 +54,36 @@
 
 from opentidalfarm import *
 
-# Next we create a rectangular domain.
+# We start with getting the default parameters of a shallow water problem and
+# configure it to our needs. 
+
+prob_params = SWProblem.default_parameters()
+
+# First we define the computational domain. For a simple channel, we can use the
+# :class:`RectangularDomain` class:
 
 domain = RectangularDomain(x0=0, y0=0, x1=100, y1=50, nx=20, ny=10)
 
-# You can plot and inspect the boundary ids with
+# The boundary of the domain is marked with integers in order to specify
+# different boundary conditions on different parts of the domain. You can plot
+# and inspect the boundary ids with:
 
 plot(domain.facet_ids, interactive=True)
 
-# Next we specify boundary conditions. If a boundary expression contains a
-# parameter named `t`, it will be automatically be updated to the current
-# timelevel during the solve.
+# Once the domain is created we attach it to the problem parameters:
+
+prob_params.domain = domain
+
+# Next we specify boundary conditions. For time-dependent boundary condition use
+# a parameter named `t` in the :class:`dolfin.Expression` and it will be automatically be
+# updated to the current timelevel during the solve.
 
 bcs = BoundaryConditionSet()
-u_expr = Expression(("x[1]*(50-x[1])/625", "0"), t=Constant(0))
+u_expr = Expression(("sin(pi*t/5)*x[1]*(50-x[1])/625", "0"), t=Constant(0))
 bcs.add_bc("u", u_expr, facet_id=1)
 bcs.add_bc("eta", Constant(0), facet_id=2)
 
-# The free-slip boundary conditions are a special case. The boundary condition
+# Free-slip boundary conditions need special attention. The boundary condition
 # type `weak_dirichlet` enforces the boundary value *only* in the
 # *normal* direction of the boundary. Hence, a zero weak Dirichlet
 # boundary condition gives us free-slip, while a zero `strong_dirichlet` boundary
@@ -79,13 +91,12 @@ bcs.add_bc("eta", Constant(0), facet_id=2)
 
 bcs.add_bc("u", Constant((0, 0)), facet_id=3, bctype="strong_dirichlet")
 
-# Now we create shallow water problem and attach the domain and boundary
-# conditions
+# Again we attach boundary conditions to the problem parameters:
 
-prob_params = SWProblem.default_parameters()
-# Add domain and boundary conditions
-prob_params.domain = domain
 prob_params.bcs = bcs
+
+# The other parameters are straight forward:
+
 # Equation settings
 prob_params.viscosity = Constant(30)
 prob_params.depth = Constant(20)
@@ -99,27 +110,32 @@ prob_params.dt = Constant(0.5)
 # Note that we do not set all components to zero, as some components of the
 # Jacobian of the quadratic friction term is non-differentiable.
 prob_params.initial_condition = Constant((DOLFIN_EPS, 0, 0)) 
-# Create the shallow water problem
-problem = SWProblem(prob_params)
 
-# Here we set only the necessary options. However, there are many more,
-# such as the `viscosity`, and the `bottom drag`. A full option list 
-# with its current values can be viewed with:
+# Here we set only the necessary options. However, there are many more, such as
+# `bottom drag`. A full option list with its current values can be viewed with:
 
 print prob_params
 
+# Once the parameter have all been set, we create the shallow water problem:
+
+problem = SWProblem(prob_params)
+
 # Next we create a shallow water solver. Here we choose to solve the shallow
-# water equations in its fully coupled form:
+# water equations in its fully coupled form. Again, we first ask for the default
+# parameters, adjust them to our needs and then create the solver object. 
 
 sol_params = CoupledSWSolver.default_parameters()
 sol_params.dump_period = -1
 solver = CoupledSWSolver(problem, sol_params)
 
-# Now we are ready to solve
+# Now we are ready to solve the problem. 
 
 for s in solver.solve():
     print "Computed solution at time %f" % s["time"]
     plot(s["state"])
+interactive()  # Hold the plot until the user presses q.
+    
+# The inner part of the loop is executed for each timestep. The variable :attr:`s`
+# is a dictionary and contains information like the current timelevel, the velocity and
+# free-surface functions.
 
-# Finally we hold the plot unti the user presses q.
-interactive()
