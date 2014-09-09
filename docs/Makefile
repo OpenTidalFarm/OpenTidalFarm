@@ -51,11 +51,11 @@ EXAMPLES_OUT = examples
 
 build_examples:
 	mkdir -p $(EXAMPLES_OUT)/channel
-	bin/pylit.py --overwrite yes $(EXAMPLES_IN)/channel_simulation/channel_simulation.py $(EXAMPLES_OUT)/channel/channel.rst
+	bin/pylit.py --overwrite yes $(EXAMPLES_IN)/channel-simulation/channel-simulation.py $(EXAMPLES_OUT)/channel/channel.rst
 	mkdir -p $(EXAMPLES_OUT)/tidal
-	bin/pylit.py --overwrite yes $(EXAMPLES_IN)/tidal_simulation/orkney.py $(EXAMPLES_OUT)/tidal/orkney.rst
-	mkdir -p $(EXAMPLES_OUT)/channel_opt
-	bin/pylit.py --overwrite yes $(EXAMPLES_IN)/channel_optimization/channel_optimization.py $(EXAMPLES_OUT)/channel_opt/channel_opt.rst
+	bin/pylit.py --overwrite yes $(EXAMPLES_IN)/tidal-simulation/orkney.py $(EXAMPLES_OUT)/tidal/orkney.rst
+	mkdir -p $(EXAMPLES_OUT)/channel-opt
+	bin/pylit.py --overwrite yes $(EXAMPLES_IN)/channel-optimization/channel-optimization.py $(EXAMPLES_OUT)/channel-opt/channel-opt.rst
 
 auto_apidoc:
 	sphinx-apidoc -T -f -o . ../opentidalfarm/

@@ -9,4 +9,4 @@ Examples
 
    examples/channel/channel
    examples/tidal/orkney
-   examples/channel_opt/channel_opt
+   examples/channel-opt/channel-opt

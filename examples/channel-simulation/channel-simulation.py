@@ -26,7 +26,7 @@
 #
 # - :math:`u` is the velocity,
 # - :math:`\eta` is the free-surface displacement,
-# - :math:`H=\eta + depth` is the total water depth where :math:`depth` is the
+# - :math:`H=\eta + h` is the total water depth where :math:`h` is the
 #   water depth at rest,
 # - :math:`c_b` is the (quadratic) natural bottom friction coefficient,
 # - :math:`\nu` is the viscosity coefficient,
@@ -45,6 +45,12 @@
 # boundaries of the channel.
 #
 #
+
+# After a few timesteps the solution should looks like this:
+
+# .. image:: simulation_result.png
+#     :scale: 40
+#     :align: center
 
 # Implementation
 # **************
@@ -139,17 +145,9 @@ interactive()  # Hold the plot until the user presses q.
 # is a dictionary and contains information like the current timelevel, the velocity and
 # free-surface functions.
 
-# The example code can be found in ``examples/channel_simulation/`` in the
+# The example code can be found in ``examples/channel-simulation/`` in the
 # ``OpenTidalFarm`` source tree, and executed as follows:
 
 # .. code-block:: bash
 
-#   $ python channel_simulation.py
-
-# A snapshot after a few timesteps looks like this:
-
-# .. image:: simulation_result.png
-#     :scale: 40
-#     :align: center
-
-
+#   $ python channel-simulation.py
