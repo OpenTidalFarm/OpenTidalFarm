@@ -6,7 +6,7 @@ from dolfin import log, INFO, ERROR
 
 class TestFlatherBoundaryConditionsWithViscosity(object):
 
-    def error(self, problem, eta0, k):
+    def error(self, problem_params, eta0, k):
 
         # The analytical veclocity of the shallow water equations has been
         # multiplied by depth to account for the change of variable (\tilde u =
@@ -19,16 +19,18 @@ class TestFlatherBoundaryConditionsWithViscosity(object):
         # The source term
         source = Expression((ddu_exact,
                             "0.0"),
-                            eta0=eta0, g=problem.parameters.g,
-                            depth=problem.parameters.depth,
-                            t=problem.parameters.start_time,
-                            k=k, viscosity=problem.parameters.viscosity)
+                            eta0=eta0, g=problem_params.g,
+                            depth=problem_params.depth,
+                            t=problem_params.start_time,
+                            k=k, viscosity=problem_params.viscosity)
+        problem_params.f_u = source
+        problem = SWProblem(problem_params)
 
         adj_reset()
         parameters = CoupledSWSolver.default_parameters()
         parameters.dump_period = -1
         solver = CoupledSWSolver(problem, parameters)
-        for sol in solver.solve(annotate=False, u_source=source):
+        for sol in solver.solve(annotate=False):
             pass
         state = sol["state"]
 
@@ -72,13 +74,11 @@ class TestFlatherBoundaryConditionsWithViscosity(object):
 
         # Initial condition
         ic_expr = sin_ic(eta0, k,
-                         linear_problem_params.depth, 
+                         linear_problem_params.depth,
                          linear_problem_params.start_time)
         linear_problem_params.initial_condition = ic_expr
 
-        problem = SWProblem(linear_problem_params)
-
-        return self.error(problem, eta0, k)
+        return self.error(linear_problem_params, eta0, k)
 
     def test_spatial_convergence_is_two(self, sw_linear_problem_parameters,
             sin_ic):

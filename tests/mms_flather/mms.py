@@ -2,7 +2,7 @@ from opentidalfarm import *
 from dolfin_adjoint import adj_reset
 
 
-def compute_error(problem, eta0, k):
+def compute_error(problem_params, eta0, k):
 
     # Define the analytical (MMS) solution
     u_exact = "eta0*sqrt(g/depth) * cos(k*x[0]-sqrt(g*depth)*k*t)"
@@ -17,19 +17,20 @@ def compute_error(problem, eta0, k):
 
     source = Expression((viscosity_source + "+" + advection_source, "0.0"),
                         eta0=eta0,
-                        g=problem.parameters.g,
-                        depth=problem.parameters.depth,
-                        t=Constant(problem.parameters.start_time),
+                        g=problem_params.g,
+                        depth=problem_params.depth,
+                        t=Constant(problem_params.start_time),
                         k=k,
-                        friction=problem.parameters.friction)
+                        friction=problem_params.friction)
+
+    problem_params.f_u = source
+    problem = SWProblem(problem_params)
 
     parameters = CoupledSWSolver.default_parameters()
     parameters.dump_period = -1
     solver = CoupledSWSolver(problem, parameters)
 
-    solver.solve(annotate=False, u_source=source)
-
-    for s in solver.solve(annotate=False, u_source=source):
+    for s in solver.solve(annotate=False):
         pass
     state = s["state"]
 
@@ -65,13 +66,13 @@ def setup_model(parameters, sin_ic, time_step, finish_time, mesh_x, mesh_y=2):
 
     # Activate the relevant terms
     parameters.include_advection = True
-    parameters.include_viscosity = False   
-    parameters.linear_divergence = True 
+    parameters.include_viscosity = False
+    parameters.linear_divergence = True
 
     # Physical settings
     parameters.friction = Constant(0.25)
     parameters.viscosity = Constant(0.0)
-    parameters.domain = domains.RectangularDomain(0, 0, 3000, 1000, mesh_x, 
+    parameters.domain = domains.RectangularDomain(0, 0, 3000, 1000, mesh_x,
                                                   mesh_y)
 
     # Initial condition
@@ -80,10 +81,10 @@ def setup_model(parameters, sin_ic, time_step, finish_time, mesh_x, mesh_y=2):
 
     # Set the analytical boundary conditions
     flather_expr = Expression(
-        ("2*eta0*sqrt(g/depth)*cos(-sqrt(g*depth)*k*t)", "0"), 
-        eta0=eta0, 
-        g=parameters.g, 
-        depth=parameters.depth, 
+        ("2*eta0*sqrt(g/depth)*cos(-sqrt(g*depth)*k*t)", "0"),
+        eta0=eta0,
+        g=parameters.g,
+        depth=parameters.depth,
         t=Constant(parameters.start_time),
         k=k)
 
@@ -92,6 +93,4 @@ def setup_model(parameters, sin_ic, time_step, finish_time, mesh_x, mesh_y=2):
     bcs.add_bc("u", Constant((0, 0)), facet_id=3, bctype="weak_dirichlet")
     parameters.bcs = bcs
 
-    problem = SWProblem(parameters)
-
-    return problem, eta0, k
+    return parameters, eta0, k

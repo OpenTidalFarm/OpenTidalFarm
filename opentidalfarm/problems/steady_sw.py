@@ -9,12 +9,12 @@ from ..domains.domain import Domain
 
 
 class SteadySWProblemParameters(FrozenClass):
-    """ A parameters set for a :class:`SteadySWProblem`. 
+    """ A parameters set for a :class:`SteadySWProblem`.
 
     Domain parameters:
 
     :ivar domain: The computational domain as an :class:`Domain` object.
-    
+
     Physical parameters:
 
     :ivar depth: Water depth. Default: 50.0
@@ -25,19 +25,21 @@ class SteadySWProblemParameters(FrozenClass):
 
     Equation parameters:
 
-    :ivar include_advection: Boolean indicating if the advection is included. 
+    :ivar include_advection: Boolean indicating if the advection is included.
         Default: True
-    :ivar include_viscosity: Boolean indicating if the viscosity is included. 
+    :ivar include_viscosity: Boolean indicating if the viscosity is included.
         Default: True
-    :ivar linear_divergence: Boolean indicating if the divergence equation is 
+    :ivar linear_divergence: Boolean indicating if the divergence equation is
         linearised. Default: False
+    :ivar f_u: A source term for the velocity component as a
+        :class:`dolfin.Expression`. Default: Constant((0, 0))
 
     Boundary conditions:
 
     :ivar bctype: Specifies how the boundary conditions should be enforced.
-        Valid options are: 'weak_dirichlet', 'strong_dirichlet' or 'flather'. 
+        Valid options are: 'weak_dirichlet', 'strong_dirichlet' or 'flather'.
         Default: 'strong_dirichlet'
-    :ivar bcs: A :class:`BoundaryConditionSet` containing a list of boundary 
+    :ivar bcs: A :class:`BoundaryConditionSet` containing a list of boundary
         conditions for the problem.
 
     Discretization settings:
@@ -64,6 +66,7 @@ class SteadySWProblemParameters(FrozenClass):
     initial_condition = Constant((1e-16, 0, 0))
     initial_condition_u = Constant((1e-16, 0))
     initial_condition_eta = Constant(0)
+    f_u = Constant((0, 0))
 
     # Finite element settings
     finite_element = staticmethod(finite_elements.p2p1)
@@ -72,7 +75,7 @@ class SteadySWProblemParameters(FrozenClass):
     bcs = BoundaryConditionSet()
 
 class SteadySWProblem(Problem):
-    """ A problem class for a steady-state shallow water problem. 
+    """ A problem class for a steady-state shallow water problem.
 
         :parameter parameters: A :class:`SteadySWProblemParameters`
             object containing the parameters of the problem.

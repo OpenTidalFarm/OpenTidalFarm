@@ -178,7 +178,7 @@ CoupledSWSolverParameters."
 
         return bcs_u + bcs_eta
 
-    def solve(self, turbine_field=None, annotate=True, u_source=None):
+    def solve(self, turbine_field=None, annotate=True):
         ''' Returns an iterator for solving the shallow water equations. '''
 
         ############################### Setting up the equations ###########################
@@ -247,6 +247,7 @@ CoupledSWSolverParameters."
         bcs = problem_params.bcs
         linear_divergence = problem_params.linear_divergence
         cache_forward_state = solver_params.cache_forward_state
+        f_u = problem_params.f_u
 
         # Define test functions
         v, q = TestFunctions(self.function_space)
@@ -388,8 +389,7 @@ CoupledSWSolverParameters."
             G_mid += D_mid
 
         # Add the source term
-        if u_source:
-            G_mid -= inner(u_source, v) * dx
+        G_mid -= inner(f_u, v) * dx
         F = dt * G_mid - dt * bc_contr
 
         # Add the time term
@@ -429,8 +429,7 @@ CoupledSWSolverParameters."
             bcs.update_time(t_theta, exclude_type=["strong_dirichlet"])
 
             # Update source term
-            if u_source is not None:
-                u_source.t = Constant(t_theta)
+            f_u.t = Constant(t_theta)
 
             # Set the initial guess for the solve
             if cache_forward_state and self.state_cache.has_key(float(t)):
