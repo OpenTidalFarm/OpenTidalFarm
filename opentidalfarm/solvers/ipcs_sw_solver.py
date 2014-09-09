@@ -61,55 +61,76 @@ class IPCSSWSolverParameters(FrozenClass):
 
 class IPCSSWSolver(Solver):
     r"""
-    This incremental pressure correction scheme (IPCS) is an operator splitting scheme that
-    follows the idea of Goda [1]_.
-    This scheme preserves the exact same stability properties
-    as Navier-Stokes and hence does not introduce additional dissipation in the flow.
+    This incremental pressure correction scheme (IPCS) is an operator splitting
+    scheme that follows the idea of Goda [1]_.  This scheme preserves the exact
+    same stability properties as Navier-Stokes and hence does not introduce
+    additional dissipation in the flow.
 
     The :class:`IPCSSWSolver` only works with transient problems, that is with
     :class:`opentidalfarm.problems.sw.SWProblem`.
 
-    The idea is to replace the unknown pressure with an approximation. This is chosen as
-    the pressure solution from the previous solution.
+    The idea is to replace the unknown free-surface with an approximation. This
+    is chosen as the free-surface solution from the previous solution.
 
-    The time discretization is done using backward Euler, the diffusion term is handled with Crank-Nicholson, and the convection is handled explicitly, making the
-    equations completely linear. Thus, we have a discretized version of the Navier-Stokes equations as
+    The time discretization is done using backward Euler, the diffusion term is
+    handled with Crank-Nicholson, and the convection is handled explicitly,
+    making the equations completely linear. Thus, we have a discretized version
+    of the shallow water equations as
 
-    .. math:: \frac{1}{\Delta t}\left( u^{n+1}-u^{n} \right)-\nabla\cdot\nu\nabla u^{n+\frac{1}{2}}+u^n\cdot\nabla u^{n}+\frac{1}{\rho}\nabla p^{n+1}=f^{n+1}, \\
-        \nabla \cdot u^{n+1} = 0,
+    .. math:: \frac{1}{\Delta t}\left( u^{n+1}-u^{n}
+        \right)-\nabla\cdot\nu\nabla u^{n+\theta}+u^n\cdot\nabla u^{n}+g\nabla
+        \eta^{n+1} &= f_u^{n+1}, \\
+        \frac{1}{\Delta t}\left( \eta^{n+1}-\eta^{n} \right) + \nabla \cdot
+        \left( H^{n+1} u^{n+1} \right) &= 0,
 
-    where :math:`\tilde{u}^{n+\frac{1}{2}} = \frac{1}{2}\tilde{u}^{n+1}+\frac{1}{2}u^n.`
+    where :math:`u^{n+\theta} = \theta{u}^{n+1}+(1-\theta)u^n, \theta =
+    \frac{1}{2}`.
 
-    For the operator splitting, we use the pressure solution from the previous timestep as an estimation, giving an equation for a tentative velocity, :math:`\tilde{u}^{n+1}`:
+    For the operator splitting, we use the free-surface solution from the
+    previous timestep as an estimation, giving an equation for a tentative
+    velocity, :math:`\tilde{u}^{n+1}`:
 
-    .. math:: \frac{1}{\Delta t}\left( \tilde{u}^{n+1}-u^{n} \right)-\nabla\cdot\nu\nabla \tilde{u}^{n+\frac{1}{2}}+u^n\cdot\nabla u^{n}+\frac{1}{\rho}\nabla p^{n}=f^{n+1}.
+    .. math:: \frac{1}{\Delta t}\left( \tilde{u}^{n+1}-u^{n}
+        \right)-\nabla\cdot\nu\nabla \tilde{u}^{n+\theta}+u^n\cdot\nabla
+        u^{n}+g\nabla \eta^{n}=f_u^{n+1}.
 
-    This tenative velocity is not divergence free, and thus we define a velocity correction :math:`u^c=u^{n+1}-\tilde{u}^{n+1}`. Substracting the second equation from the first, we see that
+    This tenative velocity does not satisfy the divergence equation, and thus we
+    define a velocity correction :math:`u^c=u^{n+1}-\tilde{u}^{n+1}`.
+    Substracting the second equation from the first, we see that
 
     .. math::
-        \frac{1}{\Delta t}u^c-\nabla\cdot\nu\nabla u^c+\frac{1}{\rho}\nabla\left( p^{n+1} - p^n\right)=0, \\
-        \nabla \cdot u^c = -\nabla \cdot \tilde{u}^{n+1}.
+        \frac{1}{\Delta t}u^c - \theta \nabla\cdot\nu\nabla
+        u^c+g\nabla\left( \eta^{n+1} - \eta^n\right)=0, \\
+        \frac{1}{\Delta t}\left( \eta^{n+1}-\eta^{n} \right) + \nabla \cdot
+        \left( H^{n+1} u^c \right) = -\nabla \cdot \left( H^{n+1}
+        \tilde{u}^{n+1} \right).
 
-    The operator splitting is a first order approximation, :math:`O(\Delta t)`, so we can, without reducing the order of the approximation simplify the above to
+    The operator splitting is a first order approximation, :math:`O(\Delta t)`,
+    so we can, without reducing the order of the approximation simplify the
+    above to
 
     .. math::
-        \frac{1}{\Delta t}u^c+\frac{1}{\rho}\nabla\left( p^{n+1} - p^n\right)=0, \\
-        \nabla \cdot u^c = -\nabla \cdot \tilde{u}^{n+1},
+        \frac{1}{\Delta t}u^c + g\nabla\left( \eta^{n+1} - \eta^n\right)=0, \\
+        \frac{1}{\Delta t}\left( \eta^{n+1}-\eta^{n} \right) + \nabla \cdot
+        \left( H^{n+1} u^c \right) = -\nabla \cdot \left( H^{n+1}
+        \tilde{u}^{n+1} \right),
 
-    which is reducible to a Poisson problem:
+    which is reducible to the problem:
 
     .. math::
-       \Delta p^{n+1} = \Delta p^n+\frac{\rho}{\Delta t}\nabla \cdot \tilde{u}^{n+1}.
+        \frac{1}{\Delta t}\left( \eta^{n+1}-\eta^{n} \right) - g \Delta t \nabla \cdot
+        \left( H^{n+1}  \nabla\left( \eta^{n+1} - \eta^n\right) \right) = -\nabla \cdot \left( H^{n+1}
+        \tilde{u}^{n+1} \right).
 
     The corrected velocity is then easily calculated from
 
     .. math::
-        u^{n+1} = \tilde{u}^{n+1}-\frac{\Delta t}{\rho}\nabla\left(p^{n+1}-p^n\right)
+        u^{n+1} = \tilde{u}^{n+1} - \Delta tg\nabla\left(\eta^{n+1}-\eta^n\right)
 
     The scheme can be summarized in the following steps:
-        #. Replace the pressure with a known approximation and solve for a tenative velocity :math:`u^{n+1}`.
+        #. Replace the pressure with a known approximation and solve for a tenative velocity :math:`\tilde u^{n+1}`.
 
-        #. Solve a Poisson equation for the pressure, :math:`p^{n+1}`
+        #. Solve a free-surface correction equation for the free-surface, :math:`\eta^{n+1}`
 
         #. Use the corrected pressure to find the velocity correction and calculate :math:`u^{n+1}`
 
