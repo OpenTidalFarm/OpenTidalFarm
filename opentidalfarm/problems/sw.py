@@ -22,7 +22,7 @@ class SWProblemParameters(SteadySWProblemParameters):
     Functional time integration paramters (FIXME: Move to reduced functional):
 
     :ivar functional_final_time_only: Boolean indicating if the functional
-        should be integrated over time or evaluated at the end of time only. 
+        should be integrated over time or evaluated at the end of time only.
         Default: True.
     """
 
@@ -37,9 +37,10 @@ class SWProblemParameters(SteadySWProblemParameters):
 
 
 class SWProblem(SteadySWProblem):
+    """ A time-dependent shallow water problem. """
 
     def __init__(self, parameters):
-        """ Instantiates a new :class:`SWProblem` object. 
+        """ Instantiates a new :class:`SWProblem` object.
 
             :parameter parameters: A :class:`SWProblemParameters`
                 object containing the parameters of the problem.

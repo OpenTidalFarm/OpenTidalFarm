@@ -28,9 +28,10 @@ class MultiSteadySWProblemParameters(SteadySWProblemParameters):
     functional_final_time_only = False
 
 class MultiSteadySWProblem(SteadySWProblem):
+    """ A multi-steady shallow water problem. """
 
     def __init__(self, parameters):
-        """ Instantiates a new :class:`SWProblem` object. 
+        """ Instantiates a new :class:`SWProblem` object.
 
             :parameter parameters: A :class:`SWProblemParameters`
                 object containing the parameters of the problem.
