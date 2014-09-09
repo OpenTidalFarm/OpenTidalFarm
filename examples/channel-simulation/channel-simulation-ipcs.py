@@ -60,7 +60,7 @@ domain = RectangularDomain(x0=0, y0=0, x1=100, y1=50, nx=20, ny=10)
 
 # You can plot and inspect the boundary ids with
 
-plot(domain.facet_ids, interactive=True)
+#plot(domain.facet_ids, interactive=True)
 
 # Next we specify boundary conditions. If a boundary expression contains a
 # parameter named `t`, it will be automatically be updated to the current
@@ -98,7 +98,8 @@ prob_params.dt = Constant(0.5)
 # The initial condition consists of three components: u_x, u_y and eta
 # Note that we do not set all components to zero, as some components of the
 # Jacobian of the quadratic friction term is non-differentiable.
-prob_params.initial_condition = Constant((DOLFIN_EPS, 0, 0)) 
+prob_params.initial_condition_u = Constant((DOLFIN_EPS, 0)) 
+prob_params.initial_condition_eta = Constant(0)
 # Create the shallow water problem
 problem = SWProblem(prob_params)
 
@@ -111,15 +112,16 @@ print prob_params
 # Next we create a shallow water solver. Here we choose to solve the shallow
 # water equations in its fully coupled form:
 
-sol_params = CoupledSWSolver.default_parameters()
+sol_params = IPCSSWSolver.default_parameters()
 sol_params.dump_period = -1
-solver = CoupledSWSolver(problem, sol_params)
+solver = IPCSSWSolver(problem, sol_params)
 
 # Now we are ready to solve
 
 for s in solver.solve():
     print "Computed solution at time %f" % s["time"]
-    plot(s["state"])
+    plot(s["u"], title="u")
+    plot(s["eta"], title="eta")
 
 # Finally we hold the plot unti the user presses q.
 interactive()

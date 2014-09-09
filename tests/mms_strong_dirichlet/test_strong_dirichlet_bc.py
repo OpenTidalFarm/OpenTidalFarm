@@ -4,7 +4,6 @@
 import sys
 import math
 from opentidalfarm import *
-from opentidalfarm.initial_conditions import SinusoidalInitialCondition
 from dolfin_adjoint import adj_reset
 from dolfin import log, INFO, ERROR
 
@@ -28,7 +27,7 @@ class TestStringDirichletBoundaryConditions(object):
              t=float(problem.parameters.finish_time), k=k)
       return errornorm(analytic_sol, state)
 
-    def compute_spatial_error(self, problem_params, refinement_level):
+    def compute_spatial_error(self, problem_params, refinement_level, sin_ic):
         nx = 2 * 2**refinement_level
         ny = 1
 
@@ -57,16 +56,16 @@ class TestStringDirichletBoundaryConditions(object):
         problem_params.bcs = bcs
 
         # Initial condition
-        ic_expr = SinusoidalInitialCondition(eta0, k, 
-                                             problem_params.depth,
-                                             problem_params.start_time)
+        ic_expr = sin_ic(eta0, k, 
+                         problem_params.depth,
+                         problem_params.start_time)
         problem_params.initial_condition = ic_expr
 
         problem = SWProblem(problem_params)
 
         return self.error(problem, eta0, k)
 
-    def compute_temporal_error(self, problem_params, refinement_level):
+    def compute_temporal_error(self, problem_params, refinement_level, sin_ic):
         nx = 2**3
         ny = 1
         eta0 = 2.0
@@ -97,9 +96,9 @@ class TestStringDirichletBoundaryConditions(object):
         problem_params.bcs = bcs
 
         # Initial condition
-        ic_expr = SinusoidalInitialCondition(eta0, k, 
-                                             problem_params.depth,
-                                             problem_params.start_time)
+        ic_expr = sin_ic(eta0, k, 
+                         problem_params.depth,
+                         problem_params.start_time)
         problem_params.initial_condition = ic_expr
 
         problem = SWProblem(problem_params)
@@ -107,12 +106,13 @@ class TestStringDirichletBoundaryConditions(object):
         return self.error(problem, eta0, k)
 
     
-    def test_spatial_convergence_is_two(self, sw_linear_problem_parameters):
+    def test_spatial_convergence_is_two(self, sw_linear_problem_parameters,
+            sin_ic):
         errors = []
         tests = 4
         for refinement_level in range(tests):
             error = self.compute_spatial_error(sw_linear_problem_parameters, 
-                                               refinement_level)
+                                               refinement_level, sin_ic)
             errors.append(error)
 
         # Compute the order of convergence 
@@ -124,12 +124,13 @@ class TestStringDirichletBoundaryConditions(object):
         log(INFO, "Spatial order of convergence (expecting 2.0): %s" % conv)
         assert min(conv) > 1.8
 
-    def test_temporal_convergence_is_two(self, sw_linear_problem_parameters):
+    def test_temporal_convergence_is_two(self, sw_linear_problem_parameters,
+            sin_ic):
         errors = []
         tests = 4
         for refinement_level in range(tests):
           error = self.compute_temporal_error(sw_linear_problem_parameters, 
-                                               refinement_level)
+                                               refinement_level, sin_ic)
           errors.append(error)
         # Compute the order of convergence 
         conv = [] 

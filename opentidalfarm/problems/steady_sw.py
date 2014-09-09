@@ -17,10 +17,11 @@ class SteadySWProblemParameters(FrozenClass):
     
     Physical parameters:
 
-    :ivar depth: Water depth. Default: 50
+    :ivar depth: Water depth. Default: 50.0
     :ivar g: Gravitational constant. Default: 9.81
     :ivar viscosity: Water viscosity. Default: 3.0
     :ivar friction: Natural bottom friction. Default: 0.0025
+    :ivar rho: Density of water. Default: 1000.0
 
     Equation parameters:
 
@@ -52,6 +53,8 @@ class SteadySWProblemParameters(FrozenClass):
     g = 9.81
     viscosity = 3.0
     friction = 0.0025
+    rho = 1000.
+    tidal_farm = None
 
     # Equation settings
     include_advection = True

@@ -11,7 +11,7 @@ from ..helpers import StateWriter, norm_approx, smooth_uflmin, FrozenClass
 
 
 class CoupledSWSolverParameters(FrozenClass):
-    """ A set of parameters for a :class:`CoupledSWSolver`. 
+    """ A set of parameters for a :class:`CoupledSWSolver`.
 
     Following parameters are available:
 
@@ -21,33 +21,46 @@ class CoupledSWSolverParameters(FrozenClass):
         .. code-block:: python
 
             info(NonlinearVariationalSolver.default_parameters(), True)
-        
+
         By default, the MUMPS direct solver is used for the linear system. If
         not available, the default solver and preconditioner of FEniCS is used.
 
     :ivar dump_period: Specifies how often the solution should be dumped to disk.
         Use a negative value to disable it. Default 1.
     :ivar cache_forward_state: If True, the shallow water solutions are stored
-        for every timestep and are used as initial guesses for the next solve. 
-        If False, the solution of the previous timestep is used as an initial guess. 
+        for every timestep and are used as initial guesses for the next solve.
+        If False, the solution of the previous timestep is used as an initial guess.
         Default: True
     :ivar print_individual_turbine_power: Print out the turbine power for each
         turbine. Default: False
     :ivar quadrature_degree: The quadrature degree for the matrix assembly.
-        Default: 5
+        Default: -1 (automatic)
     :ivar cpp_flags: A list of cpp compiler options for the code generation.
         Default: ["-O3", "-ffast-math", "-march=native"]
-
+    :ivar revolve_parameters: The adjoint checkpointing settings as a set of the
+        form (strategy, snaps_on_disk, snaps_in_ram, verbose). Default: None
+    :ivar output_dir: The base directory in which to store the file ouputs.
+        Default: `os.curdir`
+    :ivar output_turbine_power: Output the power generation of the individual
+        turbines. Default: False
     """
 
     dolfin_solver = {"newton_solver": {}}
     dump_period = 1
     print_individual_turbine_power = False
 
+    # Output settings
+    output_dir = os.curdir
+    output_turbine_power = False
+
     # Performance settings
     cache_forward_state = True
-    quadrature_degree = 5
+    quadrature_degree = -1
     cpp_flags = ["-O3", "-ffast-math", "-march=native"]
+    revolve_parameters = None  # (strategy,
+                               # snaps_on_disk,
+                               # snaps_in_ram,
+                               # verbose)
 
     def __init__(self):
 
@@ -60,22 +73,26 @@ class CoupledSWSolverParameters(FrozenClass):
 
 
 class CoupledSWSolver(Solver):
-    """ A solver class that solves the shallow water equations fully coupled.
+    """ This solver solves the shallow water equations as a fully coupled,
+    nonlinear system.
+    The resulting equations are solved with Newton-iterations and the linear
+    problems solved as specified in the `dolfin_solver` setting in
+    :class:`CoupledSWSolverParameters`.
     """
 
-    def __init__(self, problem, parameters, config=None):
+
+    def __init__(self, problem, solver_params):
 
         if not isinstance(problem, (SWProblem,
             SteadySWProblem)):
             raise TypeError, "problem must be of type Problem"
 
-        if not isinstance(parameters, CoupledSWSolverParameters):
-            raise TypeError, "parameters must be of type \
+        if not isinstance(solver_params, CoupledSWSolverParameters):
+            raise TypeError, "solver_params must be of type \
 CoupledSWSolverParameters."
 
         self.problem = problem
-        self.parameters = parameters
-        self.config = config
+        self.parameters = solver_params
 
         # If cache_for_nonlinear_initial_guess is true, then we store all
         # intermediate state variables in this dictionary to be used for the
@@ -91,6 +108,8 @@ CoupledSWSolverParameters."
 
     @staticmethod
     def default_parameters():
+        """ Return the default parameters for the :class:`CoupledSWSolver`.
+        """
         return CoupledSWSolverParameters()
 
     def _finished(self, current_time, finish_time):
@@ -116,14 +135,15 @@ CoupledSWSolverParameters."
 
         return bcs_u + bcs_eta
 
-    def solve(self, turbine_field=None, functional=None, annotate=True, u_source=None):
-        ''' Solve the shallow water equations '''
+    def solve(self, turbine_field=None, annotate=True, u_source=None):
+        ''' Returns an iterator for solving the shallow water equations '''
 
         ############################### Setting up the equations ###########################
 
         # Get parameters
         problem_params = self.problem.parameters
         solver_params = self.parameters
+        farm = problem_params.tidal_farm
 
         # Performance settings
         parameters['form_compiler']['quadrature_degree'] = \
@@ -171,9 +191,9 @@ CoupledSWSolverParameters."
             t = Constant(0.)
 
             include_time_term = False
-        
+
         else:
-            raise TypeError("Do not know how to solve problem of type %s." % 
+            raise TypeError("Do not know how to solve problem of type %s." %
                 type(self.problem))
 
         g = problem_params.g
@@ -184,7 +204,7 @@ CoupledSWSolverParameters."
         bcs = problem_params.bcs
         linear_divergence = problem_params.linear_divergence
         cache_forward_state = solver_params.cache_forward_state
-        
+
         # Define test functions
         v, q = TestFunctions(self.function_space)
 
@@ -196,7 +216,7 @@ CoupledSWSolverParameters."
         # Load initial condition (or initial guess for stady problems)
         # Projection is necessary to obtain 2nd order convergence
         ic = project(problem_params.initial_condition, self.function_space)
-        state.assign(ic, annotate=False)    
+        state.assign(ic, annotate=False)
 
         # Split mixed functions
         u, h = split(state_new)
@@ -227,14 +247,14 @@ CoupledSWSolverParameters."
 
         # Divergence term.
         Ct_mid = -H * inner(u_mid, grad(q)) * dx
-        #+inner(avg(u_mid),jump(q,n))*dS # This term is only needed for dg 
+        #+inner(avg(u_mid),jump(q,n))*dS # This term is only needed for dg
                                          # element pairs which is not supported
 
         # The surface integral contribution from the divergence term
         bc_contr = -H * dot(u_mid, n) * q * ds
 
         for function_name, u_expr, facet_id, bctype in problem_params.bcs:
-            if (function_name is not "u" or 
+            if (function_name is not "u" or
                 bctype not in ["flather", "weak_dirichlet"]):
                 continue
 
@@ -260,7 +280,7 @@ CoupledSWSolverParameters."
 
 
         # Pressure gradient term
-        weak_eta_bcs = [bc for bc in problem_params.bcs if bc[0] is "eta" 
+        weak_eta_bcs = [bc for bc in problem_params.bcs if bc[0] is "eta"
                         and bc[-1] is "weak_dirichlet"]
 
         if len(weak_eta_bcs) == 0:
@@ -278,7 +298,7 @@ CoupledSWSolverParameters."
                 # Apply the eta boundary conditions weakly on boundary IDs 1 and 2
                 C_mid +=  g * inner(dot(v, n), eta_expr) * ds(facet_id)
 
-                #+inner(avg(v),jump(h_mid,n))*dS # This term is only needed 
+                #+inner(avg(v),jump(h_mid,n))*dS # This term is only needed
                                                  # for dg element pairs
 
         # Bottom friction
@@ -300,7 +320,7 @@ CoupledSWSolverParameters."
         R_mid = friction / H * norm_u_mid * inner(u_mid, v) * dx
 
         if turbine_field:
-            R_mid += tf / H * dot(u_mid, u_mid) ** 0.5 * inner(u_mid, v) * self.config.site_dx(1)
+            R_mid += tf / H * dot(u_mid, u_mid) ** 0.5 * inner(u_mid, v) * farm.site_dx(1)
 
         # Advection term
         if include_advection:
@@ -340,12 +360,12 @@ CoupledSWSolverParameters."
 
         if solver_params.dump_period > 0:
 
-            writer = StateWriter(self.config, optimisation_iteration=self.config.optimisation_iteration)
+            writer = StateWriter(farm, optimisation_iteration=farm.optimisation_iteration)
             if type(self.problem) == SWProblem:
                 log(INFO, "Writing state to disk...")
                 writer.write(state)
 
-        yield({"time": t, 
+        yield({"time": t,
                "u": u0,
                "eta": h0,
                "tf": tf,
@@ -388,8 +408,8 @@ CoupledSWSolverParameters."
                 log(INFO, "Solve shallow water equations.")
 
             solve(F == 0, state_new, bcs=strong_bcs,
-                  solver_parameters=solver_params.dolfin_solver, 
-                  annotate=annotate, 
+                  solver_parameters=solver_params.dolfin_solver,
+                  annotate=annotate,
                   J=derivative(F, state_new))
 
             # After the timestep solve, update state
@@ -409,7 +429,7 @@ CoupledSWSolverParameters."
                 else:
                     tf.assign(turbine_field)
 
-            if (solver_params.dump_period > 0 and 
+            if (solver_params.dump_period > 0 and
                 timestep % solver_params.dump_period == 0):
                 log(INFO, "Write state to disk...")
                 writer.write(state)
@@ -419,7 +439,7 @@ CoupledSWSolverParameters."
             adj_inc_timestep(time=float(t), finished=self._finished(t,
                 finish_time))
 
-            yield({"time": t, 
+            yield({"time": t,
                    "u": u0,
                    "eta": h0,
                    "tf": tf,

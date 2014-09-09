@@ -8,21 +8,22 @@ class TestSmearedTurbine(object):
 
     def test_gradient_passes_taylor_test(self, sw_linear_problem_parameters):
         parameters["form_compiler"]["quadrature_degree"] = 4
+        prob_params=sw_linear_problem_parameters
 
         nx = 5
         ny = 5
         domain = RectangularDomain(0, 0, 3000, 1000, nx, ny)
-        config = DefaultConfiguration(domain)
-
+        farm = TidalFarm(domain)
         # Switch to a smeared turbine representation
-        config.params["controls"] = ["turbine_friction"]
-        config.params["turbine_parametrisation"] = "smeared"
+        farm.params["controls"] = ["turbine_friction"]
+        farm.params["turbine_parametrisation"] = "smeared"
+        prob_params.tidal_farm = farm
 
-        sw_linear_problem_parameters.domain = domain
-        sw_linear_problem_parameters.initial_condition = Constant((1, 0, 0))
+        prob_params.domain = domain
+        prob_params.initial_condition = Constant((1, 0, 0))
 
-        sw_linear_problem_parameters.finish_time = sw_linear_problem_parameters.start_time + \
-            3*sw_linear_problem_parameters.dt
+        prob_params.finish_time = prob_params.start_time + \
+            3*prob_params.dt
 
         # Boundary conditions
         site_x_start = 750
@@ -35,9 +36,9 @@ class TestSmearedTurbine(object):
         bc_expr = Expression(
             ("2*eta0*sqrt(g/depth)*cos(-sqrt(g*depth)*k*t)", "0"),
             eta0=2.,
-            g=sw_linear_problem_parameters.g,
-            depth=sw_linear_problem_parameters.depth,
-            t=sw_linear_problem_parameters.start_time,
+            g=prob_params.g,
+            depth=prob_params.depth,
+            t=prob_params.start_time,
             k=k
         )
         bcs.add_bc("u", bc_expr, [1, 2], "flather")
@@ -49,23 +50,26 @@ class TestSmearedTurbine(object):
                         between(x[1], (site_y_start, site_y_start+site_y)))
 
         site = Site()
-        d = CellFunction("size_t", config.domain.mesh)
+        d = CellFunction("size_t", farm.domain.mesh)
         d.set_all(0)
         site.mark(d, 1)
-        config.site_dx = Measure("dx")[d]
+        farm.site_dx = Measure("dx")[d]
 
-        problem = SWProblem(sw_linear_problem_parameters)
+        problem = SWProblem(prob_params)
 
         solver_params = CoupledSWSolver.default_parameters()
         solver_params.dump_period = -1
-        solver = CoupledSWSolver(problem, solver_params, config)
+        solver = CoupledSWSolver(problem, solver_params)
 
-        rf = ReducedFunctional(config, solver)
+        functional = PowerFunctional
+        rf_params = ReducedFunctionalParameters()
+        rf_params.automatic_scaling = False
+        rf = ReducedFunctional(functional, solver, rf_params)
         # Ensure the same seed value accross all CPUs
         numpy.random.seed(33)
-        m0 = numpy.random.rand(len(rf.initial_control()))
+        m0 = numpy.random.rand(len(farm.control_array()))
 
         seed = 0.1
-        minconv = helpers.test_gradient_array(rf.j, rf.dj, m0, seed=seed)
+        minconv = helpers.test_gradient_array(rf.__call__, rf.derivative, m0, seed=seed)
 
         assert minconv > 1.9

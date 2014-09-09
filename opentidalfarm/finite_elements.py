@@ -12,7 +12,7 @@ def rt0(mesh):
 
 
 def p2p1(mesh):
-    "Return a function space U*H on mesh from the p2p1 space."
+    "Return a function space U*H on mesh from the P2P1 space."
 
     V = VectorFunctionSpace(mesh, 'CG', 2, dim=2)  # Velocity space
 
@@ -30,7 +30,7 @@ def mini(mesh):
     return V, H
 
 def p1dgp2(mesh):
-    "Return a function space U*H on mesh from the rt0 space."
+    "Return a function space U*H on mesh from the P1dgP2 space."
 
     V = VectorFunctionSpace(mesh, 'DG', 1, dim=2)  # Velocity space
 

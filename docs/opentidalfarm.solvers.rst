@@ -1,4 +1,4 @@
-Solvers 
+Solvers
 =======
 
 .. automodule:: opentidalfarm.solvers

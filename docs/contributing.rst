@@ -346,3 +346,21 @@ is shown below.
   Informative progress message... [=>                                   ] 5.2%
   Informative progress message... [====>                                ] 11.1%
   Informative progress message... [======>                              ] 17.0%
+
+Adding documented examples
+--------------------------
+
+The documentation for examples is automatically generated from the source code
+using `pylit <https://pypi.python.org/pypi/pylit>`_. 
+
+Follow these steps to add an example:
+
+1. Create a new subdirectory in ``examples/`` and add the documented Python source
+   code (use for example existing examples for references).
+2. Add the example to the `build_examples` task in ``docs/Makefile`` (again use 
+   existing commands as a template).
+3. Run "make html" in ``docs/``, check that the documentation looks as expected
+   (open ``_build/html/index.html`` in an webbrowser).
+4. Add the generated rst file in ``docs/examples/.../`` to the git repository.
+   Commit, and check that the documentation is correct in the readthedocs
+   OpenTidalFarm documentation.

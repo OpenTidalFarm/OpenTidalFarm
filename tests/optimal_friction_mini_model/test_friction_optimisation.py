@@ -15,11 +15,8 @@ from opentidalfarm import *
 
 class TestFrictionOptimisation(object):
 
-    def default_config(self, sin_ic):
+    def default_problem(self, sin_ic):
       domain = RectangularDomain(0, 0, 3000, 1000, 20, 10)
-
-      config = DefaultConfiguration(domain)
-      config.params["verbose"] = 0
 
       problem_params = DummyProblem.default_parameters()
 
@@ -27,39 +24,46 @@ class TestFrictionOptimisation(object):
       problem_params.dt = 1.0
       problem_params.functional_final_time_only = True
 
-      # Turbine settings
-      config.params["turbine_pos"] = [[500., 500.]]
+      # Create turbine farm
+      farm = TidalFarm(domain)
+      farm.params["turbine_pos"] = [[500., 500.]]
       # The turbine friction is the control variable 
-      config.params["turbine_friction"] = 12.0*numpy.random.rand(len(config.params["turbine_pos"]))
-      config.params["turbine_x"] = 1e10
-      config.params["turbine_y"] = 1e10
-      config.params['controls'] = ['turbine_friction']
-      config.params["output_turbine_power"] = False
+      farm.params["turbine_friction"] = 12.0*numpy.random.rand(len(farm.params["turbine_pos"]))
+      farm.params["turbine_x"] = 1e10
+      farm.params["turbine_y"] = 1e10
+      farm.params['controls'] = ['turbine_friction']
+      farm.params["output_turbine_power"] = False
+      problem_params.tidal_farm = farm
 
       k = pi/3000.
-      config.params['k'] = k
+      farm.params['k'] = k
       problem_params.initial_condition = sin_ic(2.0, k, 50., 0.0)
-
       problem_params.domain = domain
       problem_params.finite_element = finite_elements.p1dgp2
       problem = DummyProblem(problem_params)
-      return problem, config
+      return problem
 
     def test_optimisation_recovers_optimal_friction(self, sin_ic):
 
-        problem, config = self.default_config(sin_ic)
-        solver = DummySolver(problem, config)
+        problem = self.default_problem(sin_ic)
+        solver = DummySolver(problem)
 
-        rf = ReducedFunctional(config, solver, scale=1e-3)
-        m0 = rf.initial_control()
-        rf(m0)
-        rf.dj(m0, forget=False)
+        functional = PowerFunctional
+        farm = problem.parameters.tidal_farm
+        rf_params = ReducedFunctionalParameters()
+        rf_params.scale = 1e-3
+        rf_params.automatic_scaling = False
+        rf = ReducedFunctional(functional, solver, rf_params)
+        m0 = farm.control_array()
+        rf.evaluate(m0)
+        rf.derivative(m0, forget=False)
 
         p = numpy.random.rand(len(m0))
-        minconv = helpers.test_gradient_array(rf.j, rf.dj, m0, seed=0.001, perturbation_direction=p)
+        minconv = helpers.test_gradient_array(rf.evaluate, rf.derivative, m0, seed=0.001, 
+                                              perturbation_direction=p)
         assert minconv > 1.98
 
         bounds = [0, 100]
         maximize(rf, bounds=bounds, method="SLSQP", scale=1e-3) 
 
-        assert abs(config.params["turbine_friction"][0] - 0.5) < 10**-4
+        assert abs(farm.params["turbine_friction"][0] - 0.5) < 10**-4

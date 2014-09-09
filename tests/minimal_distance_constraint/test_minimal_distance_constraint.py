@@ -9,11 +9,11 @@ class TestMinimalDistanceConstraint(object):
 
     def test_derivative(self):
         domain = RectangularDomain(0, 0, 3000, 1000, 20, 3)
-        config = configuration.DefaultConfiguration(domain)
+        farm = TidalFarm(domain)
 
-        config.params["controls"] = ['turbine_pos']
+        farm.params["controls"] = ['turbine_pos']
 
-        ieq = get_minimum_distance_constraint_func(config)
+        ieq = get_minimum_distance_constraint_func(farm)
 
         # Only test the correctness of the first inequality constraint for simplicity
         ieqcons_J = lambda m: ieq.function(m)[0]
@@ -23,7 +23,7 @@ class TestMinimalDistanceConstraint(object):
 
         assert minconv > 1.99
 
-        ieq = generate_site_constraints(config, [[0, 0], [10, 0], [10, 10]], penalty_factor=1)
+        ieq = generate_site_constraints(farm, [[0, 0], [10, 0], [10, 10]], penalty_factor=1)
 
         # Only test the correctness of the first inequality constraint for simplicity
         ieqcons_J = lambda m: ieq.function(m)[0]
