@@ -50,7 +50,6 @@ EXAMPLES_IN = ../examples
 EXAMPLES_OUT = examples
 
 build_examples:
-	rm -R $(EXAMPLES_OUT)/
 	mkdir -p $(EXAMPLES_OUT)/channel
 	bin/pylit.py --overwrite yes $(EXAMPLES_IN)/channel_simulation/channel_simulation.py $(EXAMPLES_OUT)/channel/channel.rst
 	mkdir -p $(EXAMPLES_OUT)/tidal

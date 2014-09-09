@@ -1,4 +1,4 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 # .. _channel_simulation:
@@ -12,15 +12,15 @@
 # Introduction
 # ************
 #
-# This example simulates the flow in a channel with oscillating velocity 
-# in-/outflow on the west side, fixed surface height on the east side, and 
-# free-slip flow on the north and south sides.
+# This example simulates the flow in a channel with oscillating velocity
+# in-/outflow on the west boundary, fixed surface height on the east boundary,
+# and free-slip flow on the north and south boundaries.
 #
 # The shallow water equations to be solved are
 #
-# .. math::                                                                                                                                                                                                                                    
-#       \frac{\partial u}{\partial t} +  u \cdot \nabla  u - \nu \nabla^2 u  + g \nabla \eta + \frac{c_b}{H} \| u \|  u = 0, \\ 
-#       \frac{\partial \eta}{\partial t} + \nabla \cdot \left(H u \right) = 0, \\ 
+# .. math::
+#       \frac{\partial u}{\partial t} +  u \cdot \nabla  u - \nu \nabla^2 u  + g \nabla \eta + \frac{c_b}{H} \| u \|  u = 0, \\
+#       \frac{\partial \eta}{\partial t} + \nabla \cdot \left(H u \right) = 0, \\
 #
 # where
 #
@@ -54,8 +54,8 @@
 
 from opentidalfarm import *
 
-# We start with getting the default parameters of a shallow water problem and
-# configure it to our needs. 
+# Next we get the default parameters of a shallow water problem and configure it
+# to our needs.
 
 prob_params = SWProblem.default_parameters()
 
@@ -109,33 +109,47 @@ prob_params.dt = Constant(0.5)
 # The initial condition consists of three components: u_x, u_y and eta
 # Note that we do not set all components to zero, as some components of the
 # Jacobian of the quadratic friction term is non-differentiable.
-prob_params.initial_condition = Constant((DOLFIN_EPS, 0, 0)) 
+prob_params.initial_condition = Constant((DOLFIN_EPS, 0, 0))
 
-# Here we set only the necessary options. However, there are many more, such as
-# `bottom drag`. A full option list with its current values can be viewed with:
+# Here we only set the necessary options. A full option list with its current
+# values can be viewed with:
 
 print prob_params
 
-# Once the parameter have all been set, we create the shallow water problem:
+# Once the parameter have been set, we create the shallow water problem:
 
 problem = SWProblem(prob_params)
 
 # Next we create a shallow water solver. Here we choose to solve the shallow
 # water equations in its fully coupled form. Again, we first ask for the default
-# parameters, adjust them to our needs and then create the solver object. 
+# parameters, adjust them to our needs and then create the solver object.
 
 sol_params = CoupledSWSolver.default_parameters()
 sol_params.dump_period = -1
 solver = CoupledSWSolver(problem, sol_params)
 
-# Now we are ready to solve the problem. 
+# Now we are ready to solve the problem.
 
 for s in solver.solve():
     print "Computed solution at time %f" % s["time"]
     plot(s["state"])
 interactive()  # Hold the plot until the user presses q.
-    
+
 # The inner part of the loop is executed for each timestep. The variable :attr:`s`
 # is a dictionary and contains information like the current timelevel, the velocity and
 # free-surface functions.
+
+# The example code can be found in ``examples/channel_simulation/`` in the
+# ``OpenTidalFarm`` source tree, and executed as follows:
+
+# .. code-block:: bash
+
+#   $ python channel_simulation.py
+
+# A snapshot after a few timesteps looks like this:
+
+# .. image:: simulation_result.png
+#     :scale: 40
+#     :align: center
+
 
