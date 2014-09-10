@@ -261,6 +261,11 @@ IPCSSWSolverParameters."
         u1 = Function(V, name="u")
         eta0 = Function(Q, name="eta0")
         eta1 = Function(Q, name="eta")
+        # With linear divergence we can preassemble the pressure correction.
+        if linear_divergence:
+            eta = TrialFunction(Q)
+        else:
+            eta = eta1
 
         # Define the water depth
         if linear_divergence:
@@ -282,27 +287,41 @@ IPCSSWSolverParameters."
         eta1.assign(eta_ic, annotate=False)
 
         # Tentative velocity step
-        ut_mean = theta * ut + (1. - theta) * u0
+        u_mean = theta * u + (1. - theta) * u0
         u_bash = 3./2 * u0 - 1./2 * u00
-        ut_diff = ut - u0
-        F_u_tent = ((1/dt) * inner(v, ut_diff) * dx()
-                    + inner(v, grad(u_bash)*ut_mean) * dx()
-                    + inner(grad(v), grad(ut_mean)) * dx()
+        u_diff = u - u0
+        F_u_tent = ((1/dt) * inner(v, u_diff) * dx()
+                    + inner(v, grad(u_bash)*u_mean) * dx()
+                    + inner(grad(v), grad(u_mean)) * dx()
                     - g * inner(div(v), eta0) * dx()
                     + g * inner(v, eta0*n) * ds()
                     - inner(v, f_u) * dx())
+        a_u_tent = lhs(F_u_tent)
+        L_u_tent = rhs(F_u_tent)
 
         # Pressure correction
-        eta_diff = eta1 - eta0
+        eta_diff = eta - eta0
         F_p_corr = (q*eta_diff + g * dt**2 * H * inner(grad(q),
             grad(eta_diff)))*dx() + dt*q*div(H*ut)*dx()
 
         # Velocity correction
+        eta_diff = eta1 - eta0
         a_u_corr = inner(v, u)*dx()
         L_u_corr = inner(v, ut)*dx() - dt*g*inner(v, grad(eta_diff))*dx()
 
+        bcu, bceta = self._generate_strong_bcs()
+
         # Assemble matrices
         A_u_corr = assemble(a_u_corr)
+        for bc in bcu: bc.apply(A_u_corr)
+        a_u_corr_solver = LUSolver(A_u_corr)
+        a_u_corr_solver.parameters["reuse_factorization"] = True
+
+        if linear_divergence:
+            A_p_corr = assemble(lhs(F_p_corr))
+            for bc in bceta: bc.apply(A_p_corr)
+            a_p_corr_solver = LUSolver(A_p_corr)
+            a_p_corr_solver.parameters["reuse_factorization"] = True
 
         yield({"time": t,
                "u": u0,
@@ -312,8 +331,6 @@ IPCSSWSolverParameters."
         log(INFO, "Start of time loop")
         adjointer.time.start(t)
         timestep = 0
-
-        bcu, bceta = self._generate_strong_bcs()
 
         while not self._finished(t, finish_time):
             # Update timestep
@@ -330,16 +347,29 @@ IPCSSWSolverParameters."
                 f_u.t = Constant(t_theta)
 
             # Compute tentative velocity step
-            solve(F_u_tent == 0, ut, bcu)
+            log(PROGRESS, "Solve for tentative velocity.")
+            A_u_tent = assemble(a_u_tent)
+            b = assemble(L_u_tent)
+            for bc in bcu: bc.apply(A_u_tent, b)
+
+            solve(A_u_tent, ut.vector(), b)
 
             # Pressure correction
-            solve(F_p_corr == 0, eta1, bceta)
+            log(PROGRESS, "Solve for pressure correction.")
+
+            if linear_divergence:
+                b = assemble(rhs(F_p_corr))
+                for bc in bceta: bc.apply(b)
+                a_p_corr_solver.solve(eta1.vector(), b)
+            else:
+                solve(F_p_corr == 0, eta1, bceta)
 
             # Velocity correction
+            log(PROGRESS, "Solve for velocity update.")
             b = assemble(L_u_corr)
-            for bc in bcu: bc.apply(A_u_corr, b)
+            for bc in bcu: bc.apply(b)
 
-            solve(A_u_corr, u1.vector(), b)
+            a_u_corr_solver.solve(u1.vector(), b)
 
             # Rotate functions for next timestep
             u00.assign(u0)
