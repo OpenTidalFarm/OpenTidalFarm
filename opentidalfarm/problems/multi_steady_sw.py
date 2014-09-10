@@ -28,7 +28,30 @@ class MultiSteadySWProblemParameters(SteadySWProblemParameters):
     functional_final_time_only = False
 
 class MultiSteadySWProblem(SteadySWProblem):
-    """ A multi-steady shallow water problem. """
+    r""" Create a shallow water problem consisting of a sequence of
+    (independent) steady-state shallow water problems. More specifically, it
+    solves for each time-level :math:`n`:
+
+        .. math:: -\nabla\cdot\nu\nabla u^n+u^n\cdot\nabla u^n+g\nabla
+            \eta^n &= f_u^n, \\
+            \nabla \cdot \left( H^n u^n \right) &= 0,
+
+        where
+
+        - :math:`u` is the velocity,
+        - :math:`\eta` is the free-surface displacement,
+        - :math:`H=\eta + h` is the total water depth where :math:`h` is the
+          water depth at rest,
+        - :math:`f_u` is the velocity forcing term,
+        - :math:`c_b` is the (quadratic) natural bottom friction coefficient,
+        - :math:`c_t` is the (quadratic) friction coefficient due to the turbine
+          farm,
+        - :math:`\nu` is the viscosity coefficient,
+        - :math:`g` is the gravitational constant,
+
+        :parameter parameters: A :class:`SteadySWProblemParameters`
+            object containing the parameters of the problem.
+    """
 
     def __init__(self, parameters):
         """ Instantiates a new :class:`SWProblem` object.

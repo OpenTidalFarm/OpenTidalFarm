@@ -66,9 +66,6 @@ class IPCSSWSolver(Solver):
     same stability properties as Navier-Stokes and hence does not introduce
     additional dissipation in the flow.
 
-    The :class:`IPCSSWSolver` only works with transient problems, that is with
-    :class:`opentidalfarm.problems.sw.SWProblem`.
-
     The idea is to replace the unknown free-surface with an approximation. This
     is chosen as the free-surface solution from the previous solution.
 
@@ -135,6 +132,9 @@ class IPCSSWSolver(Solver):
         #. Use the corrected pressure to find the velocity correction and calculate :math:`u^{n+1}`
 
         #. Update t, and repeat.
+
+    Note: The :class:`IPCSSWSolver` only works with transient problems, that is with
+    :class:`opentidalfarm.problems.sw.SWProblem`.
 
     .. [1] Goda, Katuhiko. *A multistep technique with implicit difference schemes for calculating two-or three-dimensional cavity flows.* Journal of Computational Physics 30.1 (1979): 76-95.
     """

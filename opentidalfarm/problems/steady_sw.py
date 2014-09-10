@@ -75,7 +75,24 @@ class SteadySWProblemParameters(FrozenClass):
     bcs = BoundaryConditionSet()
 
 class SteadySWProblem(Problem):
-    """ A problem class for a steady-state shallow water problem.
+    r""" Create a steady-state shallow water problem:
+
+        .. math:: -\nabla\cdot\nu\nabla u+u\cdot\nabla u+g\nabla
+            \eta &= f_u, \\
+            \nabla \cdot \left( H u \right) &= 0,
+
+        where
+
+        - :math:`u` is the velocity,
+        - :math:`\eta` is the free-surface displacement,
+        - :math:`H=\eta + h` is the total water depth where :math:`h` is the
+          water depth at rest,
+        - :math:`f_u` is the velocity forcing term,
+        - :math:`c_b` is the (quadratic) natural bottom friction coefficient,
+        - :math:`c_t` is the (quadratic) friction coefficient due to the turbine
+          farm,
+        - :math:`\nu` is the viscosity coefficient,
+        - :math:`g` is the gravitational constant,
 
         :parameter parameters: A :class:`SteadySWProblemParameters`
             object containing the parameters of the problem.

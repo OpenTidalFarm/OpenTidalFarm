@@ -37,14 +37,31 @@ class SWProblemParameters(SteadySWProblemParameters):
 
 
 class SWProblem(SteadySWProblem):
-    """ A time-dependent shallow water problem. """
+    r""" Create a transient shallow water problem:
+
+        .. math:: \frac{\partial u}{\partial t} -\nabla\cdot\nu\nabla u+u\cdot\nabla u+g\nabla
+            \eta &= f_u, \\
+            \frac{\partial \eta}{\partial t} + \nabla \cdot \left( H u \right) &= 0,
+
+        where
+
+        - :math:`u` is the velocity,
+        - :math:`\eta` is the free-surface displacement,
+        - :math:`H=\eta + h` is the total water depth where :math:`h` is the
+          water depth at rest,
+        - :math:`f_u` is the velocity forcing term,
+        - :math:`c_b` is the (quadratic) natural bottom friction coefficient,
+        - :math:`c_t` is the (quadratic) friction coefficient due to the turbine
+          farm,
+        - :math:`\nu` is the viscosity coefficient,
+        - :math:`g` is the gravitational constant,
+
+
+        :parameter parameters: A :class:`SWProblemParameters`
+            object containing the parameters of the problem.
+    """
 
     def __init__(self, parameters):
-        """ Instantiates a new :class:`SWProblem` object.
-
-            :parameter parameters: A :class:`SWProblemParameters`
-                object containing the parameters of the problem.
-        """
 
         if not type(parameters) == SWProblemParameters:
             raise TypeError("parameters must be of type \
