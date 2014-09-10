@@ -118,8 +118,9 @@ class IPCSSWSolver(Solver):
     which is reducible to the problem:
 
     .. math::
-        \frac{1}{\Delta t}\left( \eta^{n+1}-\eta^{n} \right) - g \Delta t \nabla \cdot
-        \left( H^{n+1}  \nabla\left( \eta^{n+1} - \eta^n\right) \right) = -\nabla \cdot \left( H^{n+1}
+        \left( \eta^{n+1}-\eta^{n} \right) - g \Delta t^2 \nabla \cdot
+        \left( H^{n+1}  \nabla\left( \eta^{n+1} - \eta^n\right) \right) =
+        -\Delta t \nabla \cdot \left( H^{n+1}
         \tilde{u}^{n+1} \right).
 
     The corrected velocity is then easily calculated from
@@ -240,6 +241,7 @@ IPCSSWSolverParameters."
         include_viscosity = problem_params.include_viscosity
         nu = problem_params.viscosity
         linear_divergence = problem_params.linear_divergence
+        f_u = problem_params.f_u
 
         # Get boundary conditions
         bcs = problem_params.bcs
@@ -249,52 +251,57 @@ IPCSSWSolverParameters."
 
         # Test and trial functions
         v = TestFunction(V)
-        q = TestFunction(Q)
         u = TrialFunction(V)
-        p = TrialFunction(Q)
+        q = TestFunction(Q)
 
         # Functions
+        u00 = Function(V, name="u00")
         u0 = Function(V, name="u0")
-        u1 = Function(V, name="u1")
+        ut = Function(V, name="ut") # Tentative velocity
+        u1 = Function(V, name="u")
         eta0 = Function(Q, name="eta0")
-        eta1 = Function(Q, name="eta1")
+        eta1 = Function(Q, name="eta")
 
-        if u_source is None:
-            u_source = Constant((0, 0))
+        # Define the water depth
+        if linear_divergence:
+            H = h
+        else:
+            H = eta1 + h
+
+        if f_u is None:
+            f_u = Constant((0, 0))
 
         # Load initial conditions
         # Projection is necessary to obtain 2nd order convergence
         # FIXME: The problem should specify the ic for each component separately.
         u_ic = project(problem_params.initial_condition_u, self.V)
         u0.assign(u_ic, annotate=False)
+        u00.assign(u_ic, annotate=False)
         eta_ic = project(problem_params.initial_condition_eta, self.Q)
         eta0.assign(eta_ic, annotate=False)
+        eta1.assign(eta_ic, annotate=False)
 
         # Tentative velocity step
-        u_mean = theta * u + (1. - theta) * u0
-        u_diff = u - u0
-        F_u_tent = ((1/dt) * inner(v, u_diff) * dx()
-                    #+ inner(v, grad(u0)*u0) * dx()
-                    + inner(grad(v), grad(u_mean)) * dx()
-                    - inner(div(v), eta0) * dx()
-                    + inner(v, eta0*n) * ds()
-                    - inner(v, u_source) * dx())
-
-        a_u_tent = lhs(F_u_tent)
-        L_u_tent = rhs(F_u_tent)
+        ut_mean = theta * ut + (1. - theta) * u0
+        u_bash = 3./2 * u0 - 1./2 * u00
+        ut_diff = ut - u0
+        F_u_tent = ((1/dt) * inner(v, ut_diff) * dx()
+                    + inner(v, grad(u_bash)*ut_mean) * dx()
+                    + inner(grad(v), grad(ut_mean)) * dx()
+                    - g * inner(div(v), eta0) * dx()
+                    + g * inner(v, eta0*n) * ds()
+                    - inner(v, f_u) * dx())
 
         # Pressure correction
-        a_p_corr = (q*p + dt**2 * theta**2 * h * inner(grad(q), grad(p)))*dx()
-        L_p_corr = (q*eta0 + dt**2 * theta**2 * h * inner(grad(q), grad(eta0)))*dx() \
-                 - dt*theta*h*q*div(u1)*dx()
+        eta_diff = eta1 - eta0
+        F_p_corr = (q*eta_diff + g * dt**2 * H * inner(grad(q),
+            grad(eta_diff)))*dx() + dt*q*div(H*ut)*dx()
 
         # Velocity correction
         a_u_corr = inner(v, u)*dx()
-        L_u_corr = inner(v, u1)*dx() - dt*inner(v, grad(eta1-eta0))*dx()
+        L_u_corr = inner(v, ut)*dx() - dt*g*inner(v, grad(eta_diff))*dx()
 
         # Assemble matrices
-        A_u_tent = assemble(a_u_tent)
-        A_p_corr = assemble(a_p_corr)
         A_u_corr = assemble(a_u_corr)
 
         yield({"time": t,
@@ -319,20 +326,14 @@ IPCSSWSolverParameters."
             bcs.update_time(t_theta, exclude_type=["strong_dirichlet"])
 
             # Update source term
-            if u_source is not None:
-                u_source.t = Constant(t_theta)
+            if f_u is not None:
+                f_u.t = Constant(t_theta)
 
             # Compute tentative velocity step
-            b = assemble(L_u_tent)
-            for bc in bcu: bc.apply(A_u_tent, b)
-
-            solve(A_u_tent, u1.vector(), b)
+            solve(F_u_tent == 0, ut, bcu)
 
             # Pressure correction
-            b = assemble(L_p_corr)
-            for bc in bceta: bc.apply(A_p_corr, b)
-
-            solve(A_p_corr, eta1.vector(), b)
+            solve(F_p_corr == 0, eta1, bceta)
 
             # Velocity correction
             b = assemble(L_u_corr)
@@ -341,6 +342,7 @@ IPCSSWSolverParameters."
             solve(A_u_corr, u1.vector(), b)
 
             # Rotate functions for next timestep
+            u00.assign(u0)
             u0.assign(u1)
             eta0.assign(eta1)
 
