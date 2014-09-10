@@ -75,7 +75,7 @@ class IPCSSWSolver(Solver):
 
     .. math:: \frac{1}{\Delta t}\left( u^{n+1}-u^{n}
         \right)-\nabla\cdot\nu\nabla u^{n+\theta}+u^*\cdot\nabla u^{n+\theta}+g\nabla
-        \eta^{n+1} &= f_u^{n+1}, \\
+        \eta^{n+1} &= f_u^{n+\theta}, \\
         \frac{1}{\Delta t}\left( \eta^{n+1}-\eta^{n} \right) + \nabla \cdot
         \left( H^{n+1} u^{n+1} \right) &= 0,
 
@@ -92,7 +92,7 @@ class IPCSSWSolver(Solver):
 
     .. math:: \frac{1}{\Delta t}\left( \tilde{u}^{n+1}-u^{n}
         \right) - \nabla\cdot\nu\nabla \tilde{u}^{n+\theta} + u^*\cdot\nabla \tilde u^{n+\theta}+g\nabla
-        \eta^{n} = f_u^{n+1}.
+        \eta^{n} = f_u^{n+\theta}.
 
     This tenative velocity does not satisfy the divergence equation, and thus we
     define a velocity correction :math:`u^c=u^{n+1}-\tilde{u}^{n+1}`.
