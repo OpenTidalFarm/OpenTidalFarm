@@ -181,7 +181,7 @@ CoupledSWSolverParameters."
 
         return bcs_u + bcs_eta
 
-    def solve(self, turbine_field=None, annotate=True):
+    def solve(self, annotate=True):
         ''' Returns an iterator for solving the shallow water equations. '''
 
         ############################### Setting up the equations ###########################
@@ -190,6 +190,8 @@ CoupledSWSolverParameters."
         problem_params = self.problem.parameters
         solver_params = self.parameters
         farm = problem_params.tidal_farm
+        if farm:
+            turbine_friction = farm.turbine_cache.cache["turbine_field"]
 
         # Performance settings
         parameters['form_compiler']['quadrature_degree'] = \
@@ -351,12 +353,12 @@ CoupledSWSolverParameters."
         # Bottom friction
         friction = problem_params.friction
 
-        if not turbine_field:
+        if not farm:
             tf = Constant(0)
-        elif type(turbine_field) == list:
-            tf = Function(turbine_field[0], name="turbine_friction", annotate=annotate)
+        elif type(turbine_friction) == list:
+            tf = Function(turbine_friction[0], name="turbine_friction", annotate=annotate)
         else:
-            tf = Function(turbine_field, name="turbine_friction", annotate=annotate)
+            tf = Function(turbine_friction, name="turbine_friction", annotate=annotate)
 
         # Friction term
         # FIXME: FEniCS fails on assembling the below form for u_mid = 0, even
@@ -366,7 +368,7 @@ CoupledSWSolverParameters."
         norm_u_mid = inner(u_mid, u_mid)**0.5
         R_mid = friction / H * norm_u_mid * inner(u_mid, v) * dx
 
-        if turbine_field:
+        if farm:
             R_mid += tf / H * dot(u_mid, u_mid) ** 0.5 * inner(u_mid, v) * farm.site_dx(1)
 
         # Advection term
@@ -468,11 +470,11 @@ CoupledSWSolverParameters."
                 self.state_cache[float(t)].assign(state_new, annotate=False)
 
             # Set the control function for the upcoming timestep.
-            if turbine_field:
-                if type(turbine_field) == list:
-                    tf.assign(turbine_field[timestep])
+            if farm:
+                if type(turbine_friction) == list:
+                    tf.assign(turbine_friction[timestep])
                 else:
-                    tf.assign(turbine_field)
+                    tf.assign(turbine_friction)
 
             if (solver_params.dump_period > 0 and
                 timestep % solver_params.dump_period == 0):
