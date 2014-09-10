@@ -62,45 +62,48 @@ class IPCSSWSolverParameters(FrozenClass):
 class IPCSSWSolver(Solver):
     r"""
     This incremental pressure correction scheme (IPCS) is an operator splitting
-    scheme that follows the idea of Goda [1]_.  This scheme preserves the exact
+    scheme that follows the idea of Goda [1]_ and Simo [2]_.  This scheme preserves the exact
     same stability properties as Navier-Stokes and hence does not introduce
     additional dissipation in the flow.
 
     The idea is to replace the unknown free-surface with an approximation. This
     is chosen as the free-surface solution from the previous solution.
 
-    The time discretization is done using backward Euler, the diffusion term is
-    handled with Crank-Nicholson, and the convection is handled explicitly,
-    making the equations completely linear. Thus, we have a discretized version
+    The time discretization is done using a :math:`\theta`-scheme, the
+    convection is handled semi-implicitly. Thus, we have a discretized version
     of the shallow water equations as
 
     .. math:: \frac{1}{\Delta t}\left( u^{n+1}-u^{n}
-        \right)-\nabla\cdot\nu\nabla u^{n+\theta}+u^n\cdot\nabla u^{n}+g\nabla
+        \right)-\nabla\cdot\nu\nabla u^{n+\theta}+u^*\cdot\nabla u^{n+\theta}+g\nabla
         \eta^{n+1} &= f_u^{n+1}, \\
         \frac{1}{\Delta t}\left( \eta^{n+1}-\eta^{n} \right) + \nabla \cdot
         \left( H^{n+1} u^{n+1} \right) &= 0,
 
-    where :math:`u^{n+\theta} = \theta{u}^{n+1}+(1-\theta)u^n, \theta =
-    \frac{1}{2}`.
+    where :math:`u^{n+\theta} = \theta{u}^{n+1}+(1-\theta)u^n, \theta \in [0,
+    1]` and :math:`u^* = \frac{3}{2}u^n - \frac{1}{2}u^{n-1}`.
+
+    This convection term is unconditionally stable, and with :math:`\theta=0.5`,
+    this equation is second order in time and space [2]_.
+
 
     For the operator splitting, we use the free-surface solution from the
     previous timestep as an estimation, giving an equation for a tentative
     velocity, :math:`\tilde{u}^{n+1}`:
 
     .. math:: \frac{1}{\Delta t}\left( \tilde{u}^{n+1}-u^{n}
-        \right)-\nabla\cdot\nu\nabla \tilde{u}^{n+\theta}+u^n\cdot\nabla
-        u^{n}+g\nabla \eta^{n}=f_u^{n+1}.
+        \right) - \nabla\cdot\nu\nabla \tilde{u}^{n+\theta} + u^*\cdot\nabla \tilde u^{n+\theta}+g\nabla
+        \eta^{n} = f_u^{n+1}.
 
     This tenative velocity does not satisfy the divergence equation, and thus we
     define a velocity correction :math:`u^c=u^{n+1}-\tilde{u}^{n+1}`.
     Substracting the second equation from the first, we see that
 
     .. math::
-        \frac{1}{\Delta t}u^c - \theta \nabla\cdot\nu\nabla
-        u^c+g\nabla\left( \eta^{n+1} - \eta^n\right) &= 0, \\
-        \frac{1}{\Delta t}\left( \eta^{n+1}-\eta^{n} \right) + \nabla \cdot
-        \left( H^{n+1} u^c \right) &= -\nabla \cdot \left( H^{n+1}
-        \tilde{u}^{n+1} \right).
+        \frac{1}{\Delta t}u^c - \theta \nabla\cdot\nu\nabla u^c + \theta
+        u^*\cdot\nabla u^{c} + g\nabla\left( \eta^{n+1} - \eta^n\right) &= 0, \\
+                \frac{1}{\Delta t}\left( \eta^{n+1}-\eta^{n} \right) + \nabla
+                \cdot \left( H^{n+1} u^c \right) &= -\nabla \cdot \left( H^{n+1}
+                \tilde{u}^{n+1} \right).
 
     The operator splitting is a first order approximation, :math:`O(\Delta t)`,
     so we can, without reducing the order of the approximation simplify the
@@ -136,7 +139,14 @@ class IPCSSWSolver(Solver):
     Note: The :class:`IPCSSWSolver` only works with transient problems, that is with
     :class:`opentidalfarm.problems.sw.SWProblem`.
 
-    .. [1] Goda, Katuhiko. *A multistep technique with implicit difference schemes for calculating two-or three-dimensional cavity flows.* Journal of Computational Physics 30.1 (1979): 76-95.
+    .. [1] Goda, Katuhiko. *A multistep technique with implicit difference
+        schemes for calculating two-or three-dimensional cavity flows.* Journal of
+        Computational Physics 30.1 (1979): 76-95.
+
+    .. [2] Simo, J. C., and F. Armero. *Unconditional stability and long-term
+        behavior of transient algorithms for the incompressible Navier-Stokes and
+        Euler equations.* Computer Methods in Applied Mechanics and Engineering
+        111.1 (1994): 111-154.
     """
 
     def __init__(self, problem, parameters, config=None):
