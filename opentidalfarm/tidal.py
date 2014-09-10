@@ -12,7 +12,7 @@ import datetime
 import scipy.interpolate
 import numpy
 
-# We need to store tnci_time as a non-class variable, otherwise 
+# We need to store tnci_time as a non-class variable, otherwise
 # dolfin-adjoint tries to be clever and restores its values during the
 # adjoint runs which yields an wrong behaviour for
 # the "tnci_time != self.t" statement below
@@ -25,7 +25,7 @@ class TidalForcing(Expression):
 
     def __init__(self, grid_file_name, data_file_name, ranges, utm_zone, utm_band, initial_time, constituents):
         """ This function initializes a new TidalForcing object.
-            The parameters are: 
+            The parameters are:
         """
 
         self.t = 0
@@ -61,7 +61,9 @@ class TidalForcing(Expression):
 class BathymetryDepthExpression(Expression):
     """Create a bathymetry depth Expression from a lat/lon NetCDF file, where
        the depth values stored as "z" field. """
-    def __init__(self, filename, utm_zone, utm_band):
+    def __init__(self, filename, utm_zone, utm_band, domain=None):
+
+        self._domain = domain
         nc = NetCDFFile(filename, 'r')
 
         lat = nc.variables['lat']
