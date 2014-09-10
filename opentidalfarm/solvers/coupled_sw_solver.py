@@ -109,7 +109,7 @@ class CoupledSWSolver(Solver):
     - :math:`u` is the velocity,
     - :math:`\eta` is the free-surface displacement,
     - :math:`H=\eta + h` is the total water depth where :math:`h` is the
-       water depth at rest,
+      water depth at rest,
     - :math:`f_u` is the velocity forcing term,
     - :math:`c_b` is the (quadratic) natural bottom friction coefficient,
     - :math:`c_t` is the (quadratic) friction coefficient due to the turbine
