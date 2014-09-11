@@ -62,29 +62,30 @@ class IPCSSWSolverParameters(FrozenClass):
 class IPCSSWSolver(Solver):
     r"""
     This incremental pressure correction scheme (IPCS) is an operator splitting
-    scheme that follows the idea of Goda [1]_ and Simo [2]_.  This scheme preserves the exact
-    same stability properties as Navier-Stokes and hence does not introduce
-    additional dissipation in the flow.
+    scheme that follows the idea of Goda [1]_ and Simo [2]_.  This scheme
+    preserves the exact same stability properties as Navier-Stokes and hence
+    does not introduce additional dissipation in the flow (FIXME: needs
+    verification).
 
     The idea is to replace the unknown free-surface with an approximation. This
     is chosen as the free-surface solution from the previous solution.
 
     The time discretization is done using a :math:`\theta`-scheme, the
-    convection is handled semi-implicitly. Thus, we have a discretized version
+    convection and divergence are handled semi-implicitly. Thus, we have a discretized version
     of the shallow water equations as
 
     .. math:: \frac{1}{\Delta t}\left( u^{n+1}-u^{n}
         \right)-\nabla\cdot\nu\nabla u^{n+\theta}+u^*\cdot\nabla u^{n+\theta}+g\nabla
-        \eta^{n+1} &= f_u^{n+\theta}, \\
+        \eta^{n+\theta} &= f_u^{n+\theta}, \\
         \frac{1}{\Delta t}\left( \eta^{n+1}-\eta^{n} \right) + \nabla \cdot
-        \left( H^{n+1} u^{n+1} \right) &= 0,
+        \left( H^{n} u^{n+\theta} \right) &= 0,
 
-    where :math:`u^{n+\theta} = \theta{u}^{n+1}+(1-\theta)u^n, \theta \in [0,
+    where :math:`\square^{n+\theta} = \theta{\square}^{n+1}+(1-\theta)\square^n, \theta \in [0,
     1]` and :math:`u^* = \frac{3}{2}u^n - \frac{1}{2}u^{n-1}`.
 
     This convection term is unconditionally stable, and with :math:`\theta=0.5`,
-    this equation is second order in time and space [2]_.
-
+    this equation is second order in time and space [2]_ (FIXME: Needs
+    verification).
 
     For the operator splitting, we use the free-surface solution from the
     previous timestep as an estimation, giving an equation for a tentative
@@ -100,28 +101,28 @@ class IPCSSWSolver(Solver):
 
     .. math::
         \frac{1}{\Delta t}u^c - \theta \nabla\cdot\nu\nabla u^c + \theta
-        u^*\cdot\nabla u^{c} + g\nabla\left( \eta^{n+1} - \eta^n\right) &= 0, \\
-                \frac{1}{\Delta t}\left( \eta^{n+1}-\eta^{n} \right) + \nabla
-                \cdot \left( H^{n+1} u^c \right) &= -\nabla \cdot \left( H^{n+1}
-                \tilde{u}^{n+1} \right).
+        u^*\cdot\nabla u^{c} + g\theta \nabla\left( \eta^{n+1} - \eta^n\right) &= 0, \\
+                \frac{1}{\Delta t}\left( \eta^{n+1}-\eta^{n} \right) + \theta \nabla
+                \cdot \left( H^{n} u^c \right) &= -\nabla \cdot \left( H^{n}
+                \tilde{u}^{n+\theta} \right).
 
     The operator splitting is a first order approximation, :math:`O(\Delta t)`,
     so we can, without reducing the order of the approximation simplify the
     above to
 
     .. math::
-        \frac{1}{\Delta t}u^c + g\nabla\left( \eta^{n+1} - \eta^n\right) &= 0, \\
-        \frac{1}{\Delta t}\left( \eta^{n+1}-\eta^{n} \right) + \nabla \cdot
-        \left( H^{n+1} u^c \right) &= -\nabla \cdot \left( H^{n+1}
-        \tilde{u}^{n+1} \right),
+        \frac{1}{\Delta t}u^c + g\theta \nabla\left( \eta^{n+1} - \eta^n\right) &= 0, \\
+        \frac{1}{\Delta t}\left( \eta^{n+1}-\eta^{n} \right) + \theta \nabla \cdot
+        \left( H^{n} u^c \right) &= -\nabla \cdot \left( H^{n}
+        \tilde{u}^{n+\theta} \right),
 
     which is reducible to the problem:
 
     .. math::
-        \left( \eta^{n+1}-\eta^{n} \right) - g \Delta t^2 \nabla \cdot
+        \eta^{n+1}-\eta^{n} - g \Delta t^2 \theta^2 \nabla \cdot
         \left( H^{n+1}  \nabla\left( \eta^{n+1} - \eta^n\right) \right) =
-        -\Delta t \nabla \cdot \left( H^{n+1}
-        \tilde{u}^{n+1} \right).
+        -\Delta t \nabla \cdot \left( H^{n}
+        \tilde{u}^{n+\theta} \right).
 
     The corrected velocity is then easily calculated from
 
