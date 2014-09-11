@@ -7,7 +7,7 @@ from solver import Solver
 from ..problems import SWProblem
 from ..problems import SteadySWProblem
 from ..problems import MultiSteadySWProblem
-from ..helpers import StateWriter, norm_approx, smooth_uflmin, FrozenClass
+from ..helpers import StateWriter, FrozenClass
 
 
 class CoupledSWSolverParameters(FrozenClass):
