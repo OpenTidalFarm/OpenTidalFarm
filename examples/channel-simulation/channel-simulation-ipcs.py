@@ -133,7 +133,6 @@ problem = SWProblem(prob_params)
 # parameters, adjust them to our needs and then create the solver object.
 
 sol_params = IPCSSWSolver.default_parameters()
-sol_params.dump_period = -1
 solver = IPCSSWSolver(problem, sol_params)
 
 # Now we are ready to solve the problem.
@@ -142,6 +141,7 @@ for s in solver.solve():
     print "Computed solution at time %f" % s["time"]
     plot(s["u"], title="u")
     plot(s["eta"], title="eta")
+    plot(s["eddy_viscosity"], title="eddy viscosity")
 interactive()  # Hold the plot until the user presses q.
 
 # The inner part of the loop is executed for each timestep. The variable :attr:`s`

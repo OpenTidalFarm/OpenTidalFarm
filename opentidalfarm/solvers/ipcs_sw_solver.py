@@ -140,8 +140,13 @@ class IPCSSWSolver(Solver):
 
         #. Update t, and repeat.
 
-    Note: The :class:`IPCSSWSolver` only works with transient problems, that is with
-    :class:`opentidalfarm.problems.sw.SWProblem`.
+    Remarks:
+
+      - This solver only works with transient problems, that is with
+        :class:`opentidalfarm.problems.sw.SWProblem`.
+
+      - This solver supports large eddy simulation (LES). The LES model is
+        implemented via the :class:`opentidalfarm.solvers.les.LES` class.
 
     .. [1] Goda, Katuhiko. *A multistep technique with implicit difference
         schemes for calculating two-or three-dimensional cavity flows.* Journal of

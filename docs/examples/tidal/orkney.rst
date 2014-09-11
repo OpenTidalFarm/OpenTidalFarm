@@ -76,10 +76,10 @@ the :class:`TidalForcing` class.
   bcs.add_bc("eta", eta_expr, facet_id=2)
   
 The free-slip boundary conditions are a special case. The boundary condition
-type `weak_dirichlet` enforces the boundary value *only* in the
-*normal* direction of the boundary. Hence, a zero weak Dirichlet
-boundary condition gives us free-slip, while a zero `strong_dirichlet` boundary
-condition would give us no-slip.
+type `weak_dirichlet` enforces the boundary value *only* in the *normal*
+direction of the boundary. Hence, a zero weak Dirichlet boundary condition
+gives us free-slip, while a zero `strong_dirichlet` boundary condition would
+give us no-slip.
 
 ::
 
@@ -101,7 +101,7 @@ The bathymetry can be visualised with
   #plot(bathy_expr, mesh=domain.mesh, title="Bathymetry", interactive=True)
   
   # Equation settings
-  prob_params.viscosity = Constant(200)
+  prob_params.viscosity = Constant(1)
   prob_params.friction = Constant(0.0025)
   # Temporal settings
   prob_params.start_time = Constant(0)
@@ -110,9 +110,9 @@ The bathymetry can be visualised with
   # The initial condition consists of three components: u_x, u_y and eta
   # Note that we do not set all components to zero, as some components of the
   # Jacobian of the quadratic friction term is non-differentiable.
-  prob_params.initial_condition_u = Constant((DOLFIN_EPS, 0))
+  prob_params.initial_condition_u = Constant((0, 0))
   prob_params.initial_condition_eta = Constant(0)
-  prob_params.linear_divergence = False
+  #prob_params.finite_element = finite_elements.p1dgp2
   
   # Now we can create the shallow water problem
   problem = SWProblem(prob_params)
@@ -120,19 +120,23 @@ The bathymetry can be visualised with
   # Next we create a shallow water solver. Here we choose to solve the shallow
   # water equations in its fully coupled form:
   sol_params = IPCSSWSolver.default_parameters()
-  sol_params.dump_period = -1
+  sol_params.les_model = True
+  sol_params.les_parameters["smagorinsky_coefficient"] = 1.
   solver = IPCSSWSolver(problem, sol_params)
   
 Now we are ready to solve
 
 ::
 
-  timer = Timer("Solve")
-  for s in solver.solve():
-      print "Solve took %s s." % timer.stop()
-      print "Computed solution at time %f" % s["time"]
-      plot(s["eta"])
-      timer = Timer("Solve")
+  f_eta = File("results-ipcs/eta.pvd")
+  f_u = File("results-ipcs/u.pvd")
+  f_eddy = File("results-ipcs/eddy.pvd")
   
-  # Finally we hold the plot unti the user presses q.
-  interactive()
+  timer = Timer('')
+  for s in solver.solve():
+      t = float(s["time"])
+      log(INFO, "Computed solution at time %f in %f s." % (t, timer.stop()))
+      f_eta << (s["eta"], t)
+      f_u << (s["u"], t)
+      f_eddy << (s["eddy_viscosity"], t)
+      timer.start()

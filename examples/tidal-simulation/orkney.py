@@ -44,7 +44,7 @@ prob_params.domain = domain
 
 # The the mesh and boundary ids can be visualised with
 
-plot(domain.facet_ids, interactive=True)
+#plot(domain.facet_ids, interactive=True)
 
 # Next we specify boundary conditions. We apply tidal boundary forcing, by using
 # the :class:`TidalForcing` class.
@@ -62,10 +62,10 @@ bcs.add_bc("eta", eta_expr, facet_id=1)
 bcs.add_bc("eta", eta_expr, facet_id=2)
 
 # The free-slip boundary conditions are a special case. The boundary condition
-# type `weak_dirichlet` enforces the boundary value *only* in the
-# *normal* direction of the boundary. Hence, a zero weak Dirichlet
-# boundary condition gives us free-slip, while a zero `strong_dirichlet` boundary
-# condition would give us no-slip.
+# type `weak_dirichlet` enforces the boundary value *only* in the *normal*
+# direction of the boundary. Hence, a zero weak Dirichlet boundary condition
+# gives us free-slip, while a zero `strong_dirichlet` boundary condition would
+# give us no-slip.
 
 bcs.add_bc("u", Constant((0, 0)), facet_id=3, bctype="strong_dirichlet")
 prob_params.bcs = bcs
@@ -81,7 +81,7 @@ prob_params.depth = bathy_expr
 #plot(bathy_expr, mesh=domain.mesh, title="Bathymetry", interactive=True)
 
 # Equation settings
-prob_params.viscosity = Constant(10)
+prob_params.viscosity = Constant(1)
 prob_params.friction = Constant(0.0025)
 # Temporal settings
 prob_params.start_time = Constant(0)
@@ -92,7 +92,7 @@ prob_params.dt = Constant(60)
 # Jacobian of the quadratic friction term is non-differentiable.
 prob_params.initial_condition_u = Constant((0, 0))
 prob_params.initial_condition_eta = Constant(0)
-prob_params.linear_divergence = False
+#prob_params.finite_element = finite_elements.p1dgp2
 
 # Now we can create the shallow water problem
 problem = SWProblem(prob_params)
@@ -100,13 +100,15 @@ problem = SWProblem(prob_params)
 # Next we create a shallow water solver. Here we choose to solve the shallow
 # water equations in its fully coupled form:
 sol_params = IPCSSWSolver.default_parameters()
-sol_params.dump_period = -1
+sol_params.les_model = True
+sol_params.les_parameters["smagorinsky_coefficient"] = 1.
 solver = IPCSSWSolver(problem, sol_params)
 
 # Now we are ready to solve
 
-f_eta = File("results/eta.pvd")
-f_u = File("results/u.pvd")
+f_eta = File("results-ipcs/eta.pvd")
+f_u = File("results-ipcs/u.pvd")
+f_eddy = File("results-ipcs/eddy.pvd")
 
 timer = Timer('')
 for s in solver.solve():
@@ -114,7 +116,5 @@ for s in solver.solve():
     log(INFO, "Computed solution at time %f in %f s." % (t, timer.stop()))
     f_eta << (s["eta"], t)
     f_u << (s["u"], t)
+    f_eddy << (s["eddy_viscosity"], t)
     timer.start()
-
-# Finally we hold the plot unti the user presses q.
-interactive()
