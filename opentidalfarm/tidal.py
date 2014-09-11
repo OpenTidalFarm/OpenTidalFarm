@@ -61,7 +61,7 @@ class TidalForcing(Expression):
 class BathymetryDepthExpression(Expression):
     """Create a bathymetry depth Expression from a lat/lon NetCDF file, where
        the depth values stored as "z" field. """
-    def __init__(self, filename, utm_zone, utm_band, domain=None):
+    def __init__(self, filename, utm_zone, utm_band, maxval=10, domain=None):
 
         self._domain = domain
         nc = NetCDFFile(filename, 'r')
@@ -77,9 +77,10 @@ class BathymetryDepthExpression(Expression):
 
         self.utm_zone = utm_zone
         self.utm_band = utm_band
+        self.maxval = maxval
         self.interpolator = scipy.interpolate.RectBivariateSpline(lat, lon, values)
 
     def eval(self, values, x):
 	" Evaluates the bathymetry at a point. """
         lat, lon = utm.to_latlon(x[0], x[1], self.utm_zone, self.utm_band)
-        values[0] = max(10, -self.interpolator(lat, lon))
+        values[0] = max(self.maxval, -self.interpolator(lat, lon))
