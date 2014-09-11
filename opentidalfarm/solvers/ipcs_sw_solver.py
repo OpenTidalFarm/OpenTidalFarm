@@ -71,12 +71,12 @@ class IPCSSWSolver(Solver):
     is chosen as the free-surface solution from the previous solution.
 
     The time discretization is done using a :math:`\theta`-scheme, the
-    convection and divergence are handled semi-implicitly. Thus, we have a discretized version
+    convection, friction and divergence are handled semi-implicitly. Thus, we have a discretized version
     of the shallow water equations as
 
     .. math:: \frac{1}{\Delta t}\left( u^{n+1}-u^{n}
         \right)-\nabla\cdot\nu\nabla u^{n+\theta}+u^*\cdot\nabla u^{n+\theta}+g\nabla
-        \eta^{n+\theta} &= f_u^{n+\theta}, \\
+        \eta^{n+\theta} + \frac{c_b + c_t}{H^n} \| u^n\| u^{n+\theta} &= f_u^{n+\theta}, \\
         \frac{1}{\Delta t}\left( \eta^{n+1}-\eta^{n} \right) + \nabla \cdot
         \left( H^{n} u^{n+\theta} \right) &= 0,
 
@@ -93,7 +93,7 @@ class IPCSSWSolver(Solver):
 
     .. math:: \frac{1}{\Delta t}\left( \tilde{u}^{n+1}-u^{n}
         \right) - \nabla\cdot\nu\nabla \tilde{u}^{n+\theta} + u^*\cdot\nabla \tilde u^{n+\theta}+g\nabla
-        \eta^{n} = f_u^{n+\theta}.
+        \eta^{n}  + \frac{c_b + c_t}{H^n} \| u^n\| \tilde u^{n+\theta} = f_u^{n+\theta}.
 
     This tenative velocity does not satisfy the divergence equation, and thus we
     define a velocity correction :math:`u^c=u^{n+1}-\tilde{u}^{n+1}`.
@@ -101,7 +101,8 @@ class IPCSSWSolver(Solver):
 
     .. math::
         \frac{1}{\Delta t}u^c - \theta \nabla\cdot\nu\nabla u^c + \theta
-        u^*\cdot\nabla u^{c} + g\theta \nabla\left( \eta^{n+1} - \eta^n\right) &= 0, \\
+        u^*\cdot\nabla u^{c} + g\theta \nabla\left( \eta^{n+1} - \eta^n\right) +
+        \theta \frac{c_b + c_t}{H^n} \| u^n\| u^{c} &= 0, \\
                 \frac{1}{\Delta t}\left( \eta^{n+1}-\eta^{n} \right) + \theta \nabla
                 \cdot \left( H^{n} u^c \right) &= -\nabla \cdot \left( H^{n}
                 \tilde{u}^{n+\theta} \right).
@@ -257,9 +258,9 @@ IPCSSWSolverParameters."
         eta = TrialFunction(Q)
 
         # Functions
-        u00 = Function(V, name="u00")
+        u00 = Function(V)
         u0 = Function(V, name="u0")
-        ut = Function(V, name="ut") # Tentative velocity
+        ut = Function(V) # Tentative velocity
         u1 = Function(V, name="u")
         eta0 = Function(Q, name="eta0")
         eta1 = Function(Q, name="eta")
@@ -289,7 +290,7 @@ IPCSSWSolverParameters."
         u_diff = u - u0
         F_u_tent = ((1/dt) * inner(v, u_diff) * dx()
                     + inner(v, grad(u_bash)*u_mean) * dx()
-                    + inner(grad(v), grad(u_mean)) * dx()
+                    + nu*inner(grad(v), grad(u_mean)) * dx()
                     - g * inner(div(v), eta0) * dx()
                     + g * inner(v, eta0*n) * ds()
                     - inner(v, f_u) * dx())
