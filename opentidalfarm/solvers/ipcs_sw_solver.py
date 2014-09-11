@@ -3,17 +3,19 @@ import os.path
 from dolfin import *
 from dolfin_adjoint import *
 
+from .. import finite_elements
 from solver import Solver
 from ..problems import SWProblem
 from ..problems import SteadySWProblem
 from ..problems import MultiSteadySWProblem
 from ..helpers import StateWriter, norm_approx, smooth_uflmin, FrozenClass
+from les import LES
 
 
 class IPCSSWSolverParameters(FrozenClass):
     """ A set of parameters for a :class:`IPCSSWSolver`.
 
-    Following parameters are available:
+    Performance parameters:
 
     :ivar dolfin_solver: The dictionary with parameters for the dolfin
         Newton solver. A list of valid entries can be printed with:
@@ -25,28 +27,27 @@ class IPCSSWSolverParameters(FrozenClass):
         By default, the MUMPS direct solver is used for the linear system. If
         not availabe, the default solver and preconditioner of FEniCS is used.
 
-    :ivar dump_period: Specfies how often the solution should be dumped to disk.
-        Use a negative value to disable it. Default 1.
-    :ivar cache_forward_state: If True, the shallow water solutions are stored
-        for every timestep and are used as initial guesses for the next solve.
-        If False, the solution of the previous timestep is used as an initial guess.
-        Default: True
-    :ivar print_individual_turbine_power: Print out the turbine power for each
-        turbine. Default: False
     :ivar quadrature_degree: The quadrature degree for the matrix assembly.
-        Default: 5
+        Default: -1 (auto)
     :ivar cpp_flags: A list of cpp compiler options for the code generation.
         Default: ["-O3", "-ffast-math", "-march=native"]
+
+    Large eddy simulation parameters:
+
+    :ivar les_model: De-/Activates the LES model. Default: True
+    :ivar les_model_parameters: A dictionary with parameters for the LES model.
+        Default: {'smagorinsky_coefficient': 1.}
 
     """
 
     dolfin_solver = {"newton_solver": {}}
-    dump_period = 1
-    print_individual_turbine_power = False
+
+    # Large eddy simulation
+    les_model = True
+    les_parameters = {'smagorinsky_coefficient': 1.}
 
     # Performance settings
-    cache_forward_state = True
-    quadrature_degree = 5
+    quadrature_degree = -1
     cpp_flags = ["-O3", "-ffast-math", "-march=native"]
 
     def __init__(self):
@@ -181,7 +182,12 @@ IPCSSWSolverParameters."
     def _finished(self, current_time, finish_time):
         return float(current_time - finish_time) >= - 1e3*DOLFIN_EPS
 
-    def _generate_strong_bcs(self):
+    def _generate_strong_bcs(self, dgu):
+
+        if dgu:
+            bcu_method = "geometric"
+        else:
+            bcu_method = "topological"
 
         bcs = self.problem.parameters.bcs
         facet_ids = self.problem.parameters.domain.facet_ids
@@ -189,7 +195,7 @@ IPCSSWSolverParameters."
         # Generate velocity boundary conditions
         bcs_u = []
         for _, expr, facet_id, _ in bcs.filter("u", "strong_dirichlet"):
-            bc = DirichletBC(self.V, expr, facet_ids, facet_id)
+            bc = DirichletBC(self.V, expr, facet_ids, facet_id, method=bcu_method)
             bcs_u.append(bc)
 
         # Generate free-surface boundary conditions
@@ -224,7 +230,6 @@ IPCSSWSolverParameters."
             " ".join(solver_params.cpp_flags)
         parameters['form_compiler']['cpp_optimize'] = True
         parameters['form_compiler']['optimize'] = True
-        cache_forward_state = solver_params.cache_forward_state
 
         # Get domain measures
         ds = problem_params.domain.ds
@@ -242,17 +247,19 @@ IPCSSWSolverParameters."
         # Get equation settings
         g = problem_params.g
         h = problem_params.depth
+        nu = problem_params.viscosity
         include_advection = problem_params.include_advection
         include_viscosity = problem_params.include_viscosity
-        nu = problem_params.viscosity
         linear_divergence = problem_params.linear_divergence
         f_u = problem_params.f_u
+        include_les = solver_params.les_model
 
         # Get boundary conditions
         bcs = problem_params.bcs
 
         # Get function spaces
         V, Q = self.V, self.Q
+        dgu = "Discontinuous" in str(V)
 
         # Test and trial functions
         v = TestFunction(V)
@@ -267,6 +274,16 @@ IPCSSWSolverParameters."
         u1 = Function(V, name="u")
         eta0 = Function(Q, name="eta0")
         eta1 = Function(Q, name="eta")
+
+        # Large eddy model
+        if include_les:
+            les_V = FunctionSpace(problem_params.domain.mesh, "CG", 1)
+            les = LES(les_V, u0,
+                    solver_params.les_parameters['smagorinsky_coefficient'])
+            eddy_viscosity = les.eddy_viscosity
+            nu += eddy_viscosity
+        else:
+            eddy_viscosity = None
 
         # Define the water depth
         if linear_divergence:
@@ -301,11 +318,28 @@ IPCSSWSolverParameters."
         norm_u0 = inner(u0, u0)**0.5
         F_u_tent = ((1/dt) * inner(v, u_diff) * dx()
                     + inner(v, grad(u_bash)*u_mean) * dx()
-                    + nu*inner(grad(v), grad(u_mean)) * dx()
-                    - g * inner(div(v), eta0) * dx()
-                    + g * inner(v, eta0*n) * ds()
+                    + g * inner(v, grad(eta0)) * dx()
                     + friction / H * norm_u0 * inner(u_mean, v) * dx
                     - inner(v, f_u) * dx())
+        # Viscosity term
+        if dgu:
+            # Taken from http://maths.dur.ac.uk/~dma0mpj/summer_school/IPHO.pdf
+            sigma = 1. # Penalty parameter.
+            # Set tau=-1 for SIPG, tau=0 for IIPG, and tau=1 for NIPG
+            tau = 0.
+            edgelen = FacetArea(self.mesh)('+')  # Facetarea is continuous, so
+            # we can select either side
+            alpha = sigma/edgelen
+
+            F_u_tent += nu * inner(grad(v), grad(u_mean)) * dx()
+            for d in range(2):
+                F_u_tent += - nu * inner(avg(grad(u_mean[d])), jump(v[d], n))*dS
+                F_u_tent += - nu * tau * inner(avg(grad(v[d])), jump(u[d], n))*dS
+                F_u_tent += alpha * nu * inner(jump(u[d], n), jump(v[d], n))*dS
+
+        else:
+            F_u_tent += nu * inner(grad(v), grad(u_mean)) * dx()
+
         a_u_tent = lhs(F_u_tent)
         L_u_tent = rhs(F_u_tent)
 
@@ -322,7 +356,7 @@ IPCSSWSolverParameters."
         a_u_corr = inner(v, u)*dx()
         L_u_corr = inner(v, ut)*dx() - dt*g*theta*inner(v, grad(eta_diff))*dx()
 
-        bcu, bceta = self._generate_strong_bcs()
+        bcu, bceta = self._generate_strong_bcs(dgu)
 
         # Assemble matrices
         A_u_corr = assemble(a_u_corr)
@@ -339,6 +373,7 @@ IPCSSWSolverParameters."
         yield({"time": t,
                "u": u0,
                "eta": eta0,
+               "eddy_viscosity": eddy_viscosity,
                "is_final": self._finished(t, finish_time)})
 
         log(INFO, "Start of time loop")
@@ -358,6 +393,10 @@ IPCSSWSolverParameters."
             # Update source term
             if f_u is not None:
                 f_u.t = Constant(t_theta)
+
+            if include_les:
+                log(PROGRESS, "Compute eddy viscosity.")
+                les.solve()
 
             # Compute tentative velocity step
             log(PROGRESS, "Solve for tentative velocity.")
@@ -398,6 +437,7 @@ IPCSSWSolverParameters."
             yield({"time": t,
                    "u": u0,
                    "eta": eta0,
+                   "eddy_viscosity": eddy_viscosity,
                    "is_final": self._finished(t, finish_time)})
 
         log(INFO, "End of time loop.")
