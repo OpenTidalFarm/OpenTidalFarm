@@ -9,9 +9,9 @@ import os.path
 
 
 def norm_approx(u, alpha=1e-4):
-    """ A smooth approximation to ||u|| with
+    r""" A smooth approximation to :math:`\|u\|`:
 
-    sqrt(u**2 + alpha**2)
+    .. math:: \|u\|_\alpha = \sqrt(u^2 + alpha^2)
 
     :param u: The coefficient.
     :param alpha: The approximation coefficient.
@@ -22,6 +22,15 @@ def norm_approx(u, alpha=1e-4):
 
 
 def smooth_uflmin(a, b, alpha=1e-8):
+    r""" A smooth approximation to :math:`\min(a, b)`:
+
+    .. math:: \text{min}_\alpha(a, b) = a - \frac{1}{2} (\|a -b\|_\alpha + a - b)
+
+    :param a: First argument to :math:`\min`.
+    :param b: Second argument to :math:`\min`.
+    :param alpha: The approximation coefficient.
+    :returns: ufl expression -- the approximate :math:`\min` function.
+    """
     return a - (norm_approx(a - b, alpha=alpha) + a - b) / 2
 
 
@@ -29,37 +38,10 @@ def get_rank():
     """ The processor number.
 
     :returns: int -- The processor number.
-
     """
     rank = MPI.rank(mpi_comm_world())
 
     return rank
-
-
-def info_green(*args, **kwargs):
-    if get_rank() == 0:
-        dolfin.info_green(*args, **kwargs)
-
-
-def info_red(*args, **kwargs):
-    if get_rank() == 0:
-        dolfin.info_red(*args, **kwargs)
-
-
-def info_blue(*args, **kwargs):
-    if get_rank() == 0:
-        dolfin.info_blue(*args, **kwargs)
-
-
-def info(*args, **kwargs):
-    if get_rank() == 0:
-        dolfin.info(*args, **kwargs)
-
-
-def print0(*args, **kwargs):
-    if get_rank() == 0:
-        print(*args, **kwargs)
-
 
 def test_gradient_array(J, dJ, x, seed=0.01, perturbation_direction=None,
                         number_of_tests=5, plot_file=None):
