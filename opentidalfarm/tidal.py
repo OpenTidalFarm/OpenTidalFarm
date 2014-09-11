@@ -2,7 +2,6 @@ from dolfin import Expression  # Keep readthedocs happy
 
 from dolfin import *
 from dolfin_adjoint import *
-from helpers import print0
 # this imports NetCDFFile from netCDF4, Scientific.IO.NetCDF or scipy.io.netcdf (whichever is available)
 from uptide.netcdf_reader import NetCDFFile
 import utm
@@ -42,7 +41,7 @@ class TidalForcing(Expression):
         """ Evaluates the tidal forcing. """
         global tnci_time
         if tnci_time != self.t:
-            print0("Setting tidal forcing time to %f " % self.t)
+            log(INFO, "Setting tidal forcing time to %f " % self.t)
             self.tnci.set_time(float(self.t))
             tnci_time = self.t
 

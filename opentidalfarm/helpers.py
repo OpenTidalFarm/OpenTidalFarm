@@ -1,11 +1,10 @@
-from __future__ import print_function
 import random
 import yaml
+import os.path
+import dolfin
+import numpy
 from dolfin import *
 from dolfin_adjoint import *
-from numpy import dot, inf
-import dolfin
-import os.path
 
 
 def norm_approx(u, alpha=1e-4):
@@ -43,6 +42,7 @@ def get_rank():
 
     return rank
 
+
 def test_gradient_array(J, dJ, x, seed=0.01, perturbation_direction=None,
                         number_of_tests=5, plot_file=None):
     '''Checks the correctness of the derivative dJ.
@@ -56,7 +56,7 @@ def test_gradient_array(J, dJ, x, seed=0.01, perturbation_direction=None,
     # We will compute the gradient of the functional with respect to the
     # initial condition, and check its correctness with the Taylor remainder
     # convergence test.
-    info("Running Taylor remainder convergence analysis to check the gradient \
+    log(INFO, "Running Taylor remainder convergence analysis to check the gradient \
          ... ")
 
     # First run the problem unperturbed
@@ -86,20 +86,20 @@ def test_gradient_array(J, dJ, x, seed=0.01, perturbation_direction=None,
                    functional_values]
 
     dj = dJ(x, forget=True)
-    info_green("Absolute functional evaluation differences: %s" % no_gradient)
-    info_green("Convergence orders for Taylor remainder without adjoint \
+    log(INFO, "Absolute functional evaluation differences: %s" % no_gradient)
+    log(INFO, "Convergence orders for Taylor remainder without adjoint \
                information (should all be 1): %s" %
                convergence_order(no_gradient))
 
     with_gradient = []
     for i in range(len(perturbations)):
-        remainder = abs(functional_values[i] - j_direct - dot(perturbations[i],
+        remainder = abs(functional_values[i] - j_direct - numpy.dot(perturbations[i],
                                                               dj))
         with_gradient.append(remainder)
 
-    info_green("Absolute functional evaluation differences with adjoint: %s" %
+    log(INFO, "Absolute functional evaluation differences with adjoint: %s" %
                with_gradient)
-    info_green("Convergence orders for Taylor remainder with adjoint \
+    log(INFO, "Convergence orders for Taylor remainder with adjoint \
                information (should all be 2): %s" %
                convergence_order(with_gradient))
 
@@ -138,7 +138,7 @@ class StateWriter:
         self.callback = callback
 
     def write(self, state):
-        info_blue("Projecting velocity and pressure to CG1 for visualisation")
+        log(PROGRESS, "Projecting velocity and pressure to CG1 for visualisation")
         rhs = assemble(inner(self.v_out, state.split()[0]) * dx)
         solve(self.M_u_out, self.u_out_state.vector(), rhs, "cg", "sor",
               annotate=False)
@@ -208,14 +208,14 @@ def function_eval(func, point):
     try:
         val = func(point)
     except RuntimeError:
-        val = -inf
+        val = -numpy.inf
 
     if dolfin.__version__ >= '1.3.0+':
         maxval = MPI.max(mpi_comm_world(), val)
     else:
         maxval = MPI.max(val)
 
-    if maxval == -inf:
+    if maxval == -numpy.inf:
         raise RuntimeError("Point is outside the domain")
     else:
         return maxval
