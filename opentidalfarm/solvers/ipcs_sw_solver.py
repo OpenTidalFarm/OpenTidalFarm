@@ -213,6 +213,9 @@ IPCSSWSolverParameters."
         # Get parameters
         problem_params = self.problem.parameters
         solver_params = self.parameters
+        farm = problem_params.tidal_farm
+        if farm:
+            turbine_friction = farm.turbine_cache.cache["turbine_field"]
 
         # Performance settings
         parameters['form_compiler']['quadrature_degree'] = \
@@ -274,6 +277,13 @@ IPCSSWSolverParameters."
         if f_u is None:
             f_u = Constant((0, 0))
 
+        # Bottom friction
+        friction = problem_params.friction
+
+        if farm:
+            friction += Function(turbine_friction, name="turbine_friction",
+                    annotate=annotate)
+
         # Load initial conditions
         # Projection is necessary to obtain 2nd order convergence
         # FIXME: The problem should specify the ic for each component separately.
@@ -288,11 +298,13 @@ IPCSSWSolverParameters."
         u_mean = theta * u + (1. - theta) * u0
         u_bash = 3./2 * u0 - 1./2 * u00
         u_diff = u - u0
+        norm_u0 = inner(u0, u0)**0.5
         F_u_tent = ((1/dt) * inner(v, u_diff) * dx()
                     + inner(v, grad(u_bash)*u_mean) * dx()
                     + nu*inner(grad(v), grad(u_mean)) * dx()
                     - g * inner(div(v), eta0) * dx()
                     + g * inner(v, eta0*n) * ds()
+                    + friction / H * norm_u0 * inner(u_mean, v) * dx
                     - inner(v, f_u) * dx())
         a_u_tent = lhs(F_u_tent)
         L_u_tent = rhs(F_u_tent)
