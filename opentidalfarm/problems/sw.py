@@ -40,7 +40,7 @@ class SWProblem(SteadySWProblem):
     r""" Create a transient shallow water problem:
 
         .. math:: \frac{\partial u}{\partial t} -\nabla\cdot\nu\nabla u+u\cdot\nabla u+g\nabla
-            \eta &= f_u, \\
+            \eta + \frac{c_b + c_t}{H} \| u\| u &= f_u, \\
             \frac{\partial \eta}{\partial t} + \nabla \cdot \left( H u \right) &= 0,
 
         where

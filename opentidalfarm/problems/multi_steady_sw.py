@@ -33,7 +33,7 @@ class MultiSteadySWProblem(SteadySWProblem):
     solves for each time-level :math:`n`:
 
         .. math:: -\nabla\cdot\nu\nabla u^n+u^n\cdot\nabla u^n+g\nabla
-            \eta^n &= f_u^n, \\
+            \eta^n + \frac{c_b + c_t}{H^n} \| u^n\| u^n &= f_u^n, \\
             \nabla \cdot \left( H^n u^n \right) &= 0,
 
         where
