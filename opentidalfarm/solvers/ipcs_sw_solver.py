@@ -127,7 +127,7 @@ class IPCSSWSolver(Solver):
     The corrected velocity is then easily calculated from
 
     .. math::
-        u^{n+1} = \tilde{u}^{n+1} - \Delta tg\nabla\left(\eta^{n+1}-\eta^n\right)
+        u^{n+1} = \tilde{u}^{n+1} - \Delta tg\theta\nabla\left(\eta^{n+1}-\eta^n\right)
 
     The scheme can be summarized in the following steps:
         #. Replace the pressure with a known approximation and solve for a tenative velocity :math:`\tilde u^{n+1}`.
@@ -254,6 +254,7 @@ IPCSSWSolverParameters."
         v = TestFunction(V)
         u = TrialFunction(V)
         q = TestFunction(Q)
+        eta = TrialFunction(Q)
 
         # Functions
         u00 = Function(V, name="u00")
@@ -262,17 +263,12 @@ IPCSSWSolverParameters."
         u1 = Function(V, name="u")
         eta0 = Function(Q, name="eta0")
         eta1 = Function(Q, name="eta")
-        # With linear divergence we can preassemble the pressure correction.
-        if linear_divergence:
-            eta = TrialFunction(Q)
-        else:
-            eta = eta1
 
         # Define the water depth
         if linear_divergence:
             H = h
         else:
-            H = eta1 + h
+            H = eta0 + h
 
         if f_u is None:
             f_u = Constant((0, 0))
@@ -302,13 +298,16 @@ IPCSSWSolverParameters."
 
         # Pressure correction
         eta_diff = eta - eta0
-        F_p_corr = (q*eta_diff + g * dt**2 * H * inner(grad(q),
-            grad(eta_diff)))*dx() + dt*q*div(H*ut)*dx()
+        ut_mean = theta * ut + (1. - theta) * u0
+        F_p_corr = (q*eta_diff + g * dt**2 * theta**2 * H * inner(grad(q),
+            grad(eta_diff)))*dx() + dt*q*div(H*ut_mean)*dx()
+        a_p_corr = lhs(F_p_corr)
+        L_p_corr = rhs(F_p_corr)
 
         # Velocity correction
         eta_diff = eta1 - eta0
         a_u_corr = inner(v, u)*dx()
-        L_u_corr = inner(v, ut)*dx() - dt*g*inner(v, grad(eta_diff))*dx()
+        L_u_corr = inner(v, ut)*dx() - dt*g*theta*inner(v, grad(eta_diff))*dx()
 
         bcu, bceta = self._generate_strong_bcs()
 
@@ -319,7 +318,7 @@ IPCSSWSolverParameters."
         a_u_corr_solver.parameters["reuse_factorization"] = True
 
         if linear_divergence:
-            A_p_corr = assemble(lhs(F_p_corr))
+            A_p_corr = assemble(a_p_corr)
             for bc in bceta: bc.apply(A_p_corr)
             a_p_corr_solver = LUSolver(A_p_corr)
             a_p_corr_solver.parameters["reuse_factorization"] = True
@@ -357,13 +356,15 @@ IPCSSWSolverParameters."
 
             # Pressure correction
             log(PROGRESS, "Solve for pressure correction.")
+            b = assemble(L_p_corr)
+            for bc in bceta: bc.apply(b)
 
             if linear_divergence:
-                b = assemble(rhs(F_p_corr))
-                for bc in bceta: bc.apply(b)
                 a_p_corr_solver.solve(eta1.vector(), b)
             else:
-                solve(F_p_corr == 0, eta1, bceta)
+                A_p_corr = assemble(a_p_corr)
+                for bc in bceta: bc.apply(A_p_corr)
+                solve(A_p_corr, eta1.vector(), b)
 
             # Velocity correction
             log(PROGRESS, "Solve for velocity update.")
