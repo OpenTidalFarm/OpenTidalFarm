@@ -1,7 +1,7 @@
 import os.path
 import numpy
 import dolfin
-from dolfin import Constant
+from dolfin import Constant, log, INFO
 from helpers import function_eval
 from dolfin_adjoint import InequalityConstraint, EqualityConstraint
 
