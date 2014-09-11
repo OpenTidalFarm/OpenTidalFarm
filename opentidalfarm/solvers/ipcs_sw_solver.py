@@ -211,7 +211,7 @@ IPCSSWSolverParameters."
 
         return bcs_u, bcs_eta
 
-    def solve(self, turbine_field=None, annotate=True):
+    def solve(self, annotate=True):
         ''' Solve the shallow water equations '''
 
         ############################### Setting up the equations ###########################
