@@ -44,7 +44,7 @@ prob_params.domain = domain
 
 # The the mesh and boundary ids can be visualised with
 
-#plot(domain.facet_ids, interactive=True)
+plot(domain.facet_ids, interactive=True)
 
 # Next we specify boundary conditions. We apply tidal boundary forcing, by using
 # the :class:`TidalForcing` class.
@@ -81,7 +81,7 @@ prob_params.depth = bathy_expr
 #plot(bathy_expr, mesh=domain.mesh, title="Bathymetry", interactive=True)
 
 # Equation settings
-prob_params.viscosity = Constant(200)
+prob_params.viscosity = Constant(10)
 prob_params.friction = Constant(0.0025)
 # Temporal settings
 prob_params.start_time = Constant(0)
@@ -90,7 +90,7 @@ prob_params.dt = Constant(60)
 # The initial condition consists of three components: u_x, u_y and eta
 # Note that we do not set all components to zero, as some components of the
 # Jacobian of the quadratic friction term is non-differentiable.
-prob_params.initial_condition_u = Constant((DOLFIN_EPS, 0))
+prob_params.initial_condition_u = Constant((0, 0))
 prob_params.initial_condition_eta = Constant(0)
 prob_params.linear_divergence = False
 
@@ -105,12 +105,16 @@ solver = IPCSSWSolver(problem, sol_params)
 
 # Now we are ready to solve
 
-timer = Timer("Solve")
+f_eta = File("results/eta.pvd")
+f_u = File("results/u.pvd")
+
+timer = Timer('')
 for s in solver.solve():
-    print "Solve took %s s." % timer.stop()
-    print "Computed solution at time %f" % s["time"]
-    plot(s["eta"])
-    timer = Timer("Solve")
+    t = float(s["time"])
+    log(INFO, "Computed solution at time %f in %f s." % (t, timer.stop()))
+    f_eta << (s["eta"], t)
+    f_u << (s["u"], t)
+    timer.start()
 
 # Finally we hold the plot unti the user presses q.
 interactive()
