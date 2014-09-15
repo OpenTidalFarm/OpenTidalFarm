@@ -19,14 +19,13 @@ import initial_conditions
 from configuration import *
 
 from optimisation_helpers import friction_constraints, get_minimum_distance_constraint_func, get_domain_constraints, deploy_turbines, position_constraints, generate_site_constraints, plot_site_constraints, get_distance_function, MinimumDistanceConstraint, PolygonSiteConstraints, DomainRestrictionConstraints
-from reduced_functional import ReducedFunctional
 from dirichlet_bc import DirichletBCSet
 from initial_conditions import SinusoidalInitialCondition, BumpInitialCondition
-from turbines import Turbines
+from turbine_cache import Turbines
 from functionals import PowerFunctional, CostFunctional, PowerCurveFunctional
 from tidal import TidalForcing, BathymetryDepthExpression
-from turbine import Turbine
-from farm import RectangularFarm
+from turbine import *
+from farm import Farm, RectangularFarm
 from controls import Controls
 
 

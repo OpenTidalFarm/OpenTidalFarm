@@ -2,7 +2,7 @@ import finite_elements
 import numpy
 from parameter_dict import ParameterDictionary
 from dirichlet_bc import DirichletBCSet
-from turbines import TurbineCache
+from turbine_cache import TurbineCache
 from dolfin import *
 from math import sqrt, pi
 from initial_conditions import *

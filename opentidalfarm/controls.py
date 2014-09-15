@@ -56,7 +56,6 @@ class Controls(object):
         :getter: Returns True if position is enabled as a control parameter.
         :type: bool
         """
-
         return self._controls["position"]
 
 
