@@ -10,7 +10,6 @@ site_x_start = (basin_x - site_x)/2
 site_y_start = (basin_y - site_y)/2 
 config = SteadyConfiguration("mesh_coarse.xml", inflow_direction = [1, 0])
 config.set_site_dimensions(site_x_start, site_x_start + site_x, site_y_start, site_y_start + site_y)
-config.params["automatic_scaling"] = False
 
 # Place some turbines 
 deploy_turbines(config, nx = 8, ny = 4)
@@ -18,9 +17,7 @@ deploy_turbines(config, nx = 8, ny = 4)
 config.info()
 
 rf = ReducedFunctional(config)
-m0 = rf.initial_control()
-print "Functional value: ", rf(m0)
 
-#lb, ub = position_constraints(config) 
-#ineq = get_minimum_distance_constraint_func(config)
-#maximize(rf, bounds = [lb, ub], constraints = ineq, method = "SLSQP", options = {"maxiter": 200})
+lb, ub = position_constraints(config) 
+ineq = get_minimum_distance_constraint_func(config)
+maximize(rf, bounds = [lb, ub], constraints = ineq, method = "SLSQP", options={'maxiter':3})

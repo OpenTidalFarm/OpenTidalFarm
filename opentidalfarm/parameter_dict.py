@@ -59,6 +59,11 @@ class ParameterDictionary(dict):
             'base_path': 'root directory for output',
             'nonlinear_solver': 'callback to solve the nonlinear problem. Called with callback(F, z, bcs, annotate, solver_parameters).',
             'revolve_parameters': '(strategy, snaps_on_disk, snaps_in_ram, verbose)',
+            'ambient_flow_field': 'holds the ambient flow field',
+            'ecology': 'Boolean: are we optimising for ecology as well?',
+            'ambient_flow_xml': 'Holds imported flow field from an xml file',
+            'bathymetry': 'Boolean: are we importing a pre-generated bathymetry?',
+            'depth_xml': 'Holds an xml of the bathymetry in an xml file.'
              }
 
     def check(self):

@@ -375,6 +375,7 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
 
     def __call__(self, m):
         ''' Interface function for dolfin_adjoint.ReducedFunctional '''
+        #from IPython import embed; embed()
         return self.j(m)
 
     def derivative(self, m_array, taylor_test=False, seed=0.001, forget=True, **kwargs):
@@ -395,6 +396,13 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
         m = [p.data() for p in self.parameter]
         dolfin_adjoint.optimization.set_local(m, m_array)
 
+    def get_ambient_flow_field(self, config):
+        print 'In an inner solve to determine ambient solve. Please wait...'
+        info_green('Getting ambient flow field')
+        m = config.params['turbine_pos']
+        #from IPython import embed; embed()
+        ambient_flow = self.compute_functional_mem(m, annotate=False)
+        return self.last_state
 
 class ReducedFunctional(ReducedFunctionalNumPy):
     pass

@@ -9,7 +9,7 @@ class RectangularDomain:
         self.nx = nx
         self.ny = ny
         self.mesh = self.generate_mesh(basin_x, basin_y, nx, ny)
-
+        print 'HELLO ##################################################'
         class Left(SubDomain):
             def inside(self, x, on_boundary):
                 return on_boundary and near(x[0], 0.0)
@@ -20,12 +20,17 @@ class RectangularDomain:
 
         class Sides(SubDomain):
             def inside(self, x, on_boundary):
-                return on_boundary and (near(x[1], 0.0) or near(x[1], basin_y))
+                return on_boundary and (near(x[1], 0.0) or near(x[1], basin_y)) 
+
+        class Eco_domain1(SubDomain):
+            def inside(self, x, on_boundary):
+                return True if (x[0] >= 320) and (x[1] <=160) else False
 
         # Initialize sub-domain instances
         left = Left()
         right = Right()
         sides = Sides()
+        eco1 = Eco_domain1()
 
         # Initialize mesh function for boundary domains
         self.boundaries = FacetFunction('size_t', self.mesh)
@@ -33,6 +38,7 @@ class RectangularDomain:
         left.mark(self.boundaries, 1)
         right.mark(self.boundaries, 2)
         sides.mark(self.boundaries, 3)
+        self.eco1 = eco1
         self.ds = Measure('ds')[self.boundaries]
 
     def generate_mesh(self, basin_x, basin_y, nx, ny):

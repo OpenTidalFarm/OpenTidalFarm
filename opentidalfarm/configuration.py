@@ -72,6 +72,11 @@ class DefaultConfiguration(object):
             'base_path': os.curdir,
             'nonlinear_solver': None,
             'revolve_parameters': None, # (strategy, snaps_on_disk, snaps_in_ram, verbose)
+            'ecology': False,
+	    'ambient_flow_field': None,
+            'ambient_flow_xml':None,
+            'depth_xml':None,
+            'bathymetry':False,
             })
 
         params['dt'] = params['finish_time'] / 4000.
@@ -95,7 +100,21 @@ class DefaultConfiguration(object):
         if warning and hasattr(self, 'domain'):
             info_red("If you are overwriting the domain, make sure that you reapply the boundary conditions as well")
         self.domain = domain
+ 
+        class Eco_domain1(SubDomain):
+            def inside(self, x, on_boundary):
+                return True if (x[0] > 960) and (x[1] >= 320) else False
 
+	class Eco_domain2(SubDomain):
+            def inside(self, x, on_boundary):
+                #return True if (x[0] >= 640 and x[1] <= 160) or (x[0] >= 640 and x[1] >= 480) else False
+                return True if (x[0] >= 640 and x[1] > 480) else False
+
+	eco1 = Eco_domain1()
+        eco2 = Eco_domain2()
+	self.eco1 = eco1
+        self.eco2 = eco2
+ 
         # Define the subdomain for the turbine site. The default value should only be changed for smeared turbine representations.
         domains = CellFunction("size_t", self.domain.mesh)
         domains.set_all(1)
@@ -108,6 +127,11 @@ class DefaultConfiguration(object):
         self.function_space = MixedFunctionSpace([V, H])
         self.function_space_enriched = MixedFunctionSpace([V, H, T])
         self.function_space_2enriched = MixedFunctionSpace([V, H, T, T])
+	
+        
+        eco1.mark(domains, 2)
+    	eco2.mark(domains, 2)
+        
 
     def set_turbine_pos(self, positions, friction=21.0):
         ''' Sets the turbine position and a equal friction parameter. '''
@@ -194,6 +218,7 @@ class DefaultConfiguration(object):
         self.domain.site_y_start = site_y_start
         self.domain.site_x_end = site_x_end
         self.domain.site_y_end = site_y_end
+    
 
 
 class SteadyConfiguration(DefaultConfiguration):
