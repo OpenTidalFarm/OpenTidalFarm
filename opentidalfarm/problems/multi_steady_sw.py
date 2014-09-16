@@ -7,12 +7,12 @@ from dolfin_adjoint import Constant
 class MultiSteadySWProblemParameters(SteadySWProblemParameters):
     """ A set of parameters for a :class:`MultiSteadySWProblem`.
 
-    The parameters are described as in
-    :class:`SteadySWProblemParameters`.
+    The parameters are as described in
+    :class:`opentidalfarm.problems.steady_sw.SteadySWProblemParameters`.
 
     In addition following parameters are available:
 
-    Time parameters:
+    Temporal parameters:
 
     :ivar dt: The timestep. Default: 1.0.
     :ivar start_time: The start time. Default: 0.0.
@@ -28,13 +28,32 @@ class MultiSteadySWProblemParameters(SteadySWProblemParameters):
     functional_final_time_only = False
 
 class MultiSteadySWProblem(SteadySWProblem):
+    r""" Create a shallow water problem consisting of a sequence of
+    (independent) steady-state shallow water problems. More specifically, it
+    solves for each time-level :math:`n`:
+
+        .. math:: -\nabla\cdot\nu\nabla u^n+u^n\cdot\nabla u^n+g\nabla
+            \eta^n + \frac{c_b + c_t}{H^n} \| u^n\| u^n &= f_u^n, \\
+            \nabla \cdot \left( H^n u^n \right) &= 0,
+
+        where
+
+        - :math:`u` is the velocity,
+        - :math:`\eta` is the free-surface displacement,
+        - :math:`H=\eta + h` is the total water depth where :math:`h` is the
+          water depth at rest,
+        - :math:`f_u` is the velocity forcing term,
+        - :math:`c_b` is the (quadratic) natural bottom friction coefficient,
+        - :math:`c_t` is the (quadratic) friction coefficient due to the turbine
+          farm,
+        - :math:`\nu` is the viscosity coefficient,
+        - :math:`g` is the gravitational constant,
+
+        :parameter parameters: A :class:`MultiSteadySWProblemParameters`
+            object containing the parameters of the problem.
+    """
 
     def __init__(self, parameters):
-        """ Instantiates a new :class:`SWProblem` object. 
-
-            :parameter parameters: A :class:`SWProblemParameters`
-                object containing the parameters of the problem.
-        """
 
         if not type(parameters) == MultiSteadySWProblemParameters:
             raise TypeError("parameters must be of type \

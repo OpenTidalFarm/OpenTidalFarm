@@ -2,6 +2,7 @@ from dolfin import *
 
 
 class Domain(object):
+    """ An abstract domain class. """
 
     def __init__(self):
         raise NotImplementedError("Domain is a base class only.")

@@ -1,24 +1,27 @@
-import numpy
-from dolfin import Constant
-import dolfin
-from helpers import info_blue, function_eval
 import os.path
+import numpy
+import dolfin
+from dolfin import Constant, log, INFO
+from helpers import function_eval
 from dolfin_adjoint import InequalityConstraint, EqualityConstraint
 
 
 def deploy_turbines(config, nx, ny, friction=21.):
-    ''' Generates an array of initial turbine positions with nx x ny turbines homonginuosly distributed over the site with the specified dimensions. '''
+    ''' Generates an array of initial turbine positions with nx x ny turbines
+    homonginuosly distributed over the site with the specified dimensions. '''
+
     turbine_pos = []
     for x_r in numpy.linspace(config.domain.site_x_start + 0.5 * config.params["turbine_x"], config.domain.site_x_end - 0.5 * config.params["turbine_x"], nx):
         for y_r in numpy.linspace(config.domain.site_y_start + 0.5 * config.params["turbine_y"], config.domain.site_y_end - 0.5 * config.params["turbine_y"], ny):
             turbine_pos.append((float(x_r), float(y_r)))
     config.set_turbine_pos(turbine_pos, friction)
-    info_blue("Deployed " + str(len(turbine_pos)) + " turbines.")
+    log(INFO, "Deployed " + str(len(turbine_pos)) + " turbines.")
     return turbine_pos
 
 
 def position_constraints(config):
-    ''' This function returns the constraints to ensure that the turbine positions remain inside the domain. '''
+    ''' This function returns the constraints to ensure that the turbine
+    positions remain inside the domain. '''
 
     n = len(config.params["turbine_pos"])
     if n == 0:
@@ -39,7 +42,8 @@ def position_constraints(config):
 
 
 def friction_constraints(config, lb=0.0, ub=None):
-    ''' This function returns the constraints to ensure that the turbine friction controls remain reasonable. '''
+    ''' This function returns the constraints to ensure that the turbine
+    friction controls remain reasonable. '''
 
     if ub is not None and not lb < ub:
         raise ValueError("Lower bound is larger than upper bound")
@@ -95,7 +99,7 @@ class MinimumDistanceConstraint(InequalityConstraint):
 
         arr = numpy.array(ieqcons)
         if any(arr <= 0):
-          info_blue("Minimum distance inequality constraints (should be > 0): %s" % arr)
+          log(INFO, "Minimum distance inequality constraints (should be > 0): %s" % arr)
         return numpy.array(ieqcons)
 
     def jacobian(self, m):
@@ -193,9 +197,11 @@ class PolygonSiteConstraints(InequalityConstraint):
         return numpy.array(ieqcons)
 
 def generate_site_constraints(config, vertices, penalty_factor=1e3, slack_eps=0):
-    ''' Generates the inequality constraints for generic polygon constraints. The parameter polygon
-        must be a list of point coordinates that describes the site edges in anti-clockwise order.
-        The argument slack_eps is used to increase or decrease the site by an epsilon value - this is useful to avoid rounding problems. '''
+    ''' Generates the inequality constraints for generic polygon constraints.
+    The parameter polygon must be a list of point coordinates that describes the
+    site edges in anti-clockwise order.  The argument slack_eps is used to
+    increase or decrease the site by an epsilon value - this is useful to avoid
+    rounding problems. '''
 
     return PolygonSiteConstraints(config, vertices, penalty_factor, slack_eps)
 
@@ -216,7 +222,7 @@ class DomainRestrictionConstraints(InequalityConstraint):
         feasible_area_grad = (dolfin.Function(fs),
                               dolfin.Function(fs))
         t = dolfin.TestFunction(fs)
-        info_blue("Solving for gradient of feasible area")
+        log(INFO, "Solving for gradient of feasible area")
         for i in range(2):
             form = dolfin.inner(feasible_area_grad[i], t) * dolfin.dx - dolfin.inner(feasible_area.dx(i), t) * dolfin.dx
             if dolfin.NonlinearVariationalSolver.default_parameters().has_parameter("linear_solver"):
@@ -251,7 +257,7 @@ class DomainRestrictionConstraints(InequalityConstraint):
 
         arr = -numpy.array(ieqcons)
         if any(arr <= 0):
-          info_blue("Domain restriction inequality constraints (should be >= 0): %s" % arr)
+          log(INFO, "Domain restriction inequality constraints (should be >= 0): %s" % arr)
         return arr
 
     def jacobian(self, m):
@@ -306,7 +312,7 @@ def get_distance_function(config, domains):
     bc = dolfin.DirichletBC(V, 0.0, boundary)
 
     # Solve the diffusion problem with a constant source term
-    info_blue("Solving diffusion problem to identify feasible area ...")
+    log(INFO, "Solving diffusion problem to identify feasible area ...")
     a = dolfin.inner(dolfin.grad(d), dolfin.grad(v)) * dolfin.dx
     L = dolfin.inner(s, v) * dolfin.dx
     dolfin.solve(a == L, sol, bc)

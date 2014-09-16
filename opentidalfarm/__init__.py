@@ -19,7 +19,7 @@ from solvers import *
 from problems import *
 from domains import *
 from functionals import *
-from tidal import TidalForcing, BathymetryDepthExpression 
+from tidal import TidalForcing, BathymetryDepthExpression
 
 from optimisation_helpers import friction_constraints, \
     get_minimum_distance_constraint_func, get_domain_constraints, \
@@ -32,7 +32,6 @@ from turbines import Turbines
 
 from dolfin import *
 from dolfin_adjoint import minimize, maximize, Function, solve
-from helpers import info_green, info_red, info_blue, info, print0
 
 # We set the perturbation_direction with a constant seed, so that it is
 # consistent in a parallel environment.

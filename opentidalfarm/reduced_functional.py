@@ -12,14 +12,14 @@ from memoize import MemoizeMutable
 
 
 class ReducedFunctionalParameters(helpers.FrozenClass):
-    """ A set of parameters for a :class:`ReducedFunctional`. 
+    """ A set of parameters for a :class:`ReducedFunctional`.
 
     Following parameters are available:
 
     :ivar scale: A scaling factor. Default: 1.0
     :ivar automatic_scaling: The reduced functional will be
         automatically scaled such that the maximum absolute value of the initial
-        gradient is equal to the specified factor. Set to False to deactivate the 
+        gradient is equal to the specified factor. Set to False to deactivate the
         automatic scaling. Default: 5.
     :ivar load_checkpoints: If True, the checkpoints are loaded from file and
         used. Default: False
@@ -37,7 +37,7 @@ class ReducedFunctionalParameters(helpers.FrozenClass):
 
 
 class ReducedFunctional(dolfin_adjoint.ReducedFunctionalNumPy):
-    """ 
+    """
     Following parameters are expected:
 
     :ivar functional: a :class:`FunctionalPrototype` class.
@@ -88,13 +88,13 @@ class ReducedFunctional(dolfin_adjoint.ReducedFunctionalNumPy):
 
         self.parameter = [TurbineFarmParameter(self._farm)]
 
-        # For smeared turbine parametrisations we only want to store the 
+        # For smeared turbine parametrisations we only want to store the
         # hash of the control values into the pickle datastructure
         use_hash_keys = (self._farm.params["turbine_parametrisation"] == "smeared")
 
-        self._compute_functional_mem = MemoizeMutable(self._compute_functional, 
+        self._compute_functional_mem = MemoizeMutable(self._compute_functional,
             use_hash_keys)
-        self._compute_gradient_mem = MemoizeMutable(self._compute_gradient, 
+        self._compute_gradient_mem = MemoizeMutable(self._compute_gradient,
             use_hash_keys)
 
         # Load checkpoints from file
@@ -129,7 +129,7 @@ class ReducedFunctional(dolfin_adjoint.ReducedFunctionalNumPy):
                 turbines = self._farm.turbine_cache.cache["turbine_field"]
                 power = self.functional(self._farm).power(solver.current_state, turbines)
                 self.power_file << project(power,
-                                           self._farm.turbine_function_space, 
+                                           self._farm.turbine_function_space,
                                            annotate=False)
 
         if 'dynamic_turbine_friction' in self._farm.params["controls"]:
@@ -184,18 +184,10 @@ class ReducedFunctional(dolfin_adjoint.ReducedFunctionalNumPy):
         ''' Compute the functional of interest for the turbine positions/frictions array '''
 
         self.last_m = m
-
         self._update_turbine_farm(m)
-        tf = self._farm.turbine_cache.cache["turbine_field"]
 
-        return self._compute_functional_from_tf(tf, annotate=annotate)
-
-    def _compute_functional_from_tf(self, tf, annotate=True):
-        ''' Computes the functional of interest for a given turbine friction function. '''
-
-        # Reset the dolfin-adjoint tape
+        # Configure dolfin-adjoint
         adj_reset()
-
         dolfin.parameters["adjoint"]["record_all"] = True
         self._set_revolve_parameters()
 
@@ -204,24 +196,23 @@ class ReducedFunctional(dolfin_adjoint.ReducedFunctionalNumPy):
         final_only = not self.solver.problem._is_transient or \
                      self._problem_params.functional_final_time_only
         functional = self.functional(self._farm, rho=self._problem_params.rho)
-        self.integrator = FunctionalIntegrator(self.solver.problem, 
-                                               functional, 
+        self.integrator = FunctionalIntegrator(self.solver.problem,
+                                               functional,
                                                final_only)
 
-        for sol in self.solver.solve(turbine_field=tf, 
-                                annotate=annotate):
-            self.integrator.add(sol["time"], sol["state"], sol["tf"], 
+        for sol in self.solver.solve(annotate=annotate):
+            self.integrator.add(sol["time"], sol["state"], sol["tf"],
                            sol["is_final"])
 
         return self.integrator.integrate()
 
     def _set_revolve_parameters(self):
-        if (hasattr(self._solver_params, "revolve_parameters") and 
+        if (hasattr(self._solver_params, "revolve_parameters") and
             self._solver_params.revolve_parameters is not None):
           (strategy, snaps_on_disk, snaps_in_ram, verbose) = self._farm.params['revolve_parameters']
-          adj_checkpointing(strategy, 
+          adj_checkpointing(strategy,
                   self._problem_params.finish_time / self._problem_params.dt,
-                  snaps_on_disk=snaps_on_disk, snaps_in_ram=snaps_in_ram, 
+                  snaps_on_disk=snaps_on_disk, snaps_in_ram=snaps_in_ram,
                   verbose=verbose)
 
     def _update_turbine_farm(self, m):
@@ -350,7 +341,7 @@ class ReducedFunctional(dolfin_adjoint.ReducedFunctionalNumPy):
         return self.evaluate(m)
 
     def derivative(self, m_array, forget=True, **kwargs):
-        ''' Computes the first derivative of the functional with respect to its 
+        ''' Computes the first derivative of the functional with respect to its
         parameters by solving the adjoint equations. '''
 
         return self._dj(m_array, forget)
