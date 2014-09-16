@@ -7,12 +7,12 @@ from dolfin_adjoint import Constant
 class MultiSteadySWProblemParameters(SteadySWProblemParameters):
     """ A set of parameters for a :class:`MultiSteadySWProblem`.
 
-    The parameters are described as in
-    :class:`SteadySWProblemParameters`.
+    The parameters are as described in
+    :class:`opentidalfarm.problems.steady_sw.SteadySWProblemParameters`.
 
     In addition following parameters are available:
 
-    Time parameters:
+    Temporal parameters:
 
     :ivar dt: The timestep. Default: 1.0.
     :ivar start_time: The start time. Default: 0.0.
@@ -49,16 +49,11 @@ class MultiSteadySWProblem(SteadySWProblem):
         - :math:`\nu` is the viscosity coefficient,
         - :math:`g` is the gravitational constant,
 
-        :parameter parameters: A :class:`SteadySWProblemParameters`
+        :parameter parameters: A :class:`MultiSteadySWProblemParameters`
             object containing the parameters of the problem.
     """
 
     def __init__(self, parameters):
-        """ Instantiates a new :class:`SWProblem` object.
-
-            :parameter parameters: A :class:`SWProblemParameters`
-                object containing the parameters of the problem.
-        """
 
         if not type(parameters) == MultiSteadySWProblemParameters:
             raise TypeError("parameters must be of type \

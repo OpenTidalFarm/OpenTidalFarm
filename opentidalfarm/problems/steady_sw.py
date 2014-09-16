@@ -13,7 +13,7 @@ class SteadySWProblemParameters(FrozenClass):
 
     Domain parameters:
 
-    :ivar domain: The computational domain as an :class:`Domain` object.
+    :ivar domain: The computational domain, see :doc:`opentidalfarm.domains`.
 
     Physical parameters:
 
@@ -39,12 +39,13 @@ class SteadySWProblemParameters(FrozenClass):
     :ivar bctype: Specifies how the boundary conditions should be enforced.
         Valid options are: 'weak_dirichlet', 'strong_dirichlet' or 'flather'.
         Default: 'strong_dirichlet'
-    :ivar bcs: A :class:`BoundaryConditionSet` containing a list of boundary
+    :ivar bcs: A :class:`opentidalfarm.boundary_conditions.BoundaryConditionSet` containing a list of boundary
         conditions for the problem.
 
     Discretization settings:
 
-    :ivar finite_element: The finite-element pair to use. Default: P2P1
+    :ivar finite_element: The finite-element pair to use. Default:
+    :class:`opentidalfarm.finite_elements.p2p1`
     """
 
     # Domain

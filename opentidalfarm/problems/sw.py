@@ -7,8 +7,8 @@ from dolfin_adjoint import Constant
 class SWProblemParameters(SteadySWProblemParameters):
     """ A set of parameters for a :class:`SWProblem`.
 
-    The parameters are described as in
-    :class:`SteadySWProblemParameters`.
+    The parameters are as described in
+    :class:`opentidalfarm.problems.steady_sw.SteadySWProblemParameters`.
 
     In addition following parameters are available:
 
