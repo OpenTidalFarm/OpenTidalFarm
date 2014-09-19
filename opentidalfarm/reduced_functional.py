@@ -57,12 +57,12 @@ class ReducedFunctional(dolfin_adjoint.ReducedFunctionalNumPy):
             raise ValueError, "solver argument of wrong type."
 
         self.functional = functional
-        #if not isinstance(functional, FunctionalPrototype):
-        #    raise ValueError, "invalid functional argument."
+        if not FunctionalPrototype in functional.__bases__:
+            raise ValueError, "invalid functional argument."
 
         self._farm = solver.problem.parameters.tidal_farm
         if self._farm is None:
-            raise ValueError, "The problem must have a tidal farm."
+            raise ValueError, "The problem does not have a tidal farm."
 
         # Create the default parameters
         self.parameters = parameters
@@ -86,6 +86,7 @@ class ReducedFunctional(dolfin_adjoint.ReducedFunctionalNumPy):
                                  "power.pvd"
                 self.power_file = File(power_filename, "compressed")
 
+	# For dolfin-adjoint
         self.parameter = [TurbineFarmParameter(self._farm)]
 
         # For smeared turbine parametrisations we only want to store the
@@ -111,7 +112,7 @@ class ReducedFunctional(dolfin_adjoint.ReducedFunctionalNumPy):
     def _compute_gradient(self, m, forget=True):
         ''' Compute the functional gradient for the turbine positions/frictions array '''
 
-        # If any of the parameters changed, the forward model needs to re-run
+        # If any of the parameters changed, the forward model needs to be re-run
         if numpy.any(m != self.last_m):
             self._compute_functional(m, annotate=True)
 
