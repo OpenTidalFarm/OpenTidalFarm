@@ -177,6 +177,7 @@ CoupledSWSolverParameters."
         bcs = problem_params.bcs
         linear_divergence = problem_params.linear_divergence
         cache_forward_state = solver_params.cache_forward_state
+        u_dg = "Discontinuous" in str(self.function_space.split()[0])
         
         # Define test functions
         v, q = TestFunctions(self.function_space)
@@ -299,9 +300,25 @@ CoupledSWSolverParameters."
         if include_advection:
             Ad_mid = inner(dot(grad(u_mid), u_mid), v) * dx
 
+            # un is |u.n| on the down-side (incoming), and 0 on the up-side of a facet (outgoing)
+            un = (abs(dot(u, n))-dot(u,n))/2.0
+
+            if u_dg:
+              # at the downside, we want inner(|u.n|*(u_down-u_up),v_down)  - u_down-u_up being the gradient along the flow
+              Ad_mid += (inner(un('+')*(u_mid('+')-u_mid('-')), v('+')) + inner(un('-')*(u_mid('-')-u_mid('+')), v('-')))*dS
+
+            # apply weak_diricihlet bc for the advection term at the incoming boundaries only
+            for function_name, u_expr, facet_id, bctype in problem_params.bcs:
+
+                if bctype == 'weak_dirichlet':
+                  # this is the same thing as for DG above, except u_up is the boundary value and u_down is u+ or u- (they are the same)
+                  # the fact that these are the same also means that the DG term above vanishes at the boundary and is replaced here
+                  Ad_mid += inner(un*(u_mid-u_expr), v)*ds(facet_id)
+
+
         if include_viscosity:
             # Check that we are not using a DG velocity function space, as the facet integrals are not implemented.
-            if "Discontinuous" in str(self.function_space.split()[0]):
+            if u_dg:
                 raise NotImplementedError("The viscosity term for \
                     discontinuous elements is not supported.")
             D_mid = viscosity * inner(grad(u_mid), grad(v)) * dx
