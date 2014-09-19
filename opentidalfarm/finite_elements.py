@@ -38,6 +38,14 @@ def p1dgp2(mesh):
 
     return V, H
 
+def p0p1(mesh):
+    "Return a function space U*H on mesh from the P0P1 space."
+
+    V = VectorFunctionSpace(mesh, 'DG', 0, dim=2)  # Velocity space
+
+    H = FunctionSpace(mesh, 'CG', 1)               # Height space
+
+    return V, H
 
 def bdfmp1dg(mesh):
     "Return a function space U*H on mesh from the BFDM1 space."
