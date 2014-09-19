@@ -304,24 +304,36 @@ CoupledSWSolverParameters."
             un = (abs(dot(u, n))-dot(u,n))/2.0
 
             if u_dg:
-              # at the downside, we want inner(|u.n|*(u_down-u_up),v_down)  - u_down-u_up being the gradient along the flow
-              Ad_mid += (inner(un('+')*(u_mid('+')-u_mid('-')), v('+')) + inner(un('-')*(u_mid('-')-u_mid('+')), v('-')))*dS
+                # at the downside, we want inner(|u.n|*(u_down-u_up),v_down)  - u_down-u_up being the gradient along the flow
+                Ad_mid += (inner(un('+')*(u_mid('+')-u_mid('-')), v('+')) + inner(un('-')*(u_mid('-')-u_mid('+')), v('-')))*dS
 
             # apply weak_diricihlet bc for the advection term at the incoming boundaries only
             for function_name, u_expr, facet_id, bctype in problem_params.bcs:
 
                 if bctype == 'weak_dirichlet':
-                  # this is the same thing as for DG above, except u_up is the boundary value and u_down is u+ or u- (they are the same)
-                  # the fact that these are the same also means that the DG term above vanishes at the boundary and is replaced here
-                  Ad_mid += inner(un*(u_mid-u_expr), v)*ds(facet_id)
+                    # this is the same thing as for DG above, except u_up is the boundary value and u_down is u+ or u- (they are the same)
+                    # the fact that these are the same also means that the DG term above vanishes at the boundary and is replaced here
+                    Ad_mid += inner(un*(u_mid-u_expr), v)*ds(facet_id)
 
 
         if include_viscosity:
-            # Check that we are not using a DG velocity function space, as the facet integrals are not implemented.
-            if u_dg:
-                raise NotImplementedError("The viscosity term for \
-                    discontinuous elements is not supported.")
             D_mid = viscosity * inner(grad(u_mid), grad(v)) * dx
+
+            # for DG we use an Interior Penalty scheme:
+            if u_dg:
+                # Taken from http://maths.dur.ac.uk/~dma0mpj/summer_school/IPHO.pdf
+                sigma = 1. # Penalty parameter.
+                # Set tau=-1 for SIPG, tau=0 for IIPG, and tau=1 for NIPG
+                tau = 0.
+                edgelen = FacetArea(self.mesh)('+')  # Facetarea is continuous, so
+                # we can select either side
+                alpha = sigma/edgelen
+
+                for d in range(2):
+                    D_mid += - viscosity * inner(avg(grad(u_mid[d])), jump(v[d], n))*dS
+                    D_mid += - viscosity * tau * inner(avg(grad(v[d])), jump(u_mid[d], n))*dS
+                    D_mid += alpha * viscosity * inner(jump(u_mid[d], n), jump(v[d], n))*dS
+
 
         # Create the final form
         G_mid = C_mid + Ct_mid + R_mid
