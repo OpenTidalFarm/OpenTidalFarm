@@ -1,4 +1,3 @@
 from functionals import PowerFunctional, PowerCurveFunctional
 from functionals import FunctionalPrototype
-from integrator import FunctionalIntegrator
-
+from time_integrator import TimeIntegrator

@@ -7,7 +7,7 @@ from dolfin import *
 from dolfin_adjoint import *
 from turbines import *
 from solvers import Solver
-from functionals import FunctionalIntegrator, FunctionalPrototype
+from functionals import TimeIntegrator, FunctionalPrototype
 from memoize import MemoizeMutable
 
 
@@ -70,7 +70,7 @@ class ReducedFunctional(dolfin_adjoint.ReducedFunctionalNumPy):
         # Hidden attributes
         self._solver_params = solver.parameters
         self._problem_params = solver.problem.parameters
-        self._integrator = None
+        self._time_integrator = None
         self._optimisation_iteration = 0
         self._automatic_scaling_factor = None
 
@@ -119,10 +119,10 @@ class ReducedFunctional(dolfin_adjoint.ReducedFunctionalNumPy):
         final_only = not self.solver.problem._is_transient or \
                      self._problem_params.functional_final_time_only
         functional = self.functional(self._farm, rho=self._problem_params.rho)
-        integrator = FunctionalIntegrator(self.solver.problem, functional,
+        time_integrator = TimeIntegrator(self.solver.problem, functional,
                                           final_only)
 
-        J = self.integrator.dolfin_adjoint_functional()
+        J = self.time_integrator.dolfin_adjoint_functional()
 
         # Output power
         if self.solver.parameters.dump_period > 0:
@@ -197,15 +197,15 @@ class ReducedFunctional(dolfin_adjoint.ReducedFunctionalNumPy):
         final_only = not self.solver.problem._is_transient or \
                      self._problem_params.functional_final_time_only
         functional = self.functional(self._farm, rho=self._problem_params.rho)
-        self.integrator = FunctionalIntegrator(self.solver.problem,
+        self.time_integrator = TimeIntegrator(self.solver.problem,
                                                functional,
                                                final_only)
 
         for sol in self.solver.solve(annotate=annotate):
-            self.integrator.add(sol["time"], sol["state"], sol["tf"],
+            self.time_integrator.add(sol["time"], sol["state"], sol["tf"],
                            sol["is_final"])
 
-        return self.integrator.integrate()
+        return self.time_integrator.integrate()
 
     def _set_revolve_parameters(self):
         if (hasattr(self._solver_params, "revolve_parameters") and

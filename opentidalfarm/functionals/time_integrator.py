@@ -4,7 +4,7 @@ from dolfin_adjoint import *
 from ..problems import MultiSteadySWProblem
 
 
-class FunctionalIntegrator(object):
+class TimeIntegrator(object):
 
     def __init__(self, problem, functional, final_only):
         self.problem = problem
@@ -49,7 +49,7 @@ class FunctionalIntegrator(object):
 
     def dolfin_adjoint_functional(self):
         # The functional depends on dolfin functions which are not in scope.
-        # But dolfin-adjoint only cares about the name, hence it is sufficient 
+        # But dolfin-adjoint only cares about the name, hence it is sufficient
         # to create dummy functions with the appropriate names.
         R = FunctionSpace(self.problem.parameters.domain.mesh, "R", 0)
         Rvec = VectorFunctionSpace(self.problem.parameters.domain.mesh, "R", 0)
