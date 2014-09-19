@@ -116,12 +116,6 @@ class ReducedFunctional(dolfin_adjoint.ReducedFunctionalNumPy):
         if numpy.any(m != self.last_m):
             self._compute_functional(m, annotate=True)
 
-        final_only = not self.solver.problem._is_transient or \
-                     self._problem_params.functional_final_time_only
-        functional = self.functional(self._farm, rho=self._problem_params.rho)
-        time_integrator = TimeIntegrator(self.solver.problem, functional,
-                                          final_only)
-
         J = self.time_integrator.dolfin_adjoint_functional()
 
         # Output power
