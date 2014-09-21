@@ -9,14 +9,14 @@ from dolfin import log, INFO, ERROR
 
 
 class TestWeakDirichletBoundaryConditions(object):
-    
-    def error(self, problem, solution, u_source=None):
+
+    def error(self, problem, solution):
 
         adj_reset()
         parameters = CoupledSWSolver.default_parameters()
         parameters.dump_period = -1
         solver = CoupledSWSolver(problem, parameters)
-        for sol in solver.solve(annotate=False, u_source=u_source):
+        for sol in solver.solve(annotate=False):
             pass
         state = sol["state"]
 
@@ -25,7 +25,7 @@ class TestWeakDirichletBoundaryConditions(object):
 
 
     def compute_spatial_error(self, problem_params, refinement_level):
-        nx = 2*2**refinement_level
+        nx = 2**refinement_level
         ny = 5
 
         # Set domain
@@ -64,16 +64,17 @@ class TestWeakDirichletBoundaryConditions(object):
                 #('friction*pow({u},2)/depth'.format(u=u_str, dudx=dudx_str),"0"),
             eta0=eta0, g=problem_params.g,
             depth=problem_params.depth,
-            t=problem_params.start_time, k=k, 
+            t=problem_params.start_time, k=k,
             friction=problem_params.friction,
             viscosity=problem_params.viscosity)
+        problem_params.f_u = u_source
 
         problem_params.initial_condition = solution
 
         # Boundary conditions
         bcs = BoundaryConditionSet()
         bc_expr = Expression(
-            (u_str, "0"), 
+            (u_str, "0"),
             eta0=eta0,
             g=problem_params.g,
             depth=problem_params.depth,
@@ -86,7 +87,7 @@ class TestWeakDirichletBoundaryConditions(object):
 
         problem = SWProblem(problem_params)
 
-        return self.error(problem, solution, u_source=u_source)
+        return self.error(problem, solution)
 
     def compute_temporal_error(self, problem_params, refinement_level):
         nx = 2**3
@@ -102,7 +103,7 @@ class TestWeakDirichletBoundaryConditions(object):
 
         # Time settings
         problem_params.start_time = Constant(0.0)
-        problem_params.finish_time = Constant(2 * pi / (sqrt(problem_params.g * 
+        problem_params.finish_time = Constant(2 * pi / (sqrt(problem_params.g *
                                         problem_params.depth) * k))
         problem_params.dt = problem_params.finish_time/(4*2**refinement_level)
         problem_params.theta = 0.5
@@ -122,7 +123,7 @@ class TestWeakDirichletBoundaryConditions(object):
         # Boundary conditions
         bcs = BoundaryConditionSet()
         bc_expr = Expression(
-            (u_str, "0"), 
+            (u_str, "0"),
             eta0=eta0,
             g=problem_params.g,
             depth=problem_params.depth,
@@ -139,19 +140,19 @@ class TestWeakDirichletBoundaryConditions(object):
 
     def test_spatial_convergence_is_two(self, sw_nonlinear_problem_parameters):
         errors = []
-        tests = 10
+        tests = 4
         for refinement_level in range(tests):
             error = self.compute_spatial_error(sw_nonlinear_problem_parameters,
                                                refinement_level)
             errors.append(error)
-        # Compute the order of convergence 
-        conv = [] 
+        # Compute the order of convergence
+        conv = []
         for i in range(len(errors)-1):
             conv.append(-math.log(errors[i+1] / errors[i], 2))
 
         log(INFO, "Spatial Taylor remainders are : %s" % str(errors))
         log(INFO, "Spatial order of convergence (expecting 2.0): %s" % str(conv))
-        assert min(conv) > 1.0
+        assert min(conv) > 1.8
 
     def test_temporal_convergence_is_two(self, sw_linear_problem_parameters):
         errors = []
@@ -160,8 +161,8 @@ class TestWeakDirichletBoundaryConditions(object):
             error = self.compute_temporal_error(sw_linear_problem_parameters,
                                                 refinement_level)
             errors.append(error)
-        # Compute the order of convergence 
-        conv = [] 
+        # Compute the order of convergence
+        conv = []
         for i in range(len(errors)-1):
             conv.append(-math.log(errors[i+1] / errors[i], 2))
 
