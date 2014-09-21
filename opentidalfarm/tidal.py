@@ -2,7 +2,6 @@ from dolfin import Expression  # Keep readthedocs happy
 
 from dolfin import *
 from dolfin_adjoint import *
-from helpers import print0
 # this imports NetCDFFile from netCDF4, Scientific.IO.NetCDF or scipy.io.netcdf (whichever is available)
 from uptide.netcdf_reader import NetCDFFile
 import utm
@@ -12,7 +11,7 @@ import datetime
 import scipy.interpolate
 import numpy
 
-# We need to store tnci_time as a non-class variable, otherwise 
+# We need to store tnci_time as a non-class variable, otherwise
 # dolfin-adjoint tries to be clever and restores its values during the
 # adjoint runs which yields an wrong behaviour for
 # the "tnci_time != self.t" statement below
@@ -25,7 +24,7 @@ class TidalForcing(Expression):
 
     def __init__(self, grid_file_name, data_file_name, ranges, utm_zone, utm_band, initial_time, constituents):
         """ This function initializes a new TidalForcing object.
-            The parameters are: 
+            The parameters are:
         """
 
         self.t = 0
@@ -42,7 +41,7 @@ class TidalForcing(Expression):
         """ Evaluates the tidal forcing. """
         global tnci_time
         if tnci_time != self.t:
-            print0("Setting tidal forcing time to %f " % self.t)
+            log(INFO, "Setting tidal forcing time to %f " % self.t)
             self.tnci.set_time(float(self.t))
             tnci_time = self.t
 
@@ -61,7 +60,9 @@ class TidalForcing(Expression):
 class BathymetryDepthExpression(Expression):
     """Create a bathymetry depth Expression from a lat/lon NetCDF file, where
        the depth values stored as "z" field. """
-    def __init__(self, filename, utm_zone, utm_band):
+    def __init__(self, filename, utm_zone, utm_band, maxval=10, domain=None):
+
+        self._domain = domain
         nc = NetCDFFile(filename, 'r')
 
         lat = nc.variables['lat']
@@ -75,9 +76,10 @@ class BathymetryDepthExpression(Expression):
 
         self.utm_zone = utm_zone
         self.utm_band = utm_band
+        self.maxval = maxval
         self.interpolator = scipy.interpolate.RectBivariateSpline(lat, lon, values)
 
     def eval(self, values, x):
 	" Evaluates the bathymetry at a point. """
         lat, lon = utm.to_latlon(x[0], x[1], self.utm_zone, self.utm_band)
-        values[0] = max(10, -self.interpolator(lat, lon))
+        values[0] = max(self.maxval, -self.interpolator(lat, lon))

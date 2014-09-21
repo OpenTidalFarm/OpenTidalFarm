@@ -1,7 +1,8 @@
-import cPickle
-from helpers import cpu0only, info_red, print0
-import signal
 import os
+import signal
+import cPickle
+from dolfin import log, INFO, WARNING
+from helpers import cpu0only
 
 def to_tuple(obj):
     if hasattr(obj, '__iter__'):
@@ -17,11 +18,11 @@ class MemoizeMutable:
         h1 = to_tuple(args)
         h2 = to_tuple(kwds.items())
         h = tuple([h1, h2])
-        # Often useful to have a explicit 
+        # Often useful to have a explicit
         # turbine parameter -> functional value mapping,
         # i.e. no hashing on the key
         if self.hash_keys:
-            h = hash(h)  
+            h = hash(h)
         return h
 
     def __init__(self, fn, hash_keys=False):
@@ -36,7 +37,7 @@ class MemoizeMutable:
         if h not in self.memo:
             self.memo[h] = self.fn(*args, **kwds)
         else:
-            print0("Use checkpoint value.")
+            log(INFO, "Use checkpoint value.")
         return self.memo[h]
 
     def has_cache(self, *args, **kwds):
@@ -66,4 +67,4 @@ class MemoizeMutable:
         try:
             self.memo = cPickle.load(open(filename, "rb"))
         except IOError:
-            info_red("Warning: Checkpoint file '%s' not found." % filename)
+            log(WARNING, "Warning: Checkpoint file '%s' not found." % filename)

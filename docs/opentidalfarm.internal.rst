@@ -19,3 +19,7 @@ Internal classes
     :undoc-members:
     :show-inheritance:
 
+.. automodule:: opentidalfarm.solvers.les
+    :members:
+    :undoc-members:
+    :show-inheritance:

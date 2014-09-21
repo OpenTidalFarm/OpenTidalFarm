@@ -19,7 +19,7 @@ class DummySolver(Solver):
         self.tf = None
         self.current_state = None
 
-    def setup(self, W, turbine_field, functional=None, annotate=True):
+    def setup(self, W, turbine_field, annotate=True):
         (v, q) = TestFunctions(W)
         (u, h) = TrialFunctions(W)
 
@@ -33,17 +33,17 @@ class DummySolver(Solver):
         self.tf = Function(turbine_field, name="turbine_friction", annotate=annotate)
 
         self.annotate = annotate
-        self.functional = functional
 
-    def solve(self, turbine_field, functional=None, annotate=True,
-            linear_solver="default", preconditioner="default", u_source=None):
+    def solve(self, annotate=True):
         '''Solve (1+turbine)*M*state = M*old_state.
            The solution is a x-velocity of old_state/(turbine_friction + 1) and a zero pressure value y-velocity.
         '''
 
         problem_params = self.problem.parameters
+        farm = problem_params.tidal_farm
+        turbine_friction = farm.turbine_cache.cache["turbine_field"]
         mesh = problem_params.domain.mesh
-        
+
         # Create function spaces
         V, H = problem_params.finite_element(mesh)
         W = MixedFunctionSpace([V, H])
@@ -55,9 +55,9 @@ class DummySolver(Solver):
         # Define functions
         state = Function(W, name="Current_state")  # solution of the next timestep
         self.current_state = state
-        state.assign(ic, annotate=False)    
+        state.assign(ic, annotate=False)
 
-        self.setup(W, turbine_field, functional, annotate)
+        self.setup(W, turbine_friction, annotate)
 
         yield({"time": Constant(0),
                "u": state[0],

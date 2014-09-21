@@ -2,7 +2,6 @@ import numpy
 from parameter_dict import ParameterDictionary
 from dolfin import *
 from dolfin_adjoint import *
-from helpers import info_green
 
 
 class Turbines(object):
@@ -95,7 +94,7 @@ class TurbineCache:
             self.cache["turbine_field"] = tf
             return
 
-        info_green("Updating turbine cache")
+        log(INFO, "Updating turbine cache")
 
         # Store the new turbine parameters
         self.params = ParameterDictionary(config.params)
@@ -118,7 +117,7 @@ class TurbineCache:
 
         # Precompute the interpolation of the friction function for each individual turbine
         if self.params["print_individual_turbine_power"]:
-            info_green("Building individual turbine power friction functions for caching purposes...")
+            log(INFO, "Building individual turbine power friction functions for caching purposes...")
             self.cache["turbine_field_individual"] = []
             for i in range(len(self.params["turbine_friction"])):
                 params_cpy = ParameterDictionary(self.params)

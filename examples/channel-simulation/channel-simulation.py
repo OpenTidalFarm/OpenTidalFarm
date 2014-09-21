@@ -74,7 +74,7 @@ domain = RectangularDomain(x0=0, y0=0, x1=100, y1=50, nx=20, ny=10)
 # different boundary conditions on different parts of the domain. You can plot
 # and inspect the boundary ids with:
 
-plot(domain.facet_ids, interactive=True)
+plot(domain.facet_ids)
 
 # Once the domain is created we attach it to the problem parameters:
 

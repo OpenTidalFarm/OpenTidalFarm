@@ -1,15 +1,17 @@
-Solvers 
+Solvers
 =======
 
 .. automodule:: opentidalfarm.solvers
     :members:
-    :undoc-members:
-    :show-inheritance:
 
 Coupled shallow water solver
 ----------------------------
 
 .. automodule:: opentidalfarm.solvers.coupled_sw_solver
     :members:
-    :undoc-members:
-    :show-inheritance:
+
+Pressure-correction shallow water solver
+----------------------------------------
+
+.. automodule:: opentidalfarm.solvers.ipcs_sw_solver
+    :members:

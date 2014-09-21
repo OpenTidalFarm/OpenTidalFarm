@@ -82,7 +82,7 @@ and inspect the boundary ids with:
 
 ::
 
-  plot(domain.facet_ids, interactive=True)
+  plot(domain.facet_ids)
   
 Once the domain is created we attach it to the problem parameters:
 
