@@ -336,23 +336,12 @@ CoupledSWSolverParameters."
         weak_eta_bcs = [bc for bc in problem_params.bcs if bc[0] is "eta"
                         and bc[-1] is "weak_dirichlet"]
 
-        if len(weak_eta_bcs) == 0:
-            # assume we don't want to integrate the pressure gradient by parts
-            C_mid = g * inner(v, grad(h_mid)) * dx
+        # don't integrate pressure gradient by parts (a.o. allows dg test function v)
+        C_mid = g * inner(v, grad(h_mid)) * dx
 
-        else:
-            C_mid = -g * inner(div(v), h_mid) * dx
-            C_mid += g * inner(dot(v, n), h_mid) * ds
-
-            for function_name, eta_expr, facet_id, bctype in weak_eta_bcs:
-                # Remove the original boundary integral of that facet
-                C_mid -= g * inner(dot(v, n), h_mid) * ds(facet_id)
-
-                # Apply the eta boundary conditions weakly on boundary IDs 1 and 2
-                C_mid +=  g * inner(dot(v, n), eta_expr) * ds(facet_id)
-
-                #+inner(avg(v),jump(h_mid,n))*dS # This term is only needed
-                                                 # for dg element pairs
+        for function_name, eta_expr, facet_id, bctype in weak_eta_bcs:
+            # Apply the eta boundary conditions weakly on boundary IDs 1 and 2
+            C_mid +=  g * inner(dot(v, n), (eta_expr-h_mid)) * ds(facet_id)
 
         # Bottom friction
         friction = problem_params.friction
@@ -389,10 +378,10 @@ CoupledSWSolverParameters."
             # apply weak_diricihlet bc for the advection term at the incoming boundaries only
             for function_name, u_expr, facet_id, bctype in problem_params.bcs:
 
-                if bctype == 'weak_dirichlet':
-                  # this is the same thing as for DG above, except u_up is the boundary value and u_down is u+ or u- (they are the same)
-                  # the fact that these are the same also means that the DG term above vanishes at the boundary and is replaced here
-                  Ad_mid += inner(un*(u_mid-u_expr), v)*ds(facet_id)
+                if function_name =="u" and bctype == 'weak_dirichlet':
+                    # this is the same thing as for DG above, except u_up is the boundary value and u_down is u+ or u- (they are the same)
+                    # the fact that these are the same also means that the DG term above vanishes at the boundary and is replaced here
+                    Ad_mid += inner(un*(u_mid-u_expr), v)*ds(facet_id)
 
 
         if include_viscosity:
