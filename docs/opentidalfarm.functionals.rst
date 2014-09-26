@@ -1,7 +1,5 @@
 Functionals
 ===========
 
-.. automodule:: opentidalfarm.functionals
+.. automodule:: opentidalfarm.functionals.functionals
     :members:
-    :undoc-members:
-    :show-inheritance:

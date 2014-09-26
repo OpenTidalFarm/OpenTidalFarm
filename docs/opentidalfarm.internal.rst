@@ -9,7 +9,7 @@ Internal classes
     :undoc-members:
     :show-inheritance:
 
-.. automodule:: opentidalfarm.functionals.integrator
+.. automodule:: opentidalfarm.functionals.time_integrator
     :members:
     :undoc-members:
     :show-inheritance:
