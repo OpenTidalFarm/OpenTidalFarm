@@ -11,14 +11,20 @@ from prototype_functional import PrototypeFunctional
 
 
 class PowerFunctional(PrototypeFunctional):
-    ''' Implements a simple functional of the form:
-    J(u, m) = rho * turbines(m) * (||u||**3)
-    where turbines(m) defines the friction function due to the turbines.
-    '''
-### ADD IN RHO ###
+    r""" Implements a simple functional of the form:
+
+    .. math:: J(u, m) = \int \rho  c_t ||u||^3~ dx,
+
+    where :math:`c_t` defines the friction field due to the turbines.
+
+    :param farm: The farm for which the functional is being computed.
+    :type farm: Instance of the Farm class.
+    :param rho: The fluid density (kg/m^3).
+    :type rho: Float.
+    """
+
     def __init__(self, farm, rho):
-        ''' Constructs a new functional for computing the power. The turbine
-        settings are derived from the settings params. '''
+
         farm.turbine_cache.update(farm)
         self.farm = farm
         self.rho = rho
@@ -27,25 +33,49 @@ class PowerFunctional(PrototypeFunctional):
         self.params = dict(farm.params)
 
 
-    def Jt(self, state, tf):
-        return self.power(state, tf) * self.farm.site_dx(1)
+    def Jt(self, state, turbine_field):
+        """ Computes the power output of the farm.
 
-    def power(self, state, turbines):
-        ''' Computes the power field over the domain '''
-        return (self.rho * turbines * (dot(state[0], state[0]) + dot(state[1],
-                state[1])) ** 1.5)
+        :param state: Current solution state
+        :type state: UFL
+        :param turbine_field: Turbine friction field
+        :type turbine_field: UFL
+
+        """
+        return self.power(state, turbine_field) * self.farm.site_dx(1)
+
+    def power(self, state, turbine_field):
+        """ Computes the power field over the domain.
+
+        :param state: Current solution state.
+        :type state: UFL
+        :param turbine_field: Turbine friction field
+        :type turbine_field: UFL
+
+        """
+        return (self.rho * turbine_field * (dot(state[0], state[0]) +
+                dot(state[1], state[1])) ** 1.5)
 
     def Jt_individual(self, state, i):
-        ''' Computes the power output of the i'th turbine. '''
-        tf = self.farm.turbine_cache.cache['turbine_field_individual'][i]
-        return self.power(state, tf) * self.farm.site_dx(1)
+        """ Computes the power output of the i'th turbine.
+
+        :param state: Current solution state
+        :type state: UFL
+        :param i: refers to the i'th turbine
+        :type i: Integer
+
+        """
+        turbine_field_individual = \
+                self.farm.turbine_cache.cache['turbine_field_individual'][i]
+        return self.power(state, turbine_field_individual) * self.farm.site_dx(1)
+
 
 class PowerCurveFunctional(PrototypeFunctional):
-    ''' Implements a functional for the power with a given power curve
-    J(u, m) = \int_\Omega power(u)
-    where m controls the strength of each turbine.
-    TODO: doesn't work yet...
-    '''
+#    ''' Implements a functional for the power with a given power curve
+#    :math:`J(u, m) = \int_\Omega P(u)`
+#    where m controls the strength of each turbine.
+    """ TODO: doesn't work yet...
+    """
     def __init__(self, farm):
         ''' Constructs a new DefaultFunctional. The turbine settings are
         derived from the settings params. '''

@@ -5,9 +5,9 @@
 """
 
 class PrototypeFunctional(object):
-    '''Prototype functional object which should be overloaded by implemented
+    r"""Prototype functional object which should be overloaded by implemented
     functionals. '__init__' and 'Jt' methods must be overloaded.
-    '''
+    """
 
     def __init__(self):
         raise NotImplementedError('PrototypeFunctional.__init__ needs to be \
@@ -34,7 +34,7 @@ class PrototypeFunctional(object):
         return -1 * self
 
     def Jt(self, state, tf):
-        '''This method should return the form which computes the functional's
+        r'''This method should return the form which computes the functional's
         contribution for one timelevel.'''
         raise NotImplementedError('PrototypeFunctional.Jt needs to be \
                 overloaded.')
