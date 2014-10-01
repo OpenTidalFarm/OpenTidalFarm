@@ -7,7 +7,7 @@ from dolfin import *
 from dolfin_adjoint import *
 from turbines import *
 from solvers import Solver
-from functionals import TimeIntegrator, FunctionalPrototype
+from functionals import TimeIntegrator, PrototypeFunctional
 from memoize import MemoizeMutable
 
 
@@ -40,7 +40,7 @@ class ReducedFunctional(dolfin_adjoint.ReducedFunctionalNumPy):
     """
     Following parameters are expected:
 
-    :ivar functional: a :class:`FunctionalPrototype` class.
+    :ivar functional: a :class:`PrototypeFunctional` class.
     :ivar solver: a :class:`Solver` object.
     :ivar parameters: a :class:`ReducedFunctionalParameters` object.
 
@@ -57,7 +57,7 @@ class ReducedFunctional(dolfin_adjoint.ReducedFunctionalNumPy):
             raise ValueError, "solver argument of wrong type."
 
         self.functional = functional
-        if not FunctionalPrototype in functional.__bases__:
+        if not PrototypeFunctional in functional.__bases__:
             raise ValueError, "invalid functional argument."
 
         self._farm = solver.problem.parameters.tidal_farm
