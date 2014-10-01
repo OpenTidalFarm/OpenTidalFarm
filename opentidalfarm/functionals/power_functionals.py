@@ -1,8 +1,8 @@
-"""
-.. module:: Power Functionals
-   :synopsis: This module contains the functional classes which compute the
-       power extracted by an array.
-"""
+#"""
+#.. module:: Power Functionals
+#   :synopsis: This module contains the functional classes which compute the
+#       power extracted by an array.
+#"""
 
 from dolfin import dot, Constant, dx
 from ..turbines import *
