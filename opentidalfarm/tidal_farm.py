@@ -45,7 +45,7 @@ class TidalFarm(object):
 
     def set_site_dimensions(self, x0, x1, y0, y1):
         ''' Sets the site dimension of a rectangular site. FIXME: move to
-        RectangularFarm?''' 
+        RectangularFarm?'''
         if not x0 < x1 or not y0 < y1:
             raise ValueError("Site must have a positive area")
         self.domain.site_x_start = x0

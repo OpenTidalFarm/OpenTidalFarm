@@ -14,12 +14,14 @@ __email__ = 'simon.funke@gmail.com'
 import finite_elements
 import helpers
 
-from tidal_farm import TidalFarm
+from farm import *
+from turbine import *
 from solvers import *
 from problems import *
 from domains import *
 from functionals import *
 from tidal import TidalForcing, BathymetryDepthExpression
+from controls import Controls
 
 from optimisation_helpers import friction_constraints, \
     get_minimum_distance_constraint_func, get_domain_constraints, \
@@ -28,7 +30,9 @@ from optimisation_helpers import friction_constraints, \
     PolygonSiteConstraints, DomainRestrictionConstraints
 from reduced_functional import ReducedFunctional, ReducedFunctionalParameters
 from boundary_conditions import BoundaryConditionSet
-from turbines import Turbines
+from turbines import TurbineFunction
+
+from output import output_options
 
 from dolfin import *
 from dolfin_adjoint import minimize, maximize, Function, solve

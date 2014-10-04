@@ -96,5 +96,5 @@ class PowerCurveFunctional(PrototypeFunctional):
             fac = Constant(1.5e6 / (3 ** 3))
             return smooth_uflmin(1.5e6, fac * u ** 3)
 
-        P = power_function(up_u) * tf / self.farm.turbine_cache.turbine_integral() * dx
+        P = power_function(up_u)*tf/self.farm.turbine_prototype.integral*dx
         return P

@@ -8,13 +8,7 @@ class ParameterDictionary(dict):
 
         self.required = {
             'cost_coef': 'multiplicator that determines the cost per turbine friction',
-            'turbine_parametrisation': 'parametrisation of the turbines. If its value is "individual" then the turbines are resolved individually, if "smooth" then the turbines are represented as an average friction over the site area',
-            'turbine_pos': 'list of turbine positions',
-            'turbine_x': 'turbine extension in the x direction',
-            'turbine_y': 'turbine extension in the y direction',
-            'turbine_friction': 'turbine friction',
-            'controls': 'a list of the control variables. Valid list values: "turbine_pos" for the turbine position, "turbine_friction" for the friction of the turbine',
-             }
+         }
 
     def check(self):
         # First check that no parameters are missing
