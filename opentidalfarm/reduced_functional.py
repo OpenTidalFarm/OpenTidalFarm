@@ -49,8 +49,10 @@ class ReducedFunctional(dolfin_adjoint.ReducedFunctionalNumPy):
     """
 
     def __init__(self, functional, solver, parameters):
+        # Required by dolfin-adjoint.
+        self.in_euclidian_space = False
 
-        # For consistency with the dolfin-adjoint API
+        # For consistency with the dolfin-adjoint API.
         self.scale = parameters.scale
 
         self.solver = solver
@@ -88,17 +90,21 @@ class ReducedFunctional(dolfin_adjoint.ReducedFunctionalNumPy):
                                   "power.pvd")
                 self.power_file = File(power_filename, "compressed")
 
-	# For dolfin-adjoint
-        self.parameter = [self._farm.as_parameter_array]
+	# dolfin-adjoint requires the ReducedFunctional to have a member
+        # variable `parameter` which must be a list comprising an instance of a
+        # class (here, TurbineFarmParameter) which has a method named `data`
+        # which returns a numpy.ndarray of the parameters used for optimisation,
+        # e.g. the turbine frictions and positions.
+        self.parameter = [TurbineFarmParameter(self._farm)]
 
         # For smeared turbine parametrisations we only want to store the
         # hash of the control values into the pickle datastructure
         use_hash_keys = self._farm.turbine_prototype.parameterisation.smeared
 
         self._compute_functional_mem = MemoizeMutable(self._compute_functional,
-            use_hash_keys)
+                                                      use_hash_keys)
         self._compute_gradient_mem = MemoizeMutable(self._compute_gradient,
-            use_hash_keys)
+                                                    use_hash_keys)
 
         # Load checkpoints from file
         if self.parameters.load_checkpoints:
@@ -351,3 +357,13 @@ class ReducedFunctional(dolfin_adjoint.ReducedFunctionalNumPy):
 
 class ReducedFunctionalNumPy(ReducedFunctional):
     pass
+
+
+class TurbineFarmParameter(object):
+    """This class is required to that the parameter set works with
+    dolfin-adjoint."""
+    def __init__(self, farm):
+        self.farm = farm
+
+    def data(self):
+        return numpy.asarray(self.farm.as_parameter_array)
