@@ -6,13 +6,14 @@ from ..turbine_cache import TurbineCache
 
 class BaseFarm(object):
     """A base Farm class from which other Farm classes should be derived."""
-    def __init__(self):
+    def __init__(self, domain=None, turbine=None):
         """Create an empty Farm."""
-
-        self._turbine_specification = None
         # Create a chaching object for the interpolated turbine friction fields
         # (as their computation is very expensive)
         self.turbine_cache = TurbineCache()
+
+        self.domain = domain
+        self._set_turbine_specification(turbine)
 
 
     def _get_turbine_specification(self):
@@ -83,7 +84,7 @@ class BaseFarm(object):
         self.turbine_cache(m)
 
 
-    def add_turbine(self, coordinates, turbine=None):
+    def add_turbine(self, coordinates):
         """Add a turbine to the farm at the given coordinates.
 
         Creates a new turbine of the same specification as the prototype turbine
@@ -91,13 +92,9 @@ class BaseFarm(object):
 
         :param coordinates: The x-y coordinates where the turbine should be placed.
         :type coordinates: :func:`list`
-        :param turbine: A prototype turbine, see :doc:`opentidalfarm.turbine.Turbine`.
         """
         if self._turbine_specification is None:
-            if turbine is None:
-                raise ValueError("A turbine specification has not been set.")
-            else:
-                self._turbine_specification = turbine
+            raise ValueError("A turbine specification has not been set.")
 
         turbine = self._turbine_specification
 

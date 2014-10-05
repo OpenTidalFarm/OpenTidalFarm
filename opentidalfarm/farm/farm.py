@@ -10,15 +10,12 @@ class Farm(BaseFarm):
     site marked by `1`.
 
     """
-    def __init__(self, domain):
+    def __init__(self, domain, turbine=None):
         """Initializes an empty farm defined by the domain.
 
         """
         # Initialize the base class
-        super(Farm, self).__init__()
-
-        # Store the domain.
-        self.domain = domain
+        super(Farm, self).__init__(domain=domain, turbine=turbine)
 
         # Create a turbine function space and set the function space in the
         # cache.

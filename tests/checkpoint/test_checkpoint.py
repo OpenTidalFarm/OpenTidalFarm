@@ -18,23 +18,23 @@ class TestCheckpoint(object):
     def default_problem(self, ic):
         domain = RectangularDomain(0, 0, 3000, 1000, 20, 10)
 
-        # Create a prototype turbine
+        # Create a turbine specification where friction is the only control.
         turbine = Turbine(diameter=8000,
                           minimum_distance=8000,
                           maximum_friction=12.0,
                           controls=Controls(friction=True)
                          )
 
-        # Create the farm
-        farm = Farm(domain)
-        farm.turbine_prototype = turbine
+        # Create the farm and add a turbine.
+        farm = Farm(domain, turbine=turbine)
         farm.add_turbine([500.,500.])
-        # The turbine friction is the control variable
+
+        # Adjust some global options.
         options["dump_period"] = -1
         options["output_turbine_power"] = False
         options["save_checkpoints"] = True
 
-        # Set the problem parameters
+        # Set the problem parameters.
         problem_params = DummyProblem.default_parameters()
         problem_params.domain = domain
         problem_params.finite_element = finite_elements.p1dgp2
@@ -44,7 +44,7 @@ class TestCheckpoint(object):
         problem_params.functional_final_time_only = True
         problem_params.tidal_farm = farm
 
-        # Create the problem
+        # Create the problem.
         problem = DummyProblem(problem_params)
 
         return problem
