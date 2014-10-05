@@ -136,7 +136,7 @@ class RectangularFarm(Farm):
             raise ValueError("You must deploy turbines before computing "
                              "position constraints.")
 
-        radius = self._turbine_prototype.radius
+        radius = self._turbine_specification.radius
         # Get the lower and upper bounds.
         lower_x = self.site_x_start+radius
         lower_y = self.site_y_start+radius

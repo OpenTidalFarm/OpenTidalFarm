@@ -9,26 +9,27 @@ class BaseFarm(object):
     def __init__(self):
         """Create an empty Farm."""
 
-        self._turbine_prototype = None
+        self._turbine_specification = None
         # Create a chaching object for the interpolated turbine friction fields
         # (as their computation is very expensive)
         self.turbine_cache = TurbineCache()
 
 
-    def _get_turbine_prototype(self):
-        if self._turbine_prototype is None:
-            raise ValueError("The prototype turbine has not yet been set.")
-        return self._turbine_prototype
+    def _get_turbine_specification(self):
+        if self._turbine_specification is None:
+            raise ValueError("The turbine specification has not yet been set.")
+        return self._turbine_specification
 
 
-    def _set_turbine_prototype(self, prototype):
-        self._turbine_prototype = prototype
-        self.turbine_cache._set_turbine_prototype(self._turbine_prototype)
+    def _set_turbine_specification(self, turbine_specification):
+        self._turbine_specification = turbine_specification
+        self.turbine_cache._set_turbine_specification(
+            self._turbine_specification)
 
 
-    turbine_prototype = property(_get_turbine_prototype,
-                                 _set_turbine_prototype,
-                                 "The prototype turbine specification.")
+    turbine_specification = property(_get_turbine_specification,
+                                     _set_turbine_specification,
+                                     "The turbine specification.")
 
     @property
     def number_of_turbines(self):
@@ -48,10 +49,10 @@ class BaseFarm(object):
         """
         m = []
 
-        if self._turbine_prototype.controls.friction:
+        if self._turbine_specification.controls.friction:
             for friction in self.turbine_cache.cache["turbine_friction"]:
                 m.append(friction)
-        if self._turbine_prototype.controls.position:
+        if self._turbine_specification.controls.position:
             for position in self.turbine_cache.cache["turbine_pos"]:
                 m.append(position[0])
                 m.append(position[1])
@@ -92,15 +93,13 @@ class BaseFarm(object):
         :type coordinates: :func:`list`
         :param turbine: A prototype turbine, see :doc:`opentidalfarm.turbine.Turbine`.
         """
-        if self._turbine_prototype is None:
+        if self._turbine_specification is None:
             if turbine is None:
-                raise ValueError("A prototype turbine must be specified using "
-                                 "the `turbine` keyword in "
-                                 "<OpenTidalFarm.Farm.add_turbine>")
+                raise ValueError("A turbine specification has not been set.")
             else:
-                self._turbine_prototype = turbine
+                self._turbine_specification = turbine
 
-        turbine = self._turbine_prototype
+        turbine = self._turbine_specification
 
         self.turbine_cache.cache["turbine_friction"].append(turbine.friction)
         self.turbine_cache.cache["turbine_pos"].append(coordinates)
@@ -132,13 +131,13 @@ class BaseFarm(object):
         :raises: ValueError
 
         """
-        if self._turbine_prototype is None:
+        if self._turbine_specification is None:
             if turbine is None:
-                raise ValueError("A prototype turbine must be defined.")
+                raise ValueError("A turbine specification has not been set.")
             else:
-                self._turbine_prototype = turbine
+                self._turbine_specification = turbine
 
-        turbine = self._turbine_prototype
+        turbine = self._turbine_specification
 
         # Create an empty list of turbines.
         turbines = []
@@ -177,7 +176,7 @@ class BaseFarm(object):
         """
         self.turbine_cache["turbine_pos"] = positions
         self.turbine_cache["turbine_friction"] = (
-            self._turbine_prototype.friction*numpy.ones(len(positions)))
+            self._turbine_specification.friction*numpy.ones(len(positions)))
 
 
     def site_boundary_constraints(self):
@@ -199,6 +198,6 @@ class BaseFarm(object):
                              "distance constraints can be calculated.")
 
         m = self.as_parameter_array
-        controls = self._turbine_prototype.controls
-        minimum_distance = self._turbine_prototype.minimum_distance
+        controls = self._turbine_specification.controls
+        minimum_distance = self._turbine_specification.minimum_distance
         return MinimumDistanceConstraints(m, minimum_distance, controls)

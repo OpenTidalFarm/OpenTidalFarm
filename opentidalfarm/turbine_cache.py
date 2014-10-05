@@ -10,15 +10,15 @@ class TurbineCache(object):
         self.cache = {"turbine_pos": [],
                       "turbine_friction": []}
         self._function_space = None
-        self._turbine_prototype = None
+        self._turbine_specification = None
         self._parameterisation = None
         self._controlled_by = None
 
 
-    def _set_turbine_prototype(self, prototype):
-        self._turbine_prototype = prototype
-        self._parameterisation = prototype.parameterisation
-        self._controlled_by = prototype.controls
+    def _set_turbine_specification(self, turbine_specification):
+        self._turbine_specification = turbine_specification
+        self._parameterisation = turbine_specification.parameterisation
+        self._controlled_by = turbine_specification.controls
 
 
     def _deserialize(self, serialized):
@@ -60,9 +60,9 @@ class TurbineCache(object):
         This list is used as a cache to avoid the recomputation of the expensive
         interpolation of the turbine expression."""
 
-        if self._turbine_prototype is None:
-            raise ValueError("The turbine prototype must be set before caching"
-                             "is possible.")
+        if self._turbine_specification is None:
+            raise ValueError("The turbine specification must be set before "
+                             "caching is possible.")
 
         # Deserialize the parameters.
         flattened_positions, frictions = self._deserialize(m)
@@ -94,7 +94,7 @@ class TurbineCache(object):
 
         # Precompute the interpolation of the friction function of all turbines
         turbines = TurbineFunction(self._function_space,
-                                   self._turbine_prototype)
+                                   self._turbine_specification)
 
         if self._controlled_by.dynamic_friction:
             # If the turbine friction is controlled dynamically, we need to

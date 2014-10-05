@@ -4,9 +4,9 @@ from dolfin_adjoint import *
 
 class TurbineFunction(object):
 
-    def __init__(self, V, turbine_prototype, derivative_index=-1):
+    def __init__(self, V, turbine_specification, derivative_index=-1):
         # self.params = ParameterDictionary(params)
-        self._turbine_prototype = turbine_prototype
+        self._turbine_specification = turbine_specification
 
         # Precompute some turbine parameters for efficiency.
         self.x = interpolate(Expression("x[0]"), V).vector().array()
@@ -47,7 +47,7 @@ class TurbineFunction(object):
         eps = 1e-12
 
         for (x_pos, y_pos), friction in zip(turbine_pos, turbine_friction):
-            radius = self._turbine_prototype.radius
+            radius = self._turbine_specification.radius
             x_unit = numpy.minimum(
                 numpy.maximum(((self.x-x_pos)/radius), eps-1), 1-eps)
             y_unit = numpy.minimum(
