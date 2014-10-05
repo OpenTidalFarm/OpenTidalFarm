@@ -1,4 +1,4 @@
 from .turbine import Turbine
-from .turbine_parameterisation import TurbineParameterisation
+from .parameterisation import TurbineParameterisation
 
 __all__ = ["Turbine", "TurbineParameterisation"]

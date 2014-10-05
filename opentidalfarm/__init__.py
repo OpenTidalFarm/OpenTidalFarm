@@ -30,7 +30,7 @@ from optimisation_helpers import friction_constraints, \
     PolygonSiteConstraints, DomainRestrictionConstraints
 from reduced_functional import ReducedFunctional, ReducedFunctionalParameters
 from boundary_conditions import BoundaryConditionSet
-from turbines import TurbineFunction
+from turbine_function import TurbineFunction
 
 from output import output_options
 
