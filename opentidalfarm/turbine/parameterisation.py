@@ -4,16 +4,10 @@ class TurbineParameterisation(object):
                  smeared=False):
         """Sets the parameterisation of the turbines.
 
-        :param default: True if default parameterisation is being used.
-        :type default: bool
-        :param thrust: True if thrust parameterisation is being used.
-        :type thrust: bool
-        :param implicit_thrust: True if implicit thrust parameterisation is
-            being used.
-        :type implicit_thrust: bool
-        :param smeared: True if smeared parameterisation is being used.
-        :type smeared: bool
-
+        :param bool default: True if default parameterisation is being used.
+        :param bool thrust: True if thrust parameterisation is being used.
+        :param bool implicit_thrust: True if implicit thrust parameterisation is being used.
+        :param bool smeared: True if smeared parameterisation is being used.
         """
         parameterisation = [default, thrust, implicit_thrust, smeared]
 
@@ -44,7 +38,10 @@ class TurbineParameterisation(object):
 
     @property
     def parameterisation(self):
-        """A string naming the parameterisation used."""
+        """A string naming the parameterisation used.
+        :returns: The type of parameterisation being used.
+        :rtype: str
+        """
         for key in self._parameterisation:
             if self._parameterisation[key]:
                 return key
@@ -52,23 +49,35 @@ class TurbineParameterisation(object):
 
     @property
     def default(self):
-        """True if default turbine parameterisation is used."""
+        """True if default turbine parameterisation is used.
+        :returns: Whether default turbine parameterisation is used.
+        :rtype: bool
+        """
         return self._parameterisation["default"]
 
 
     @property
     def thrust(self):
-        """True if thrust turbine parameterisation is used."""
+        """True if thrust turbine parameterisation is used.
+        :returns: Whether thrust parameterisation is used.
+        :rtype: bool
+        """
         return self._parameterisation["thrust"]
 
 
     @property
     def implicit_thrust(self):
-        """True if implici thrust turbine parameterisation is used."""
+        """True if implicit thrust turbine parameterisation is used.
+        :returns: Whether implicit thrust parameterisation is used.
+        :rtype: bool
+        """
         return self._parameterisation["implicit thrust"]
 
 
     @property
     def smeared(self):
-        """True if smeared turbine parameterisation is used."""
+        """True if smeared turbine parameterisation is used.
+        :returns: Whether smeared parameterisation is used.
+        :rtype: bool
+        """
         return self._parameterisation["smeared"]

@@ -48,7 +48,7 @@ class Domain(object):
 
     def _generate_site_vertices(self):
         # Extract the submesh for the site.
-        self._site_mesh = dolfin.SubMesh(self.mesh, self.subdomains, 1)
+        self._site_mesh = dolfin.SubMesh(self.mesh, self.cell_ids, 1)
 
         # Mark a CG1 Function with ones on the boundary.
         V = dolfin.FunctionSpace(self._site_mesh, 'CG', 1)

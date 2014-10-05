@@ -1,11 +1,20 @@
 import dolfin
-import copy
-from ..controls import Controls
+from .controls import Controls
+from .parameterisation import TurbineParameterisation
 
 class Turbine(object):
-    """Turbine parameters."""
+    """The specification of the turbines being optimised."""
     def __init__(self, diameter, minimum_distance, maximum_friction,
-                 controls=None, parameterisation=None):
+                 controls=None, parameterisation=TurbineParameterisation()):
+        """Initialize with the specification of a turbine.
+
+        :param float diameter: Turbine diameter in metres.
+        :param float minimum_distance: The minimum distance allowed between turbines.
+        :param float maximum_friction: The maximum friction coefficient a turbine is allowed to be.
+        :param controls: Turbine controls, see :doc:`opentidalfarm.turbine.controls`.
+        :param parameterisation: Turbine parameterisation, see :doc:`opentidalfarm.turbine.parameterisation`.
+
+        """
         self._diameter = diameter
         self._minimum_distance = minimum_distance
         self._maximum_friction = maximum_friction
@@ -20,31 +29,46 @@ class Turbine(object):
 
     @property
     def friction(self):
-        """The maximum friction coefficient of a turbine"""
+        """The maximum friction coefficient of a turbine.
+        :returns: The maximum friction coefficient of the turbine.
+        :rtype: float
+        """
         return self._maximum_friction
 
 
     @property
     def diameter(self):
-        """The diameter of a turbine"""
+        """The diameter of a turbine.
+        :returns: The diameter of a turbine.
+        :rtype: float
+        """
         return self._diameter
 
 
     @property
     def radius(self):
-        """The radius of a turbine"""
+        """The radius of a turbine.
+        :returns: The radius of a turbine.
+        :rtype: float
+        """
         return self._diameter*0.5
 
 
     @property
     def minimum_distance(self):
-        """The minimum distance between turbines"""
+        """The minimum distance allowed between turbines.
+        :returns: The minimum distance allowed between turbines.
+        :rtype: float
+        """
         return self._minimum_distance
 
 
     @property
     def integral(self):
-        """The integral of the turbine."""
+        """The integral of the turbine bump function.
+        :returns: The integral of the turbine bump function.
+        :rtype: float
+        """
         return self._unit_bump_int*self._diameter/4.
 
 

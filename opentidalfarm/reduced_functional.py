@@ -5,11 +5,10 @@ import helpers
 import dolfin_adjoint
 from dolfin import *
 from dolfin_adjoint import *
-from turbines import *
 from solvers import Solver
 from functionals import TimeIntegrator, PrototypeFunctional
 from memoize import MemoizeMutable
-from output import output_options
+from options import options
 
 
 class ReducedFunctionalParameters(helpers.FrozenClass):
@@ -129,8 +128,8 @@ class ReducedFunctional(dolfin_adjoint.ReducedFunctionalNumPy):
 
         # Output power
         if self.solver.parameters.dump_period > 0:
-            if output_options["individual_power"]:
-                turbines = self._farm._turbine_cache.cache["turbine_field"]
+            if options["output_individual_power"]:
+                turbines = self._farm.turbine_cache.cache["turbine_field"]
                 power = self.functional(self._farm).power(solver.current_state,
                                                           turbines)
                 self.power_file << project(power,
@@ -140,7 +139,7 @@ class ReducedFunctional(dolfin_adjoint.ReducedFunctionalNumPy):
         if self._farm.turbine_prototype.controls.dynamic_friction:
             parameters = []
             for i in xrange(
-                len(self._farm._turbine_cache.cache["turbine_friction"])):
+                len(self._farm.turbine_cache.cache["turbine_friction"])):
                 parameters.append(
                     FunctionControl("turbine_friction_cache_t_%i" % i))
 
@@ -167,22 +166,22 @@ class ReducedFunctional(dolfin_adjoint.ReducedFunctionalNumPy):
 
             if self._farm.turbine_prototype.controls.friction:
                 # Compute the derivatives with respect to the turbine friction
-                for tfd in self._farm._turbine_cache.cache["turbine_derivative_friction"]:
-                    self._farm._turbine_cache(m)
+                for tfd in self._farm.turbine_cache.cache["turbine_derivative_friction"]:
+                    self._farm.turbine_cache.update(m)
                     dj.append(djdtf.vector().inner(tfd.vector()))
 
             elif self._farm.turbine_prototype.controls.dynamic_friction:
                 # Compute the derivatives with respect to the turbine friction
-                for djdtf_arr, t in zip(djdtf, self._farm._turbine_cache.cache["turbine_derivative_friction"]):
+                for djdtf_arr, t in zip(djdtf, self._farm.turbine_cache.cache["turbine_derivative_friction"]):
                     for tfd in t:
-                        self._farm._turbine_cache(m)
+                        self._farm.turbine_cache.update(m)
                         dj.append(djdtf_arr.vector().inner(tfd.vector()))
 
             if self._farm.turbine_prototype.controls.position:
                 # Compute the derivatives with respect to the turbine position
-                for d in self._farm._turbine_cache.cache["turbine_derivative_pos"]:
+                for d in self._farm.turbine_cache.cache["turbine_derivative_pos"]:
                     for var in ('turbine_pos_x', 'turbine_pos_y'):
-                        self._farm._turbine_cache(m)
+                        self._farm.turbine_cache.update(m)
                         tfd = d[var]
                         dj.append(djdtf.vector().inner(tfd.vector()))
 
@@ -231,7 +230,7 @@ class ReducedFunctional(dolfin_adjoint.ReducedFunctionalNumPy):
 
     def _update_turbine_farm(self, m):
         """ Update the turbine farm from the flattened parameter array m. """
-        self._farm._turbine_cache(m)
+        self._farm.turbine_cache.update(m)
 
 
     def _save_checkpoint(self):
@@ -290,16 +289,16 @@ class ReducedFunctional(dolfin_adjoint.ReducedFunctionalNumPy):
                 # A cache hit skips the turbine cache update, so we need
                 # trigger it manually.
                 if self._compute_gradient_mem.has_cache(m, forget):
-                    self._farm._turbine_cache(m)
+                    self._farm.turbine_cache.update(m)
                 if self._farm.turbine_prototype.controls.dynamic_friction:
                     log(WARNING, ("Turbine VTU output not yet implemented for "
                                   " dynamic turbine control"))
                 else:
-                    self.turbine_file << self._farm._turbine_cache.cache["turbine_field"]
+                    self.turbine_file << self._farm.turbine_cache.cache["turbine_field"]
                     # Compute the total amount of friction due to turbines
                     if self._farm.turbine_prototype.parameterisation.smeared:
                         log(INFO, "Total amount of friction: %f" %
-                            assemble(self._farm._turbine_cache.cache["turbine_field"]*dx))
+                            assemble(self._farm.turbine_cache.cache["turbine_field"]*dx))
 
         if self.parameters.save_checkpoints:
             self._save_checkpoint()

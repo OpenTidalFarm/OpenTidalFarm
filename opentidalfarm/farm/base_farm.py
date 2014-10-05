@@ -1,21 +1,18 @@
-import os.path
 import numpy
 import dolfin
-from dolfin_adjoint import Constant
 from .minimum_distance_constraints import MinimumDistanceConstraints
-from ..turbine import Turbine, TurbineParameterisation
-from ..turbines import TurbineCache
-from ..controls import Controls
+from ..turbine import Turbine
+from ..turbine_cache import TurbineCache
 
 class BaseFarm(object):
     """A base Farm class from which other Farm classes should be derived."""
     def __init__(self):
         """Create an empty Farm."""
+
         self._turbine_prototype = None
-        self._number_of_turbines = 0
         # Create a chaching object for the interpolated turbine friction fields
         # (as their computation is very expensive)
-        self._turbine_cache = TurbineCache()
+        self.turbine_cache = TurbineCache()
 
 
     def _get_turbine_prototype(self):
@@ -26,32 +23,36 @@ class BaseFarm(object):
 
     def _set_turbine_prototype(self, prototype):
         self._turbine_prototype = prototype
-        self._turbine_cache._set_turbine_prototype(self._turbine_prototype)
+        self.turbine_cache._set_turbine_prototype(self._turbine_prototype)
 
 
     turbine_prototype = property(_get_turbine_prototype,
                                  _set_turbine_prototype,
                                  "The prototype turbine specification.")
 
-
     @property
     def number_of_turbines(self):
-        return self._number_of_turbines
+        """The number of turbines in the farm.
+        :returns: The number of turbines in the farm.
+        :rtype: int
+        """
+        return len(self.turbine_cache.cache["turbine_pos"])
 
 
     @property
     def as_parameter_array(self):
-        """Returns the serialized paramaterisation of the turbines.
+        """A serialized representation of the farm based on the controls.
 
-        :returns: numpy.ndarray -- containing the serialized control parameters.
+        :returns: A serialized representation of the farm based on the controls.
+        :rtype: numpy.ndarray
         """
         m = []
 
         if self._turbine_prototype.controls.friction:
-            for friction in self._turbine_cache.cache["turbine_friction"]:
+            for friction in self.turbine_cache.cache["turbine_friction"]:
                 m.append(friction)
         if self._turbine_prototype.controls.position:
-            for position in self._turbine_cache.cache["turbine_pos"]:
+            for position in self.turbine_cache.cache["turbine_pos"]:
                 m.append(position[0])
                 m.append(position[1])
 
@@ -60,32 +61,36 @@ class BaseFarm(object):
 
     @property
     def turbine_positions(self):
-        return self._turbine_cache["turbine_pos"]
+        """The positions of turbines within the farm.
+        :returns: The positions of turbines within the farm.
+        :rtype: :func:`list`
+        """
+        return self.turbine_cache.cache["turbine_pos"]
 
 
     @property
     def turbine_frictions(self):
-        return self._turbine_cache["turbine_friction"]
+        """The friction coefficients of turbines within the farm.
+        :returns: The friction coefficients of turbines within the farm.
+        :rtype: :func:`list`
+        """
+        return self.turbine_cache.cache["turbine_friction"]
 
 
     def _update(self, m):
         """Updates the turbine cache."""
-        self._turbine_cache(m)
+        self.turbine_cache(m)
 
 
     def add_turbine(self, coordinates, turbine=None):
         """Add a turbine to the farm at the given coordinates.
 
-        Creates a new turbine of the same specification as turbine and places it
-        at coordinates.
+        Creates a new turbine of the same specification as the prototype turbine
+        and places it at coordinates.
 
-        :param turbine: A :py:class:`Turbine` class object describing the type
-            of turbine to be added.
-        :type turbine: :py:class:`Turbine`.
-        :param coordinates: The x-y coordinates defining the location of the
-            turbine to be added.
-        :type coordinates: tuple of float.
-
+        :param coordinates: The x-y coordinates where the turbine should be placed.
+        :type coordinates: :func:`list`
+        :param turbine: A prototype turbine, see :doc:`opentidalfarm.turbine.Turbine`.
         """
         if self._turbine_prototype is None:
             if turbine is None:
@@ -97,12 +102,10 @@ class BaseFarm(object):
 
         turbine = self._turbine_prototype
 
-        self._turbine_cache.cache["turbine_friction"].append(turbine.friction)
-        self._turbine_cache.cache["turbine_pos"].append(coordinates)
-        self._number_of_turbines += 1
-        dolfin.info("Turbine added at (%.2f, %.2f). %i turbines within the "
-                    "farm." % (coordinates[0], coordinates[1],
-                               self.number_of_turbines))
+        self.turbine_cache.cache["turbine_friction"].append(turbine.friction)
+        self.turbine_cache.cache["turbine_pos"].append(coordinates)
+        dolfin.info("Turbine added at (%.2f, %.2f)." % (coordinates[0],
+                                                        coordinates[1]))
 
 
     def _regular_turbine_layout(self, num_x, num_y, site_x_start, site_x_end,
@@ -166,11 +169,15 @@ class BaseFarm(object):
                         "array." % (num_x*num_y, num_x, num_y))
 
 
-    def set_turbine_positions(self, positions, friction=21.0):
-        """Sets the turbine position and a equal friction parameter."""
-        self._turbine_cache["turbine_pos"] = positions
-        self._turbine_cache["turbine_friction"] = friction*numpy.ones(len(positions))
-        self._number_of_turbines = len(self._turbine_cache["turbine_pos"])
+    def set_turbine_positions(self, positions):
+        """Sets the turbine position and an equal friction parameter.
+
+        :param list positions: List of tuples containint x-y coordinates of
+            turbines to be added.
+        """
+        self.turbine_cache["turbine_pos"] = positions
+        self.turbine_cache["turbine_friction"] = (
+            self._turbine_prototype.friction*numpy.ones(len(positions)))
 
 
     def site_boundary_constraints(self):
@@ -182,11 +189,8 @@ class BaseFarm(object):
     def minimum_distance_constraints(self):
         """Returns an instance of MinimumDistanceConstraints.
 
-        :param controls: The optimisation controls.
-        :type controls: Controls
-        :raises: ValueError
-        :returns: InequalityConstraint instance defining the minimum distance
-            between turbines.
+        :returns: An instance of InequalityConstraint defining the minimum distance between turbines.
+        :rtype: :doc:`opentidalfarm.farm.MinimumDistanceConstraints`
 
         """
         # Check we have some turbines.

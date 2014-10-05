@@ -1,18 +1,17 @@
-"""
-.. module:: Controls
-   :synopsis: Defines the Controls class which holds the optimisation controls.
-
-"""
-
 class Controls(object):
     """Holds the controls for optimisation.
 
     This class holds the controls for optimisation, such as the position and the
-    friction of the turbines. The user simply initializes this class with their
-    desired control parameters.
-
+    friction of the turbines. The user initializes this class with their desired
+    control parameters.
     """
     def __init__(self, position=False, friction=False, dynamic_friction=False):
+        """Initialize with the desired controls.
+
+        :param bool position: Whether or not turbine position is a control.
+        :param bool friction: Whether or not turbine friction is a control.
+        :param bool dynamic_friction: Whether or not dynamic friction is a control.
+        """
 
         self._controls = {"position": False,
                           "friction": False,
@@ -53,8 +52,8 @@ class Controls(object):
     def position(self):
         """Whether position is enabled as a control parameter.
 
-        :getter: Returns True if position is enabled as a control parameter.
-        :type: bool
+        :returns: True if position is enabled as a control parameter.
+        :rtype: bool
         """
         return self._controls["position"]
 
@@ -63,8 +62,8 @@ class Controls(object):
     def friction(self):
         """Whether friction is enabled as a control parameter.
 
-        :getter: Returns True if friction is enabled as a control parameter.
-        :type: bool
+        :returns: True if friction is enabled as a control parameter.
+        :rtype: bool
         """
         return self._controls["friction"]
 
@@ -73,8 +72,7 @@ class Controls(object):
     def dynamic_friction(self):
         """Whether dynamic friction is enabled as a control parameter.
 
-        :getter: Returns True if dynamic friction is enabled as a control
-            parameter.
-        :type: bool
+        :returns: True if dynamic friction is enabled as a control parameter.
+        :rtype: bool
         """
         return self._controls["dynamic friction"]

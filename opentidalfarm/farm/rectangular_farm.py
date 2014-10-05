@@ -29,11 +29,12 @@ class RectangularFarm(Farm):
         super(RectangularFarm, self).__init__(domain)
 
         # Store the domain.
-        self._domain = domain
+        self.domain = domain
 
         # Create a turbine function space and set the function space in the
         # cache.
-        self._turbine_function_space = FunctionSpace(self._domain.mesh, "CG", 2)
+        self._turbine_function_space = FunctionSpace(self.domain.mesh, "CG", 2)
+        self.turbine_cache._function_space = self._turbine_function_space
 
         # Store site dimensions.
         self._site_x_start = site_x_start

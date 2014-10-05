@@ -18,9 +18,9 @@ class Farm(BaseFarm):
         super(Farm, self).__init__()
 
         # Store the domain.
-        self._domain = domain
+        self.domain = domain
 
         # Create a turbine function space and set the function space in the
         # cache.
-        self._turbine_function_space = FunctionSpace(self._domain.mesh, "CG", 2)
-        self._turbine_cache._function_space = self._turbine_function_space
+        self._turbine_function_space = FunctionSpace(self.domain.mesh, "CG", 2)
+        self.turbine_cache._function_space = self._turbine_function_space

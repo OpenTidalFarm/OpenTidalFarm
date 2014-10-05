@@ -1,7 +1,7 @@
 import numpy
 from dolfin import *
 from dolfin_adjoint import *
-from output import output_options
+from options import options
 from turbine_function import TurbineFunction
 
 class TurbineCache(object):
@@ -112,7 +112,7 @@ class TurbineCache(object):
 
         # Precompute the interpolation of the friction function for each
         # individual turbine.
-        if output_options["individual_power"]:
+        if options["output_individual_power"]:
             log(INFO, ("Building individual turbine power friction functions "
                        "for caching purposes..."))
             self.cache["turbine_field_individual"] = []

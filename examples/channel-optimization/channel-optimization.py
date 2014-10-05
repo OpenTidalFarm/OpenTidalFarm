@@ -25,6 +25,10 @@ from opentidalfarm import *
 # Create a rectangular domain.
 domain = FileDomain("mesh/mesh.xml")
 
+import IPython
+IPython.embed()
+
+
 # Specify boundary conditions.
 bcs = BoundaryConditionSet()
 bcs.add_bc("u", Constant((2, 0)), facet_id=1)

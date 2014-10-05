@@ -32,14 +32,14 @@ class FileDomain(Domain):
                             "_physical_region.xml")
 
         #: A :class:`dolfin.FacetFunction` containing the surface markers.
-        self.boundaries = dolfin.MeshFunction("size_t", self.mesh, facet_ids_file)
+        self.facet_ids = dolfin.MeshFunction("size_t", self.mesh, facet_ids_file)
         #: A :class:`dolfin.Measure` for the facet parts.
-        self._ds = dolfin.Measure('ds')[self.boundaries]
+        self._ds = dolfin.Measure('ds')[self.facet_ids]
 
         #: A :class:`dolfin.CellFunction` containing the area markers.
-        self.subdomains = dolfin.MeshFunction("size_t", self.mesh, cell_ids_file)
+        self.cell_ids = dolfin.MeshFunction("size_t", self.mesh, cell_ids_file)
         #: A :class:`dolfin.Measure` for the cell subdomains.
-        self._dx = dolfin.Measure("dx")[self.subdomains]
+        self._dx = dolfin.Measure("dx")[self.cell_ids]
 
         # Define the subdomain for the turbine site. The default value should
         # only be changed for smeared turbine representations.

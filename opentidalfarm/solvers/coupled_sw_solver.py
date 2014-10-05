@@ -369,7 +369,7 @@ CoupledSWSolverParameters."
         R_mid = friction / H * norm_u_mid * inner(u_mid, v) * dx
 
         if farm:
-            R_mid += tf / H * dot(u_mid, u_mid) ** 0.5 * inner(u_mid, v) * farm.site_dx(1)
+            R_mid += tf/H*dot(u_mid, u_mid)**0.5*inner(u_mid, v)*farm.domain.site_dx(1)
 
         # Advection term
         if include_advection:

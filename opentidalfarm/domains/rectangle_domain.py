@@ -40,18 +40,18 @@ class RectangularDomain(Domain):
 
         # Create facet markers
         #: A :class:`dolfin.FacetFunction` containing the surface markers.
-        self.boundaries = FacetFunction('size_t', self.mesh)
-        self.boundaries.set_all(0)
-        left.mark(self.boundaries, 1)
-        right.mark(self.boundaries, 2)
-        sides.mark(self.boundaries, 3)
+        self.facet_ids = FacetFunction('size_t', self.mesh)
+        self.facet_ids.set_all(0)
+        left.mark(self.facet_ids, 1)
+        right.mark(self.facet_ids, 2)
+        sides.mark(self.facet_ids, 3)
         #: A :class:`dolfin.Measure` for the facet parts.
-        self._ds = Measure('ds')[self.boundaries]
+        self._ds = Measure('ds')[self.facet_ids]
 
         #: A :class:`dolfin.CellFunction` containing the area markers.
-        self.subdomains = CellFunction("size_t", self.mesh)
-        self.subdomains.set_all(1)
-        #: A :class:`dolfin.Measure` for the cell subdomains.
+        self.cell_ids = CellFunction("size_t", self.mesh)
+        self.cell_ids.set_all(1)
+        #: A :class:`dolfin.Measure` for the cell cell_ids.
         self._dx = Measure("dx")[self.cell_ids]
 
         self._generate_site_dx()
