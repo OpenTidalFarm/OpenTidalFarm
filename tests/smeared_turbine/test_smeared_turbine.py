@@ -13,23 +13,28 @@ class TestSmearedTurbine(object):
         nx = 5
         ny = 5
         domain = RectangularDomain(0, 0, 3000, 1000, nx, ny)
-        farm = TidalFarm(domain)
-        # Switch to a smeared turbine representation
-        farm.params["controls"] = ["turbine_friction"]
-        farm.params["turbine_parametrisation"] = "smeared"
-        prob_params.tidal_farm = farm
 
-        prob_params.domain = domain
-        prob_params.initial_condition = Constant((1, 0, 0))
-
-        prob_params.finish_time = prob_params.start_time + \
-            3*prob_params.dt
+        turbine = SmearedTurbine(friction=12.0)
 
         # Boundary conditions
         site_x_start = 750
         site_x = 1500
         site_y_start = 250
         site_y = 500
+
+        farm = RectangularFarm(domain,
+                               site_x_start=site_x_start,
+                               site_x_end=site_x_start+site_x,
+                               site_y_start=site_y_start,
+                               site_y_end=site_y_start+site_y,
+                               turbine=turbine)
+        # Switch to a smeared turbine representation
+        prob_params.tidal_farm = farm
+
+        prob_params.domain = domain
+        prob_params.initial_condition = Constant((1, 0, 0))
+
+        prob_params.finish_time = prob_params.start_time + 3*prob_params.dt
 
         k = Constant(pi/site_x)
         bcs = BoundaryConditionSet()
@@ -67,7 +72,7 @@ class TestSmearedTurbine(object):
         rf = ReducedFunctional(functional, solver, rf_params)
         # Ensure the same seed value accross all CPUs
         numpy.random.seed(33)
-        m0 = numpy.random.rand(len(farm.control_array()))
+        m0 = numpy.random.rand(len(farm.control_array))
 
         seed = 0.1
         minconv = helpers.test_gradient_array(rf.__call__, rf.derivative, m0, seed=seed)
