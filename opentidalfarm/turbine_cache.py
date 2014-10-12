@@ -1,3 +1,4 @@
+import copy
 import numpy
 from dolfin import *
 from dolfin_adjoint import *
@@ -11,8 +12,7 @@ class TurbineCache(dict):
         self._function_space = None
         self._specification = None
         self._controlled_by = None
-        self["position"] = []
-        self["friction"] = []
+        self._parameters = None
 
     def __setitem__(self, key, value):
         self.itemlist.append(key)
@@ -37,14 +37,6 @@ class TurbineCache(dict):
         self._specification = specification
         self._controlled_by = specification.controls
 
-    def _add_turbines(self, position=None, friction=None):
-        # Ensure we don't use this with the smeared approach.
-        assert(not self._specification.smeared)
-        # And that we have the correct size inputs.
-        assert(len(position)==len(friction))
-        self["position"] += position
-        self["friction"] += friction
-
 
     def update(self, farm):
         """Creates a list of all turbine function/derivative interpolations.
@@ -61,23 +53,27 @@ class TurbineCache(dict):
 
         # If the parameters have not changed, then there is no need to do
         # anything.
-        if (len(friction)==len(self["friction"]) and
-            len(position)==len(self["position"]) and
-            (numpy.asarray(friction)==numpy.asarray(self["friction"])).all() and
-            (numpy.asarray(position)==numpy.asarray(self["position"])).all()):
-            return
+        if self._parameters is not None:
+            if (len(self._parameters["friction"])==len(friction) and
+                len(self._parameters["position"])==len(position) and
+                (self._parameters["friction"]==friction).all() and
+                (self._parameters["position"]==position).all()):
+                return
+
+        else:
+            self._parameters = {"friction": [], "position": []}
 
         # Update the cache.
         log(INFO, "Updating the turbine cache")
 
         # Update the positions and frictions.
-        self["friction"] = numpy.copy(friction)
-        self["position"] = numpy.copy(position)
+        self._parameters["friction"] = numpy.copy(friction)
+        self._parameters["position"] = numpy.copy(position)
 
         # For the smeared approached we just update the turbine_field.
         if self._specification.smeared:
             tf = Function(self._function_space, name="turbine_friction_cache")
-            optimization.set_local(tf, self["friction"])
+            optimization.set_local(tf, self._parameters["friction"])
             self["turbine_field"] = tf
             return
 
@@ -90,7 +86,7 @@ class TurbineCache(dict):
         # the turbine field for every timestep.
         if self._controlled_by.dynamic_friction:
             self["turbine_field"] = []
-            for t in xrange(len(self["friction"])):
+            for t in xrange(len(self._parameters["friction"])):
                 tf = turbines(name="turbine_friction_cache_t_"+str(t),
                               timestep=t)
                 self["turbine_field"].append(tf)
@@ -104,9 +100,9 @@ class TurbineCache(dict):
             log(INFO, "Building individual turbine power friction functions "
                       "for caching purposes...")
             self["turbine_field_individual"] = []
-            for i in xrange(len(self["friction"])):
-                position_cpy = [self["position"][i]]
-                friction_cpy = [self["friction"][i]]
+            for i in xrange(len(self._parameters["friction"])):
+                position_cpy = [self._parameters["position"][i]]
+                friction_cpy = [self._parameters["friction"][i]]
                 turbine = TurbineFunction(self, self, self._function_space,
                                           self._specification)
                 tf = turbine()
@@ -116,7 +112,7 @@ class TurbineCache(dict):
         # of each turbine.
         if self._controlled_by.friction:
             self["turbine_derivative_friction"] = []
-            for n in xrange(len(self["friction"])):
+            for n in xrange(len(self._parameters["friction"])):
                 tfd = turbines(derivative_index=n,
                                derivative_var="turbine_friction",
                                name=("turbine_friction_derivative_with_"
@@ -126,10 +122,10 @@ class TurbineCache(dict):
 
         elif self._controlled_by.dynamic_friction:
             self["turbine_derivative_friction"] = []
-            for t in xrange(len(self["friction"])):
+            for t in xrange(len(self._parameters["friction"])):
                 self["turbine_derivative_friction"].append([])
 
-                for n in xrange(len(self["friction"][t])):
+                for n in xrange(len(self._parameters["friction"][t])):
                     tfd = turbines(derivative_index=n,
                                    derivative_var="turbine_friction",
                                    name=("turbine_friction_derivative_with_"
@@ -143,7 +139,7 @@ class TurbineCache(dict):
         if self._controlled_by.position:
             if not self._controlled_by.dynamic_friction:
                 self["turbine_derivative_pos"] = []
-                for n in xrange(len(self["position"])):
+                for n in xrange(len(self._parameters["position"])):
                     self["turbine_derivative_pos"].append({})
                     for var in ("turbine_pos_x", "turbine_pos_y"):
                         tfd = turbines(derivative_index=n, derivative_var=var,
@@ -153,10 +149,10 @@ class TurbineCache(dict):
                         self["turbine_derivative_pos"][-1][var] = tfd
             else:
                 self["turbine_derivative_pos"] = []
-                for t in xrange(len(self["friction"])):
+                for t in xrange(len(self._parameters["friction"])):
                     self["turbine_derivative_pos"].append([])
 
-                    for n in xrange(len(self["position"])):
+                    for n in xrange(len(self._parameters["position"])):
                         self["turbine_derivative_pos"][t].append({})
                         for var in ("turbine_pos_x", "turbine_pos_y"):
                             tfd = turbines(derivative_index=n,

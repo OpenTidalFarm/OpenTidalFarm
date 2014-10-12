@@ -1,3 +1,4 @@
+import copy
 import numpy
 from dolfin import *
 from dolfin_adjoint import *
@@ -5,6 +6,7 @@ from dolfin_adjoint import *
 class TurbineFunction(object):
 
     def __init__(self, cache, V, turbine_specification):
+        self._parameters = copy.deepcopy(cache._parameters)
         self._turbine_specification = turbine_specification
         self._cache = cache
 
@@ -20,54 +22,55 @@ class TurbineFunction(object):
         derivative of the turbine with index i with respect to either the x or y
         coorinate or its friction parameter. """
 
-        positions = self._cache["position"]
-        frictions = self._cache["friction"]
+        params = self._parameters
 
         if derivative_index is None:
-            turbine_pos = positions
-            if timestep == None:
-                turbine_friction = frictions
-            else:
-                turbine_friction = frictions[timestep]
-        else:
-            turbine_pos = [positions[derivative_index]]
+            position = params["position"]
             if timestep is None:
-                turbine_friction = [frictions[derivative_index]]
+                friction = params["friction"]
             else:
-                turbine_friction = [frictions[timestep][derivative_index]]
+                friction = params["friction"][timestep]
+        else:
+            position = params["position"]
+            if timestep is None:
+                friction = [params["friction"][derivative_index]]
+            else:
+                friction = [params["friction"][timestep][derivative_index]]
 
         # Infeasible optimisation algorithms (such as SLSQP) may try to evaluate
         # the functional with negative turbine_frictions. Since the forward
         # model would crash in such cases, we project the turbine friction
         # values to positive reals.
-        turbine_friction = [max(0, f) for f in turbine_friction]
+        friction = [max(0, f) for f in friction]
 
         ff = numpy.zeros(len(self.x))
         # Ignore division by zero.
         numpy.seterr(divide="ignore")
         eps = 1e-12
 
-        for (x_pos, y_pos), friction in zip(turbine_pos, turbine_friction):
+
+        for (x, y), f in zip(position, friction):
             radius = self._turbine_specification.radius
             x_unit = numpy.minimum(
-                numpy.maximum((self.x-x_pos)/radius, eps-1), 1-eps)
+                numpy.maximum((self.x-x)/radius, -1+eps), 1-eps)
             y_unit = numpy.minimum(
-                numpy.maximum((self.y-y_pos)/radius, eps-1), 1-eps)
+                numpy.maximum((self.y-y)/radius, -1+eps), 1-eps)
 
             # Apply chain rule to get the derivative with respect to the turbine
             # friction.
             m = numpy.exp(-1/(1-x_unit**2)-1./(1-y_unit**2)+2)
+
             if derivative_index is None:
-                ff += e*friction
+                ff += m*f
 
             elif derivative_var == "turbine_friction":
-                ff += e
+                ff += m
 
             if derivative_var == "turbine_pos_x":
-                ff += e*(-2*x_unit/((1.0-x_unit**2)**2))*friction*(-1.0/radius)
+                ff += m*(-2*x_unit/((1.0-x_unit**2)**2))*f*(-1.0/radius)
 
             elif derivative_var == "turbine_pos_y":
-                ff += e*(-2*y_unit/((1.0-y_unit**2)**2))*friction*(-1.0/radius)
+                ff += m*(-2*y_unit/((1.0-y_unit**2)**2))*f*(-1.0/radius)
 
         # Reset numpy to warn for zero division errors.
         numpy.seterr(divide="warn")
@@ -76,6 +79,3 @@ class TurbineFunction(object):
         f.vector().set_local(ff)
         f.vector().apply("insert")
         return f
-
-
-

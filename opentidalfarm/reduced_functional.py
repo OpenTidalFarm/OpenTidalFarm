@@ -282,7 +282,6 @@ class ReducedFunctional(dolfin_adjoint.ReducedFunctionalNumPy):
         if self.parameters.save_checkpoints:
             self._save_checkpoint()
 
-        print "m = ", m
         log(INFO, 'Runtime: %f s.' % timer.value())
         log(INFO, 'j = %e.' % float(j))
         self.last_j = j
