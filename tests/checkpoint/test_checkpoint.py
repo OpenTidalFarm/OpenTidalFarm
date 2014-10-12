@@ -19,11 +19,7 @@ class TestCheckpoint(object):
         domain = RectangularDomain(0, 0, 3000, 1000, 20, 10)
 
         # Create a turbine specification where friction is the only control.
-        turbine = Turbine(diameter=8000,
-                          minimum_distance=8000,
-                          maximum_friction=12.0,
-                          controls=Controls(friction=True)
-                         )
+        turbine = BumpTurbine(diameter=8000, controls=Controls(friction=True))
 
         # Create the farm and add a turbine.
         farm = Farm(domain, turbine=turbine)
@@ -67,7 +63,7 @@ class TestCheckpoint(object):
         t1 = t.stop()
 
         # Then optimize again
-        farm.turbine_cache.cache["turbine_friction"] = friction0
+        farm._parameters["friction"] = friction0
         maxiter = 2
         t = Timer("First optimisation")
         m = maximize(rf, bounds=bounds, method="SLSQP", scale=1e-3, options={'maxiter': maxiter})
