@@ -6,7 +6,7 @@ from opentidalfarm import *
 class TestMultiSteadyState(object):
 
     @pytest.mark.parametrize(("steps"), [1, 3])
-    def test_gradient_passes_taylor_test(self, steps, 
+    def test_gradient_passes_taylor_test(self, steps,
             multi_steady_sw_problem_parameters):
 
         # Some domain information
@@ -49,17 +49,22 @@ class TestMultiSteadyState(object):
         bcs.add_bc("u", Constant((0, 0)), 3, "weak_dirichlet")
         problem_params.bcs = bcs
 
-        # Create the farm
-        farm = TidalFarm(domain)
+        # Create a turbine specification.
+        turbine = BumpTurbine(diameter=20., friction=21.0)
+
+        # Create the farm.
         site_x = 320.
         site_y = 160.
-        site_x_start = (basin_x - site_x)/2 
-        site_y_start = (basin_y - site_y)/2 
-        farm.params["turbine_x"] = 20
-        farm.params["turbine_y"] = 20
-        farm.set_site_dimensions(site_x_start, site_x_start+site_x, site_y_start, site_y_start+site_y)
-        deploy_turbines(farm, nx=8, ny=4)
-        farm.params['controls'] = ['turbine_pos']
+        site_x_start = (basin_x - site_x)/2
+        site_y_start = (basin_y - site_y)/2
+        farm = RectangularFarm(domain,
+                               site_x_start=site_x_start,
+                               site_x_end=site_x_start+site_x,
+                               site_y_start=site_y_start,
+                               site_y_end=site_y_start+site_y,
+                               turbine=turbine)
+
+        farm.add_regular_turbine_layout(num_x=8, num_y=4)
         problem_params.tidal_farm = farm
 
         # Create problem
@@ -75,10 +80,11 @@ class TestMultiSteadyState(object):
         rf_params = ReducedFunctionalParameters()
         rf_params.automatic_scaling = 5.
         rf = ReducedFunctional(functional, solver, rf_params)
-        m0 = farm.control_array()
+        m0 = farm.control_array
+
         p = numpy.random.rand(len(m0))
         seed = 0.1
-        minconv = helpers.test_gradient_array(rf.__call__, rf.derivative, m0, 
+        minconv = helpers.test_gradient_array(rf.__call__, rf.derivative, m0,
                 seed=seed, perturbation_direction=p)
 
         assert minconv > 1.9
