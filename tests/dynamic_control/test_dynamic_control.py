@@ -11,28 +11,38 @@ class TestDynamicTurbineControl(object):
         meshfile = os.path.join(path, "mesh.xml")
         domain = FileDomain(meshfile)
 
+        # Create a turbine
+        turbine = BumpTurbine(diameter=50., friction=1.0,
+                              controls=Controls(dynamic_friction=True))
+
+        # Adjust some global options
+        options["output_turbine_power"] = False
+
+
         # Create Tidalfarm
-        farm = TidalFarm(domain)
-        farm.params["output_turbine_power"] = False
         basin_x = 640.
         basin_y = 320.
         site_x = 320.
         site_y = 160.
         site_x_start = basin_x - site_x/2
         site_y_start = basin_y - site_y/2
-        turbine_pos = [] 
-        for x_r in numpy.linspace(site_x_start, site_x_start + site_x, 2):
-            for y_r in numpy.linspace(site_y_start, site_y_start + site_y, 2):
-              turbine_pos.append((float(x_r), float(y_r)))
-        farm.set_turbine_pos(turbine_pos, friction=1.0)
-        farm.params['turbine_x'] = 50. 
-        farm.params['turbine_y'] = 50. 
-        farm.params['controls'] = ["dynamic_turbine_friction"]
-        farm.params["turbine_friction"] = [farm.params["turbine_friction"]]*3
+        turbine_pos = []
+        farm = RectangularFarm(domain,
+                               site_x_start=site_x_start,
+                               site_x_end=site_x_start+site_x,
+                               site_y_start=site_y_start,
+                               site_y_end=site_y_start+site_y,
+                               turbine=turbine)
+
+        farm.add_regular_turbine_layout(num_x=2, num_y=2)
 
         # Set problem parameters
         problem_params.finish_time = problem_params.start_time + \
                                      2 * problem_params.dt
+
+        friction = farm._parameters["friction"]
+        farm._parameters["friction"] = [friction]*3
+
         # Boundary conditions
         bcs = BoundaryConditionSet()
         period = 12. * 60 * 60
@@ -56,7 +66,7 @@ class TestDynamicTurbineControl(object):
         # Create problem
         problem = SWProblem(problem_params)
 
-        solver_params = CoupledSWSolver.default_parameters() 
+        solver_params = CoupledSWSolver.default_parameters()
         solver_params.dump_period = -1
         solver_params.cache_forward_state = False
         solver = CoupledSWSolver(problem, solver_params)
@@ -66,12 +76,15 @@ class TestDynamicTurbineControl(object):
         rf_params.scale = 10**-6
         rf_params.automatic_scaling = False
         rf = ReducedFunctional(functional, solver, rf_params)
-        m0 = farm.control_array()
+        m0 = farm.control_array
 
         rf(m0)
 
         p = numpy.random.rand(len(m0))
         seed = 0.1
-        minconv = helpers.test_gradient_array(rf.__call__, rf.derivative, m0, 
-                seed=seed, perturbation_direction=p)
+        minconv = helpers.test_gradient_array(rf.__call__,
+                                              rf.derivative,
+                                              m0,
+                                              seed=seed,
+                                              perturbation_direction=p)
         assert minconv > 1.9
