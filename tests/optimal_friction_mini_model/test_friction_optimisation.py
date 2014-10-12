@@ -6,7 +6,7 @@
  - the functional is \int C * f * ||u||**3 where C is a constant
  - hence we maximise C * f * ( 2/(f + 1) )**3, f > 0 which has the solution f = 0.5
 
- Note: The solution is known only because we use a constant turbine friction distribution. 
+ Note: The solution is known only because we use a constant turbine friction distribution.
        However this turbine model is not differentiable at its boundary, and this is why
        the turbine size has to exceed the domain.
  '''
@@ -24,19 +24,21 @@ class TestFrictionOptimisation(object):
       problem_params.dt = 1.0
       problem_params.functional_final_time_only = True
 
+      # Create the turbine specification
+      turbine = BumpTurbine(diameter=1e10, friction=12.0,
+                            controls=Controls(friction=True))
+
       # Create turbine farm
-      farm = TidalFarm(domain)
-      farm.params["turbine_pos"] = [[500., 500.]]
-      # The turbine friction is the control variable 
-      farm.params["turbine_friction"] = 12.0*numpy.random.rand(len(farm.params["turbine_pos"]))
-      farm.params["turbine_x"] = 1e10
-      farm.params["turbine_y"] = 1e10
-      farm.params['controls'] = ['turbine_friction']
-      farm.params["output_turbine_power"] = False
+      farm = Farm(domain, turbine)
+      farm.add_turbine((500.,500.))
+      # The turbine friction is the control variable
+      farm._parameters["friction"] = (
+          12.0*numpy.random.rand(len(farm._parameters["position"])))
+
+      options["output_turbine_power"] = False
       problem_params.tidal_farm = farm
 
       k = pi/3000.
-      farm.params['k'] = k
       problem_params.initial_condition = sin_ic(2.0, k, 50., 0.0)
       problem_params.domain = domain
       problem_params.finite_element = finite_elements.p1dgp2
@@ -54,16 +56,17 @@ class TestFrictionOptimisation(object):
         rf_params.scale = 1e-3
         rf_params.automatic_scaling = False
         rf = ReducedFunctional(functional, solver, rf_params)
-        m0 = farm.control_array()
+        m0 = farm.control_array
         rf.evaluate(m0)
         rf.derivative(m0, forget=False)
 
         p = numpy.random.rand(len(m0))
-        minconv = helpers.test_gradient_array(rf.evaluate, rf.derivative, m0, seed=0.001, 
+        minconv = helpers.test_gradient_array(rf.evaluate, rf.derivative, m0,
+                                              seed=0.001,
                                               perturbation_direction=p)
         assert minconv > 1.98
 
         bounds = [0, 100]
-        maximize(rf, bounds=bounds, method="SLSQP", scale=1e-3) 
+        maximize(rf, bounds=bounds, method="SLSQP", scale=1e-3)
 
-        assert abs(farm.params["turbine_friction"][0] - 0.5) < 10**-4
+        assert abs(farm._parameters["friction"][0] - 0.5) < 10**-4
