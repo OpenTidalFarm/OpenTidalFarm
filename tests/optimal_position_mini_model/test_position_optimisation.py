@@ -92,7 +92,7 @@ class TestPositionOptimisation(object):
         bounds = [[Constant(0), Constant(0)], [Constant(3000), Constant(1000)]]
         maximize(rf, bounds=bounds, method="SLSQP")
 
-        m = farm.turbine_cache["position"][0]
+        m = farm._parameters["position"][0]
         log(INFO, "Solution of the primal variables: m=" + repr(m) + "\n")
 
         assert abs(m[0]-1500) < 40
