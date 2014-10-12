@@ -49,28 +49,28 @@ class TurbineFunction(object):
         eps = 1e-12
 
 
-        for (x, y), f in zip(position, friction):
+        for (x_pos, y_pos), fric in zip(position, friction):
             radius = self._turbine_specification.radius
             x_unit = numpy.minimum(
-                numpy.maximum((self.x-x)/radius, -1+eps), 1-eps)
+                numpy.maximum((self.x-x_pos)/radius, -1+eps), 1-eps)
             y_unit = numpy.minimum(
-                numpy.maximum((self.y-y)/radius, -1+eps), 1-eps)
+                numpy.maximum((self.y-y_pos)/radius, -1+eps), 1-eps)
 
             # Apply chain rule to get the derivative with respect to the turbine
             # friction.
-            m = numpy.exp(-1/(1-x_unit**2)-1./(1-y_unit**2)+2)
+            exp = numpy.exp(-1./(1-x_unit**2)-1./(1-y_unit**2)+2)
 
             if derivative_index is None:
-                ff += m*f
+                ff += exp*fric
 
             elif derivative_var == "turbine_friction":
-                ff += m
+                ff += exp
 
             if derivative_var == "turbine_pos_x":
-                ff += m*(-2*x_unit/((1.0-x_unit**2)**2))*f*(-1.0/radius)
+                ff += exp*(-2*x_unit/((1.0-x_unit**2)**2))*fric*(-1.0/radius)
 
             elif derivative_var == "turbine_pos_y":
-                ff += m*(-2*y_unit/((1.0-y_unit**2)**2))*f*(-1.0/radius)
+                ff += exp*(-2*y_unit/((1.0-y_unit**2)**2))*fric*(-1.0/radius)
 
         # Reset numpy to warn for zero division errors.
         numpy.seterr(divide="warn")

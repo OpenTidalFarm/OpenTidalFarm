@@ -48,9 +48,6 @@ class ReducedFunctional(dolfin_adjoint.ReducedFunctionalNumPy):
     """
 
     def __init__(self, functional, solver, parameters):
-        # Required by dolfin-adjoint.
-        self.in_euclidian_space = False
-
         # For consistency with the dolfin-adjoint API.
         self.scale = parameters.scale
 
@@ -240,8 +237,7 @@ class ReducedFunctional(dolfin_adjoint.ReducedFunctionalNumPy):
                 shift = len(self._farm._parameters["friction"])
                 self._farm._parameters["friction"] = m[:shift]
             elif controlled_by.dynamic_friction:
-                shift = len(
-                    numpy.reshape(self._farm._parameters["friction"],-1))
+                shift = len(numpy.reshape(self._farm._parameters["friction"],-1))
                 nb_turbines = len(self._farm._parameters["position"])
                 self._farm._parameters["friction"] = (
                     numpy.reshape(m[:shift], (-1, nb_turbines)).tolist())
@@ -250,7 +246,6 @@ class ReducedFunctional(dolfin_adjoint.ReducedFunctionalNumPy):
                 m_pos = m[shift:]
                 self._farm._parameters["position"] = (
                     numpy.reshape(m_pos, (-1,2)).tolist())
-
 
         # Update the farm cache.
         self._farm.turbine_cache.update(self._farm)
@@ -312,7 +307,7 @@ class ReducedFunctional(dolfin_adjoint.ReducedFunctionalNumPy):
                 # A cache hit skips the turbine cache update, so we need
                 # trigger it manually.
                 if self._compute_gradient_mem.has_cache(m, forget):
-                    self._farm.turbine_cache.update(self._farm)
+                    self._update_turbine_farm(m)
                 if self._farm.turbine_specification.controls.dynamic_friction:
                     log(WARNING, ("Turbine VTU output not yet implemented for "
                                   " dynamic turbine control"))
