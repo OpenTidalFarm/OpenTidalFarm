@@ -41,7 +41,7 @@ class DummySolver(Solver):
 
         problem_params = self.problem.parameters
         farm = problem_params.tidal_farm
-        turbine_friction = farm.turbine_cache.cache["turbine_field"]
+        turbine_friction = farm.turbine_cache["turbine_field"]
         mesh = problem_params.domain.mesh
 
         # Create function spaces

@@ -4,9 +4,9 @@ from dolfin_adjoint import *
 
 class TurbineFunction(object):
 
-    def __init__(self, V, turbine_specification, derivative_index=-1):
-        # self.params = ParameterDictionary(params)
+    def __init__(self, cache, V, turbine_specification):
         self._turbine_specification = turbine_specification
+        self._cache = cache
 
         # Precompute some turbine parameters for efficiency.
         self.x = interpolate(Expression("x[0]"), V).vector().array()
@@ -14,26 +14,27 @@ class TurbineFunction(object):
         self.V = V
 
 
-    def __call__(self, cache, name="", derivative_index=None,
-                 derivative_var=None, timestep=None):
+    def __call__(self, name="", derivative_index=None, derivative_var=None,
+                 timestep=None):
         """If the derivative selector is i >= 0, the Expression will compute the
         derivative of the turbine with index i with respect to either the x or y
         coorinate or its friction parameter. """
 
+        positions = self._cache["position"]
+        frictions = self._cache["friction"]
 
         if derivative_index is None:
-            turbine_pos = cache["turbine_pos"]
-            if timestep is None:
-                turbine_friction = cache["turbine_friction"]
+            turbine_pos = positions
+            if timestep == None:
+                turbine_friction = frictions
             else:
-                turbine_friction = cache["turbine_friction"][timestep]
+                turbine_friction = frictions[timestep]
         else:
-            turbine_pos = [cache["turbine_pos"][derivative_index]]
+            turbine_pos = [positions[derivative_index]]
             if timestep is None:
-                turbine_friction = [cache["turbine_friction"][derivative_index]]
+                turbine_friction = [frictions[derivative_index]]
             else:
-                turbine_friction = (
-                    [cache["turbine_friction"][timestep][derivative_index]])
+                turbine_friction = [frictions[timestep][derivative_index]]
 
         # Infeasible optimisation algorithms (such as SLSQP) may try to evaluate
         # the functional with negative turbine_frictions. Since the forward
@@ -49,13 +50,13 @@ class TurbineFunction(object):
         for (x_pos, y_pos), friction in zip(turbine_pos, turbine_friction):
             radius = self._turbine_specification.radius
             x_unit = numpy.minimum(
-                numpy.maximum(((self.x-x_pos)/radius), eps-1), 1-eps)
+                numpy.maximum((self.x-x_pos)/radius, eps-1), 1-eps)
             y_unit = numpy.minimum(
-                numpy.maximum(((self.y-y_pos)/radius), eps-1), 1-eps)
+                numpy.maximum((self.y-y_pos)/radius, eps-1), 1-eps)
 
             # Apply chain rule to get the derivative with respect to the turbine
             # friction.
-            e = numpy.exp(-1/(1-x_unit**2)-1./(1-y_unit**2)+2)
+            m = numpy.exp(-1/(1-x_unit**2)-1./(1-y_unit**2)+2)
             if derivative_index is None:
                 ff += e*friction
 

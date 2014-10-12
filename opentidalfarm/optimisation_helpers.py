@@ -6,24 +6,11 @@ from helpers import function_eval
 from dolfin_adjoint import InequalityConstraint, EqualityConstraint
 
 
-def deploy_turbines(config, nx, ny, friction=21.):
-    ''' Generates an array of initial turbine positions with nx x ny turbines
-    homonginuosly distributed over the site with the specified dimensions. '''
-
-    turbine_pos = []
-    for x_r in numpy.linspace(config.domain.site_x_start + 0.5 * config.params["turbine_x"], config.domain.site_x_end - 0.5 * config.params["turbine_x"], nx):
-        for y_r in numpy.linspace(config.domain.site_y_start + 0.5 * config.params["turbine_y"], config.domain.site_y_end - 0.5 * config.params["turbine_y"], ny):
-            turbine_pos.append((float(x_r), float(y_r)))
-    config.set_turbine_pos(turbine_pos, friction)
-    log(INFO, "Deployed " + str(len(turbine_pos)) + " turbines.")
-    return turbine_pos
-
-
 def position_constraints(config):
     ''' This function returns the constraints to ensure that the turbine
     positions remain inside the domain. '''
 
-    n = len(config.params["turbine_pos"])
+    n = len(config.params["position"])
     if n == 0:
           raise ValueError("You need to deploy the turbines before computing the position constraints.")
 
@@ -51,126 +38,58 @@ def friction_constraints(config, lb=0.0, ub=None):
     if ub is None:
         ub = 10 ** 12
 
-    n = len(config.params["turbine_pos"])
+    n = len(config.params["position"])
     return n * [Constant(lb)], n * [Constant(ub)]
 
 
-class MinimumDistanceConstraint(InequalityConstraint):
-    def __init__(self, config, min_distance=None):
-
-        if not 'turbine_pos' in config.params['controls']:
-            raise NotImplementedError("Inequality contraints for the distance only make sense if the turbine positions are control variables.")
-
-        if not min_distance:
-            self.min_distance = 1.5 * max(config.params["turbine_x"], config.params["turbine_y"])
-        else:
-            self.min_distance = min_distance
-
-        self.config = config
-
-    def l2norm(self, x):
-        return sum([v ** 2 for v in x])
-
-    def length(self):
-        nconstraints = 0
-        m_pos = self.config.params['turbine_pos']
-
-        for i in range(len(m_pos)):
-          for j in range(len(m_pos)):
-            if i <= j:
-              continue
-            nconstraints += 1
-        return nconstraints
-
-    def function(self, m):
-        ieqcons = []
-        if len(self.config.params['controls']) == 2:
-        # If the controls consists of the the friction and the positions, then we need to first extract the position part
-            assert(len(m) % 3 == 0)
-            m_pos = m[len(m) / 3:]
-        else:
-            m_pos = m
-
-        for i in range(len(m_pos) / 2):
-            for j in range(len(m_pos) / 2):
-                if i <= j:
-                    continue
-                ieqcons.append(self.l2norm([m_pos[2 * i] - m_pos[2 * j], m_pos[2 * i + 1] - m_pos[2 * j + 1]]) - self.min_distance ** 2)
-
-        arr = numpy.array(ieqcons)
-        if any(arr <= 0):
-          log(INFO, "Minimum distance inequality constraints (should be > 0): %s" % arr)
-        return numpy.array(ieqcons)
-
-    def jacobian(self, m):
-        ieqcons = []
-        if len(self.config.params['controls']) == 2:
-            # If the controls consists of the the friction and the positions, then we need to first extract the position part
-            assert(len(m) % 3 == 0)
-            m_pos = m[len(m) / 3:]
-            mf_len = len(m_pos) / 2
-        else:
-            m_pos = m
-            mf_len = 0
-
-        for i in range(len(m_pos) / 2):
-            for j in range(len(m_pos) / 2):
-                if i <= j:
-                    continue
-                prime_ieqcons = numpy.zeros(len(m))
-
-                # The control vector contains the friction coefficients first, so we need to shift here
-                prime_ieqcons[mf_len + 2 * i] = 2 * (m_pos[2 * i] - m_pos[2 * j])
-                prime_ieqcons[mf_len + 2 * j] = -2 * (m_pos[2 * i] - m_pos[2 * j])
-                prime_ieqcons[mf_len + 2 * i + 1] = 2 * (m_pos[2 * i + 1] - m_pos[2 * j + 1])
-                prime_ieqcons[mf_len + 2 * j + 1] = -2 * (m_pos[2 * i + 1] - m_pos[2 * j + 1])
-
-                ieqcons.append(prime_ieqcons)
-        return numpy.array(ieqcons)
-
-def get_minimum_distance_constraint_func(config, min_distance=None):
-    return MinimumDistanceConstraint(config, min_distance)
-
 class PolygonSiteConstraints(InequalityConstraint):
-    def __init__(self, config, vertices, penalty_factor=1e3, slack_eps=0):
-        self.config = config
+    def __init__(self, farm, vertices, penalty_factor=1e3, slack_eps=0):
+        self.farm = farm
         self.vertices = vertices
         self.penalty_factor = penalty_factor
         self.slack_eps = slack_eps
 
     def length(self):
-        m_pos = self.config.params['turbine_pos']
+        m_pos = self.farm.turbine_cache["position"]
         nconstraints = len(m_pos) * len(self.vertices)
         return nconstraints
 
     def function(self, m):
         ieqcons = []
-        if len(self.config.params['controls']) == 2:
-        # If the controls consists of the the friction and the positions, then we need to first extract the position part
+        controlled_by = self.farm.turbine_specification.controls
+        if (controlled_by.position and
+            (controlled_by.friction or controlled_by.dynamic_friction)):
+            # If the controls consists of the the friction and the positions,
+            # then we need to first extract the position part.
             assert(len(m) % 3 == 0)
             m_pos = m[len(m) / 3:]
         else:
             m_pos = m
 
-        for i in range(len(m_pos) / 2):
-            for p in range(len(self.vertices)):
-                # x1 and x2 are the two points that describe one of the sites edge
+        for i in xrange(len(m_pos) / 2):
+            for p in xrange(len(self.vertices)):
+                # x1 and x2 are the two points that describe one of the sites
+                # edge.
                 x1 = numpy.array(self.vertices[p])
                 x2 = numpy.array(self.vertices[(p + 1) % len(self.vertices)])
                 c = x2 - x1
-                # Normal vector of c
+                # Normal vector of c.
                 n = [c[1], -c[0]]
 
                 # The inequality for this edge is: g(x) := n^T.(x1-x) >= 0
                 x = m_pos[2 * i:2 * i + 2]
-                ieqcons.append(self.penalty_factor * (numpy.dot(n, x1 - x) + self.slack_eps))
+                ieqcons.append(self.penalty_factor*
+                               (numpy.dot(n,x1-x)+self.slack_eps))
 
         return numpy.array(ieqcons)
 
     def jacobian(self, m):
         ieqcons = []
-        if len(self.config.params['controls']) == 2:
-            # If the controls consists of the the friction and the positions, then we need to first extract the position part
+        controlled_by = self.farm.turbine_specification.controls
+        if (controlled_by.position and
+            (controlled_by.friction or controlled_by.dynamic_friction)):
+            # If the controls consists of the the friction and the positions,
+            # then we need to first extract the position part.
             assert(len(m) % 3 == 0)
             m_pos = m[len(m) / 3:]
             mf_len = len(m_pos) / 2
@@ -178,9 +97,10 @@ class PolygonSiteConstraints(InequalityConstraint):
             mf_len = 0
             m_pos = m
 
-        for i in range(len(m_pos) / 2):
-            for p in range(len(self.vertices)):
-                # x1 and x2 are the two points that describe one of the sites edge
+        for i in xrange(len(m_pos) / 2):
+            for p in xrange(len(self.vertices)):
+                # x1 and x2 are the two points that describe one of the sites
+                # edge.
                 x1 = numpy.array(self.vertices[p])
                 x2 = numpy.array(self.vertices[(p + 1) % len(self.vertices)])
                 c = x2 - x1
@@ -189,21 +109,22 @@ class PolygonSiteConstraints(InequalityConstraint):
 
                 prime_ieqcons = numpy.zeros(len(m))
 
-                # The control vector contains the friction coefficients first, so we need to shift here
+                # The control vector contains the friction coefficients first,
+                # so we need to shift here.
                 prime_ieqcons[mf_len + 2 * i] = -self.penalty_factor * n[0]
                 prime_ieqcons[mf_len + 2 * i + 1] = -self.penalty_factor * n[1]
 
                 ieqcons.append(prime_ieqcons)
         return numpy.array(ieqcons)
 
-def generate_site_constraints(config, vertices, penalty_factor=1e3, slack_eps=0):
+def generate_site_constraints(farm, vertices, penalty_factor=1e3, slack_eps=0):
     ''' Generates the inequality constraints for generic polygon constraints.
     The parameter polygon must be a list of point coordinates that describes the
     site edges in anti-clockwise order.  The argument slack_eps is used to
     increase or decrease the site by an epsilon value - this is useful to avoid
     rounding problems. '''
 
-    return PolygonSiteConstraints(config, vertices, penalty_factor, slack_eps)
+    return PolygonSiteConstraints(farm, vertices, penalty_factor, slack_eps)
 
 class DomainRestrictionConstraints(InequalityConstraint):
     def __init__(self, config, feasible_area, attraction_center):

@@ -31,7 +31,7 @@ class RectangularFarm(Farm):
         # Create a turbine function space and set the function space in the
         # cache.
         self._turbine_function_space = FunctionSpace(self.domain.mesh, "CG", 2)
-        self.turbine_cache._function_space = self._turbine_function_space
+        self.turbine_cache.set_function_space(self._turbine_function_space)
 
         # Store site dimensions.
         self._site_x_start = site_x_start
@@ -81,8 +81,7 @@ class RectangularFarm(Farm):
 
 
     def add_regular_turbine_layout(self, num_x, num_y, x_start=None,
-                                   x_end=None, y_start=None, y_end=None,
-                                   turbine=None):
+                                   x_end=None, y_start=None, y_end=None):
         """Adds a rectangular turbine layout to the farm.
 
         A rectangular turbine layout with turbines evenly spread out in each
@@ -112,7 +111,7 @@ class RectangularFarm(Farm):
         if y_end is None: y_end = self.site_y_end
 
         return super(RectangularFarm, self)._regular_turbine_layout(
-            num_x, num_y, x_start, x_end, y_start, y_end, turbine)
+            num_x, num_y, x_start, x_end, y_start, y_end)
 
 
     def site_boundary_constraints(self):
@@ -127,9 +126,9 @@ class RectangularFarm(Farm):
             upper and lower bound coordinates.
 
         """
-        n_turbines = self.number_of_turbines
         # Check we have deployed some turbines in the farm.
-        if n_turbines == 0:
+        n_turbines = len(self.turbine_positions)
+        if (n_turbines < 1):
             raise ValueError("You must deploy turbines before computing "
                              "position constraints.")
 

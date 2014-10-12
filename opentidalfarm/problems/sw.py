@@ -64,8 +64,7 @@ class SWProblem(SteadySWProblem):
     def __init__(self, parameters):
 
         if not type(parameters) == SWProblemParameters:
-            raise TypeError("parameters must be of type \
-SWProblemParameters.")
+            raise TypeError("parameters must be of type SWProblemParameters.")
 
         if float(parameters.start_time) >= float(parameters.finish_time):
             raise ValueError("start_time must be < finish_time.")

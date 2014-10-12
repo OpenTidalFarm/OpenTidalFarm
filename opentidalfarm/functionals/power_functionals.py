@@ -24,7 +24,7 @@ class PowerFunctional(PrototypeFunctional):
 
     def __init__(self, farm, rho):
 
-        farm.turbine_cache.update(farm.as_parameter_array)
+        farm.turbine_cache.update(farm)
         self.farm = farm
         self.rho = rho
         # Create a copy of the parameters so that future changes will not
@@ -41,7 +41,7 @@ class PowerFunctional(PrototypeFunctional):
         :type turbine_field: UFL
 
         """
-        return self.power(state, turbine_field) * self.farm.domain.site_dx(1)
+        return self.power(state, turbine_field)*self.farm.domain.site_dx(1)
 
     def power(self, state, turbine_field):
         """ Computes the power field over the domain.
@@ -65,7 +65,7 @@ class PowerFunctional(PrototypeFunctional):
 
         """
         turbine_field_individual = \
-                self.farm.turbine_cache.cache['turbine_field_individual'][i]
+                self.farm.turbine_cache['turbine_field_individual'][i]
         return self.power(state, turbine_field_individual) * self.farm.domain.site_dx(1)
 
 

@@ -15,7 +15,7 @@ import finite_elements
 import helpers
 
 from farm import *
-from turbine import *
+from turbines import *
 from solvers import *
 from problems import *
 from domains import *
@@ -23,9 +23,9 @@ from functionals import *
 from tidal import TidalForcing, BathymetryDepthExpression
 
 from optimisation_helpers import friction_constraints, \
-    get_minimum_distance_constraint_func, get_domain_constraints, \
-    deploy_turbines, position_constraints, generate_site_constraints, \
-    get_distance_function, MinimumDistanceConstraint, \
+    get_domain_constraints, \
+    position_constraints, generate_site_constraints, \
+    get_distance_function, \
     PolygonSiteConstraints, DomainRestrictionConstraints
 from reduced_functional import ReducedFunctional, ReducedFunctionalParameters
 from boundary_conditions import BoundaryConditionSet

@@ -89,7 +89,7 @@ class ReducedFunctional(dolfin_adjoint.ReducedFunctionalNumPy):
                                   "power.pvd")
                 self.power_file = File(power_filename, "compressed")
 
-	# dolfin-adjoint requires the ReducedFunctional to have a member
+        # dolfin-adjoint requires the ReducedFunctional to have a member
         # variable `parameter` which must be a list comprising an instance of a
         # class (here, TurbineFarmParameter) which has a method named `data`
         # which returns a numpy.ndarray of the parameters used for optimisation,
@@ -98,7 +98,7 @@ class ReducedFunctional(dolfin_adjoint.ReducedFunctionalNumPy):
 
         # For smeared turbine parametrisations we only want to store the
         # hash of the control values into the pickle datastructure
-        use_hash_keys = self._farm.turbine_specification.parameterisation.smeared
+        use_hash_keys = self._farm.turbine_specification.smeared
 
         self._compute_functional_mem = MemoizeMutable(self._compute_functional,
                                                       use_hash_keys)
@@ -129,7 +129,7 @@ class ReducedFunctional(dolfin_adjoint.ReducedFunctionalNumPy):
         # Output power
         if self.solver.parameters.dump_period > 0:
             if options["output_individual_power"]:
-                turbines = self._farm.turbine_cache.cache["turbine_field"]
+                turbines = self._farm.turbine_cache["turbine_field"]
                 power = self.functional(self._farm).power(solver.current_state,
                                                           turbines)
                 self.power_file << project(power,
@@ -138,8 +138,7 @@ class ReducedFunctional(dolfin_adjoint.ReducedFunctionalNumPy):
 
         if self._farm.turbine_specification.controls.dynamic_friction:
             parameters = []
-            for i in xrange(
-                len(self._farm.turbine_cache.cache["turbine_friction"])):
+            for i in xrange(len(self._farm._parameters["friction"])):
                 parameters.append(
                     FunctionControl("turbine_friction_cache_t_%i" % i))
 
@@ -151,7 +150,7 @@ class ReducedFunctional(dolfin_adjoint.ReducedFunctionalNumPy):
 
         # Decide if we need to apply the chain rule to get the gradient of
         # interest.
-        if self._farm.turbine_specification.parameterisation.smeared:
+        if self._farm.turbine_specification.smeared:
             # We are looking for the gradient with respect to the friction
             dj = dolfin_adjoint.optimization.get_global(djdtf)
 
@@ -166,22 +165,22 @@ class ReducedFunctional(dolfin_adjoint.ReducedFunctionalNumPy):
 
             if self._farm.turbine_specification.controls.friction:
                 # Compute the derivatives with respect to the turbine friction
-                for tfd in self._farm.turbine_cache.cache["turbine_derivative_friction"]:
-                    self._farm.turbine_cache.update(m)
+                for tfd in self._farm.turbine_cache["turbine_derivative_friction"]:
+                    self._farm.turbine_cache.update(self._farm)
                     dj.append(djdtf.vector().inner(tfd.vector()))
 
             elif self._farm.turbine_specification.controls.dynamic_friction:
                 # Compute the derivatives with respect to the turbine friction
-                for djdtf_arr, t in zip(djdtf, self._farm.turbine_cache.cache["turbine_derivative_friction"]):
+                for djdtf_arr, t in zip(djdtf, self._farm.turbine_cache["turbine_derivative_friction"]):
                     for tfd in t:
-                        self._farm.turbine_cache.update(m)
+                        self._farm.turbine_cache.update(self._farm)
                         dj.append(djdtf_arr.vector().inner(tfd.vector()))
 
             if self._farm.turbine_specification.controls.position:
                 # Compute the derivatives with respect to the turbine position
-                for d in self._farm.turbine_cache.cache["turbine_derivative_pos"]:
+                for d in self._farm.turbine_cache["turbine_derivative_pos"]:
                     for var in ('turbine_pos_x', 'turbine_pos_y'):
-                        self._farm.turbine_cache.update(m)
+                        self._farm.turbine_cache.update(self._farm)
                         tfd = d[var]
                         dj.append(djdtf.vector().inner(tfd.vector()))
 
@@ -192,6 +191,7 @@ class ReducedFunctional(dolfin_adjoint.ReducedFunctionalNumPy):
     def _compute_functional(self, m, annotate=True):
         """ Compute the functional of interest for the turbine positions/frictions array """
         self.last_m = m
+        self._update_turbine_farm(m)
 
         # Configure dolfin-adjoint
         adj_reset()
@@ -230,7 +230,30 @@ class ReducedFunctional(dolfin_adjoint.ReducedFunctionalNumPy):
 
     def _update_turbine_farm(self, m):
         """ Update the turbine farm from the flattened parameter array m. """
-        self._farm.turbine_cache.update(m)
+        if self._farm.turbine_specification.smeared:
+            self._farm._parameters["friction"] = m
+
+        else:
+            controlled_by = self._farm.turbine_specification.controls
+            shift = 0
+            if controlled_by.friction:
+                shift = len(self._farm._parameters["friction"])
+                self._farm._parameters["friction"] = m[:shift]
+            elif controlled_by.dynamic_friction:
+                shift = len(
+                    numpy.reshape(self._farm._parameters["friction"],-1))
+                nb_turbines = len(self._farm._parameters["position"])
+                self._farm._parameters["friction"] = (
+                    numpy.reshape(m[:shift], (-1, nb_turbines)).tolist())
+
+            if controlled_by.position:
+                m_pos = m[shift:]
+                self._farm._parameters["position"] = (
+                    numpy.reshape(m_pos, (-1,2)).tolist())
+
+
+        # Update the farm cache.
+        self._farm.turbine_cache.update(self._farm)
 
 
     def _save_checkpoint(self):
@@ -259,6 +282,7 @@ class ReducedFunctional(dolfin_adjoint.ReducedFunctionalNumPy):
         if self.parameters.save_checkpoints:
             self._save_checkpoint()
 
+        print "m = ", m
         log(INFO, 'Runtime: %f s.' % timer.value())
         log(INFO, 'j = %e.' % float(j))
         self.last_j = j
@@ -289,16 +313,16 @@ class ReducedFunctional(dolfin_adjoint.ReducedFunctionalNumPy):
                 # A cache hit skips the turbine cache update, so we need
                 # trigger it manually.
                 if self._compute_gradient_mem.has_cache(m, forget):
-                    self._farm.turbine_cache.update(m)
+                    self._farm.turbine_cache.update(self._farm)
                 if self._farm.turbine_specification.controls.dynamic_friction:
                     log(WARNING, ("Turbine VTU output not yet implemented for "
                                   " dynamic turbine control"))
                 else:
-                    self.turbine_file << self._farm.turbine_cache.cache["turbine_field"]
+                    self.turbine_file << self._farm.turbine_cache["turbine_field"]
                     # Compute the total amount of friction due to turbines
-                    if self._farm.turbine_specification.parameterisation.smeared:
+                    if self._farm.turbine_specification.smeared:
                         log(INFO, "Total amount of friction: %f" %
-                            assemble(self._farm.turbine_cache.cache["turbine_field"]*dx))
+                            assemble(self._farm.turbine_cache["turbine_field"]*dx))
 
         if self.parameters.save_checkpoints:
             self._save_checkpoint()
@@ -342,6 +366,7 @@ class ReducedFunctional(dolfin_adjoint.ReducedFunctionalNumPy):
                 log(INFO, "Set automatic scaling factor to %e." %
                     self._automatic_scaling_factor)
 
+
     def __call__(self, m):
         """ Interface function for dolfin_adjoint.ReducedFunctional """
         return self.evaluate(m)
@@ -365,4 +390,4 @@ class TurbineFarmParameter(object):
         self.farm = farm
 
     def data(self):
-        return numpy.asarray(self.farm.as_parameter_array)
+        return numpy.asarray(self.farm.control_array)

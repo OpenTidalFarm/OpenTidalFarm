@@ -225,7 +225,7 @@ IPCSSWSolverParameters."
         solver_params = self.parameters
         farm = problem_params.tidal_farm
         if farm:
-            turbine_friction = farm.turbine_cache.cache["turbine_field"]
+            turbine_friction = farm.turbine_cache["turbine_field"]
 
         # Performance settings
         parameters['form_compiler']['quadrature_degree'] = \

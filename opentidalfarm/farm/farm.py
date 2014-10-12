@@ -20,4 +20,4 @@ class Farm(BaseFarm):
         # Create a turbine function space and set the function space in the
         # cache.
         self._turbine_function_space = FunctionSpace(self.domain.mesh, "CG", 2)
-        self.turbine_cache._function_space = self._turbine_function_space
+        self.turbine_cache.set_function_space(self._turbine_function_space)

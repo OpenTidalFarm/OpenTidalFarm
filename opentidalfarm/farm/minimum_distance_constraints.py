@@ -17,7 +17,7 @@ class MinimumDistanceConstraints(dolfin_adjoint.InequalityConstraint):
             http://dolfin-adjoint.org/documentation/api.html#dolfin_adjoint.InequalityConstraint
 
     """
-    def __init__(self, serialized_turbines, minimum_distance, controls):
+    def __init__(self, turbine_positions, minimum_distance, controls):
         """Create MinimumDistanceConstraints
 
         :param serialized_turbines: The serialized turbine paramaterisation.
@@ -28,11 +28,12 @@ class MinimumDistanceConstraints(dolfin_adjoint.InequalityConstraint):
 
 
         """
-        if len(serialized_turbines)==0:
+        if len(turbine_positions)==0:
             raise NotImplementedError("Turbines must be deployed for distance "
                                       "constraints to be used.")
 
-        self._turbines = serialized_turbines
+
+        self._turbines = numpy.asarray(turbine_positions).flatten().tolist()
         self._minimum_distance = minimum_distance
         self._controls = controls
 

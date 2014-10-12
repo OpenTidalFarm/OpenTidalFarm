@@ -17,7 +17,6 @@ class TimeIntegrator(object):
     def add(self, time, state, tf, is_final):
         if not self.final_only or (self.final_only and is_final):
             val = assemble(self.functional.Jt(state, tf))
-
             self.vals.append(val)
             self.times.append(time)
 

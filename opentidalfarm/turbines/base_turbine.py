@@ -1,25 +1,21 @@
 import dolfin
-from .controls import Controls
-from .parameterisation import TurbineParameterisation
 
-class Turbine(object):
-    """The specification of the turbines being optimised."""
-    def __init__(self, diameter, minimum_distance, maximum_friction,
-                 controls=None, parameterisation=TurbineParameterisation()):
-        """Initialize with the specification of a turbine.
-
-        :param float diameter: Turbine diameter in metres.
-        :param float minimum_distance: The minimum distance allowed between turbines.
-        :param float maximum_friction: The maximum friction coefficient a turbine is allowed to be.
-        :param controls: Turbine controls, see :doc:`opentidalfarm.turbine.controls`.
-        :param parameterisation: Turbine parameterisation, see :doc:`opentidalfarm.turbine.parameterisation`.
-
-        """
+class BaseTurbine(object):
+    """A base turbine class from which others are derived."""
+    def __init__(self, friction=None, diameter=None, minimum_distance=None,
+                 controls=None, bump=False, smeared=False, thrust=False,
+                 implicit_thrust=False):
+        # Possible turbine parameters.
         self._diameter = diameter
         self._minimum_distance = minimum_distance
-        self._maximum_friction = maximum_friction
+        self._friction = friction
         self._controls = controls
-        self._parameterisation = parameterisation
+
+        # Possible parameterisations.
+        self._bump = bump
+        self._smeared = smeared
+        self._thrust = thrust
+        self._implicit_thrust = implicit_thrust
 
         # The integral of the unit bump function computed with Wolfram Alpha:
         # "integrate e^(-1/(1-x**2)-1/(1-y**2)+2) dx dy,
@@ -27,13 +23,16 @@ class Turbine(object):
         # http://www.wolframalpha.com/input/?i=integrate+e%5E%28-1%2F%281-x**2%29-1%2F%281-y**2%29%2B2%29+dx+dy%2C+x%3D-0.999..0.999%2C+y%3D-0.999..0.999
         self._unit_bump_int = 1.45661
 
+
     @property
     def friction(self):
         """The maximum friction coefficient of a turbine.
         :returns: The maximum friction coefficient of the turbine.
         :rtype: float
         """
-        return self._maximum_friction
+        if self._friction is None:
+            raise ValueError("Friction has not been set!")
+        return self._friction
 
 
     @property
@@ -42,6 +41,8 @@ class Turbine(object):
         :returns: The diameter of a turbine.
         :rtype: float
         """
+        if self._diameter is None:
+            raise ValueError("Diameter has not been set!")
         return self._diameter
 
 
@@ -51,7 +52,7 @@ class Turbine(object):
         :returns: The radius of a turbine.
         :rtype: float
         """
-        return self._diameter*0.5
+        return self.diameter*0.5
 
 
     @property
@@ -60,6 +61,8 @@ class Turbine(object):
         :returns: The minimum distance allowed between turbines.
         :rtype: float
         """
+        if self._minimum_distance is None:
+            raise ValueError("Minimum distance has not been set!")
         return self._minimum_distance
 
 
@@ -84,14 +87,18 @@ class Turbine(object):
     controls = property(_get_controls, _set_controls, "The turbine controls.")
 
 
-    def _set_parameterisation(self, parameterisation):
-        self._parameterisation = parameterisation
+    @property
+    def bump(self):
+        return self._bump
 
-    def _get_parameterisation(self):
-        if self._parameterisation is not None:
-            return self._parameterisation
-        else:
-            raise ValueError("The turbines have not yet been parameterised.")
+    @property
+    def smeared(self):
+        return self._smeared
 
-    parameterisation = property(_get_parameterisation, _set_parameterisation,
-                                "The turbine parameterisation.")
+    @property
+    def thrust(self):
+        return self._thrust
+
+    @property
+    def implicit_thrust(self):
+        return self._implicit_thrust

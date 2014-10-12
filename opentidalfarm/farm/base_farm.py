@@ -1,7 +1,6 @@
 import numpy
 import dolfin
 from .minimum_distance_constraints import MinimumDistanceConstraints
-from ..turbine import Turbine
 from ..turbine_cache import TurbineCache
 
 class BaseFarm(object):
@@ -11,6 +10,7 @@ class BaseFarm(object):
         # Create a chaching object for the interpolated turbine friction fields
         # (as their computation is very expensive)
         self.turbine_cache = TurbineCache()
+        self._parameters = {"friction": [], "position": []}
 
         self.domain = domain
         self._set_turbine_specification(turbine)
@@ -24,7 +24,7 @@ class BaseFarm(object):
 
     def _set_turbine_specification(self, turbine_specification):
         self._turbine_specification = turbine_specification
-        self.turbine_cache._set_turbine_specification(
+        self.turbine_cache.set_turbine_specification(
             self._turbine_specification)
 
 
@@ -38,11 +38,11 @@ class BaseFarm(object):
         :returns: The number of turbines in the farm.
         :rtype: int
         """
-        return len(self.turbine_cache.cache["turbine_pos"])
+        return len(self.turbine_cache["position"])
 
 
     @property
-    def as_parameter_array(self):
+    def control_array(self):
         """A serialized representation of the farm based on the controls.
 
         :returns: A serialized representation of the farm based on the controls.
@@ -50,13 +50,18 @@ class BaseFarm(object):
         """
         m = []
 
-        if self._turbine_specification.controls.friction:
-            for friction in self.turbine_cache.cache["turbine_friction"]:
-                m.append(friction)
-        if self._turbine_specification.controls.position:
-            for position in self.turbine_cache.cache["turbine_pos"]:
-                m.append(position[0])
-                m.append(position[1])
+        if self._turbine_specification.smeared:
+            m = numpy.zeros(self._turbine_function_space.dim())
+
+        else:
+            if (self._turbine_specification.controls.friction or
+                self._turbine_specification.controls.dynamic_friction):
+                m += numpy.reshape(
+                    self._parameters["friction"], -1).tolist()
+
+            if self._turbine_specification.controls.position:
+                m += numpy.reshape(
+                    self._parameters["position"], -1).tolist()
 
         return numpy.asarray(m)
 
@@ -67,7 +72,7 @@ class BaseFarm(object):
         :returns: The positions of turbines within the farm.
         :rtype: :func:`list`
         """
-        return self.turbine_cache.cache["turbine_pos"]
+        return self._parameters["position"]
 
 
     @property
@@ -76,12 +81,7 @@ class BaseFarm(object):
         :returns: The friction coefficients of turbines within the farm.
         :rtype: :func:`list`
         """
-        return self.turbine_cache.cache["turbine_friction"]
-
-
-    def _update(self, m):
-        """Updates the turbine cache."""
-        self.turbine_cache(m)
+        return self._parameters["friction"]
 
 
     def add_turbine(self, coordinates):
@@ -97,15 +97,15 @@ class BaseFarm(object):
             raise ValueError("A turbine specification has not been set.")
 
         turbine = self._turbine_specification
+        self._parameters["position"].append(coordinates)
+        self._parameters["friction"].append(turbine.friction)
 
-        self.turbine_cache.cache["turbine_friction"].append(turbine.friction)
-        self.turbine_cache.cache["turbine_pos"].append(coordinates)
         dolfin.info("Turbine added at (%.2f, %.2f)." % (coordinates[0],
                                                         coordinates[1]))
 
 
     def _regular_turbine_layout(self, num_x, num_y, site_x_start, site_x_end,
-                                site_y_start, site_y_end, turbine=None):
+                                site_y_start, site_y_end):
         """Adds a rectangular turbine layout to the farm.
 
         A rectangular turbine layout with turbines evenly spread out in each
@@ -129,15 +129,10 @@ class BaseFarm(object):
 
         """
         if self._turbine_specification is None:
-            if turbine is None:
-                raise ValueError("A turbine specification has not been set.")
-            else:
-                self._turbine_specification = turbine
+            raise ValueError("A turbine specification has not been set.")
 
         turbine = self._turbine_specification
 
-        # Create an empty list of turbines.
-        turbines = []
         # Generate the start and end points in the desired layout.
         start_x = site_x_start + turbine.radius
         start_y = site_y_start + turbine.radius
@@ -159,7 +154,7 @@ class BaseFarm(object):
         else:
             for x in numpy.linspace(start_x, end_x, num_x):
                 for y in numpy.linspace(start_y, end_y, num_y):
-                    self.add_turbine((x,y), turbine)
+                    self.add_turbine((x,y))
 
             dolfin.info("Added %i turbines to the site in an %ix%i rectangular "
                         "array." % (num_x*num_y, num_x, num_y))
@@ -171,9 +166,10 @@ class BaseFarm(object):
         :param list positions: List of tuples containint x-y coordinates of
             turbines to be added.
         """
-        self.turbine_cache["turbine_pos"] = positions
-        self.turbine_cache["turbine_friction"] = (
+        self.turbine_cache["position"] = positions
+        self.turbine_cache["friction"] = (
             self._turbine_specification.friction*numpy.ones(len(positions)))
+        self.turbine_cache.update(self)
 
 
     def site_boundary_constraints(self):
@@ -190,11 +186,12 @@ class BaseFarm(object):
 
         """
         # Check we have some turbines.
-        if self.number_of_turbines < 1:
+        n_turbines = len(self.turbine_positions)
+        if (n_turbines < 1):
             raise ValueError("Turbines must be deployed before minimum "
                              "distance constraints can be calculated.")
 
-        m = self.as_parameter_array
         controls = self._turbine_specification.controls
         minimum_distance = self._turbine_specification.minimum_distance
-        return MinimumDistanceConstraints(m, minimum_distance, controls)
+        positions = self.turbine_positions
+        return MinimumDistanceConstraints(positions, minimum_distance, controls)

@@ -56,8 +56,8 @@ def test_gradient_array(J, dJ, x, seed=0.01, perturbation_direction=None,
     # We will compute the gradient of the functional with respect to the
     # initial condition, and check its correctness with the Taylor remainder
     # convergence test.
-    log(INFO, "Running Taylor remainder convergence analysis to check the gradient \
-         ... ")
+    log(INFO, "Running Taylor remainder convergence analysis to check the "
+              "gradient... ")
 
     # First run the problem unperturbed
     j_direct = J(x)

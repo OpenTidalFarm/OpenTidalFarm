@@ -12,4 +12,4 @@ class Problem(object):
         parameters = {}
 
         return parameters
-        
+
