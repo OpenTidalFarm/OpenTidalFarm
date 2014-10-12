@@ -50,7 +50,7 @@ class TestPositionOptimisation(object):
         domain = RectangularDomain(0, 0, 3000, 1000, 40, 20)
 
         problem_params = DummyProblem.default_parameters()
-  
+
         # dt is used in the functional only
         problem_params.dt = 0.8
         problem_params.functional_final_time_only = False
@@ -58,17 +58,19 @@ class TestPositionOptimisation(object):
         problem_params.domain = domain
         problem_params.initial_condition = BumpInitialCondition(0, 0, 3000, 1000)
 
+        # Create a turbine
+        turbine = BumpTurbine(diameter=800., friction=12.0,
+                              controls=Controls(position=True))
+
         # Create turbine farm
-        farm = TidalFarm(domain)
-        farm.params["turbine_pos"] = [[500., 200.]]
-        farm.params["turbine_friction"] = 12.0*numpy.random.rand(len(farm.params["turbine_pos"]))
-        farm.params["turbine_x"] = 800
-        farm.params["turbine_y"] = 800
-        farm.params["controls"] = ['turbine_pos']
+        farm = Farm(domain, turbine)
+        farm.add_turbine((500.,200.))
+        farm._parameters["friction"] = (
+            12.0*numpy.random.rand(len(farm._parameters["position"])))
         problem_params.tidal_farm = farm
-        
+
         problem = DummyProblem(problem_params)
-  
+
         return problem
 
     def test_optimisation_recovers_optimal_position(self):
@@ -80,17 +82,17 @@ class TestPositionOptimisation(object):
         rf_params = ReducedFunctionalParameters()
         rf_params.automatic_scaling = 5.
         rf = ReducedFunctional(functional, solver, rf_params)
-        m0 = farm.control_array()
+        m0 = farm.control_array
 
         p = numpy.random.rand(len(m0))
-        minconv = helpers.test_gradient_array(rf.__call__, rf.derivative, m0, seed=0.005, 
+        minconv = helpers.test_gradient_array(rf.__call__, rf.derivative, m0, seed=0.005,
                                               perturbation_direction=p)
         assert minconv > 1.9
 
-        bounds = [[Constant(0), Constant(0)], [Constant(3000), Constant(1000)]] 
-        maximize(rf, bounds=bounds, method="SLSQP") 
+        bounds = [[Constant(0), Constant(0)], [Constant(3000), Constant(1000)]]
+        maximize(rf, bounds=bounds, method="SLSQP")
 
-        m = farm.params["turbine_pos"][0]
+        m = farm.turbine_cache["position"][0]
         log(INFO, "Solution of the primal variables: m=" + repr(m) + "\n")
 
         assert abs(m[0]-1500) < 40
