@@ -9,6 +9,10 @@ class TestConfigurations(object):
     def create_steady_sw_problem(self, problem_params):
         basin_x = 640
         basin_y = 320
+        site_x = 320.
+        site_y = 160.
+        site_x_start = basin_x - site_x/2
+        site_y_start = basin_y - site_y/2
 
         # Domain
         path = os.path.dirname(__file__)
@@ -24,25 +28,21 @@ class TestConfigurations(object):
         problem_params.bcs = bcs
 
         # Create a farm and deploy some turbines
-        farm = TidalFarm(domain)
-        turbine_pos = [] 
-        # The configuration does not converge for this (admittely unphysical) 
+        turbine = BumpTurbine(diameter=50., friction=1.0)
+
+        farm = RectangularFarm(domain,
+                               site_x_start=site_x_start,
+                               site_x_end=site_x_start+site_x,
+                               site_y_start=site_y_start,
+                               site_y_end=site_y_start+site_y,
+                               turbine=turbine)
+        farm.add_regular_turbine_layout(num_x=2, num_y=2)
+
+        # The configuration does not converge for this (admittely unphysical)
         # setup, so we help a little with some viscosity
         problem_params.viscosity = 40.0
-        site_x = 320.
-        site_y = 160.
-        site_x_start = basin_x - site_x/2
-        site_y_start = basin_y - site_y/2
-        farm.params['turbine_x'] = 50. 
-        farm.params['turbine_y'] = 50. 
-        farm.params['controls'] = ['turbine_pos']
-        for x_r in numpy.linspace(site_x_start, site_x_start + site_x, 2):
-            for y_r in numpy.linspace(site_y_start, site_y_start + site_y, 2):
-              turbine_pos.append((float(x_r), float(y_r)))
-        farm.params["turbine_x"] = 20.
-        farm.params["turbine_y"] = 20.
-        farm.set_turbine_pos(turbine_pos, friction=1.0)
-        farm.params["output_turbine_power"] = False
+
+        options["output_turbine_power"] = False
 
         problem_params.tidal_farm = farm
 
@@ -64,11 +64,11 @@ class TestConfigurations(object):
         # Boundary conditions
         bcs = BoundaryConditionSet()
         flather_bc_expr = Expression((
-                         "2*eta0*sqrt(g/depth)*cos(-sqrt(g*depth)*k*t)", "0"), 
-                         eta0=2., 
-                         g=problem_params.g, 
-                         depth=problem_params.depth, 
-                         t=problem_params.start_time, 
+                         "2*eta0*sqrt(g/depth)*cos(-sqrt(g*depth)*k*t)", "0"),
+                         eta0=2.,
+                         g=problem_params.g,
+                         depth=problem_params.depth,
+                         t=problem_params.start_time,
                          k=pi / 3000)
         bcs.add_bc("u", flather_bc_expr, [1, 2], "flather")
         bcs.add_bc("u", Constant((1e-10, 1e-10)), 3, "weak_dirichlet")
@@ -80,18 +80,22 @@ class TestConfigurations(object):
         border_y = basin_y/10
 
         # Create a farm and deploy some turbines
-        farm = TidalFarm(domain)
-        turbine_pos = [] 
-        for x_r in numpy.linspace(border_x, basin_x - border_x, 2):
-            for y_r in numpy.linspace(border_y, basin_y - border_y, 2):
-              turbine_pos.append((float(x_r), float(y_r)))
-        farm.params["turbine_x"] = 20.
-        farm.params["turbine_y"] = 5.
-        farm.params['controls'] = ['turbine_pos', 'turbine_friction']
+        turbine = BumpTurbine(diameter=20., friction=1.0,
+                              controls=Controls(position=True, friction=True))
 
-        farm.set_turbine_pos(turbine_pos, friction=1.0)
+        # Create a farm and deploy some turbines
+        farm = RectangularFarm(domain,
+                               site_x_start=border_x,
+                               site_x_end=basin_x-border_x,
+                               site_y_start=border_y,
+                               site_y_end=basin_y-border_y,
+                               turbine=turbine)
 
-        farm.params["output_turbine_power"] = False
+        # for pos in [(50.0, 50.0), (50.0, 450.0), (450.0, 50.0), (450.0, 450.0)]:
+        #     farm.add_turbine(pos)
+        farm.add_regular_turbine_layout(num_x=2, num_y=2)
+
+        options["output_turbine_power"] = False
 
         problem_params.tidal_farm = farm
 
@@ -99,8 +103,9 @@ class TestConfigurations(object):
         return SWProblem(problem_params)
 
     @pytest.mark.parametrize(("steady"), [False, True])
-    def test_gradient_passes_taylor_test(self, steady, 
-            sw_linear_problem_parameters, steady_sw_problem_parameters):
+    def test_gradient_passes_taylor_test(self, steady,
+                                         sw_linear_problem_parameters,
+                                         steady_sw_problem_parameters):
 
         # Define the discrete domain
         if steady:
@@ -120,10 +125,11 @@ class TestConfigurations(object):
         rf_params.scale = 10**-6
         rf_params.automatic_scaling = False
         model = ReducedFunctional(functional, solver, rf_params)
-        m0 = control.control_array()
+        m0 = control.control_array
 
         p = numpy.random.rand(len(m0))
         seed = 0.1
-        minconv = helpers.test_gradient_array(model.__call__, model.derivative, 
-                m0, seed=seed, perturbation_direction=p)
+        minconv = helpers.test_gradient_array(model.__call__, model.derivative,
+                                              m0, seed=seed,
+                                              perturbation_direction=p)
         assert minconv > 1.85
