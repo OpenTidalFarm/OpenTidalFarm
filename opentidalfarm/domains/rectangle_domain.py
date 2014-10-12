@@ -1,5 +1,5 @@
 import os.path
-from dolfin import *
+import dolfin
 from domain import Domain
 
 
@@ -19,19 +19,19 @@ class RectangularDomain(Domain):
 
     def __init__(self, x0, y0, x1, y1, nx, ny):
         #: A :class:`dolfin.Mesh` containing the mesh.
-        self.mesh = RectangleMesh(x0, x0, x1, y1, nx, ny)
+        self.mesh = dolfin.RectangleMesh(x0, x0, x1, y1, nx, ny)
 
-        class Left(SubDomain):
+        class Left(dolfin.SubDomain):
             def inside(self, x, on_boundary):
-                return on_boundary and near(x[0], x0)
+                return on_boundary and dolfin.near(x[0], x0)
 
-        class Right(SubDomain):
+        class Right(dolfin.SubDomain):
             def inside(self, x, on_boundary):
-                return on_boundary and near(x[0], x1)
+                return on_boundary and dolfin.near(x[0], x1)
 
-        class Sides(SubDomain):
+        class Sides(dolfin.SubDomain):
             def inside(self, x, on_boundary):
-                return on_boundary and (near(x[1], y0) or near(x[1], y1))
+                return on_boundary and (dolfin.near(x[1], y0) or dolfin.near(x[1], y1))
 
         # Initialize sub-domain instances
         left = Left()
@@ -40,19 +40,21 @@ class RectangularDomain(Domain):
 
         # Create facet markers
         #: A :class:`dolfin.FacetFunction` containing the surface markers.
-        self.facet_ids = FacetFunction('size_t', self.mesh)
+        self.facet_ids = dolfin.FacetFunction('size_t', self.mesh)
         self.facet_ids.set_all(0)
         left.mark(self.facet_ids, 1)
         right.mark(self.facet_ids, 2)
         sides.mark(self.facet_ids, 3)
         #: A :class:`dolfin.Measure` for the facet parts.
-        self._ds = Measure('ds')[self.facet_ids]
+        self._ds = dolfin.Measure('ds')[self.facet_ids]
 
         #: A :class:`dolfin.CellFunction` containing the area markers.
-        self.cell_ids = CellFunction("size_t", self.mesh)
+        self.cell_ids = dolfin.CellFunction("size_t", self.mesh)
         self.cell_ids.set_all(1)
         #: A :class:`dolfin.Measure` for the cell cell_ids.
-        self._dx = Measure("dx")[self.cell_ids]
+        self._dx = dolfin.Measure("dx")[self.cell_ids]
 
-        self._generate_site_dx()
-        self._generate_site_vertices()
+
+        domains = dolfin.CellFunction("size_t", self.mesh)
+        domains.set_all(1)
+        self._site_dx = dolfin.Measure("dx")[domains]  # The measure used to integrate

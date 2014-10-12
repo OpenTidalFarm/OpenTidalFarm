@@ -16,7 +16,8 @@ class FileDomain(Domain):
     :type cell_ids_file: str
     """
 
-    def __init__(self, mesh_file, facet_ids_file=None, cell_ids_file=None):
+    def __init__(self, mesh_file, facet_ids_file=None, cell_ids_file=None,
+                 farm_ids=1):
 
         #: A :class:`dolfin.Mesh` containing the mesh.
         self.mesh = dolfin.Mesh(mesh_file)
@@ -41,13 +42,6 @@ class FileDomain(Domain):
         #: A :class:`dolfin.Measure` for the cell subdomains.
         self._dx = dolfin.Measure("dx")[self.cell_ids]
 
-        # Define the subdomain for the turbine site. The default value should
-        # only be changed for smeared turbine representations.
         domains = dolfin.CellFunction("size_t", self.mesh)
         domains.set_all(1)
-
-        # The measure used to integrate the turbine friction.
-        self._site_dx = dolfin.Measure("dx")[domains]
-
-        self._generate_site_dx()
-        self._generate_site_vertices()
+        self._site_dx = dolfin.Measure("dx")[domains]  # The measure used to integrate
