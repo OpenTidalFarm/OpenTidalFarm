@@ -37,12 +37,6 @@ class TestConfigurations(object):
                                site_y_end=site_y_start+site_y,
                                turbine=turbine)
 
-        # GEORGE: Test fails with this layout which ensures turbines are fully
-        # within the turbine site (i.e. are placed 0.5*diameter from the edge).
-        # farm.add_regular_turbine_layout(num_x=2, num_y=2)
-
-        # GEORGE: Test passes with this layout. Turbine positions are only 10m
-        # apart from the layout above.
         for x_r in numpy.linspace(site_x_start, site_x_start + site_x, 2):
             for y_r in numpy.linspace(site_y_start, site_y_start + site_y, 2):
                 farm.add_turbine((float(x_r), float(y_r)))
@@ -90,7 +84,7 @@ class TestConfigurations(object):
         border_y = basin_y/10
 
         # Create a farm and deploy some turbines
-        turbine = BumpTurbine(diameter=20., friction=1.0,
+        turbine = BumpTurbine(diameter=20., friction=0.2,
                               controls=Controls(position=True, friction=True))
 
         # Create a farm and deploy some turbines
@@ -101,9 +95,8 @@ class TestConfigurations(object):
                                site_y_end=basin_y-border_y,
                                turbine=turbine)
 
-        # for pos in [(50.0, 50.0), (50.0, 450.0), (450.0, 50.0), (450.0, 450.0)]:
-        #     farm.add_turbine(pos)
-        farm.add_regular_turbine_layout(num_x=2, num_y=2)
+        for pos in [(50.0, 50.0), (50.0, 450.0), (450.0, 50.0), (450.0, 450.0)]:
+            farm.add_turbine(pos)
 
         options["output_turbine_power"] = False
 
@@ -142,4 +135,6 @@ class TestConfigurations(object):
         minconv = helpers.test_gradient_array(model.__call__, model.derivative,
                                               m0, seed=seed,
                                               perturbation_direction=p)
+
+        print minconv
         assert minconv > 1.85
