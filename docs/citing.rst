@@ -25,3 +25,10 @@ For the automatic adjoint generation used by OpenTidalFarm, please cite:
   *Automated derivation of the adjoint of high-level transient finite element programs*,
   SIAM Journal on Scientific Computing 35.4, pp. C369-C393. `doi:10.1137/120873558 <http://dx.doi.org/10.1137/120873558>`__. `arXiv:1204.5577 <http://arxiv.org/abs/1204.5577>`__ [cs.MS].
   [`PDF <http://dolfin-adjoint.org/_static/dolfin_adjoint.pdf>`__].
+ 
+For work on global optimisation of turbine locations through the use of a hybrid global-local optimisation schemes and wake models pease see:
+
+* **GL Barnett, SW Funke, MD Piggott (2014)**.                                                                                                                                                                                            
+  *Hybrid global-local optimisation algorithms for the layout design of tidal turbine arrays*,
+  submitted. `arXiv:1410.2476 <http://xxx.tau.ac.il/abs/1410.2476v1>`__ [math.OC]
+  [`PDF <http://arxiv.org/pdf/1410.2476v1>`__].
