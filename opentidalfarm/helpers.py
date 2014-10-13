@@ -125,16 +125,15 @@ def test_gradient_array(J, dJ, x, seed=0.01, perturbation_direction=None,
 
 
 class StateWriter:
-    def __init__(self, config, optimisation_iteration, callback=None):
+    def __init__(self, config, output_dir, optimisation_iteration, mesh, callback=None):
         self.timestep = 0
         self.config = config
+        self.output_dir = output_dir
         self.optimisation_iteration = optimisation_iteration
         self.u_out, self.p_out = self.output_files(
             config.finite_element.func_name)
-        self.M_u_out, self.v_out, self.u_out_state = self.u_output_projector(
-            config.function_space)
-        self.M_p_out, self.q_out, self.p_out_state = self.p_output_projector(
-            config.function_space)
+        self.M_u_out, self.v_out, self.u_out_state = self.u_output_projector(mesh)
+        self.M_p_out, self.q_out, self.p_out_state = self.p_output_projector(mesh)
         self.callback = callback
 
     def write(self, state):
@@ -155,9 +154,9 @@ class StateWriter:
 
         self.timestep += 1
 
-    def u_output_projector(self, W):
+    def u_output_projector(self, mesh):
         # Projection operator for output.
-        Output_V = VectorFunctionSpace(W.mesh(), 'CG', 1, dim=2)
+        Output_V = VectorFunctionSpace(mesh, 'CG', 1, dim=2)
 
         u_out = TrialFunction(Output_V)
         v_out = TestFunction(Output_V)
@@ -167,9 +166,9 @@ class StateWriter:
 
         return M_out, v_out, out_state
 
-    def p_output_projector(self, W):
+    def p_output_projector(self, mesh):
         # Projection operator for output.
-        Output_V = FunctionSpace(W.mesh(), 'CG', 1)
+        Output_V = FunctionSpace(mesh, 'CG', 1)
 
         u_out = TrialFunction(Output_V)
         v_out = TestFunction(Output_V)
@@ -182,12 +181,11 @@ class StateWriter:
     def output_files(self, basename):
 
         # Output file
-        u_out = File(self.config.params['base_path'] + os.path.sep +
-                     "iter_" + str(self.optimisation_iteration) + "/" +
-                     basename + "_u.pvd", "compressed")
-        p_out = File(self.config.params['base_path'] + os.path.sep +
-                     "iter_" + str(self.optimisation_iteration) + "/" +
-                     basename + "_p.pvd", "compressed")
+        u_out = File(os.path.join(self.output_dir, 
+          "iter_{}".format(self.optimisation_iteration), basename + "_u.pvd"), "compressed")
+        p_out = File(os.path.join(self.output_dir,
+                     "iter_{}".format(self.optimisation_iteration),
+                     basename + "_p.pvd"), "compressed")
 
         return u_out, p_out
 

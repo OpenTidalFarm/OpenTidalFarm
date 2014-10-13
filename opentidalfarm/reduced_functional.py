@@ -77,13 +77,11 @@ class ReducedFunctional(dolfin_adjoint.ReducedFunctionalNumPy):
         # Caching variables that store which controls the last forward run was performed
         self.last_m = None
         if self.solver.parameters.dump_period > 0:
-            turbine_filename = solver_parameters.output_dir + os.path.sep + \
-                               "turbines.pvd"
+            turbine_filename = os.path.join(solver.parameters.output_dir, "turbines.pvd")
             self.turbine_file = File(turbine_filename, "compressed")
 
             if self._solver_params.output_turbine_power:
-                power_filename = solver_parameters.output_dir + os.path.sep + \
-                                 "power.pvd"
+                power_filename = os.path.join(solver.parameters.output_dir, "power.pvd")
                 self.power_file = File(power_filename, "compressed")
 
         self.parameter = [TurbineFarmParameter(self._farm)]
@@ -99,7 +97,7 @@ class ReducedFunctional(dolfin_adjoint.ReducedFunctionalNumPy):
 
         # Load checkpoints from file
         if self.parameters.load_checkpoints:
-            self.load_checkpoints()
+            self._load_checkpoint()
 
 
     @staticmethod
@@ -125,9 +123,9 @@ class ReducedFunctional(dolfin_adjoint.ReducedFunctionalNumPy):
 
         # Output power
         if self.solver.parameters.dump_period > 0:
-            if self._farm.params['output_turbine_power']:
+            if self._solver_params.output_turbine_power:
                 turbines = self._farm.turbine_cache.cache["turbine_field"]
-                power = self.functional(self._farm).power(solver.current_state, turbines)
+                power = self.functional(self._farm, self._problem_params.rho).power(self.solver.current_state, turbines)
                 self.power_file << project(power,
                                            self._farm.turbine_function_space,
                                            annotate=False)
@@ -241,15 +239,15 @@ class ReducedFunctional(dolfin_adjoint.ReducedFunctionalNumPy):
 
     def _save_checkpoint(self):
         ''' Checkpoint the reduced functional from which can be used to restart the turbine optimisation. '''
-        base_filename = self.params.checkpoints_basefilename
-        base_path = os.path.join(self.params["base_path"], base_filename)
+        base_filename = self.parameters.checkpoints_basefilename
+        base_path = os.path.join(self._solver_params.output_dir, base_filename)
         self._compute_functional_mem.save_checkpoint(base_path + "_fwd.dat")
         self._compute_gradient_mem.save_checkpoint(base_path + "_adj.dat")
 
     def _load_checkpoint(self):
         ''' Checkpoint the reduceduced functional from which can be used to restart the turbine optimisation. '''
-        base_filename = self.params.checkpoints_basefilename
-        base_path = os.path.join(self._farm.params["base_path"], base_filename)
+        base_filename = self.parameters.checkpoints_basefilename
+        base_path = os.path.join(self._solver_params.output_dir, base_filename)
         self._compute_functional_mem.load_checkpoint(base_path + "_fwd.dat")
         self._compute_gradient_mem.load_checkpoint(base_path + "_adj.dat")
 
@@ -335,10 +333,10 @@ class ReducedFunctional(dolfin_adjoint.ReducedFunctionalNumPy):
                         self.scale)
                 log(INFO, "Set automatic scaling factor to %e." % self._automatic_scaling_factor)
 
-    def __call__(self, m):
+    def __call__(self, m, annotate=True):
         ''' Interface function for dolfin_adjoint.ReducedFunctional '''
 
-        return self.evaluate(m)
+        return self.evaluate(m, annotate=annotate)
 
     def derivative(self, m_array, forget=True, **kwargs):
         ''' Computes the first derivative of the functional with respect to its

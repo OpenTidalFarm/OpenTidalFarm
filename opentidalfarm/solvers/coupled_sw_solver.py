@@ -151,6 +151,8 @@ CoupledSWSolverParameters."
         V, H = self.problem.parameters.finite_element(self.mesh)
         self.function_space = MixedFunctionSpace([V, H])
 
+        self.forward_solve_no = 0
+
 
     @staticmethod
     def default_parameters():
@@ -427,7 +429,8 @@ CoupledSWSolverParameters."
 
         if solver_params.dump_period > 0:
 
-            writer = StateWriter(farm, optimisation_iteration=farm.optimisation_iteration)
+            writer = StateWriter(problem_params, solver_params.output_dir, 
+                optimisation_iteration=self.forward_solve_no, mesh=self.mesh)
             if type(self.problem) == SWProblem:
                 log(INFO, "Writing state to disk...")
                 writer.write(state)
@@ -511,5 +514,7 @@ CoupledSWSolverParameters."
                    "tf": tf,
                    "state": state,
                    "is_final": self._finished(t, finish_time)})
+
+        self.forward_solve_no += 1
 
         log(INFO, "End of time loop.")
