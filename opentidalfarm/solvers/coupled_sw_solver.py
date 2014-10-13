@@ -380,7 +380,7 @@ CoupledSWSolverParameters."
             if "Discontinuous" in str(self.function_space.split()[0]):
                 raise NotImplementedError("The viscosity term for \
                     discontinuous elements is not supported.")
-            D_mid = viscosity * inner(grad(u_mid), grad(v)) * dx
+            D_mid = viscosity * inner(2*sym(grad(u_mid)), grad(v)) * dx
 
         # Create the final form
         G_mid = C_mid + Ct_mid + R_mid

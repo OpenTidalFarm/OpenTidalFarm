@@ -73,7 +73,7 @@ class TestMultiSteadyState(object):
         solver_params = CoupledSWSolver.default_parameters()
         solver_params.cache_forward_state = True
         solver_params.dump_period = -1
-        solver_params.dolfin_solver = {"newton_solver": {"relative_tolerance": 1e-15}}
+        solver_params.dolfin_solver["newton_solver"]["relative_tolerance"] = 1e-15
         solver = CoupledSWSolver(problem, solver_params)
 
         functional = PowerFunctional
