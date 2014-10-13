@@ -1,6 +1,6 @@
 ''' This test checks the correct implemetation of the turbine derivative terms.
     For that, we apply the Taylor remainder test on functional J(u, m) =
-    <turbine_friction(m), turbine_friction(m)>, where m contains the turbine
+    <friction(m), friction(m)>, where m contains the turbine
     positions and the friction magnitude.
 '''
 
@@ -10,13 +10,17 @@ from dolfin import log, INFO, ERROR
 
 class TestTurbineDerivatives(object):
     def default_farm(self, domain):
+        turbine = BumpTurbine(diameter=300., friction=12.0,
+                              controls=Controls(position=True, friction=True))
+
         # Create turbine farm
-        farm = TidalFarm(domain)
-        farm.params["turbine_pos"] = [[1000., 500.], [1600, 300], [2500, 700]]
-        farm.params["turbine_friction"] = 12.0 * numpy.random.rand(
-            len(farm.params["turbine_pos"]))
-        farm.params["turbine_x"] = 200
-        farm.params["turbine_y"] = 400
+        farm = Farm(domain, turbine)
+
+        for location in [(1000.,500.), (1600.,300.), (2500.,700.)]:
+          farm.add_turbine(location)
+
+        farm._parameters["friction"] = 12.0*numpy.random.rand(
+            len(farm._parameters["position"]))
         return farm
 
 
@@ -24,12 +28,17 @@ class TestTurbineDerivatives(object):
         adj_reset()
 
         # Change the control variables to the farm parameters
-        farm.params["turbine_friction"] = m[:len(farm.params["turbine_friction"])]
-        mp = m[len(farm.params["turbine_friction"]):]
-        farm.params["turbine_pos"] = numpy.reshape(mp, (-1, 2))
+        farm._parameters["friction"] = m[:len(
+            farm._parameters["friction"])]
+
+        mp = m[len(farm._parameters["friction"]):]
+        farm._parameters["position"] = numpy.reshape(mp, (-1, 2))
 
         # Set up the turbine friction field using the provided control variable
-        turbines = Turbines(farm.turbine_function_space, farm.params)
+        turbines = TurbineFunction(farm,
+                                   farm._turbine_function_space,
+                                   farm.turbine_specification)
+
         tf = turbines()
         # The functional of interest is simply the l2 norm of the turbine field
         v = tf.vector()
@@ -38,16 +47,16 @@ class TestTurbineDerivatives(object):
         if not forward_only:
             dj = []
             # Compute the derivatives with respect to the turbine friction
-            for n in range(len(farm.params["turbine_friction"])):
-                tfd = turbines(derivative_index_selector=n,
-                               derivative_var_selector='turbine_friction')
+            for n in range(len(farm._parameters["friction"])):
+                tfd = turbines(derivative_index=n,
+                               derivative_var='friction')
                 dj.append(2 * v.inner(tfd.vector()))
 
             # Compute the derivatives with respect to the turbine position
-            for n in range(len(farm.params["turbine_pos"])):
-                for var in ('turbine_pos_x', 'turbine_pos_y'):
-                    tfd = turbines(derivative_index_selector=n,
-                                   derivative_var_selector=var)
+            for n in range(len(farm._parameters["position"])):
+                for var in ('position_x', 'position_y'):
+                    tfd = turbines(derivative_index=n,
+                                   derivative_var=var)
                     dj.append(2 * v.inner(tfd.vector()))
             dj = numpy.array(dj)
 
@@ -62,6 +71,9 @@ class TestTurbineDerivatives(object):
         ny = 10
         domain = RectangularDomain(0, 0, 3000, 1000, nx, ny)
         farm = self.default_farm(domain)
+
+
+        print farm._parameters
 
         eta0 = 2.0
         k = pi/3000.
@@ -80,7 +92,7 @@ class TestTurbineDerivatives(object):
 
         functional = PowerFunctional
         rf_params = ReducedFunctionalParameters()
-        m0 = farm.control_array()
+        m0 = farm.control_array
 
         j = lambda m, forward_only = False: self.j_and_dj(problem, farm, m, forward_only)[0]
         dj = lambda m, forget: self.j_and_dj(problem, farm, m, forward_only=False)[1]
