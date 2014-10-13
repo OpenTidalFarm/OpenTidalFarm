@@ -64,7 +64,7 @@ class TestFrictionOptimisation(object):
         minconv = helpers.test_gradient_array(rf.evaluate, rf.derivative, m0,
                                               seed=0.001,
                                               perturbation_direction=p)
-        assert minconv > 1.98
+        assert minconv > 1.96
 
         bounds = [0, 100]
         maximize(rf, bounds=bounds, method="SLSQP", scale=1e-3)
