@@ -115,7 +115,7 @@ class RectangularFarm(Farm):
 
 
     def site_boundary_constraints(self):
-        """Returns the site bounrady constraints for a rectangular site.
+        """Returns the site boundary constraints for a rectangular site.
 
         These constraints ensure that the turbine positions remain within the
         turbine site during optimisation.
