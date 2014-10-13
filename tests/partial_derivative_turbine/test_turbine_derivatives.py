@@ -27,9 +27,9 @@ class TestTurbineDerivatives(object):
     def j_and_dj(self, problem, farm, m, forward_only=None):
         adj_reset()
 
+        # Update the farm parameters.
         # Change the control variables to the farm parameters
-        farm._parameters["friction"] = m[:len(
-            farm._parameters["friction"])]
+        farm._parameters["friction"] = m[:len(farm._parameters["friction"])]
 
         mp = m[len(farm._parameters["friction"]):]
         farm._parameters["position"] = numpy.reshape(mp, (-1, 2))
@@ -47,14 +47,14 @@ class TestTurbineDerivatives(object):
         if not forward_only:
             dj = []
             # Compute the derivatives with respect to the turbine friction
-            for n in range(len(farm._parameters["friction"])):
+            for n in xrange(len(farm._parameters["friction"])):
                 tfd = turbines(derivative_index=n,
-                               derivative_var='friction')
+                               derivative_var="turbine_friction")
                 dj.append(2 * v.inner(tfd.vector()))
 
             # Compute the derivatives with respect to the turbine position
-            for n in range(len(farm._parameters["position"])):
-                for var in ('position_x', 'position_y'):
+            for n in xrange(len(farm._parameters["position"])):
+                for var in ("turbine_pos_x", "turbine_pos_y"):
                     tfd = turbines(derivative_index=n,
                                    derivative_var=var)
                     dj.append(2 * v.inner(tfd.vector()))
