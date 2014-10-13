@@ -31,7 +31,7 @@ class TurbineFunction(object):
             else:
                 friction = params["friction"][timestep]
         else:
-            position = params["position"]
+            position = [params["position"][derivative_index]]
             if timestep is None:
                 friction = [params["friction"][derivative_index]]
             else:
