@@ -318,3 +318,81 @@ def get_distance_function(config, domains):
     dolfin.solve(a == L, sol, bc)
 
     return sol
+
+class ConvexSiteConstraint(InequalityConstraint):
+    def __init__(self, config, vertices):
+        self.config = config
+
+        V = numpy.array(vertices)
+        assert len(V.shape) == 2
+        assert V.shape[1] == 2
+
+        nvertices = V.shape[0]
+
+        # algorithm taken from vert2con.m
+        c = numpy.sum(V, axis=0)/float(nvertices)
+        V = V - numpy.tile(c, (nvertices, 1))
+        A = numpy.nan * numpy.zeros((nvertices, 2))
+        for i in range(nvertices):
+            j = (i + 1) % nvertices
+            F = V[[i, j], :]
+            ones = numpy.ones(2)
+            A[i, :] = numpy.linalg.solve(F, ones)
+
+        b = numpy.ones(nvertices) + numpy.dot(A, c)
+
+        self.A = A
+        self.b = b
+        self.nvertices = nvertices
+
+        # The region inside is defined by Ax <= b.
+        # So, to make something that should be >= 0,
+        # our function is b - A*x.
+
+    def length(self):
+        return len(self.config.params['turbine_pos']) * self.nvertices
+
+    def output_workspace(self):
+        return numpy.array([0]*self.length())
+
+    def function(self, m):
+        ieqcons = []
+        if len(self.config.params['controls']) == 2:
+        # If the controls consists of the the friction and the positions, then we need to first extract the position part
+            assert(len(m) % 3 == 0)
+            m_pos = m[len(m) / 3:]
+        else:
+            m_pos = m
+
+        for i in range(len(m_pos) / 2):
+            pos = numpy.array([m_pos[2 * i], m_pos[2 * i + 1]])
+            c = self.b - numpy.dot(self.A, pos)
+            ieqcons = ieqcons + list(c)
+
+        arr = numpy.array(ieqcons)
+        if any(arr < 0) and MPI.rank(mpi_comm_world()) == 0:
+          log(INFO, "Convex site position constraints (should be >= 0): %s" % arr)
+        return arr
+
+    def jacobian(self, m):
+        ieqcons = []
+        if len(self.config.params['controls']) == 2:
+            # If the controls consists of the the friction and the positions, then we need to first extract the position part
+            assert(len(m) % 3 == 0)
+            m_pos = m[len(m) / 3:]
+            mf_len = len(m_pos) / 2
+        else:
+            m_pos = m
+            mf_len = 0
+
+        for i in range(len(m_pos) / 2):
+            pos = numpy.array([m_pos[2 * i], m_pos[2 * i + 1]])
+            for constraint in range(self.nvertices):
+                d = -self.A[constraint, :]
+                prime = numpy.zeros(len(m))
+                prime[mf_len + 2 * i] = d[0]
+                prime[mf_len + 2 * i + 1] = d[1]
+                ieqcons.append(prime)
+
+        arr = numpy.array(ieqcons)
+        return arr
