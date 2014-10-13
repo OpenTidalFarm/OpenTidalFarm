@@ -25,8 +25,7 @@ class TestMinimalDistanceConstraint(object):
 
         assert minconv > 1.99
 
-        ieq = generate_site_constraints(farm, [[0, 0], [10, 0], [10, 10]],
-                                        penalty_factor=1)
+        ieq = ConvexPolygonSiteConstraint(farm, [[0, 0], [10, 0], [10, 10]])
 
         # Only test the correctness of the first inequality constraint for
         # simplicity.

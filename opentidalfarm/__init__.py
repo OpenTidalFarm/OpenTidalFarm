@@ -24,9 +24,9 @@ from tidal import TidalForcing, BathymetryDepthExpression
 
 from optimisation_helpers import friction_constraints, \
     get_domain_constraints, \
-    position_constraints, generate_site_constraints, \
+    position_constraints, \
     get_distance_function, \
-    PolygonSiteConstraints, DomainRestrictionConstraints
+    ConvexPolygonSiteConstraint, DomainRestrictionConstraints
 from reduced_functional import ReducedFunctional, ReducedFunctionalParameters
 from boundary_conditions import BoundaryConditionSet
 from turbine_function import TurbineFunction

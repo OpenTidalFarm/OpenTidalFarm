@@ -42,90 +42,6 @@ def friction_constraints(config, lb=0.0, ub=None):
     return n * [Constant(lb)], n * [Constant(ub)]
 
 
-class PolygonSiteConstraints(InequalityConstraint):
-    def __init__(self, farm, vertices, penalty_factor=1e3, slack_eps=0):
-        self.farm = farm
-        self.vertices = vertices
-        self.penalty_factor = penalty_factor
-        self.slack_eps = slack_eps
-
-    def length(self):
-        m_pos = self.farm.turbine_cache["position"]
-        nconstraints = len(m_pos) * len(self.vertices)
-        return nconstraints
-
-    def function(self, m):
-        ieqcons = []
-        controlled_by = self.farm.turbine_specification.controls
-        if (controlled_by.position and
-            (controlled_by.friction or controlled_by.dynamic_friction)):
-            # If the controls consists of the the friction and the positions,
-            # then we need to first extract the position part.
-            assert(len(m) % 3 == 0)
-            m_pos = m[len(m) / 3:]
-        else:
-            m_pos = m
-
-        for i in xrange(len(m_pos) / 2):
-            for p in xrange(len(self.vertices)):
-                # x1 and x2 are the two points that describe one of the sites
-                # edge.
-                x1 = numpy.array(self.vertices[p])
-                x2 = numpy.array(self.vertices[(p + 1) % len(self.vertices)])
-                c = x2 - x1
-                # Normal vector of c.
-                n = [c[1], -c[0]]
-
-                # The inequality for this edge is: g(x) := n^T.(x1-x) >= 0
-                x = m_pos[2 * i:2 * i + 2]
-                ieqcons.append(self.penalty_factor*
-                               (numpy.dot(n,x1-x)+self.slack_eps))
-
-        return numpy.array(ieqcons)
-
-    def jacobian(self, m):
-        ieqcons = []
-        controlled_by = self.farm.turbine_specification.controls
-        if (controlled_by.position and
-            (controlled_by.friction or controlled_by.dynamic_friction)):
-            # If the controls consists of the the friction and the positions,
-            # then we need to first extract the position part.
-            assert(len(m) % 3 == 0)
-            m_pos = m[len(m) / 3:]
-            mf_len = len(m_pos) / 2
-        else:
-            mf_len = 0
-            m_pos = m
-
-        for i in xrange(len(m_pos) / 2):
-            for p in xrange(len(self.vertices)):
-                # x1 and x2 are the two points that describe one of the sites
-                # edge.
-                x1 = numpy.array(self.vertices[p])
-                x2 = numpy.array(self.vertices[(p + 1) % len(self.vertices)])
-                c = x2 - x1
-                # Normal vector of c
-                n = [c[1], -c[0]]
-
-                prime_ieqcons = numpy.zeros(len(m))
-
-                # The control vector contains the friction coefficients first,
-                # so we need to shift here.
-                prime_ieqcons[mf_len + 2 * i] = -self.penalty_factor * n[0]
-                prime_ieqcons[mf_len + 2 * i + 1] = -self.penalty_factor * n[1]
-
-                ieqcons.append(prime_ieqcons)
-        return numpy.array(ieqcons)
-
-def generate_site_constraints(farm, vertices, penalty_factor=1e3, slack_eps=0):
-    ''' Generates the inequality constraints for generic polygon constraints.
-    The parameter polygon must be a list of point coordinates that describes the
-    site edges in anti-clockwise order.  The argument slack_eps is used to
-    increase or decrease the site by an epsilon value - this is useful to avoid
-    rounding problems. '''
-
-    return PolygonSiteConstraints(farm, vertices, penalty_factor, slack_eps)
-
 class DomainRestrictionConstraints(InequalityConstraint):
     def __init__(self, config, feasible_area, attraction_center):
         '''
@@ -240,9 +156,13 @@ def get_distance_function(config, domains):
 
     return sol
 
-class ConvexSiteConstraint(InequalityConstraint):
-    def __init__(self, config, vertices):
-        self.config = config
+class ConvexPolygonSiteConstraint(InequalityConstraint):
+    ''' Generates the inequality constraints for generic polygon constraints.
+    The parameter polygon must be a list of point coordinates that describes the
+    site edges in anti-clockwise order. '''
+
+    def __init__(self, farm, vertices):
+        self.farm = farm
 
         V = numpy.array(vertices)
         assert len(V.shape) == 2
@@ -278,7 +198,9 @@ class ConvexSiteConstraint(InequalityConstraint):
 
     def function(self, m):
         ieqcons = []
-        if len(self.config.params['controls']) == 2:
+        controlled_by = self.farm.turbine_specification.controls
+        if (controlled_by.position and
+            (controlled_by.friction or controlled_by.dynamic_friction)):
         # If the controls consists of the the friction and the positions, then we need to first extract the position part
             assert(len(m) % 3 == 0)
             m_pos = m[len(m) / 3:]
@@ -291,13 +213,15 @@ class ConvexSiteConstraint(InequalityConstraint):
             ieqcons = ieqcons + list(c)
 
         arr = numpy.array(ieqcons)
-        if any(arr < 0) and MPI.rank(mpi_comm_world()) == 0:
+        if any(arr < 0):
           log(INFO, "Convex site position constraints (should be >= 0): %s" % arr)
         return arr
 
     def jacobian(self, m):
         ieqcons = []
-        if len(self.config.params['controls']) == 2:
+        controlled_by = self.farm.turbine_specification.controls
+        if (controlled_by.position and
+            (controlled_by.friction or controlled_by.dynamic_friction)):
             # If the controls consists of the the friction and the positions, then we need to first extract the position part
             assert(len(m) % 3 == 0)
             m_pos = m[len(m) / 3:]
