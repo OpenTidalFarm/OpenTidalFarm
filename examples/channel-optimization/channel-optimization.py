@@ -82,15 +82,17 @@ rf = ReducedFunctional(functional, solver, rf_params)
 
 print rf_params
 
-# Finally, we can define the constraints for the controls and start the
+# Now we can define the constraints for the controls and start the
 # optimisation.
 
 lb, ub = farm.site_boundary_constraints()
 ineq = farm.minimum_distance_constraints()
 
-f_opt = maximize(rf, bounds=[lb, ub], method="L-BFGS-B", options={'maxiter':10})
+f_opt = maximize(rf, bounds=[lb, ub], method="L-BFGS-B", options={'maxiter': 10})
 
+# Finally we can print and plot the optimised turbine positions
 print "Optimised turbine positions: ", f_opt
 
 # FIXME: This should be accessible more easily
-plot(farm.turbine_cache.cache["turbine_field"], interactive=True)
+plot(farm.turbine_cache["turbine_field"])
+interactive()
