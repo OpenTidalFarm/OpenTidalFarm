@@ -36,7 +36,7 @@ class ReducedFunctionalParameters(helpers.FrozenClass):
     checkpoints_basefilename = "checkpoints"
 
 
-class ReducedFunctional(dolfin_adjoint.ReducedFunctionalNumPy):
+class ReducedFunctional(ReducedFunctionalNumPy):
     """
     Following parameters are expected:
 
@@ -370,10 +370,6 @@ class ReducedFunctional(dolfin_adjoint.ReducedFunctionalNumPy):
         parameters by solving the adjoint equations. """
 
         return self._dj(m_array, forget)
-
-
-class ReducedFunctionalNumPy(ReducedFunctional):
-    pass
 
 
 class TurbineFarmParameter(object):
