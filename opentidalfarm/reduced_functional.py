@@ -70,7 +70,6 @@ class ReducedFunctional(ReducedFunctionalNumPy):
         self._solver_params = solver.parameters
         self._problem_params = solver.problem.parameters
         self._time_integrator = None
-        self._optimisation_iteration = 0
         self._automatic_scaling_factor = None
 
         # Caching variables that store which controls the last forward run was
@@ -123,12 +122,10 @@ class ReducedFunctional(ReducedFunctionalNumPy):
 
         # Output power
         if self.solver.parameters.dump_period > 0:
-
-            if self._solver_params.output_turbine_power:
+            if self.solver.parameters.output_turbine_power:
                 turbines = self._farm.turbine_cache.cache["turbine_field"]
                 power = self.functional(self._farm, self._problem_params.rho
                     ).power(self.solver.current_state, turbines)
-
                 self.power_file << project(power,
                                            self._farm.turbine_function_space,
                                            annotate=False)
@@ -302,7 +299,7 @@ class ReducedFunctional(ReducedFunctionalNumPy):
         # to store the turbine friction field and to increment the optimisation
         # iteration counter.
         if optimisation_iteration:
-            self._optimisation_iteration += 1
+            self.solver.optimisation_iteration += 1
             if self.solver.parameters.dump_period > 0:
                 # A cache hit skips the turbine cache update, so we need
                 # trigger it manually.

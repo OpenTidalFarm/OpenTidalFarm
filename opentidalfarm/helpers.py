@@ -125,15 +125,16 @@ def test_gradient_array(J, dJ, x, seed=0.01, perturbation_direction=None,
 
 
 class StateWriter:
-    def __init__(self, config, output_dir, optimisation_iteration, mesh, callback=None):
+    def __init__(self, solver, callback=None):
         self.timestep = 0
-        self.config = config
-        self.output_dir = output_dir
-        self.optimisation_iteration = optimisation_iteration
+        self.solver = solver
+        self.optimisation_iteration = solver.optimisation_iteration
         self.u_out, self.p_out = self.output_files(
-            config.finite_element.func_name)
-        self.M_u_out, self.v_out, self.u_out_state = self.u_output_projector(mesh)
-        self.M_p_out, self.q_out, self.p_out_state = self.p_output_projector(mesh)
+            solver.problem.parameters.finite_element.func_name)
+        self.M_u_out, self.v_out, self.u_out_state = self.u_output_projector(
+            solver.function_space.mesh())
+        self.M_p_out, self.q_out, self.p_out_state = self.p_output_projector(
+            solver.function_space.mesh())
         self.callback = callback
 
     def write(self, state):
@@ -179,14 +180,13 @@ class StateWriter:
         return M_out, v_out, out_state
 
     def output_files(self, basename):
-
         # Output file
-        u_out = File(os.path.join(self.output_dir,
-          "iter_{}".format(self.optimisation_iteration), basename + "_u.pvd"), "compressed")
-        p_out = File(os.path.join(self.output_dir,
-                     "iter_{}".format(self.optimisation_iteration),
-                     basename + "_p.pvd"), "compressed")
-
+        u_out = File(os.path.join(self.solver.parameters.output_dir,
+            "iter_{}".format(self.optimisation_iteration), basename + "_u.pvd"),
+            "compressed")
+        p_out = File(os.path.join(self.solver.parameters.output_dir,
+            "iter_{}".format(self.optimisation_iteration), basename + "_p.pvd"),
+            "compressed")
         return u_out, p_out
 
 
