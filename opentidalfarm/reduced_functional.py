@@ -122,8 +122,9 @@ class ReducedFunctional(ReducedFunctionalNumPy):
 
         # Output power
         if self.solver.parameters.dump_period > 0:
-            if self.solver.parameters.output_turbine_power:
-                turbines = self._farm.turbine_cache.cache["turbine_field"]
+
+            if self._solver_params.output_turbine_power:
+                turbines = self._farm.turbine_cache["turbine_field"]
                 power = self.functional(self._farm, self._problem_params.rho
                     ).power(self.solver.current_state, turbines)
                 self.power_file << project(power,
@@ -251,7 +252,7 @@ class ReducedFunctional(ReducedFunctionalNumPy):
     def _save_checkpoint(self):
         """ Checkpoint the reduced functional from which can be used to restart
         the turbine optimisation. """
-        base_filename = self.params.checkpoints_basefilename
+        base_filename = self.parameters.checkpoints_basefilename
         base_path = os.path.join(self._solver_params.output_dir, base_filename)
         self._compute_functional_mem.save_checkpoint(base_path + "_fwd.dat")
         self._compute_gradient_mem.save_checkpoint(base_path + "_adj.dat")
@@ -259,7 +260,7 @@ class ReducedFunctional(ReducedFunctionalNumPy):
     def _load_checkpoint(self):
         """ Checkpoint the reduceduced functional from which can be used to
         restart the turbine optimisation. """
-        base_filename = self.params.checkpoints_basefilename
+        base_filename = self.parameters.checkpoints_basefilename
         base_path = os.path.join(self._solver_params.output_dir, base_filename)
         self._compute_functional_mem.load_checkpoint(base_path + "_fwd.dat")
         self._compute_gradient_mem.load_checkpoint(base_path + "_adj.dat")
