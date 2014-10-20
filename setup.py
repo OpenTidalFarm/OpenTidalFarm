@@ -8,5 +8,8 @@ setup(name='OpenTidalFarm',
                   'opentidalfarm.problems',
                   'opentidalfarm.solvers',
                   'opentidalfarm.domains',
-                  'opentidalfarm.functionals'] 
+                  'opentidalfarm.functionals',
+                  'opentidalfarm.farm',
+                  'opentidalfarm.options',
+                  'opentidalfarm.turbines']
       )
