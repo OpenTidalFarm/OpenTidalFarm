@@ -1,6 +1,19 @@
 Turbine farms
 =============
 
-.. automodule:: opentidalfarm.tidal_farm
+.. automodule:: opentidalfarm.farm
     :members:
 
+Create a rectangular farm
+-------------------------
+
+.. automodule:: opentidalfarm.farm.rectangular_farm
+    :members:
+    :undoc-members:
+
+Create a base farm
+------------------
+
+.. automodule:: opentidalfarm.farm.base_farm
+    :members:
+    :undoc-members:
