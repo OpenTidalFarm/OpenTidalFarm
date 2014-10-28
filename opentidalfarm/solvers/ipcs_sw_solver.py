@@ -157,7 +157,7 @@ class IPCSSWSolver(Solver):
         111.1 (1994): 111-154.
     """
 
-    def __init__(self, problem, parameters, config=None):
+    def __init__(self, problem, parameters):
 
         if not isinstance(problem, (SWProblem, SteadySWProblem)):
             raise TypeError, "problem must be of type Problem"
@@ -168,7 +168,7 @@ IPCSSWSolverParameters."
 
         self.problem = problem
         self.parameters = parameters
-        self.config = config
+        self.optimisation_iteration = 0
 
         # If cache_for_nonlinear_initial_guess is true, then we store all
         # intermediate state variables in this dictionary to be used for the

@@ -2,9 +2,9 @@
 class Solver(object):
     """A generic implementation of a solver."""
 
-    def __init__(self, config):
+    def __init__(self):
         """ Initialises the solver. """
-        self.config = config
+        pass
 
     @classmethod
     def default_parameters(cls):

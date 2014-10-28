@@ -18,6 +18,7 @@ class DummySolver(Solver):
         self.parameters = DummySolverParameters()
         self.tf = None
         self.current_state = None
+        self.optimisation_iteration = 0
 
     def setup(self, W, turbine_field, annotate=True):
         (v, q) = TestFunctions(W)
