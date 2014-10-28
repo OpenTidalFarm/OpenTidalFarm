@@ -255,7 +255,7 @@ CoupledSWSolverParameters."
         f_u = problem_params.f_u
 
         u_dg = "Discontinuous" in str(self.function_space.split()[0])
-        
+
         # Define test functions
         v, q = TestFunctions(self.function_space)
 
