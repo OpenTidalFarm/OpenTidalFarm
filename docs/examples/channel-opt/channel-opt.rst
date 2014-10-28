@@ -48,13 +48,19 @@ This layout will be the starting guess for the optimization.
 
 ::
 
-  farm = TidalFarm(domain)
-  farm.set_site_dimensions(x0=160, x1=480,
-                           y0=80, y1=240)
-  farm.params['controls'] = ['turbine_pos']
-  farm.params['turbine_x'] = 20
-  farm.params['turbine_y'] = 20
-  deploy_turbines(farm, nx=8, ny=4)
+  # Before adding turbines we must specify the type of turbines used in the array.
+  # Here we used the default BumpTurbine which defaults to being controlled by
+  # just position. The diameter and friction are set. The minimum distance between
+  # turbines if not specified is set to 1.5*diameter.
+  turbine = BumpTurbine(diameter=20.0, friction=12.0)
+  
+  # A rectangular farm is defined using the domain and the site dimensions.
+  farm = RectangularFarm(domain, site_x_start=160, site_x_end=480,
+                         site_y_start=80, site_y_end=240, turbine=turbine)
+  
+  # Turbines are then added to the site in a regular grid layout.
+  farm.add_regular_turbine_layout(num_x=8, num_y=4)
+  
   prob_params.tidal_farm = farm
   
 Now we can create the shallow water problem
@@ -88,16 +94,19 @@ As always, we can print all options of the :class:`ReducedFunctional` with:
 
   print rf_params
   
-Finally, we can define the constraints for the controls and start the
+Now we can define the constraints for the controls and start the
 optimisation.
 
 ::
 
-  lb, ub = position_constraints(farm)
-  ineq = get_minimum_distance_constraint_func(farm)
-  f_opt = maximize(rf, bounds=[lb, ub], method="L-BFGS-B", options={'maxiter':10})
+  lb, ub = farm.site_boundary_constraints()
+  ineq = farm.minimum_distance_constraints()
   
+  f_opt = maximize(rf, bounds=[lb, ub], method="L-BFGS-B", options={'maxiter': 10})
+  
+  # Finally we can print and plot the optimised turbine positions
   print "Optimised turbine positions: ", f_opt
   
   # FIXME: This should be accessible more easily
-  plot(farm.turbine_cache.cache["turbine_field"], interactive=True)
+  plot(farm.turbine_cache["turbine_field"])
+  interactive()
