@@ -36,7 +36,7 @@ class ReducedFunctionalParameters(helpers.FrozenClass):
     checkpoints_basefilename = "checkpoints"
 
 
-class ReducedFunctional(ReducedFunctionalNumPy):
+class ReducedFunctional(dolfin_adjoint.ReducedFunctionalNumPy):
     """
     Following parameters are expected:
 
