@@ -23,15 +23,15 @@ For work on the addition of cost models into the OpenTidalFarm framework please 
 
 * **DM Culley, SW Funke, SC Kramer, MD Piggott (2014)**.
   *Integration of cost modelling within the micro-siting design optimisation of tidal turbine arrays*,
-  submitted. `doi:10.6084 <http://dx.doi.org/10.6084/m9.figshare.1219374>`
-  [`PDF <http://files.figshare.com/1758939/cable_routing_submitted.pdf >`].
+  submitted. `doi:10.6084/m9.figshare.1219374 <http://dx.doi.org/10.6084/m9.figshare.1219374>`__.
+  [`PDF <http://files.figshare.com/1758939/cable_routing_submitted.pdf>`__].
 
 For a general piece on the role OpenTidalFarm might play in the overall tidal turbine array design process see:
 
 * **DM Culley, SW Funke, SC Kramer, MD Piggott (2014)**.
   *A hierarchy of approaches for the optimal design of tidal turbine farms*,
-  submitted. `doi:10.684/m9.figshare.1219375 <http://dx.doi.org/10.6084/m9.figshare.1219375>`
-  [`PDF <http://files.figshare.com/1758940/hierarchy_of_modelling_CULLEY.pdf>`].
+  submitted. `doi:10.684/m9.figshare.1219375 <http://dx.doi.org/10.6084/m9.figshare.1219375>`__.
+  [`PDF <http://files.figshare.com/1758940/hierarchy_of_modelling_CULLEY.pdf>`__].
 
 Finally, OpenTidalFarm relies on external tools to achieve its goals, such as:
 
