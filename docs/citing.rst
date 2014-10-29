@@ -50,3 +50,17 @@ Finally, OpenTidalFarm relies on external tools to achieve its goals, such as:
   *Automated derivation of the adjoint of high-level transient finite element programs*,
   SIAM Journal on Scientific Computing 35.4, pp. C369-C393. `doi:10.1137/120873558 <http://dx.doi.org/10.1137/120873558>`__. `arXiv:1204.5577 <http://arxiv.org/abs/1204.5577>`__ [cs.MS].
   [`PDF <http://dolfin-adjoint.org/_static/dolfin_adjoint.pdf>`__].
+
+
+Posters and presentations
+-------------------------
+
+OpenTidalFarm at the International Conference on Ocean Energy, Halifax, Nova Scotia, 2014:
+
+Poster presentation:
+
+* **DM Culley, SW Funke, SC Kramer, MD Piggott (2014)**.
+  *Resource assessment of tidal sites through array optimisation of the number of turbines and the micro-siting design*,
+  `doi:10.6084/m9.figshare.1219384 <http://dx.doi.org/10.6084/m9.figshare.1219384>`__.
+  [`PDF <http://files.figshare.com/1769904/ICOE_final_poster_01.pdf>`__].
+
