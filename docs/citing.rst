@@ -62,5 +62,5 @@ Poster presentation:
 * **DM Culley, SW Funke, SC Kramer, MD Piggott (2014)**.
   *Resource assessment of tidal sites through array optimisation of the number of turbines and the micro-siting design*,
   `doi:10.6084/m9.figshare.1219384 <http://dx.doi.org/10.6084/m9.figshare.1219384>`__.
-  [`PDF <http://files.figshare.com/1769904/ICOE_final_poster_01.pdf>`__].
+  [`PDF <http://files.figshare.com/1771609/poster_submitted_reduced_size.pdf>`__].
 
