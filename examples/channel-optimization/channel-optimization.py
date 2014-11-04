@@ -5,8 +5,8 @@
 #
 # .. py:currentmodule:: opentidalfarm
 #
-# Layout optimization of 32 tidal turbines in a channel
-# =====================================================
+# Farm layout optimization
+# ========================
 #
 #
 # Introduction
@@ -89,7 +89,10 @@ print rf_params
 lb, ub = farm.site_boundary_constraints()
 ineq = farm.minimum_distance_constraints()
 
-f_opt = maximize(rf, bounds=[lb, ub], method="L-BFGS-B", options={'maxiter': 10})
+# Here, we limit the optimisation to 30 iterations to limit the run time. You
+# should increase this for production purposes.
+
+f_opt = maximize(rf, bounds=[lb, ub], method="L-BFGS-B", options={'maxiter': 30})
 
 # Finally we can print and plot the optimised turbine positions
 print "Optimised turbine positions: ", f_opt
