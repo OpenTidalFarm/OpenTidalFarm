@@ -8,10 +8,36 @@
 # Farm layout optimization
 # ========================
 #
+# This demo aims to optimise the position of 32 turbines in a channel in order
+# to maximise their energy extraction. While the domain in this demo is quite
+# simple, the concept applies also to more complex, realistic domains.
 #
-# Introduction
-# ************
+# The optimisation starts with a regular layout:
 #
+# .. image:: farm_init.png
+#     :scale: 30
+#
+#
+# In this configuration the flow speed with streamlines looks:
+#
+# .. image:: velocity_init.png
+#     :scale: 30
+#
+# and the power extraction by the farm (without taking losses into account) is 46 MW.
+#
+# The optimisation finishes after 92 iterations. The optimised farm layout is:
+#
+# .. image:: farm_opt.png
+#     :scale: 30
+#
+# and the associated flow speed with streamlines looks:
+#
+# .. image:: velocity_opt.png
+#     :scale: 30
+#
+#
+# The power production of the optimised layout is 80 MW. That is the
+# optimisation increased the power production by 74 %.
 
 # Implementation
 # **************
@@ -36,7 +62,7 @@ bcs.add_bc("u", Constant((0, 0)), facet_id=3, bctype="weak_dirichlet")
 prob_params = SteadySWProblem.default_parameters()
 prob_params.domain = domain
 prob_params.bcs = bcs
-prob_params.viscosity = Constant(3)
+prob_params.viscosity = Constant(2)
 prob_params.depth = Constant(50)
 prob_params.friction = Constant(0.0025)
 
@@ -64,14 +90,18 @@ prob_params.tidal_farm = farm
 problem = SteadySWProblem(prob_params)
 
 # Next we create a shallow water solver. Here we choose to solve the shallow
-# water equations in its fully coupled form:
+# water equations in its fully coupled form. We also set the dump period to 1 in
+# order to save the results of each optimisation iteration to disk.
 
 sol_params = CoupledSWSolver.default_parameters()
-sol_params.dump_period = -1
+sol_params.dump_period = 1
 solver = CoupledSWSolver(problem, sol_params)
 
 # Next we create a reduced functional, that is the functional considered as a
-# pure function of the control by implicitly solving the shallow water PDE.
+# pure function of the control by implicitly solving the shallow water PDE. For
+# that we need to specify the objective functional (the value that we want to
+# optimize), the control (the variables that we want to change), and our shallow
+# water solver.
 
 functional = PowerFunctional
 control = TurbineFarmControl(farm)
@@ -87,16 +117,27 @@ print rf_params
 # optimisation.
 
 lb, ub = farm.site_boundary_constraints()
-ineq = farm.minimum_distance_constraints()
+f_opt = maximize(rf, bounds=[lb, ub], method="L-BFGS-B", options={'maxiter': 100})
 
-# Here, we limit the optimisation to 30 iterations to limit the run time. You
-# should increase this for production purposes.
+# The example code can be found in ``examples/channel-optimization/`` in the
+# ``OpenTidalFarm`` source tree, and executed as follows:
 
-f_opt = maximize(rf, bounds=[lb, ub], method="L-BFGS-B", options={'maxiter': 30})
+# .. code-block:: bash
 
-# Finally we can print and plot the optimised turbine positions
-print "Optimised turbine positions: ", f_opt
+#   $ python channel-optimization.py
 
-# FIXME: This should be accessible more easily
-plot(farm.turbine_cache["turbine_field"])
-interactive()
+# You can speed up the calculation by using multiple cores (in this case 4) with:
+
+# .. code-block:: bash
+
+#   $ mpirun -n 4 python channel-optimization.py
+
+# During the optimization, OpenTidalFarm will create multiple files for
+# inspection:
+#
+# *  turbines.pvd: Stores the position and friction values of the turbines at
+#    each optimisation iteration.
+# *  iter_x: For each optimisation iteration x, the iter_x stores the associated
+#    velocity and pressure solution.
+# *  iterate.dat: A testfile that dumps the optimisation progress, e.g. number of
+#    iterations, function value, gradient norm, etc
