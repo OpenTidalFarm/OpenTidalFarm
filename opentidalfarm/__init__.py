@@ -27,7 +27,8 @@ from optimisation_helpers import friction_constraints, \
     position_constraints, \
     get_distance_function, \
     ConvexPolygonSiteConstraint, DomainRestrictionConstraints
-from reduced_functional import ReducedFunctional, ReducedFunctionalParameters
+from reduced_functional import ReducedFunctional, ReducedFunctionalParameters, \
+        TurbineFarmControl
 from boundary_conditions import BoundaryConditionSet
 from turbine_function import TurbineFunction
 
@@ -35,7 +36,8 @@ from turbine_function import TurbineFunction
 from options import options
 
 from dolfin import *
-from dolfin_adjoint import minimize, maximize, Function, solve
+from dolfin_adjoint import minimize, maximize, Function, solve, Control, \
+    Constant
 
 # We set the perturbation_direction with a constant seed, so that it is
 # consistent in a parallel environment.

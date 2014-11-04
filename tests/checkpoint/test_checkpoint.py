@@ -53,7 +53,10 @@ class TestCheckpoint(object):
         solver = DummySolver(problem)
         rf_params = ReducedFunctionalParameters()
         rf_params.automatic_scaling = False
-        rf = ReducedFunctional(PowerFunctional, solver, rf_params)
+
+        functional = PowerFunctional
+        control = TurbineFarmControl(farm)
+        rf = ReducedFunctional(functional, control, solver, rf_params)
         bounds = [0, 100]
 
         # First optimize without checkpoints

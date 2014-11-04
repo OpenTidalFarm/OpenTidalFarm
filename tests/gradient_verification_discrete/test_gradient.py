@@ -68,9 +68,10 @@ def model(controls, problem_params, sin_ic):
     solver = CoupledSWSolver(problem, solver_params)
 
     functional = PowerFunctional
+    control = TurbineFarmControl(farm)
     rf_params = ReducedFunctionalParameters()
     rf_params.automatic_scaling = False
-    rf = ReducedFunctional(functional, solver, rf_params)
+    rf = ReducedFunctional(functional, control, solver, rf_params)
     return rf
 
 class TestDiscreteTurbine(object):

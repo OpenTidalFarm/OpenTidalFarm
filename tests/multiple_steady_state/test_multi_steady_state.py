@@ -77,9 +77,10 @@ class TestMultiSteadyState(object):
         solver = CoupledSWSolver(problem, solver_params)
 
         functional = PowerFunctional
+        control = TurbineFarmControl(farm)
         rf_params = ReducedFunctionalParameters()
         rf_params.automatic_scaling = 5.
-        rf = ReducedFunctional(functional, solver, rf_params)
+        rf = ReducedFunctional(functional, control, solver, rf_params)
         m0 = farm.control_array
 
         p = numpy.random.rand(len(m0))

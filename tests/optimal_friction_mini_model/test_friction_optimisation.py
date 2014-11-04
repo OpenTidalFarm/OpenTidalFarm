@@ -51,11 +51,12 @@ class TestFrictionOptimisation(object):
         solver = DummySolver(problem)
 
         functional = PowerFunctional
+        control = TurbineFarmControl(problem.parameters.tidal_farm)
         farm = problem.parameters.tidal_farm
         rf_params = ReducedFunctionalParameters()
         rf_params.scale = 1e-3
         rf_params.automatic_scaling = False
-        rf = ReducedFunctional(functional, solver, rf_params)
+        rf = ReducedFunctional(functional, control, solver, rf_params)
         m0 = farm.control_array
         rf.evaluate(m0)
         rf.derivative(m0, forget=False)

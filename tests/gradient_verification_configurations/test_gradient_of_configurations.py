@@ -127,7 +127,7 @@ class TestConfigurations(object):
         rf_params = ReducedFunctionalParameters()
         rf_params.scale = 10**-6
         rf_params.automatic_scaling = False
-        model = ReducedFunctional(functional, solver, rf_params)
+        model = ReducedFunctional(functional, control, solver, rf_params)
         m0 = control.control_array
 
         p = numpy.random.rand(len(m0))

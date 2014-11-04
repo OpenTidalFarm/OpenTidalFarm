@@ -47,7 +47,7 @@ class ReducedFunctional(dolfin_adjoint.ReducedFunctionalNumPy):
     This class has a parameter attribute for further adjustments.
     """
 
-    def __init__(self, functional, solver, parameters):
+    def __init__(self, functional, control, solver, parameters):
         # For consistency with the dolfin-adjoint API.
         self.scale = parameters.scale
 
@@ -58,10 +58,6 @@ class ReducedFunctional(dolfin_adjoint.ReducedFunctionalNumPy):
         self.functional = functional
         if not PrototypeFunctional in functional.__bases__:
             raise ValueError, "invalid functional argument."
-
-        self._farm = solver.problem.parameters.tidal_farm
-        if self._farm is None:
-            raise ValueError, "The problem does not have a tidal farm."
 
         # Create the default parameters
         self.parameters = parameters
@@ -85,19 +81,15 @@ class ReducedFunctional(dolfin_adjoint.ReducedFunctionalNumPy):
 
         # dolfin-adjoint requires the ReducedFunctional to have a member
         # variable `parameter` which must be a list comprising an instance of a
-        # class (here, TurbineFarmParameter) which has a method named `data`
+        # class (here, TurbineFarmControl) which has a method named `data`
         # which returns a numpy.ndarray of the parameters used for optimisation,
         # e.g. the turbine frictions and positions.
-        self.parameter = [TurbineFarmParameter(self._farm)]
+        if not hasattr(control, "__getitem__"):
+            control = [control]
+        self.parameter = control
 
-        # For smeared turbine parametrisations we only want to store the
-        # hash of the control values into the pickle datastructure
-        use_hash_keys = self._farm.turbine_specification.smeared
-
-        self._compute_functional_mem = MemoizeMutable(self._compute_functional,
-                                                      use_hash_keys)
-        self._compute_gradient_mem = MemoizeMutable(self._compute_gradient,
-                                                    use_hash_keys)
+        self._compute_functional_mem = MemoizeMutable(self._compute_functional)
+        self._compute_gradient_mem = MemoizeMutable(self._compute_gradient)
 
         # Load checkpoints from file
         if self.parameters.load_checkpoints:
@@ -113,6 +105,7 @@ class ReducedFunctional(dolfin_adjoint.ReducedFunctionalNumPy):
 
     def _compute_gradient(self, m, forget=True):
         """ Compute the functional gradient for the turbine positions/frictions array """
+        farm = self.solver.problem.parameters.tidal_farm
 
         # If any of the parameters changed, the forward model needs to be re-run
         if numpy.any(m != self.last_m):
@@ -124,16 +117,16 @@ class ReducedFunctional(dolfin_adjoint.ReducedFunctionalNumPy):
         if self.solver.parameters.dump_period > 0:
 
             if self._solver_params.output_turbine_power:
-                turbines = self._farm.turbine_cache["turbine_field"]
-                power = self.functional(self._farm, self._problem_params.rho
+                turbines = farm.turbine_cache["turbine_field"]
+                power = self.functional(farm, self._problem_params.rho
                     ).power(self.solver.current_state, turbines)
                 self.power_file << project(power,
-                                           self._farm.turbine_function_space,
+                                           farm.turbine_function_space,
                                            annotate=False)
 
-        if self._farm.turbine_specification.controls.dynamic_friction:
+        if farm.turbine_specification.controls.dynamic_friction:
             parameters = []
-            for i in xrange(len(self._farm._parameters["friction"])):
+            for i in xrange(len(farm._parameters["friction"])):
                 parameters.append(
                     FunctionControl("turbine_friction_cache_t_%i" % i))
 
@@ -145,7 +138,7 @@ class ReducedFunctional(dolfin_adjoint.ReducedFunctionalNumPy):
 
         # Decide if we need to apply the chain rule to get the gradient of
         # interest.
-        if self._farm.turbine_specification.smeared:
+        if farm.turbine_specification.smeared:
             # We are looking for the gradient with respect to the friction
             dj = dolfin_adjoint.optimization.get_global(djdtf)
 
@@ -158,24 +151,24 @@ class ReducedFunctional(dolfin_adjoint.ReducedFunctionalNumPy):
             # In this particular case m = turbine_friction, J = \sum_t(ft)
             dj = []
 
-            if self._farm.turbine_specification.controls.friction:
+            if farm.turbine_specification.controls.friction:
                 # Compute the derivatives with respect to the turbine friction
-                for tfd in self._farm.turbine_cache["turbine_derivative_friction"]:
-                    self._farm.turbine_cache.update(self._farm)
+                for tfd in farm.turbine_cache["turbine_derivative_friction"]:
+                    farm.turbine_cache.update(farm)
                     dj.append(djdtf.vector().inner(tfd.vector()))
 
-            elif self._farm.turbine_specification.controls.dynamic_friction:
+            elif farm.turbine_specification.controls.dynamic_friction:
                 # Compute the derivatives with respect to the turbine friction
-                for djdtf_arr, t in zip(djdtf, self._farm.turbine_cache["turbine_derivative_friction"]):
+                for djdtf_arr, t in zip(djdtf, farm.turbine_cache["turbine_derivative_friction"]):
                     for tfd in t:
-                        self._farm.turbine_cache.update(self._farm)
+                        farm.turbine_cache.update(farm)
                         dj.append(djdtf_arr.vector().inner(tfd.vector()))
 
-            if self._farm.turbine_specification.controls.position:
+            if farm.turbine_specification.controls.position:
                 # Compute the derivatives with respect to the turbine position
-                for d in self._farm.turbine_cache["turbine_derivative_pos"]:
+                for d in farm.turbine_cache["turbine_derivative_pos"]:
                     for var in ('turbine_pos_x', 'turbine_pos_y'):
-                        self._farm.turbine_cache.update(self._farm)
+                        farm.turbine_cache.update(farm)
                         tfd = d[var]
                         dj.append(djdtf.vector().inner(tfd.vector()))
 
@@ -187,6 +180,7 @@ class ReducedFunctional(dolfin_adjoint.ReducedFunctionalNumPy):
         """ Compute the functional of interest for the turbine positions/frictions array """
         self.last_m = m
         self._update_turbine_farm(m)
+        farm = self.solver.problem.parameters.tidal_farm
 
         # Configure dolfin-adjoint
         adj_reset()
@@ -197,7 +191,7 @@ class ReducedFunctional(dolfin_adjoint.ReducedFunctionalNumPy):
         # interest.
         final_only = (not self.solver.problem._is_transient or
                       self._problem_params.functional_final_time_only)
-        functional = self.functional(self._farm, rho=self._problem_params.rho)
+        functional = self.functional(farm, rho=self._problem_params.rho)
         self.time_integrator = TimeIntegrator(self.solver.problem, functional,
                                               final_only)
 
@@ -225,28 +219,30 @@ class ReducedFunctional(dolfin_adjoint.ReducedFunctionalNumPy):
 
     def _update_turbine_farm(self, m):
         """ Update the turbine farm from the flattened parameter array m. """
-        if self._farm.turbine_specification.smeared:
-            self._farm._parameters["friction"] = m
+        farm = self.solver.problem.parameters.tidal_farm
+
+        if farm.turbine_specification.smeared:
+            farm._parameters["friction"] = m
 
         else:
-            controlled_by = self._farm.turbine_specification.controls
+            controlled_by = farm.turbine_specification.controls
             shift = 0
             if controlled_by.friction:
-                shift = len(self._farm._parameters["friction"])
-                self._farm._parameters["friction"] = m[:shift]
+                shift = len(farm._parameters["friction"])
+                farm._parameters["friction"] = m[:shift]
             elif controlled_by.dynamic_friction:
-                shift = len(numpy.reshape(self._farm._parameters["friction"],-1))
-                nb_turbines = len(self._farm._parameters["position"])
-                self._farm._parameters["friction"] = (
+                shift = len(numpy.reshape(farm._parameters["friction"],-1))
+                nb_turbines = len(farm._parameters["position"])
+                farm._parameters["friction"] = (
                     numpy.reshape(m[:shift], (-1, nb_turbines)).tolist())
 
             if controlled_by.position:
                 m_pos = m[shift:]
-                self._farm._parameters["position"] = (
+                farm._parameters["position"] = (
                     numpy.reshape(m_pos, (-1,2)).tolist())
 
         # Update the farm cache.
-        self._farm.turbine_cache.update(self._farm)
+        farm.turbine_cache.update(farm)
 
 
     def _save_checkpoint(self):
@@ -284,12 +280,12 @@ class ReducedFunctional(dolfin_adjoint.ReducedFunctionalNumPy):
                 # Computing dj will set the automatic scaling factor.
                 log(INFO, ("Computing derivative to determine the automatic "
                            "scaling factor"))
-                self._dj(m, forget=False, optimisation_iteration=False)
+                self._dj(m, forget=False, new_optimisation_iteration=False)
             return j*self.scale*self._automatic_scaling_factor
         else:
             return j*self.scale
 
-    def _dj(self, m, forget, optimisation_iteration=True):
+    def _dj(self, m, forget, new_optimisation_iteration=True):
         """ This memoised function returns the gradient of the functional for the parameter choice m. """
         log(INFO, 'Start evaluation of dj')
         timer = dolfin.Timer("dj evaluation")
@@ -299,22 +295,25 @@ class ReducedFunctional(dolfin_adjoint.ReducedFunctionalNumPy):
         # of each new optimisation iteration. Hence, this is the right moment
         # to store the turbine friction field and to increment the optimisation
         # iteration counter.
-        if optimisation_iteration:
+        if new_optimisation_iteration:
             self.solver.optimisation_iteration += 1
-            if self.solver.parameters.dump_period > 0:
+            farm = self.solver.problem.parameters.tidal_farm
+
+            if (self.solver.parameters.dump_period > 0 and
+                farm is not None):
                 # A cache hit skips the turbine cache update, so we need
                 # trigger it manually.
                 if self._compute_gradient_mem.has_cache(m, forget):
                     self._update_turbine_farm(m)
-                if self._farm.turbine_specification.controls.dynamic_friction:
+                if farm.turbine_specification.controls.dynamic_friction:
                     log(WARNING, ("Turbine VTU output not yet implemented for "
                                   " dynamic turbine control"))
                 else:
-                    self.turbine_file << self._farm.turbine_cache["turbine_field"]
+                    self.turbine_file << farm.turbine_cache["turbine_field"]
                     # Compute the total amount of friction due to turbines
-                    if self._farm.turbine_specification.smeared:
+                    if farm.turbine_specification.smeared:
                         log(INFO, "Total amount of friction: %f" %
-                            assemble(self._farm.turbine_cache["turbine_field"]*dx))
+                            assemble(farm.turbine_cache["turbine_field"]*dx))
 
         if self.parameters.save_checkpoints:
             self._save_checkpoint()
@@ -332,13 +331,14 @@ class ReducedFunctional(dolfin_adjoint.ReducedFunctionalNumPy):
         """ Compute the scaling factor if never done before. """
 
         if self._automatic_scaling_factor is None:
-            if not self._farm.turbine_specification.controls.position:
+            farm = self.solver.problem.parameters.tidal_farm
+            if not farm.turbine_specification.controls.position:
                 raise NotImplementedError("Automatic scaling only works if "
                                           "the turbine positions are control "
                                           "parameters")
 
-            if (self._farm.turbine_specification.controls.friction or
-                self._farm.turbine_specification.controls.dynamic_friction):
+            if (farm.turbine_specification.controls.friction or
+                farm.turbine_specification.controls.dynamic_friction):
                 assert(len(dj) % 3 == 0)
                 # Exclude the first third from the automatic scaling as it
                 # contains the friction coefficients.
@@ -352,7 +352,7 @@ class ReducedFunctional(dolfin_adjoint.ReducedFunctionalNumPy):
             else:
                 self._automatic_scaling_factor = abs(
                     self.parameters.automatic_scaling*
-                    self._farm.turbine_specification.diameter/
+                    farm.turbine_specification.diameter/
                     djl2/
                     self.scale)
                 log(INFO, "Set automatic scaling factor to %e." %
@@ -370,7 +370,7 @@ class ReducedFunctional(dolfin_adjoint.ReducedFunctionalNumPy):
         return self._dj(m_array, forget)
 
 
-class TurbineFarmParameter(object):
+class TurbineFarmControl(object):
     """This class is required to that the parameter set works with
     dolfin-adjoint."""
     def __init__(self, farm):
