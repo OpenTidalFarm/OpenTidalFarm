@@ -8,42 +8,47 @@
 # Farm layout optimization
 # ========================
 #
-# This demo aims to optimise the position of 32 turbines in a channel in order
-# to maximise their energy extraction. While the domain in this demo is quite
-# simple, the concept applies also to more complex, realistic domains.
+# This demo optimizes the position of 32 turbines in a channel. The goal of the
+# optimization is to maximise the farm's energy extraction. While the domain in
+# this demo is quite simple, the concept applies also to more complex, realistic
+# domains.
 #
-# The optimisation starts with a regular layout:
+# The optimisation is initialized with a regular layout of 32 turbines:
 #
 # .. image:: farm_init.png
 #     :scale: 30
 #
 #
-# In this configuration the flow speed with streamlines looks:
+# With this configuration, the flow speed with streamlines is:
 #
 # .. image:: velocity_init.png
 #     :scale: 30
 #
-# and the power extraction by the farm (without taking losses into account) is 46 MW.
+# The power extraction by the farm (without taking losses into account) is 46 MW.
 #
-# The optimisation finishes after 92 iterations. The optimised farm layout is:
+# The layout optimisation finishes after 92 iterations. The optimised farm layout is:
 #
 # .. image:: farm_opt.png
 #     :scale: 30
 #
-# and the associated flow speed with streamlines looks:
+# The optimization has arranged the turbines to "barrages" perpendicular to the
+# flow. Furthermore, it added small north and east barrages of turbines that
+# force the water to flow through the prependicular "barrages". The associated
+# flow speed with streamlines is:
 #
 # .. image:: velocity_opt.png
 #     :scale: 30
 #
 #
 # The power production of the optimised layout is 80 MW. That is the
-# optimisation increased the power production by 74 %.
+# optimisation increased the power production by 74 % compared to the initial
+# layout!
 
 # Implementation
 # **************
 #
 
-# The initial part of the program defines a steady state shallow water problem,
+# The first part of the program sets up a steady state shallow water problem,
 # and is nearly identical to the :ref:`channel_simulation` example:
 
 from opentidalfarm import *
@@ -132,12 +137,15 @@ f_opt = maximize(rf, bounds=[lb, ub], method="L-BFGS-B", options={'maxiter': 100
 
 #   $ mpirun -n 4 python channel-optimization.py
 
-# During the optimization, OpenTidalFarm will create multiple files for
+# During the optimization run, OpenTidalFarm creates multiple files for
 # inspection:
 #
 # *  turbines.pvd: Stores the position and friction values of the turbines at
 #    each optimisation iteration.
-# *  iter_x: For each optimisation iteration x, the iter_x stores the associated
-#    velocity and pressure solution.
+# *  iter_*: For each optimisation iteration X, the associated
+#    velocity and pressure solutions are stored in a directory named iter_X.
 # *  iterate.dat: A testfile that dumps the optimisation progress, e.g. number of
 #    iterations, function value, gradient norm, etc
+#
+# The pvd files can be opened with the open-source software
+# `Paraview <http://www.paraview.org>`_.
