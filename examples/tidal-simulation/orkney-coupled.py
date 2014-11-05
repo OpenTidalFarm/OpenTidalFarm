@@ -14,6 +14,15 @@
 #
 # This example demonstrates how OpenTidalFarm can be used for simulating the
 # tides in a realistic domain.
+#
+# This example requires some large data files, that must be downloaded
+# separately by calling in the source code directory:
+#
+# .. code-block:: bash
+#
+#    git submodule init
+#    git submodule update
+
 
 # Implementation
 # **************
@@ -37,10 +46,14 @@ utm_band = 'V'
 
 prob_params = SWProblem.default_parameters()
 
-# We load the mesh and boundary ids from file
+# We load the mesh in UTM coordinates, and boundary ids from file
 
 domain = FileDomain("../data/meshes/orkney/orkney_utm.xml")
 prob_params.domain = domain
+
+W = FunctionSpace(domain.mesh, "DG", 0)
+nu = Function(W)
+File("nu.xml") >> nu
 
 # The the mesh and boundary ids can be visualised with
 
@@ -54,7 +67,7 @@ eta_expr = TidalForcing(grid_file_name='../data/netcdf/gridES2008.nc',
                         ranges=((-4.0,0.0), (58.0,61.0)),
                         utm_zone=utm_zone,
                         utm_band=utm_band,
-                        initial_time=datetime.datetime(2001, 9, 18, 0),
+                        initial_time=datetime.datetime(2001, 9, 18, 10, 40),
                         constituents=['Q1', 'O1', 'P1', 'K1', 'N2', 'M2', 'S2', 'K2'])
 
 bcs = BoundaryConditionSet()
@@ -72,8 +85,8 @@ prob_params.bcs = bcs
 
 # Next we load the bathymetry from the NetCDF file.
 
-bathy_expr = BathymetryDepthExpression('../data/netcdf/bathymetry.nc', utm_zone=utm_zone,
-                                  utm_band=utm_band)
+bathy_expr = BathymetryDepthExpression('../data/netcdf/bathymetry.nc',
+        utm_zone=utm_zone, utm_band=utm_band, domain=domain.mesh)
 prob_params.depth = bathy_expr
 
 # The bathymetry can be visualised with
@@ -81,23 +94,23 @@ prob_params.depth = bathy_expr
 #plot(bathy_expr, mesh=domain.mesh, title="Bathymetry", interactive=True)
 
 # Equation settings
-prob_params.viscosity = Constant(1)
+prob_params.viscosity = nu
 prob_params.friction = Constant(0.0025)
 # Temporal settings
 prob_params.start_time = Constant(0)
 prob_params.finish_time = Constant(12.5*60*60)
-prob_params.dt = Constant(60)
+prob_params.dt = Constant(5*60)
 # The initial condition consists of three components: u_x, u_y and eta
 # Note that we do not set all components to zero, as some components of the
 # Jacobian of the quadratic friction term is non-differentiable.
-prob_params.initial_condition = Constant((DOLFIN_EPS, 0, 0))
+prob_params.initial_condition = Constant((DOLFIN_EPS, 0, 1))
+#prob_params.finite_element = finite_elements.p1dgp2
 # Create the shallow water problem
 problem = SWProblem(prob_params)
 
 # Next we create a shallow water solver. Here we choose to solve the shallow
 # water equations in its fully coupled form:
 sol_params = CoupledSWSolver.default_parameters()
-sol_params.dump_period = -1
 solver = CoupledSWSolver(problem, sol_params)
 
 # Now we are ready to solve
