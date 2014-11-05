@@ -114,6 +114,40 @@ class RectangularFarm(Farm):
             num_x, num_y, x_start, x_end, y_start, y_end)
 
 
+    def add_staggered_turbine_layout(self, num_x, num_y, x_start=None,
+                                   x_end=None, y_start=None, y_end=None):
+        """Adds a rectangular, staggered turbine layout to the farm.
+
+        A rectangular turbine layout with turbines evenly spread out in each
+        direction across the given rectangular site.
+
+        :param turbine: Defines the type of turbine to add to the farm.
+        :type turbine: Turbine object.
+        :param num_x: The number of turbines placed in the x-direction.
+        :type num_x: int
+        :param num_y: The number of turbines placed in the y-direction (will be one less on every second row).
+        :type num_y: int
+        :param x_start: The minimum x-coordinate of the site.
+        :type x_start: float
+        :param x_end: The maximum x-coordinate of the site.
+        :type x_end: float
+        :param y_start: The minimum y-coordinate of the site.
+        :type y_start: float
+        :param y_end: The maximum y-coordinate of the site.
+        :type y_end: float
+        :raises: ValueError
+
+        """
+        # Get default parameters:
+        if x_start is None: x_start = self.site_x_start
+        if y_start is None: y_start = self.site_y_start
+        if x_end is None: x_end = self.site_x_end
+        if y_end is None: y_end = self.site_y_end
+
+        return super(RectangularFarm, self)._staggered_turbine_layout(
+            num_x, num_y, x_start, x_end, y_start, y_end)
+
+
     def site_boundary_constraints(self):
         """Returns the site boundary constraints for a rectangular site.
 

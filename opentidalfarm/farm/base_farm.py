@@ -103,6 +103,65 @@ class BaseFarm(object):
         dolfin.info("Turbine added at (%.2f, %.2f)." % (coordinates[0],
                                                         coordinates[1]))
 
+    def _staggered_turbine_layout(self, num_x, num_y, site_x_start, site_x_end,
+                                site_y_start, site_y_end):
+        """Adds a staggered, rectangular turbine layout to the farm.
+
+        A rectangular turbine layout with turbines evenly spread out in each
+        direction across the domain.
+
+        :param turbine: Defines the type of turbine to add to the farm.
+        :type turbine: Turbine object.
+        :param num_x: The number of turbines placed in the x-direction.
+        :type num_x: int
+        :param num_y: The number of turbines placed in the y-direction (will be one less in each second row).
+        :type num_y: int
+        :param site_x_start: The minimum x-coordinate of the site.
+        :type site_x_start: float
+        :param site_x_end: The maximum x-coordinate of the site.
+        :type site_x_end: float
+        :param site_y_start: The minimum y-coordinate of the site.
+        :type site_y_start: float
+        :param site_y_end: The maximum y-coordinate of the site.
+        :type site_y_end: float
+        :raises: ValueError
+
+        """
+        if self._turbine_specification is None:
+            raise ValueError("A turbine specification has not been set.")
+
+        turbine = self._turbine_specification
+
+        # Generate the start and end points in the desired layout.
+        start_x = site_x_start + turbine.radius
+        start_y = site_y_start + turbine.radius
+        end_x = site_x_end - turbine.radius
+        end_y = site_y_end - turbine.radius
+        # Check that we can fit enough turbines in each direction.
+        too_many_x = turbine.diameter*num_x > end_x-start_x
+        too_many_y = turbine.diameter*num_y > end_y-start_y
+        # Raise exceptions if too many turbines are placed in a certain
+        # direction.
+        if too_many_x and too_many_y:
+            raise ValueError("Too many turbines in the x and y direction")
+        elif too_many_x:
+            raise ValueError("Too many turbines in the x direction")
+        elif too_many_y:
+            raise ValueError("Too many turbines in the y direction")
+
+        # Iterate over the x and y positions and append them to the turbine
+        # list.
+        for i, x in enumerate(numpy.linspace(start_x, end_x, num_x)):
+            if i % 2 == 0:
+                for y in numpy.linspace(start_y, end_y, num_y):
+                    self.add_turbine((x,y))
+            else:
+                ys = numpy.linspace(start_y, end_y, num_y)
+                for i in range(len(ys)-1):
+                    self.add_turbine((x, ys[i] + 0.5*(ys[i+1]-ys[i])))
+
+        dolfin.info("Added %i turbines to the site in an %ix%i rectangular "
+                    "array." % (num_x*num_y, num_x, num_y))
 
     def _regular_turbine_layout(self, num_x, num_y, site_x_start, site_x_end,
                                 site_y_start, site_y_end):
@@ -149,15 +208,15 @@ class BaseFarm(object):
             raise ValueError("Too many turbines in the x direction")
         elif too_many_y:
             raise ValueError("Too many turbines in the y direction")
+
         # Iterate over the x and y positions and append them to the turbine
         # list.
-        else:
-            for x in numpy.linspace(start_x, end_x, num_x):
-                for y in numpy.linspace(start_y, end_y, num_y):
-                    self.add_turbine((x,y))
+        for x in numpy.linspace(start_x, end_x, num_x):
+            for y in numpy.linspace(start_y, end_y, num_y):
+                self.add_turbine((x,y))
 
-            dolfin.info("Added %i turbines to the site in an %ix%i rectangular "
-                        "array." % (num_x*num_y, num_x, num_y))
+        dolfin.info("Added %i turbines to the site in an %ix%i rectangular "
+                    "array." % (num_x*num_y, num_x, num_y))
 
 
     def set_turbine_positions(self, positions):
