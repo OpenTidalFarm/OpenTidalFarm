@@ -15,6 +15,13 @@
 # This example demonstrates how OpenTidalFarm can be used for simulating the
 # tides in a realistic domain.
 #
+# We will be simulating the tides in the Pentland Firth, Scotland for 12.5
+# hours, starting at 14:40 am on the 18.9.2001. The flow result at the end of
+# the simuation looks like:
+#
+# .. image:: flow.png
+#     :scale: 80
+#
 # This example requires some large data files, that must be downloaded
 # separately by calling in the source code directory:
 #

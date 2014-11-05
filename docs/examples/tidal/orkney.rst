@@ -15,6 +15,13 @@ Introduction
 This example demonstrates how OpenTidalFarm can be used for simulating the
 tides in a realistic domain.
 
+We will be simulating the tides in the Pentland Firth, Scotland for 12.5
+hours, starting at 14:40 am on the 18.9.2001. The flow result at the end of
+the simuation looks like:
+
+.. image:: flow.png
+    :scale: 80
+
 This example requires some large data files, that must be downloaded
 separately by calling in the source code directory:
 
@@ -123,33 +130,25 @@ The bathymetry can be visualised with
   # The initial condition consists of three components: u_x, u_y and eta
   # Note that we do not set all components to zero, as some components of the
   # Jacobian of the quadratic friction term is non-differentiable.
-  prob_params.initial_condition_u = Constant((0, 0))
-  prob_params.initial_condition_eta = Constant(1)
+  prob_params.initial_condition = Constant((DOLFIN_EPS, 0, 1))
   #prob_params.finite_element = finite_elements.p1dgp2
-  
-  # Now we can create the shallow water problem
+  # Create the shallow water problem
   problem = SWProblem(prob_params)
   
   # Next we create a shallow water solver. Here we choose to solve the shallow
   # water equations in its fully coupled form:
-  sol_params = IPCSSWSolver.default_parameters()
-  sol_params.les_model = True
-  sol_params.les_parameters["smagorinsky_coefficient"] = 1e-1
-  solver = IPCSSWSolver(problem, sol_params)
+  sol_params = CoupledSWSolver.default_parameters()
+  solver = CoupledSWSolver(problem, sol_params)
   
 Now we are ready to solve
 
 ::
 
-  f_eta = File("results-ipcs/eta.pvd")
-  f_u = File("results-ipcs/u.pvd")
-  f_eddy = File("results-ipcs/eddy.pvd")
+  f_state = File("results/state.pvd")
   
   timer = Timer('')
   for s in solver.solve():
       t = float(s["time"])
       log(INFO, "Computed solution at time %f in %f s." % (t, timer.stop()))
-      f_eta << (s["eta"], t)
-      f_u << (s["u"], t)
-      f_eddy << (s["eddy_viscosity"], t)
+      f_state << (s["state"], t)
       timer.start()
