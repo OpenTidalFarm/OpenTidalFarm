@@ -8,12 +8,15 @@
 Farm layout optimization
 ========================
 
-This demo optimizes the position of 32 turbines in a channel. The goal of the
-optimization is to maximise the farm's energy extraction. While the domain in
-this demo is quite simple, the concept applies also to more complex, realistic
-domains.
+This demo optimizes the position of 32 turbines in a tidal farm within a channel.
+The goal of the optimization is to maximise the farm's energy extraction. The
+rectangular channel is 640 m x 320 m large. The farm area is in the channel
+center and 320 m x 160 m large.
 
-The optimisation is initialized with a regular layout of 32 turbines:
+Even though the domain in this demo is quite simple, the concept applies to
+more complex, realistic scenarios.
+
+The farm layout optimisation is initialized with a regular layout of 32 turbines:
 
 .. image:: farm_init.png
     :scale: 30
@@ -26,7 +29,7 @@ With this configuration, the flow speed with streamlines is:
 
 The power extraction by the farm (without taking losses into account) is 46 MW.
 
-The layout optimisation finishes after 92 iterations. The optimised farm layout is:
+The optimisation finishes after 92 iterations. The optimised farm layout is:
 
 .. image:: farm_opt.png
     :scale: 30

@@ -15,6 +15,15 @@ Introduction
 This example demonstrates how OpenTidalFarm can be used for simulating the
 tides in a realistic domain.
 
+This example requires some large data files, that must be downloaded
+separately by calling in the source code directory:
+
+.. code-block:: bash
+
+   git submodule init
+   git submodule update
+
+
 Implementation
 **************
 
@@ -45,7 +54,7 @@ conditions
 
   prob_params = SWProblem.default_parameters()
   
-We load the mesh and boundary ids from file
+We load the mesh in UTM coordinates, and its boundary ids from file
 
 ::
 
@@ -72,8 +81,8 @@ the :class:`TidalForcing` class.
                           constituents=['Q1', 'O1', 'P1', 'K1', 'N2', 'M2', 'S2', 'K2'])
   
   bcs = BoundaryConditionSet()
-  bcs.add_bc("eta", eta_expr, facet_id=1)
-  bcs.add_bc("eta", eta_expr, facet_id=2)
+  bcs.add_bc("eta", eta_expr, facet_id=1, bctype="strong_dirichlet")
+  bcs.add_bc("eta", eta_expr, facet_id=2, bctype="strong_dirichlet")
   
 The free-slip boundary conditions are a special case. The boundary condition
 type `weak_dirichlet` enforces the boundary value *only* in the *normal*
@@ -101,7 +110,7 @@ The bathymetry can be visualised with
   #plot(bathy_expr, mesh=domain.mesh, title="Bathymetry", interactive=True)
   
   # Equation settings
-  prob_params.viscosity = Constant(1)
+  prob_params.viscosity = Constant(1500)
   prob_params.friction = Constant(0.0025)
   # Temporal settings
   prob_params.start_time = Constant(0)
@@ -120,7 +129,7 @@ The bathymetry can be visualised with
   # Next we create a shallow water solver. Here we choose to solve the shallow
   # water equations in its fully coupled form:
   sol_params = IPCSSWSolver.default_parameters()
-  sol_params.les_model = True
+  sol_params.les_model = False
   sol_params.les_parameters["smagorinsky_coefficient"] = 1.
   solver = IPCSSWSolver(problem, sol_params)
   
@@ -138,5 +147,5 @@ Now we are ready to solve
       log(INFO, "Computed solution at time %f in %f s." % (t, timer.stop()))
       f_eta << (s["eta"], t)
       f_u << (s["u"], t)
-      f_eddy << (s["eddy_viscosity"], t)
+      #f_eddy << (s["eddy_viscosity"], t)
       timer.start()
