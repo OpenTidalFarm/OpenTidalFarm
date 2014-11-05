@@ -35,7 +35,7 @@ class IPCSSWSolverParameters(FrozenClass):
 
     :ivar les_model: De-/Activates the LES model. Default: True
     :ivar les_model_parameters: A dictionary with parameters for the LES model.
-        Default: {'smagorinsky_coefficient': 1.}
+        Default: {'smagorinsky_coefficient': 1e-2}
 
     """
 
@@ -43,7 +43,7 @@ class IPCSSWSolverParameters(FrozenClass):
 
     # Large eddy simulation
     les_model = True
-    les_parameters = {'smagorinsky_coefficient': 1.}
+    les_parameters = {'smagorinsky_coefficient': 1e-2}
 
     # Performance settings
     quadrature_degree = -1
