@@ -267,6 +267,14 @@ latex_logo = "media/opentidalfarm_logo.eps"
 # If false, no module index is generated.
 #latex_domain_indices = True
 
+_PREAMBLE = r"""
+\usepackage{amsmath}
+\usepackage{amssymb}
+"""
+latex_elements = {
+   'preamble': _PREAMBLE,
+   # other settings go here
+}
 
 # -- Options for manual page output ---------------------------------------
 
