@@ -31,6 +31,9 @@ from reduced_functional import ReducedFunctional, ReducedFunctionalParameters
 from boundary_conditions import BoundaryConditionSet
 from turbine_function import TurbineFunction
 
+# Wake models and combination models
+from opentidalfarm.wake import *
+
 # Option management instance.
 from options import options
 
@@ -41,3 +44,4 @@ from dolfin_adjoint import minimize, maximize, Function, solve
 # consistent in a parallel environment.
 import numpy
 numpy.random.seed(21)
+
