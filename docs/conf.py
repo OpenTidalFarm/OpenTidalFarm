@@ -270,6 +270,7 @@ latex_logo = "media/opentidalfarm_logo.eps"
 _PREAMBLE = r"""
 \usepackage{amsmath}
 \usepackage{amssymb}
+\setcounter{tocdepth}{2}
 """
 latex_elements = {
    'preamble': _PREAMBLE,
