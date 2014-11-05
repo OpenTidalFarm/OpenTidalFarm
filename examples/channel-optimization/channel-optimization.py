@@ -16,22 +16,38 @@
 # Even though the domain in this demo is quite simple, the concept applies to
 # more complex, realistic scenarios.
 #
+#
 # The farm layout optimisation is initialized with a regular layout of 32 turbines:
 #
-# .. image:: farm_init.png
+# .. image:: 32turbines_regular.png
 #     :scale: 30
 #
 #
 # With this configuration, the flow speed with streamlines is:
 #
-# .. image:: velocity_init.png
+# .. image:: 32turbines_regular_vel.png
 #     :scale: 30
 #
-# The power extraction by the farm (without taking losses into account) is 46 MW.
+# The power extraction by the farm (without taking losses into account) is 46
+# MW. This is 1.4 MW per turbine (32 turbines) which is unsatisfactory
+# considering that placing a single turbine extracts 2.9 MW.
 #
-# The optimisation finishes after 92 iterations. The optimised farm layout is:
+# We can also try a staggered layout:
 #
-# .. image:: farm_opt.png
+# .. image:: 32turbines_staggered.png
+#     :scale: 30
+#
+# With this configuration, the flow speed with streamlines is:
+#
+# .. image:: 32turbines_staggered_vel.png
+#     :scale: 30
+#
+# The power extraction by the farm (without taking losses into account) is 64 MW
+# or 2.0 MW per turbine. Thats better but still non-optimal.
+#
+# Applying the layout optimisation in OpenTidalFarm finishes after 92 iterations. The optimised farm layout is:
+#
+# .. image:: 32turbines_opt.png
 #     :scale: 30
 #
 # The optimization has arranged the turbines to "barrages" perpendicular to the
@@ -39,13 +55,13 @@
 # force the water to flow through the prependicular "barrages". The associated
 # flow speed with streamlines is:
 #
-# .. image:: velocity_opt.png
+# .. image:: 32turbines_opt_vel.png
 #     :scale: 30
 #
 #
-# The power production of the optimised layout is 80 MW. That is the
-# optimisation increased the power production by 74 % compared to the initial
-# layout!
+# The power production of the optimised layout is 80 MW, or 2.5 MW per turbine.
+# That is the optimisation increased the power production by 74 % compared to
+# the initial layout!
 
 # Implementation
 # **************
