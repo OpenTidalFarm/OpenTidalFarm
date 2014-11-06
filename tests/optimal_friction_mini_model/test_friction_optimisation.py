@@ -63,7 +63,7 @@ class TestFrictionOptimisation(object):
 
         p = numpy.random.rand(len(m0))
         minconv = helpers.test_gradient_array(rf.evaluate, rf.derivative, m0,
-                                              seed=0.001,
+                                              seed=0.004,
                                               perturbation_direction=p)
         assert minconv > 1.96
 
