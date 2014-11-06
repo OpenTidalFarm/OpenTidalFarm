@@ -11,13 +11,12 @@ class ReducedFunctionalPrototype(ReducedFunctionalNumPy):
 
     .. note::
 
-        __init__, reduced_functional and derivative must be overloaded
+        reduced_functional and derivative must be overloaded
 
     """
 
     def __init__(self):
-        raise NotImplementedError('ReducedFunctionalPrototype.__init__ needs \
-                to be overloaded')
+        pass
 
     def __call__(self, m, **kwargs):
         """ Interface function for dolfin_adjoint.ReducedFunctional, this
@@ -53,6 +52,7 @@ class ReducedFunctionalPrototype(ReducedFunctionalNumPy):
 
     def __add__(self, other):
         """ Method to add reduced functionals together"""
+        assert self.parameter == other.parameter
         return CombinedReducedFunctional([self, other])
 
     def __sub__(self, other):
@@ -82,6 +82,9 @@ class CombinedReducedFunctional(ReducedFunctionalPrototype):
             assert isinstance(reducedfunctional, ReducedFunctionalNumPy)
         self.reduced_functional_list = reduced_functional_list
 
+		# We know that all controls are the same, so just pick the first one
+        self.parameter = reduced_functional_list[0].parameter
+
     def __call__(self, m):
         """Return the functional value for the parameter choice"""
         combined_reduced_functional = sum([reducedfunctional.__call__(m) for \
@@ -105,6 +108,7 @@ class ScaledReducedFunctional(ReducedFunctionalPrototype):
         assert isinstance(scaling_factor, int) or isinstance(scaling_factor, float)
         self.reducedfunctional = reducedfunctional
         self.scaling_factor = scaling_factor
+        self.parameter = reducedfunctional.parameter
 
     def __call__(self, m):
         """Return the functional value for the parameter choice"""
@@ -125,6 +129,18 @@ class ScaledReducedFunctional(ReducedFunctionalPrototype):
 ################################## T E S T ##################################
 #############################################################################
 
+class TestReducedFunctional(ReducedFunctionalPrototype):
+
+    def __init__(self, control):
+        if not hasattr(control, "__getitem__"):
+            control = [control]
+        self.parameter = control
+
+    def evaluate(self, m, **kwargs):
+        return sum(m)
+
+    def derivative(self, m, **kwargs):
+        return m
 
 if __name__ == '__main__':
     import numpy as np
