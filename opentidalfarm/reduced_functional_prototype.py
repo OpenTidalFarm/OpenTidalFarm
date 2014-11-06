@@ -22,7 +22,7 @@ class ReducedFunctionalPrototype(ReducedFunctionalNumPy):
         """ Interface function for dolfin_adjoint.ReducedFunctional, this
         method does not require overloading, it redirects to the \
         reduced_functional method to preserve naming consitency. It then \
-        returns the functional value for the parameter choice
+        returns the functional value for the control choice
 
         :param m: The control values
         :type m: numpy array
@@ -31,7 +31,7 @@ class ReducedFunctionalPrototype(ReducedFunctionalNumPy):
 
     def evaluate(self, m, **kwargs):
         """ This should be overloaded and should return the functional value \
-        for the parameter choice
+        for the control choice
 
         :param m: The control values
         :type m: numpy array
@@ -42,7 +42,7 @@ class ReducedFunctionalPrototype(ReducedFunctionalNumPy):
     def derivative(self, m, **kwargs):
         """ Interface function for dolfin_adjoint.ReducedFunctional, this
         method should return the derivative of the functional value with
-        respect to the parameter choice
+        respect to the control choice
 
         :param m: The control values
         :type m: numpy array.
@@ -52,7 +52,7 @@ class ReducedFunctionalPrototype(ReducedFunctionalNumPy):
 
     def __add__(self, other):
         """ Method to add reduced functionals together"""
-        assert self.parameter == other.parameter
+        assert self.controls == other.controls
         return CombinedReducedFunctional([self, other])
 
     def __sub__(self, other):
@@ -83,17 +83,17 @@ class CombinedReducedFunctional(ReducedFunctionalPrototype):
         self.reduced_functional_list = reduced_functional_list
 
 		# We know that all controls are the same, so just pick the first one
-        self.parameter = reduced_functional_list[0].parameter
+        self.controls = reduced_functional_list[0].controls
 
     def __call__(self, m):
-        """Return the functional value for the parameter choice"""
+        """Return the functional value for the controls choice"""
         combined_reduced_functional = sum([reducedfunctional.__call__(m) for \
                 reducedfunctional in self.reduced_functional_list])
         return combined_reduced_functional
 
     def derivative(self, m, **kwargs):
         """ Return the derivative of the functional value with respect to
-        the parameter choice"""
+        the control choice"""
         combined_reduced_functional_derivative = \
                 sum([reducedfunctional.derivative(m, **kwargs) for \
                 reducedfunctional in self.reduced_functional_list])
@@ -108,10 +108,10 @@ class ScaledReducedFunctional(ReducedFunctionalPrototype):
         assert isinstance(scaling_factor, int) or isinstance(scaling_factor, float)
         self.reducedfunctional = reducedfunctional
         self.scaling_factor = scaling_factor
-        self.parameter = reducedfunctional.parameter
+        self.controls = reducedfunctional.controls
 
     def __call__(self, m):
-        """Return the functional value for the parameter choice"""
+        """Return the functional value for the controls choice"""
 
         scaled_reduced_functional = self.scaling_factor *                   \
                 self.reducedfunctional(m)
@@ -119,7 +119,7 @@ class ScaledReducedFunctional(ReducedFunctionalPrototype):
 
     def derivative(self, m, **kwargs):
         """ Return the derivative of the functional value with respect to
-        the parameter choice"""
+        the control choice"""
         scaled_reduced_functional_derivative = self.scaling_factor *        \
                 self.reducedfunctional.derivative(m, **kwargs)
         return scaled_reduced_functional_derivative
@@ -131,10 +131,10 @@ class ScaledReducedFunctional(ReducedFunctionalPrototype):
 
 class TestReducedFunctional(ReducedFunctionalPrototype):
 
-    def __init__(self, control):
-        if not hasattr(control, "__getitem__"):
-            control = [control]
-        self.parameter = control
+    def __init__(self, controls):
+        if not hasattr(controls, "__getitem__"):
+            controls = [controls]
+        self.controls = controls
 
     def evaluate(self, m, **kwargs):
         return sum(m)
@@ -146,9 +146,8 @@ if __name__ == '__main__':
     import numpy as np
 
     class Test(ReducedFunctionalPrototype):
-
         def __init__(self):
-            print 'Initialised...'
+            self.controls = []
 
         def evaluate(self, m):
             print 'Running reduced_functional method'

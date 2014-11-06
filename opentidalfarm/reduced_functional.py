@@ -42,13 +42,14 @@ class ReducedFunctional(ReducedFunctionalPrototype):
     Following parameters are expected:
 
     :ivar functional: a :class:`PrototypeFunctional` class.
+    :ivar controls: a :class:`TurbineFarmControl` or :class:`dolfin_adjoint.DolfinAdjointControl` class.
     :ivar solver: a :class:`Solver` object.
     :ivar parameters: a :class:`ReducedFunctionalParameters` object.
 
     This class has a parameter attribute for further adjustments.
     """
 
-    def __init__(self, functional, control, solver, parameters):
+    def __init__(self, functional, controls, solver, parameters):
         # For consistency with the dolfin-adjoint API.
         self.scale = parameters.scale
 
@@ -85,9 +86,9 @@ class ReducedFunctional(ReducedFunctionalPrototype):
         # class (here, TurbineFarmControl) which has a method named `data`
         # which returns a numpy.ndarray of the parameters used for optimisation,
         # e.g. the turbine frictions and positions.
-        if not hasattr(control, "__getitem__"):
-            control = [control]
-        self.parameter = control
+        if not hasattr(controls, "__getitem__"):
+            controls = [controls]
+        self.controls = controls
 
         self._compute_functional_mem = MemoizeMutable(self._compute_functional)
         self._compute_gradient_mem = MemoizeMutable(self._compute_gradient)
