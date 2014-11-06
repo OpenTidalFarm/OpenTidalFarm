@@ -9,6 +9,7 @@ from solvers import Solver
 from functionals import TimeIntegrator, PrototypeFunctional
 from memoize import MemoizeMutable
 from options import options
+from reduced_functional_prototype import ReducedFunctionalPrototype
 
 
 class ReducedFunctionalParameters(helpers.FrozenClass):
@@ -36,7 +37,7 @@ class ReducedFunctionalParameters(helpers.FrozenClass):
     checkpoints_basefilename = "checkpoints"
 
 
-class ReducedFunctional(dolfin_adjoint.ReducedFunctionalNumPy):
+class ReducedFunctional(ReducedFunctionalPrototype):
     """
     Following parameters are expected:
 
@@ -357,11 +358,6 @@ class ReducedFunctional(dolfin_adjoint.ReducedFunctionalNumPy):
                     self.scale)
                 log(INFO, "Set automatic scaling factor to %e." %
                     self._automatic_scaling_factor)
-
-    def __call__(self, m, annotate=True):
-        """ Interface function for dolfin_adjoint.ReducedFunctional """
-        return self.evaluate(m, annotate=annotate)
-
 
     def derivative(self, m_array, forget=True, **kwargs):
         """ Computes the first derivative of the functional with respect to its

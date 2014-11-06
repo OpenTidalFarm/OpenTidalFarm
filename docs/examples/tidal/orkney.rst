@@ -132,7 +132,8 @@ The bathymetry can be visualised with
   # Jacobian of the quadratic friction term is non-differentiable.
   prob_params.initial_condition = Constant((DOLFIN_EPS, 0, 1))
   #prob_params.finite_element = finite_elements.p1dgp2
-  # Create the shallow water problem
+  
+  # Now we can create the shallow water problem
   problem = SWProblem(prob_params)
   
   # Next we create a shallow water solver. Here we choose to solve the shallow
