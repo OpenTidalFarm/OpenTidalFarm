@@ -1,8 +1,3 @@
-import sys
-import os.path
-import numpy
-import helpers
-import dolfin_adjoint
 from dolfin import *
 from dolfin_adjoint import *
 from solvers import Solver
@@ -80,7 +75,7 @@ class FenicsReducedFunctional(object):
         timer = dolfin.Timer("dj evaluation")
 
         J = self.time_integrator.dolfin_adjoint_functional()
-        dj = dolfin_adjoint.compute_gradient(J, self.controls, forget=forget)
+        dj = compute_gradient(J, self.controls, forget=forget)
         dolfin.parameters["adjoint"]["stop_annotating"] = False
 
         log(INFO, "Runtime: " + str(timer.stop()) + " s")
