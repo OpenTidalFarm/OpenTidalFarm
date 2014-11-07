@@ -30,9 +30,7 @@ class FenicsReducedFunctional(object):
         self._time_integrator = None
 
         # Controls
-        if not hasattr(controls, "__getitem__"):
-            controls = [controls]
-        self.controls = controls
+        self.controls = enlist(controls)
 
     def evaluate(self, annotate=True):
         """ Return the functional value for the given control values. """

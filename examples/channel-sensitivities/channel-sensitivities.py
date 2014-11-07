@@ -98,7 +98,7 @@ control = Control(prob_params.depth)
 rf = FenicsReducedFunctional(functional, control, solver)
 
 j = rf.evaluate()
-dj = rf.derivative()[0]
+dj = rf.derivative()
 
 print "j with depth = 50 m: ", j
 plot(dj, interactive=True)
@@ -107,7 +107,7 @@ plot(dj, interactive=True)
 prob_params.depth.assign(Constant(10))
 
 j = rf.evaluate()
-dj = rf.derivative()[0]
+dj = rf.derivative()
 
 print "j with depth = 10 m: ", j
 plot(dj, interactive=True)
