@@ -14,7 +14,7 @@
 #
 
 # Gradient information may also be used to analyse the sensitivity of the chosen
-# functional to various model parameters - for example the bottom friction. 
+# functional to various model parameters - for example the bottom friction.
 # This enables the designer to identify which parameters may have a high impact
 # upon the quality of the chosen design (as judged by the choice of functional).
 
@@ -22,8 +22,8 @@
 # **************
 #
 
-# As with other examples, we begin by defining a steady state shallow water 
-# problem, once more this is nearly identical to the :ref:`channel_simulation` 
+# As with other examples, we begin by defining a steady state shallow water
+# problem, once more this is nearly identical to the :ref:`channel_simulation`
 # example except that we define steady flow:
 
 from opentidalfarm import *
@@ -43,15 +43,15 @@ prob_params = SteadySWProblem.default_parameters()
 prob_params.domain = domain
 prob_params.bcs = bcs
 prob_params.viscosity = Constant(3)
-prob_params.depth = Constant(50)
+prob_params.depth = interpolate(Constant(50), FunctionSpace(domain.mesh, "CG", 1))
 prob_params.friction = Constant(0.0025)
 
 # The next step is to specify the array design for which we wish to analyse
-# the sensitivity. For simplicity we will use the starting guess from the 
+# the sensitivity. For simplicity we will use the starting guess from the
 # :ref:`channel_optimization` example; 32 turbines in a regular grid layout.
-# As before we'll use the default turbine type and define the diameter and 
-# friction. In practice, one is likely to want to analyse the sensitivity of 
-# the optimised array layout - so one would substitue this grid layout with 
+# As before we'll use the default turbine type and define the diameter and
+# friction. In practice, one is likely to want to analyse the sensitivity of
+# the optimised array layout - so one would substitue this grid layout with
 # the optimised one.
 
 turbine = BumpTurbine(diameter=20.0, friction=12.0)
@@ -71,9 +71,11 @@ sol_params = CoupledSWSolver.default_parameters()
 sol_params.dump_period = -1
 solver = CoupledSWSolver(problem, sol_params)
 
-# We wish to study the effect that various model parameters have on the 
+# We wish to study the effect that various model parameters have on the
 # power. Thus, we select the :class:`PowerFunctional`
 
+
+# Compupting derivatives with respect to farm controls
 functional = PowerFunctional
 
 # First let's print the sensitivity of the power with respect to the turbine
@@ -83,12 +85,29 @@ functional = PowerFunctional
 control = TurbineFarmControl(farm)
 rf_params = ReducedFunctional.default_parameters()
 rf = ReducedFunctional(functional, control, solver, rf_params)
-
-# As always, we can print all options of the :class:`ReducedFunctional` with:
-
-print rf_params
-
 m0 = rf.solver.problem.parameters.tidal_farm.control_array
+j = rf.evaluate(m0)
 turbine_location_sensitivity = rf.derivative(m0)
 
 print turbine_location_sensitivity
+
+print "j for turbine positions: ", j
+
+# Compute the sensitivity with respect to *other* controls
+control = Control(prob_params.depth)
+rf = FenicsReducedFunctional(functional, control, solver)
+
+j = rf.evaluate()
+dj = rf.derivative()[0]
+
+print "j with depth = 50 m: ", j
+plot(dj, interactive=True)
+
+# Update depth
+prob_params.depth.assign(Constant(10))
+
+j = rf.evaluate()
+dj = rf.derivative()[0]
+
+print "j with depth = 10 m: ", j
+plot(dj, interactive=True)
