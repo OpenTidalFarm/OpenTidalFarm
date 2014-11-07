@@ -39,18 +39,12 @@ class FenicsReducedFunctional(object):
             controls = [controls]
         self.controls = controls
 
-    def _compute_gradient(self, forget=True):
-        """ Compute the functional gradient """
+    def evaluate(self, annotate=True):
+        """ Return the functional value for the given control values. """
 
-        J = self.time_integrator.dolfin_adjoint_functional()
+        log(INFO, 'Start evaluation of j')
+        timer = dolfin.Timer("j evaluation")
 
-        dj = dolfin_adjoint.compute_gradient(J, self.controls, forget=forget)
-        dolfin.parameters["adjoint"]["stop_annotating"] = False
-
-        return dj
-
-    def _compute_functional(self, annotate=True):
-        """ Compute the functional of interest for the turbine positions/frictions array """
         farm = self.solver.problem.parameters.tidal_farm
 
         # Configure dolfin-adjoint
@@ -69,14 +63,8 @@ class FenicsReducedFunctional(object):
             self.time_integrator.add(sol["time"], sol["state"], sol["tf"],
                                      sol["is_final"])
 
-        return self.time_integrator.integrate()
+        j = self.time_integrator.integrate()
 
-    def evaluate(self, annotate=True):
-        """ Return the functional value for the given control values. """
-
-        log(INFO, 'Start evaluation of j')
-        timer = dolfin.Timer("j evaluation")
-        j = self._compute_functional(annotate=annotate)
         timer.stop()
 
         log(INFO, 'Runtime: %f s.' % timer.value())
@@ -90,7 +78,10 @@ class FenicsReducedFunctional(object):
 
         log(INFO, 'Start evaluation of dj')
         timer = dolfin.Timer("dj evaluation")
-        dj = self._compute_gradient(forget)
+
+        J = self.time_integrator.dolfin_adjoint_functional()
+        dj = dolfin_adjoint.compute_gradient(J, self.controls, forget=forget)
+        dolfin.parameters["adjoint"]["stop_annotating"] = False
 
         log(INFO, "Runtime: " + str(timer.stop()) + " s")
 
