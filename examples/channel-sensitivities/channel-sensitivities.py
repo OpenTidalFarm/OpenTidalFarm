@@ -83,4 +83,5 @@ rf = ReducedFunctional(functional, control, solver, rf_params)
 
 print rf_params
 
-rf.derivative(...)
+m0 = rf.solver.problem.parameters.tidal_farm.control_array
+rf.derivative(m0)
