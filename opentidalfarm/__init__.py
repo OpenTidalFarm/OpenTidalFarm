@@ -29,6 +29,7 @@ from optimisation_helpers import friction_constraints, \
     ConvexPolygonSiteConstraint, DomainRestrictionConstraints
 from reduced_functional import ReducedFunctional, ReducedFunctionalParameters, \
         TurbineFarmControl
+from fenics_reduced_functional import FenicsReducedFunctional
 from boundary_conditions import BoundaryConditionSet
 from turbine_function import TurbineFunction
 
