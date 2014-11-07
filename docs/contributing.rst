@@ -359,8 +359,9 @@ Follow these steps to add an example:
    code (use for example existing examples for references).
 2. Add the example to the `build_examples` task in ``docs/Makefile`` (again use 
    existing commands as a template).
-3. Run "make html" in ``docs/``, check that the documentation looks as expected
+3. Add the example into the list in ``examples.rst`` to add the hyperlink.
+4. Run "make html" in ``docs/``, check that the documentation looks as expected
    (open ``_build/html/index.html`` in an webbrowser).
-4. Add the generated rst file in ``docs/examples/.../`` to the git repository.
+5. Add the generated rst file in ``docs/examples/.../`` to the git repository.
    Commit, and check that the documentation is correct in the readthedocs
    OpenTidalFarm documentation.
