@@ -10,3 +10,4 @@ Examples
    examples/channel/channel
    examples/tidal/orkney
    examples/channel-opt/channel-opt
+   examples/channel-sens/channel-sens

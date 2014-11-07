@@ -56,6 +56,8 @@ build_examples:
 	bin/pylit.py --overwrite yes $(EXAMPLES_IN)/tidal-simulation/orkney-coupled.py $(EXAMPLES_OUT)/tidal/orkney.rst
 	mkdir -p $(EXAMPLES_OUT)/channel-opt
 	bin/pylit.py --overwrite yes $(EXAMPLES_IN)/channel-optimization/channel-optimization.py $(EXAMPLES_OUT)/channel-opt/channel-opt.rst
+	mkdir -p $(EXAMPLES_OUT)/channel-sens
+	bin/pylit.py --overwrite yes $(EXAMPLES_IN)/channel-sensitivities/channel-sensitivities.py $(EXAMPLES_OUT)/channel-sens/channel-sens.rst
 
 auto_apidoc:
 	sphinx-apidoc -T -f -o . ../opentidalfarm/
