@@ -8,7 +8,7 @@ class FenicsReducedFunctional(object):
     Following parameters are expected:
 
     :ivar functional: a :class:`PrototypeFunctional` class.
-    :ivar controls: a :class:`dolfin_adjoint.DolfinAdjointControl` class.
+    :ivar controls: a (optionally list of) :class:`dolfin_adjoint.DolfinAdjointControl` object.
     :ivar solver: a :class:`Solver` object.
 
     This class has a parameter attribute for further adjustments.
@@ -73,7 +73,7 @@ class FenicsReducedFunctional(object):
         timer = dolfin.Timer("dj evaluation")
 
         J = self.time_integrator.dolfin_adjoint_functional()
-        dj = compute_gradient(J, self.controls, forget=forget)
+        dj = compute_gradient(J, self.controls, forget=forget, **kwargs)
         dolfin.parameters["adjoint"]["stop_annotating"] = False
 
         log(INFO, "Runtime: " + str(timer.stop()) + " s")
