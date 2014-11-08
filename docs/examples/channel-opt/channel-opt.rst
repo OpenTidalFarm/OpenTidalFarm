@@ -141,7 +141,13 @@ water solver.
   control = TurbineFarmControl(farm)
   rf_params = ReducedFunctional.default_parameters()
   rf_params.automatic_scaling = 5
-  rf = ReducedFunctional(functional, control, solver, rf_params)
+  swrf = SWReducedFunctional(functional, control, solver, rf_params)
+  
+  cablerf = CableFunctional()
+  
+  rf = swrf + cabelrf
+  
+  
   
 As always, we can print all options of the :class:`ReducedFunctional` with:
 

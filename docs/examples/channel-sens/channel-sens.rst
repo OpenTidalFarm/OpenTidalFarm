@@ -5,8 +5,8 @@
 
 .. py:currentmodule:: opentidalfarm
 
-Farm Sensitivity Analysis
-=========================
+Sensitivity Analysis
+====================
 
 
 Introduction
@@ -14,7 +14,7 @@ Introduction
 
 
 Gradient information may also be used to analyse the sensitivity of the chosen
-functional to various model parameters - for example the bottom friction. 
+functional to various model parameters - for example the bottom friction.
 This enables the designer to identify which parameters may have a high impact
 upon the quality of the chosen design (as judged by the choice of functional).
 
@@ -22,8 +22,8 @@ Implementation
 **************
 
 
-As with other examples, we begin by defining a steady state shallow water 
-problem, once more this is nearly identical to the :ref:`channel_simulation` 
+As with other examples, we begin by defining a steady state shallow water
+problem, once more this is nearly identical to the :ref:`channel_simulation`
 example except that we define steady flow:
 
 ::
@@ -35,25 +35,26 @@ example except that we define steady flow:
   
   # Specify boundary conditions.
   bcs = BoundaryConditionSet()
-  bcs.add_bc("u", Constant((2, 0)), facet_id=1)
+  bcs.add_bc("eta", Constant(0.1), facet_id=1)
   bcs.add_bc("eta", Constant(0), facet_id=2)
   # The free-slip boundary conditions.
-  bcs.add_bc("u", Constant((0, 0)), facet_id=3, bctype="weak_dirichlet")
+  bcs.add_bc("u", Constant((0, 0)), facet_id=3, bctype="strong_dirichlet")
   
   # Set the shallow water parameters
   prob_params = SteadySWProblem.default_parameters()
   prob_params.domain = domain
   prob_params.bcs = bcs
-  prob_params.viscosity = Constant(3)
-  prob_params.depth = Constant(50)
-  prob_params.friction = Constant(0.0025)
+  V = FunctionSpace(domain.mesh, "CG", 1)
+  prob_params.viscosity = interpolate(Constant(3), V)
+  prob_params.depth = interpolate(Constant(50), V)
+  prob_params.friction = interpolate(Constant(0.0025), V)
   
 The next step is to specify the array design for which we wish to analyse
-the sensitivity. For simplicity we will use the starting guess from the 
+the sensitivity. For simplicity we will use the starting guess from the
 :ref:`channel_optimization` example; 32 turbines in a regular grid layout.
-As before we'll use the default turbine type and define the diameter and 
-friction. In practice, one is likely to want to analyse the sensitivity of 
-the optimised array layout - so one would substitue this grid layout with 
+As before we'll use the default turbine type and define the diameter and
+friction. In practice, one is likely to want to analyse the sensitivity of
+the optimised array layout - so one would substitue this grid layout with
 the optimised one.
 
 ::
@@ -79,7 +80,7 @@ water equations in its fully coupled form:
   sol_params.dump_period = -1
   solver = CoupledSWSolver(problem, sol_params)
   
-We wish to study the effect that various model parameters have on the 
+We wish to study the effect that various model parameters have on the
 power. Thus, we select the :class:`PowerFunctional`
 
 ::
@@ -95,14 +96,56 @@ a reduced functional
   control = TurbineFarmControl(farm)
   rf_params = ReducedFunctional.default_parameters()
   rf = ReducedFunctional(functional, control, solver, rf_params)
+  m0 = rf.solver.problem.parameters.tidal_farm.control_array
+  j = rf.evaluate(m0)
+  turbine_location_sensitivity = rf.derivative(m0)
+  print turbine_location_sensitivity
+  print "j for turbine positions: ", j
   
-As always, we can print all options of the :class:`ReducedFunctional` with:
+Compute the sensitivity with respect to bottom friction
 
 ::
 
-  print rf_params
+  control = Control(prob_params.friction)
+  rf = FenicsReducedFunctional(functional, control, solver)
+  j = rf.evaluate()
+  dj = rf.derivative(project=True)
+  plot(dj, interactive=True, title="Sensitivity with respect to friction")
   
-  m0 = rf.solver.problem.parameters.tidal_farm.control_array
-  turbine_location_sensitivity = rf.derivative(m0)
+Compute the sensitivity with respect to depth
+
+::
+
+  control = Control(prob_params.depth)
+  rf = FenicsReducedFunctional(functional, control, solver)
+  j = rf.evaluate()
+  dj = rf.derivative(project=True)
+  print "j with depth = 50 m: ", j
+  plot(dj, interactive=True, title="Sensitivity with respect to depth at 50m")
   
-  print turbine_location_sensitivity
+Update depth and reevaluate derivative
+
+::
+
+  prob_params.depth.assign(Constant(10))
+  j = rf.evaluate()
+  dj = rf.derivative(project=True)
+  print "j with depth = 10 m: ", j
+  plot(dj, interactive=True, title="Sensitivity with respect to depth at 10m")
+  
+Compute the sensitivity with respect to viscosity
+
+::
+
+  control = Control(prob_params.viscosity)
+  rf = FenicsReducedFunctional(functional, control, solver)
+  j = rf.evaluate()
+  dj = rf.derivative(project=True)
+  plot(dj, interactive=True, title="Sensitivity with respect to viscosity")
+  
+The example code can be found in ``examples/channel-sensitivity/`` in the
+``OpenTidalFarm`` source tree, and executed as follows:
+
+.. code-block:: bash
+
+  $ python channel-sensitivity.py
