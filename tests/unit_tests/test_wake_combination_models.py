@@ -2,97 +2,120 @@ from opentidalfarm import *
 import numpy
 import pytest
 
+def setup(combiner, random, zero_flow=False):
+    combiner = combiner()
+
+    if random:
+        n_turbines = 20
+        u_ij = numpy.random.rand(n_turbines, 2)
+        u_j = numpy.ones((n_turbines, 2))
+    else:
+        n_turbines = 2
+        u_ij = numpy.array([[0.5, 0.5], [0.2, 1.0]])
+        u_j = numpy.ones((n_turbines, 2))
+
+    if zero_flow:
+        u_j = numpy.zeros(numpy.shape(u_j))
+
+    for pair in zip(u_ij, u_j):
+        combiner.add(pair[0], pair[1])
+
+    return combiner, u_ij, u_j
+
+
 class TestGeometricSum(object):
 
-    def test_add(self):
-        geometric_sum = GeometricSum((1.0, 1.0))
+    def test_reduce_known(self):
+        combiner, u_ij, u_j = setup(GeometricSum, random=False)
+        calculated = combiner.reduce()
+        # [(0.5/1.0)*(0.2/1.0), (0.5/1.0)*(1.0/1.0)]  = [0.1, 0.5]
+        expected = numpy.array([0.1, 0.5])
+        assert((expected == calculated).all())
 
-        geometric_sum.add((10.0, 10.0))
-        assert(len(geometric_sum.flow_speed_in_wake)==1)
+    def test_reduce_known_with_zeros(self):
+        combiner, u_ij, u_j = setup(GeometricSum, random=False, zero_flow=True)
+        calculated = combiner.reduce()
+        # u_j is all zeros, but the combiner should catch the zero division
+        # error and set the combined flow to zero.
+        expected = numpy.zeros(2)
+        assert((expected == calculated).all())
 
-        geometric_sum.add((5.0, 5.0))
-        assert(len(geometric_sum.flow_speed_in_wake)==2)
+    def test_reduce_random(self):
+        combiner, u_ij, u_j = setup(GeometricSum, random=True)
+        calculated = combiner.reduce()
+        # [1.0, 1.0]
+        expected = numpy.ones(2)
+        for pair in zip(u_ij, u_j):
+            expected *= (pair[0]/pair[1])
+        assert((expected == calculated).all())
 
-
-    def test_reduce(self):
-        geometric_sum = GeometricSum((5.0, 5.0))
-        for i in xrange(4):
-            geometric_sum.add((5.5, 5.5))
-
-        expected = [(5.5**4)/5.0]*2
-        assert((geometric_sum.reduce()==expected).all())
 
 
 class TestLinearSuperposition(object):
 
-    def test_reduce(self):
-        at_turbine = [5.0]*2
-        reduced = [4.5]*2
-        linear_superpos = LinearSuperposition(at_turbine)
-        for i in xrange(4):
-            linear_superpos.add(reduced)
+    def calculate_expected(self, setup):
+        result = numpy.zeros(2)
+        for t1, t2 in zip(setup.turbine, setup.in_wake_of):
+            with numpy.errstate(divide="ignore"):
+                res = t1/t2
+            res[numpy.isinf(res) + numpy.isnan(res)] = 0.0
+            result += (1. - res)
+        return result
 
-        reduced = numpy.array(reduced)
-        at_turbine = numpy.array(at_turbine)
-        expected = 4*(1 - reduced/at_turbine)
-        assert((linear_superpos.reduce()==expected).all())
+    def test_reduce_known(self):
+        setup = GenericSetup(LinearSuperposition, False)
+        combiner = setup.combiner
+        expected = self.calculate_expected(setup)
+        assert((expected == combiner.reduce()).all())
 
-
-        at_turbine = [1.0]*2
-        expected = [0.0]*2
-        linear_superpos = LinearSuperposition(at_turbine)
-        random_velocities = numpy.random.rand(25, 2)*2.0
-        for val in random_velocities:
-            linear_superpos.add(val)
-            expected += (1.0 - (val/at_turbine))
-
-        expected = [expected]*2
-        assert((linear_superpos.reduce()==expected).all())
+    def test_reduce_random(self):
+        setup = GenericSetup(LinearSuperposition, True)
+        combiner = setup.combiner
+        expected = self.calculate_expected(setup)
+        assert((expected == combiner.reduce()).all())
 
 
-class TestEnergyBalance(object):
-
-    def test_reduce(self):
-        at_turbine = [5.0]*2
-        reduced = [4.5]*2
-        combiner = EnergyBalance(at_turbine)
-        for i in xrange(4):
-            combiner.add(reduced)
-
-        reduced = numpy.array(reduced)
-        at_turbine = numpy.array(at_turbine)
-        expected = 4*(at_turbine**2 - reduced**2)
-        assert((combiner.reduce()==expected).all())
-
-        at_turbine = numpy.array([1.0]*2)
-        expected = numpy.array([0.0]*2)
-        combiner = EnergyBalance(at_turbine)
-        random_velocities = numpy.random.rand(25, 2)*2.0
-        for val in random_velocities:
-            combiner.add(val)
-            expected += (at_turbine**2 - val**2)
-        assert((combiner.reduce()==expected).all())
-
-
-class TestSumOfSquares(object):
-
-    def test_reduce(self):
-        at_turbine = [5.0]*2
-        reduced = [4.5]*2
-        combiner = SumOfSquares(at_turbine)
-        for i in xrange(4):
-            combiner.add(reduced)
-
-        reduced = numpy.array(reduced)
-        at_turbine = numpy.array(at_turbine)
-        expected = 4*(1. - reduced/at_turbine)**2
-        assert((combiner.reduce()==expected).all())
-
-        at_turbine = numpy.array([1.0]*2)
-        expected = numpy.array([0.0]*2)
-        combiner = SumOfSquares(at_turbine)
-        random_velocities = numpy.random.rand(25, 2)*2.0
-        for val in random_velocities:
-            combiner.add(val)
-            expected += (1. - val/at_turbine)**2
-        assert((combiner.reduce()==expected).all())
+# class TestEnergyBalance(object):
+#
+#     def calculate_expected(self, setup):
+#         result = numpy.zeros(2)
+#         for t1, t2 in zip(setup.turbine, setup.in_wake_of):
+#             result += t2**2 - t1**2
+#         return result
+#
+#     def test_reduce_known(self):
+#         setup = GenericSetup(EnergyBalance, False)
+#         combiner = setup.combiner
+#         expected = self.calculate_expected(setup)
+#         assert((expected == combiner.reduce()).all())
+#
+#     def test_reduce_random(self):
+#         setup = GenericSetup(EnergyBalance, True)
+#         combiner = setup.combiner
+#         expected = self.calculate_expected(setup)
+#         assert((expected == combiner.reduce()).all())
+#
+#
+# class TestSumOfSquares(object):
+#
+#     def calculate_expected(self, setup):
+#         result = numpy.zeros(2)
+#         for t1, t2 in zip(setup.turbine, setup.in_wake_of):
+#             with numpy.errstate(divide="ignore"):
+#                 res = t1/t2
+#             res[numpy.isinf(res) + numpy.isnan(res)] = 0.0
+#             result += (1. - res)**2
+#         return result
+#
+#
+#     def test_reduce_known(self):
+#         setup = GenericSetup(SumOfSquares, False)
+#         combiner = setup.combiner
+#         expected = self.calculate_expected(setup)
+#         assert((expected == combiner.reduce()).all())
+#
+#     def test_reduce_random(self):
+#         setup = GenericSetup(SumOfSquares, True)
+#         combiner = setup.combiner
+#         expected = self.calculate_expected(setup)
+#         assert((expected == combiner.reduce()).all())

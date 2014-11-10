@@ -8,8 +8,8 @@ class LinearSuperposition(WakeCombinationModel):
     """
     Implements the Linear Superposition wake combination model.
     """
-    def __init__(self, flow_speed_at_turbine):
-        super(LinearSuperposition, self).__init__(flow_speed_at_turbine)
+    def __init__(self):
+        super(LinearSuperposition, self).__init__()
 
 
     def reduce(self):
@@ -18,6 +18,10 @@ class LinearSuperposition(WakeCombinationModel):
         .. math:: \sum_j \left( 1 - \frac{u_{ij}}{u_j}\right)
 
         """
-        flow_speeds = numpy.asarray(self.flow_speed_in_wake)
-        reduced_speeds = flow_speeds/self.flow_speed_at_turbine
-        return sum(1 - reduced_speeds)
+        at_turbine = numpy.asarray(self.flow_speed_in_wake)
+        at_turbines_causing_wake = numpy.asarray(self.flow_speed_at_turbine)
+        with numpy.errstate(all='ignore'):
+            result = at_turbine/at_turbines_causing_wake
+        result = self._set_nan_or_inf_to_zero(result)
+        return numpy.sum((1 - result), axis=0)
+

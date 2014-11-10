@@ -25,13 +25,15 @@ class SteadyWakeSolver(Solver):
         flow_speeds = []
         turbines = self._farm.turbine_positions
         wake_model = self.problem.parameters.wake_model
-        for i, turbine in enumerate(turbines):
-            combiner = self.problem.parameters.combination_model(turbine)
+        for i, turbine_i in enumerate(turbines):
+            combiner = self.problem.parameters.combination_model()
             other_turbines = numpy.delete(numpy.copy(turbines), i, axis=0)
-            for due_to in other_turbines:
-                flow_at_turbine = wake_model.flow_at(turbine)
-                flow_multiplier = wake_model.multiplier(turbine, due_to)
-                combiner.add(flow_at_turbine*flow_multiplier)
-
+            for turbine_j in other_turbines:
+                u_i = wake_model.flow_at(turbine_i)
+                flow_multiplier = wake_model.multiplier(turbine_i, turbine_j)
+                u_j = wake_model.flow_at(turbine_j)
+                u_ij = u_i*flow_multiplier
+                combiner.add(u_ij, u_j)
             flow_speeds.append(combiner.reduce())
+
         return numpy.asarray(flow_speeds)

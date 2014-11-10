@@ -4,18 +4,6 @@ import numpy
 # Create a rectangular domain.
 domain = FileDomain("mesh/mesh.xml")
 
-def flow(x):
-    """A dummy flow function where the flow is (1., 0.) everywhere."""
-    return numpy.array([1.0, 0.0])
-
-# Set the shallow water parameters
-prob_params = SteadyWakeProblem.default_parameters()
-prob_params.domain = domain
-# The dummy model simply halves the flow speed if a turbine is in the wake of
-# another.
-prob_params.wake_model = DummyWakeModel(flow)
-prob_params.combination_model = GeometricSum
-
 # The next step is to create the turbine farm. In this case, the
 # farm consists of 32 turbines, initially deployed in a regular grid layout.
 # This layout will be the starting guess for the optimization.
@@ -31,8 +19,22 @@ farm = RectangularFarm(domain, site_x_start=160, site_x_end=480,
                        site_y_start=80, site_y_end=240, turbine=turbine)
 
 # Turbines are then added to the site in a regular grid layout.
-farm.add_regular_turbine_layout(num_x=8, num_y=4)
+farm.add_regular_turbine_layout(num_x=2, num_y=2)
 
+
+def flow(x):
+    """A dummy flow function where the flow is (1., 0.) everywhere."""
+    return numpy.array([2.0, 0.0])
+
+# Set the shallow water parameters
+prob_params = SteadyWakeProblem.default_parameters()
+prob_params.domain = domain
+# The dummy model simply halves the flow speed if a turbine is in the wake of
+# another.
+model_params = Jensen.default_parameters()
+model_params.turbine_radius = turbine.radius
+prob_params.wake_model = Jensen(model_params, flow)
+prob_params.combination_model = GeometricSum
 prob_params.tidal_farm = farm
 
 # Now we can create the steady wake problem
