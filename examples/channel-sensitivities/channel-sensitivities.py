@@ -23,8 +23,10 @@
 #
 
 # As with other examples, we begin by defining a steady state shallow water
-# problem, once more this is nearly identical to the :ref:`channel_simulation`
-# example except that we define steady flow:
+# problem, once more this is similar to the :ref:`channel_simulation`
+# example except that we define steady flow driven by a 0.1 m head difference
+# across the domain. Note that this is facilitated by defining a strong
+# dirichlet boundary condiditon on the walls:
 
 from opentidalfarm import *
 
@@ -38,7 +40,11 @@ bcs.add_bc("eta", Constant(0), facet_id=2)
 # The free-slip boundary conditions.
 bcs.add_bc("u", Constant((0, 0)), facet_id=3, bctype="strong_dirichlet")
 
-# Set the shallow water parameters
+# Set the shallow water parameters, since we want to extract the spatial variation
+# of the sensitivity of our model parameters, rather than simply defining constant
+# values, we define fields over the domain (in this case we're simply defining a
+# field of a constant value, using dolfin's `interpolate`.
+
 prob_params = SteadySWProblem.default_parameters()
 prob_params.domain = domain
 prob_params.bcs = bcs
@@ -52,7 +58,7 @@ prob_params.friction = interpolate(Constant(0.0025), V)
 # :ref:`channel_optimization` example; 32 turbines in a regular grid layout.
 # As before we'll use the default turbine type and define the diameter and
 # friction. In practice, one is likely to want to analyse the sensitivity of
-# the optimised array layout - so one would substitue this grid layout with
+# the optimised array layout - so one would substitute this grid layout with
 # the optimised one.
 
 turbine = BumpTurbine(diameter=20.0, friction=12.0)
@@ -77,9 +83,9 @@ solver = CoupledSWSolver(problem, sol_params)
 
 functional = PowerFunctional
 
-# First let's print the sensitivity of the power with respect to the turbine
-# positions. So we set the control to the turbine positions and intialise
-# a reduced functional
+# First let's compute the sensitivity of the power with respect to the turbine
+# positions. So we set the "control" variable to the turbine positions by using
+# :class:`TurbineFarmControl`. We then intialise the :class:`ReducedFunctional`
 
 control = TurbineFarmControl(farm)
 rf_params = ReducedFunctional.default_parameters()
@@ -87,18 +93,26 @@ rf = ReducedFunctional(functional, control, solver, rf_params)
 m0 = rf.solver.problem.parameters.tidal_farm.control_array
 j = rf.evaluate(m0)
 turbine_location_sensitivity = rf.derivative(m0)
-print turbine_location_sensitivity
-print "j for turbine positions: ", j
 
-# Compute the sensitivity with respect to bottom friction
+print "j for turbine positions: ", j
+print "dj w.r.t. turbine positions: ", turbine_location_sensitivity
+
+# Next we compute the sensitivity of the power with respect to bottom friction.
+# We redefine the control variable using the class :class:`Control` into which  
+# we pass the parameter of interest 
 
 control = Control(prob_params.friction)
+
+# Turbine positions are stored in different data structures (numpy arrays) 
+# than functions such as bottom friction (dolfin functions), so we need to
+# use a different reduced functional; the :class:`FenicsReducedFunctional`
+
 rf = FenicsReducedFunctional(functional, control, solver)
 j = rf.evaluate()
 dj = rf.derivative(project=True)
 plot(dj, interactive=True, title="Sensitivity with respect to friction")
 
-# Compute the sensitivity with respect to depth
+# Now compute the sensitivity with respect to depth
 
 control = Control(prob_params.depth)
 rf = FenicsReducedFunctional(functional, control, solver)
@@ -107,7 +121,7 @@ dj = rf.derivative(project=True)
 print "j with depth = 50 m: ", j
 plot(dj, interactive=True, title="Sensitivity with respect to depth at 50m")
 
-# Update depth and reevaluate derivative
+# Let's reduce the depth and reevaluate derivative
 
 prob_params.depth.assign(Constant(10))
 j = rf.evaluate()
@@ -115,7 +129,7 @@ dj = rf.derivative(project=True)
 print "j with depth = 10 m: ", j
 plot(dj, interactive=True, title="Sensitivity with respect to depth at 10m")
 
-# Compute the sensitivity with respect to viscosity
+# Finally let's compute the sensitivity with respect to viscosity
 
 control = Control(prob_params.viscosity)
 rf = FenicsReducedFunctional(functional, control, solver)
