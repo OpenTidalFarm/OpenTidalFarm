@@ -8,11 +8,16 @@ class GeometricSum(WakeCombinationModel):
     """
     Implements the Geometric Sum wake combination model.
     """
-    def __init__(self, flow_speed_at_turbine):
-        super(GeometricSum, self).__init__(flow_speed_at_turbine)
+    def __init__(self):
+        super(GeometricSum, self).__init__()
 
 
     def reduce(self):
         """Product of all flow speeds divided by the speed at the turbine."""
-        flow_speeds = numpy.asarray(self.flow_speed_in_wake)
-        return flow_speeds.prod(axis=0)/self.flow_speed_at_turbine
+        u_ij = numpy.asarray(self.u_ij)
+        u_j = numpy.asarray(self.u_j)
+        # Set all results from of zero division to zero.
+        with numpy.errstate(all='ignore'):
+            result = u_ij/u_j
+        result = self._set_nan_or_inf_to_zero(result)
+        return numpy.prod(result, axis=0)
