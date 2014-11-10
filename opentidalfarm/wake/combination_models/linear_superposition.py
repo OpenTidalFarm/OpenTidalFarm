@@ -1,4 +1,5 @@
 """
+
 Implements the Linear Superposition wake combination model.
 """
 import numpy
@@ -13,15 +14,17 @@ class LinearSuperposition(WakeCombinationModel):
 
 
     def reduce(self):
-        """Linear Superposition.
+        """
+        Combines a number of wakes to give a single flow speed at a turbine.
 
         .. math:: \sum_j \left( 1 - \frac{u_{ij}}{u_j}\right)
 
+        See Renkema, D. [2007] section 4.8.1.
         """
-        at_turbine = numpy.asarray(self.flow_speed_in_wake)
-        at_turbines_causing_wake = numpy.asarray(self.flow_speed_at_turbine)
+        u_ij = numpy.asarray(self.u_ij)
+        u_j = numpy.asarray(self.u_j)
         with numpy.errstate(all='ignore'):
-            result = at_turbine/at_turbines_causing_wake
+            result = u_ij/u_j
         result = self._set_nan_or_inf_to_zero(result)
         return numpy.sum((1 - result), axis=0)
 

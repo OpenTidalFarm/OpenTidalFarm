@@ -13,7 +13,11 @@ class EnergyBalance(WakeCombinationModel):
 
 
     def reduce(self):
-        """Product of all flow speeds divided by the speed at the turbine."""
-        at_turbine = numpy.asarray(self.flow_speed_in_wake)
-        at_turbines_causing_wake = numpy.asarray(self.flow_speed_at_turbine)
-        return numpy.sum((at_turbines_causing_wake**2-at_turbine**2), axis=0)
+        """
+        Combines a number of wakes to give a single flow speed at a turbine.
+
+        See Renkema, D. [2007] section 4.8.1.
+        """
+        u_ij = numpy.asarray(self.u_ij)
+        u_j = numpy.asarray(self.u_j)
+        return numpy.sum((u_j**2-u_ij**2), axis=0)

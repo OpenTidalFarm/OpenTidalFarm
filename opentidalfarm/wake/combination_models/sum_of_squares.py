@@ -13,11 +13,16 @@ class SumOfSquares(WakeCombinationModel):
 
 
     def reduce(self):
-        """Product of all flow speeds divided by the speed at the turbine."""
-        at_turbine = numpy.asarray(self.flow_speed_in_wake)
-        at_turbines_causing_wake = numpy.asarray(self.flow_speed_at_turbine)
+        """
+        Combines a number of wakes to give a single flow speed at a turbine.
+
+        See Renkema, D. [2007] section 4.8.1.
+        """
+        u_ij = numpy.asarray(self.u_ij)
+        u_j = numpy.asarray(self.u_j)
+        # Set all results from of zero division to zero.
         with numpy.errstate(all="ignore"):
-            result = at_turbine/at_turbines_causing_wake
+            result = u_ij/u_j
         result = self._set_nan_or_inf_to_zero(result)
         return numpy.sum((1 - result)**2, axis=0)
 
