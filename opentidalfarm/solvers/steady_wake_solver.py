@@ -4,11 +4,6 @@ from solver import Solver
 from ..problems import SteadyWakeProblem
 
 
-# class SteadyWakeSolverParameters(FrozenClass):
-#     """A set of parameters for a :class:`SteadyWakeSolver`."""
-#     pass
-
-
 class SteadyWakeSolver(Solver):
     """A steady-state solver for Wake models."""
     def __init__(self, problem):
