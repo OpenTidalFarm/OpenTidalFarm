@@ -28,9 +28,14 @@ class WakeCombinationModel(object):
 
     def reduce(self):
         """Combines all the flow_speed_in_wake value into a single speed."""
-        raise NotImplementedError("'combine' is not implemented in the base "
+        raise NotImplementedError("'reduce' is not implemented in the base "
                                   "class")
 
     def _set_nan_or_inf_to_zero(self, array):
+        """Sets NaN or Inf values to zero.
+
+        This is useful when wishing to avoid zero division errors when using the
+        'reduce' method.
+        """
         array[numpy.isinf(array) + numpy.isnan(array)] = 0
         return array
