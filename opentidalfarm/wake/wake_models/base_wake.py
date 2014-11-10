@@ -18,13 +18,13 @@ class WakeModel(object):
 
     def in_wake(self, turbine, another_turbine):
         """Returns if turbine is in the wake of another_turbine."""
-        raise NotImplementedError("The '_in_wake' method is not implemented "
+        raise NotImplementedError("The 'in_wake' method is not implemented "
                                   "in the base class.")
 
 
     def multiplier(self, turbine, another_turbine):
         """Returns flow speed multiplier at turbine due to another_turbine."""
-        raise NotImplementedError("The '_multiplier' method is not "
+        raise NotImplementedError("The 'multiplier' method is not "
                                   "implemented in the base class.")
 
 
@@ -44,4 +44,4 @@ class WakeModel(object):
         cos_theta = (1 - sin_theta**2)**0.5
         rotation_matrix = numpy.matrix([[cos_theta, -sin_theta],
                                         [sin_theta,  cos_theta]])
-        return (another_turbine-turbine)*rotation_matrix
+        return numpy.array((another_turbine-turbine)*rotation_matrix).flatten()

@@ -3,7 +3,6 @@ Implements a dummy wake model for testing purposes. The model does not affect
 the flow at all.
 """
 from base_wake import WakeModel
-import numpy
 
 class DummyWakeModel(WakeModel):
     """Implements a dummy wake model."""
@@ -12,15 +11,12 @@ class DummyWakeModel(WakeModel):
         super(DummyWakeModel, self).__init__(flow_field)
 
 
-    def in_wake(self, turbine, another_turbine):
-        """
-        True if turbine is in the wake of another_turbine.
-        """
+    def in_wake(self, point_a, point_b):
         return True
 
 
-    def multiplier(self, turbine, another_turbine):
-        if self.in_wake(turbine, another_turbine):
-            return numpy.random.rand()
+    def multiplier(self, point_a, point_b):
+        if self.in_wake(point_a, point_b):
+            return 0.5
         else:
             return 1.0
