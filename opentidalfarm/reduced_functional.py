@@ -156,21 +156,21 @@ class ReducedFunctional(ReducedFunctionalPrototype):
             if farm.turbine_specification.controls.friction:
                 # Compute the derivatives with respect to the turbine friction
                 for tfd in farm.turbine_cache["turbine_derivative_friction"]:
-                    farm.turbine_cache.update(farm)
+                    farm.update()
                     dj.append(djdtf.vector().inner(tfd.vector()))
 
             elif farm.turbine_specification.controls.dynamic_friction:
                 # Compute the derivatives with respect to the turbine friction
                 for djdtf_arr, t in zip(djdtf, farm.turbine_cache["turbine_derivative_friction"]):
                     for tfd in t:
-                        farm.turbine_cache.update(farm)
+                        farm.update()
                         dj.append(djdtf_arr.vector().inner(tfd.vector()))
 
             if farm.turbine_specification.controls.position:
                 # Compute the derivatives with respect to the turbine position
                 for d in farm.turbine_cache["turbine_derivative_pos"]:
                     for var in ('turbine_pos_x', 'turbine_pos_y'):
-                        farm.turbine_cache.update(farm)
+                        farm.update()
                         tfd = d[var]
                         dj.append(djdtf.vector().inner(tfd.vector()))
 
@@ -244,7 +244,7 @@ class ReducedFunctional(ReducedFunctionalPrototype):
                     numpy.reshape(m_pos, (-1,2)).tolist())
 
         # Update the farm cache.
-        farm.turbine_cache.update(farm)
+        farm.update()
 
 
     def _save_checkpoint(self):

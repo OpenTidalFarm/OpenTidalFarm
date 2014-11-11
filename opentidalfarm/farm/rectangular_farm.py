@@ -9,7 +9,7 @@ class RectangularFarm(Farm):
 
     """
     def __init__(self, domain, site_x_start, site_x_end, site_y_start,
-                 site_y_end, turbine=None):
+                 site_y_end, turbine=None, site_ids=(0,)):
         """Initializes an empty rectangular farm with the given dimensions.
 
         :param mesh: The name of the mesh file to use, e.g. 'mesh.xml' if the
@@ -26,7 +26,7 @@ class RectangularFarm(Farm):
 
         """
         # Initialize the base clas
-        super(RectangularFarm, self).__init__(domain=domain, turbine=turbine)
+        super(RectangularFarm, self).__init__(domain, turbine, site_ids)
 
         # Create a turbine function space and set the function space in the
         # cache.
