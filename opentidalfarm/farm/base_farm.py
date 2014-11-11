@@ -5,7 +5,7 @@ from ..turbine_cache import TurbineCache
 
 class BaseFarm(object):
     """A base Farm class from which other Farm classes should be derived."""
-    def __init__(self, domain=None, turbine=None, site_ids=(0,)):
+    def __init__(self, domain=None, turbine=None, site_ids=None):
         """Create an empty Farm."""
         # Create a chaching object for the interpolated turbine friction fields
         # (as their computation is very expensive)

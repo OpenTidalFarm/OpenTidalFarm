@@ -10,7 +10,7 @@ class Farm(BaseFarm):
     site marked by `1`.
 
     """
-    def __init__(self, domain, turbine=None, site_ids=(0,)):
+    def __init__(self, domain, turbine=None, site_ids=None):
         """Initializes an empty farm defined by the domain.
 
         """
