@@ -62,7 +62,8 @@ class TestMultiSteadyState(object):
                                site_x_end=site_x_start+site_x,
                                site_y_start=site_y_start,
                                site_y_end=site_y_start+site_y,
-                               turbine=turbine)
+                               turbine=turbine,
+                               site_ids=(0,1))
 
         farm.add_regular_turbine_layout(num_x=8, num_y=4)
         problem_params.tidal_farm = farm

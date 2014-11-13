@@ -43,7 +43,7 @@ dirichlet boundary condiditon on the walls:
   bcs = BoundaryConditionSet()
   bcs.add_bc("eta", Constant(0.1), facet_id=1)
   bcs.add_bc("eta", Constant(0), facet_id=2)
-  # The free-slip boundary conditions.
+  # The no-slip boundary conditions.
   bcs.add_bc("u", Constant((0, 0)), facet_id=3, bctype="strong_dirichlet")
   
 Set the shallow water parameters, since we want to extract the spatial variation

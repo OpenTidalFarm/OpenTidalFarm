@@ -50,11 +50,6 @@ class RectangularDomain(Domain):
 
         #: A :class:`dolfin.CellFunction` containing the area markers.
         self.cell_ids = dolfin.CellFunction("size_t", self.mesh)
-        self.cell_ids.set_all(1)
+        self.cell_ids.set_all(0)
         #: A :class:`dolfin.Measure` for the cell cell_ids.
         self._dx = dolfin.Measure("dx")[self.cell_ids]
-
-
-        domains = dolfin.CellFunction("size_t", self.mesh)
-        domains.set_all(1)
-        self._site_dx = dolfin.Measure("dx")[domains]  # The measure used to integrate

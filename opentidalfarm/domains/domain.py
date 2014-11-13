@@ -28,10 +28,3 @@ class Domain(object):
     def dx(self):
         """A :class:`dolfin.Measure` for the cell subdomains."""
         return self._dx
-
-
-    @property
-    def site_dx(self):
-        """A :class:`dolfin.Measure` for the turbine site."""
-        # TODO: some explanation for smeared approach.
-        return self._site_dx

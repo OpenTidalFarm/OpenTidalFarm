@@ -131,13 +131,7 @@ functional = PowerFunctional
 control = TurbineFarmControl(farm)
 rf_params = ReducedFunctional.default_parameters()
 rf_params.automatic_scaling = 5
-swrf = SWReducedFunctional(functional, control, solver, rf_params)
-
-cablerf = CableFunctional()
-
-rf = swrf + cabelrf
-
-
+rf = ReducedFunctional(functional, control, solver, rf_params)
 
 # As always, we can print all options of the :class:`ReducedFunctional` with:
 

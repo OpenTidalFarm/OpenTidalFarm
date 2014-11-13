@@ -41,7 +41,7 @@ domain = FileDomain("mesh/mesh.xml")
 bcs = BoundaryConditionSet()
 bcs.add_bc("eta", Constant(0.1), facet_id=1)
 bcs.add_bc("eta", Constant(0), facet_id=2)
-# The free-slip boundary conditions.
+# The no-slip boundary conditions.
 bcs.add_bc("u", Constant((0, 0)), facet_id=3, bctype="strong_dirichlet")
 
 # Set the shallow water parameters, since we want to extract the spatial variation
@@ -102,12 +102,12 @@ print "j for turbine positions: ", j
 print "dj w.r.t. turbine positions: ", turbine_location_sensitivity
 
 # Next we compute the sensitivity of the power with respect to bottom friction.
-# We redefine the control variable using the class :class:`Control` into which  
-# we pass the parameter of interest 
+# We redefine the control variable using the class :class:`Control` into which
+# we pass the parameter of interest
 
 control = Control(prob_params.friction)
 
-# Turbine positions are stored in different data structures (numpy arrays) 
+# Turbine positions are stored in different data structures (numpy arrays)
 # than functions such as bottom friction (dolfin functions), so we need to
 # use a different reduced functional; the :class:`FenicsReducedFunctional`
 

@@ -16,8 +16,7 @@ class FileDomain(Domain):
     :type cell_ids_file: str
     """
 
-    def __init__(self, mesh_file, facet_ids_file=None, cell_ids_file=None,
-                 farm_ids=1):
+    def __init__(self, mesh_file, facet_ids_file=None, cell_ids_file=None):
 
         #: A :class:`dolfin.Mesh` containing the mesh.
         self.mesh = dolfin.Mesh(mesh_file)
@@ -41,7 +40,3 @@ class FileDomain(Domain):
         self.cell_ids = dolfin.MeshFunction("size_t", self.mesh, cell_ids_file)
         #: A :class:`dolfin.Measure` for the cell subdomains.
         self._dx = dolfin.Measure("dx")[self.cell_ids]
-
-        domains = dolfin.CellFunction("size_t", self.mesh)
-        domains.set_all(1)
-        self._site_dx = dolfin.Measure("dx")[domains]  # The measure used to integrate

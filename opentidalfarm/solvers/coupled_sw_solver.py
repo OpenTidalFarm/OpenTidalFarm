@@ -190,8 +190,6 @@ CoupledSWSolverParameters."
         problem_params = self.problem.parameters
         solver_params = self.parameters
         farm = problem_params.tidal_farm
-        if farm:
-            turbine_friction = farm.turbine_cache["turbine_field"]
 
         # Performance settings
         parameters['form_compiler']['quadrature_degree'] = \
@@ -346,10 +344,10 @@ CoupledSWSolverParameters."
 
         if not farm:
             tf = Constant(0)
-        elif type(turbine_friction) == list:
-            tf = Function(turbine_friction[0], name="turbine_friction", annotate=annotate)
+        elif type(farm.friction_function) == list:
+            tf = Function(farm.friction_function[0], name="turbine_friction", annotate=annotate)
         else:
-            tf = Function(turbine_friction, name="turbine_friction", annotate=annotate)
+            tf = Function(farm.friction_function, name="turbine_friction", annotate=annotate)
 
         # Friction term
         # FIXME: FEniCS fails on assembling the below form for u_mid = 0, even
@@ -360,7 +358,7 @@ CoupledSWSolverParameters."
         R_mid = friction / H * norm_u_mid * inner(u_mid, v) * dx
 
         if farm:
-            R_mid += tf/H*dot(u_mid, u_mid)**0.5*inner(u_mid, v)*farm.domain.site_dx(1)
+            R_mid += tf/H*dot(u_mid, u_mid)**0.5*inner(u_mid, v)*farm.site_dx
 
         # Advection term
         if include_advection:
@@ -477,10 +475,10 @@ CoupledSWSolverParameters."
 
             # Set the control function for the upcoming timestep.
             if farm:
-                if type(turbine_friction) == list:
-                    tf.assign(turbine_friction[timestep])
+                if type(farm.friction_function) == list:
+                    tf.assign(farm.friction_function[timestep])
                 else:
-                    tf.assign(turbine_friction)
+                    tf.assign(farm.friction_function)
 
             if (solver_params.dump_period > 0 and
                 timestep % solver_params.dump_period == 0):
