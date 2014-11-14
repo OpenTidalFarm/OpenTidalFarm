@@ -134,7 +134,10 @@ class DefaultConfiguration(object):
             if isinstance(self.params["depth"], float):
                 print "Water depth: %f m" % self.params["depth"]
             print "Gravity constant: %f m/s^2" % self.params["g"]
-            print "Viscosity constant: %f m^2/s" % self.params["diffusion_coef"]
+            try:
+                print "Viscosity constant: %f m^2/s" % self.params["diffusion_coef"]
+            except TypeError:
+                print "Viscosity varying in space"
             print "Water density: %f kg/m^3" % self.params["rho"]
             if isinstance(self.params["friction"], dolfin.functions.constant.Constant):
                 print "Bottom friction: %s" % (self.params["friction"](0))
@@ -147,7 +150,7 @@ class DefaultConfiguration(object):
             print "Steady state: %s" % self.params["steady_state"]
             print "Friction term: %s" % ("quadratic" if self.params['quadratic_friction'] else "linear")
 
-            # Turbine settings 
+            # Turbine settings
             print "\n=== Turbine settings ==="
             print "Number of turbines: %i" % len(self.params["turbine_pos"])
             print "Turbines parametrisation: %s" % self.params["turbine_parametrisation"]
@@ -181,7 +184,7 @@ class DefaultConfiguration(object):
             print "\n=== Solver settings ==="
             print "Nonlinear solver: %s" % ("Newton" if self.params["newton_solver"] else "Picard")
 
-            # Other 
+            # Other
             print "\n=== Other ==="
             print "Dolfin version: %s" % dolfin.__version__
             print "Cache forward solution for initial solver guess: %s" % self.params["cache_forward_state"]
