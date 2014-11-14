@@ -109,57 +109,50 @@ class StateWriter:
         self.timestep = 0
         self.config = config
         self.optimisation_iteration = optimisation_iteration
-        self.u_out, self.p_out = self.output_files(config.finite_element.func_name)
-        self.M_u_out, self.v_out, self.u_out_state = self.u_output_projector(config.function_space)
-        self.M_p_out, self.q_out, self.p_out_state = self.p_output_projector(config.function_space)
+
+        W = config.function_space
+        V = config.function_space.sub(0).collapse()
+        Q = config.function_space.sub(1).collapse()
+        self.statefile = File("state.xdmf")
+
+        self.state_out, self.u_out, self.p_out = self.output_files(config.finite_element.func_name)
+        self.assigner_u = FunctionAssigner(V, W.sub(0))
+        self.assigner_p = FunctionAssigner(Q, W.sub(1))
+
+        self.state_tmp = Function(W)
+        self.u_tmp = Function(V)
+        self.p_tmp = Function(Q)
+
         self.callback = callback
 
-    def write(self, state):
-        info_blue("Projecting velocity and pressure to CG1 for visualisation ...")
-        rhs = assemble(inner(self.v_out, state.split()[0]) * dx)
-        solve(self.M_u_out, self.u_out_state.vector(), rhs, "cg", "sor", annotate=False)
-        rhs = assemble(inner(self.q_out, state.split()[1]) * dx)
-        solve(self.M_p_out, self.p_out_state.vector(), rhs, "cg", "sor", annotate=False)
+    def write(self, state, time):
 
-        self.u_out << self.u_out_state
-        self.p_out << self.p_out_state
+        self.state_tmp.assign(state, annotate=False)
+        self.state_out.write(self.state_tmp, "u"+str(time)+"/vector")
+
+        self.assigner_u.assign(self.u_tmp, state.sub(0), annotate=False)
+        self.u_out << (self.u_tmp, time)
+
+        self.assigner_p.assign(self.p_tmp, state.sub(1), annotate=False)
+        self.p_out << (self.p_tmp, time)
 
         if self.callback is not None:
-            self.callback(state, self.u_out_state, self.p_out_state, self.timestep, self.optimisation_iteration)
+            self.callback(state, self.u_tmp, self.p_tmp, self.timestep, self.optimisation_iteration)
 
         self.timestep += 1
-
-    def u_output_projector(self, W):
-        # Projection operator for output.
-        Output_V = VectorFunctionSpace(W.mesh(), 'CG', 1, dim=2)
-
-        u_out = TrialFunction(Output_V)
-        v_out = TestFunction(Output_V)
-
-        M_out = assemble(inner(v_out, u_out) * dx)
-        out_state = Function(Output_V)
-
-        return M_out, v_out, out_state
-
-    def p_output_projector(self, W):
-        # Projection operator for output.
-        Output_V = FunctionSpace(W.mesh(), 'CG', 1)
-
-        u_out = TrialFunction(Output_V)
-        v_out = TestFunction(Output_V)
-
-        M_out = assemble(inner(v_out, u_out) * dx)
-        out_state = Function(Output_V)
-
-        return M_out, v_out, out_state
 
     def output_files(self, basename):
 
         # Output file
-        u_out = File(self.config.params['base_path'] + os.path.sep + "iter_" + str(self.optimisation_iteration) + "/" + basename + "_u.pvd", "compressed")
-        p_out = File(self.config.params['base_path'] + os.path.sep + "iter_" + str(self.optimisation_iteration) + "/" + basename + "_p.pvd", "compressed")
+        state_out = HDF5File(mpi_comm_world(), self.config.params['base_path'] +
+                os.path.sep + "iter_" + str(self.optimisation_iteration) + "/" +
+                basename + "_state.hdf5", "w")
+        u_out = File(self.config.params['base_path'] + os.path.sep + "iter_" +
+                str(self.optimisation_iteration) + "/" + basename + "_u.xdmf")
+        p_out = File(self.config.params['base_path'] + os.path.sep + "iter_" +
+                str(self.optimisation_iteration) + "/" + basename + "_p.xdmf")
 
-        return u_out, p_out
+        return state_out, u_out, p_out
 
 
 def cpu0only(f):

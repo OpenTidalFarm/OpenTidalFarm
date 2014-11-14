@@ -405,12 +405,12 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
         try:
             statewriter_cb = config.statewriter_callback
         except AttributeError:
-            statewriter_cb = None 
+            statewriter_cb = None
 
         writer = StateWriter(config, optimisation_iteration=config.optimisation_iteration, callback=statewriter_cb)
         if not steady_state and include_time_term:
             print0("Writing state to disk...")
-            writer.write(state)
+            writer.write(state, t)
 
     step = 0
 
@@ -521,7 +521,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
                 info("Using a LU solver to solve the linear system.")
                 lu_solver.solve(state.vector(), rhs_preass, annotate=annotate)
             else:
-                solve(lhs_preass, state_new.vector(), rhs_preass, 
+                solve(lhs_preass, state_new.vector(), rhs_preass,
                       solver_parameters['linear_solver'], solver_parameters['preconditioner'], annotate=annotate)
 
         # After the timestep solve, update state
@@ -542,7 +542,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
 
         if params["dump_period"] > 0 and step % params["dump_period"] == 0:
             print0("Write state to disk...")
-            writer.write(state)
+            writer.write(state, t)
 
         if functional is not None:
             if not (functional_final_time_only and t < float(params["finish_time"])):
