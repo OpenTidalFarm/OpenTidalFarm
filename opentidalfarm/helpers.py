@@ -128,7 +128,7 @@ class StateWriter:
     def write(self, state, time):
 
         self.state_tmp.assign(state, annotate=False)
-        self.state_out.write(self.state_tmp, "u"+str(time)+"/vector")
+        self.state_out.write(self.state_tmp, str(time))
         self.state_out.flush()
 
         self.assigner_u.assign(self.u_tmp, state.sub(0), annotate=False)
