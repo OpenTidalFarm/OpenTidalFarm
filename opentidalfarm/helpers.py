@@ -129,6 +129,7 @@ class StateWriter:
 
         self.state_tmp.assign(state, annotate=False)
         self.state_out.write(self.state_tmp, "u"+str(time)+"/vector")
+        self.state_out.flush()
 
         self.assigner_u.assign(self.u_tmp, state.sub(0), annotate=False)
         self.u_out << (self.u_tmp, time)
@@ -147,10 +148,14 @@ class StateWriter:
         state_out = HDF5File(mpi_comm_world(), self.config.params['base_path'] +
                 os.path.sep + "iter_" + str(self.optimisation_iteration) + "/" +
                 basename + "_state.hdf5", "w")
-        u_out = File(self.config.params['base_path'] + os.path.sep + "iter_" +
+        u_out = XDMFFile(mpi_comm_world(), self.config.params['base_path'] + os.path.sep + "iter_" +
                 str(self.optimisation_iteration) + "/" + basename + "_u.xdmf")
-        p_out = File(self.config.params['base_path'] + os.path.sep + "iter_" +
+        u_out.parameters["rewrite_function_mesh"] = False
+        u_out.parameters["flush_output"] = True
+        p_out = XDMFFile(mpi_comm_world(), self.config.params['base_path'] + os.path.sep + "iter_" +
                 str(self.optimisation_iteration) + "/" + basename + "_p.xdmf")
+        p_out.parameters["rewrite_function_mesh"] = False
+        p_out.parameters["flush_output"] = True
 
         return state_out, u_out, p_out
 
