@@ -2,16 +2,45 @@ from opentidalfarm import *
 import numpy
 
 # Create a rectangular domain.
-# In this setup the wake model does not actually use the mesh, but the requires
-# a domain which by necessesity has a mesh, thus the low number of mesh elements
-# (10x10) does not matter.
-x0 = 0.
-y0 = 0.
-x1 = 640.
-y1 = 320.
-nx = 10
-ny = 10
-domain = RectangularDomain(x0, y0, x1, y1, nx, ny)
+domain = FileDomain("mesh/mesh.xml")
+
+# Create a shallow water problem first so we can calculate the flow through the
+# domain with zero turbines.
+shallow_water_problem_parameters = SteadySWProblem.default_parameters()
+shallow_water_problem_parameters.domain = domain
+shallow_water_problem_parameters.viscosity = Constant(3)
+shallow_water_problem_parameters.depth = Constant(50)
+shallow_water_problem_parameters.friction = Constant(0.0025)
+
+# Specify the boundary conditions.
+bcs = BoundaryConditionSet()
+bcs.add_bc("u", Constant((2, 0)), facet_id=1)
+bcs.add_bc("eta", Constant(0), facet_id=2)
+# The free-slip boundary conditions.
+bcs.add_bc("u", Constant((0, 0)), facet_id=3, bctype="weak_dirichlet")
+
+# Set the boundary conditions in the problem parameters.
+shallow_water_problem_parameters.bcs = bcs
+
+# Create the actual shallow water problem.
+shallow_water_problem = SteadySWProblem(shallow_water_problem_parameters)
+
+info("Calculating the ambient flow field (i.e. the flow field in an "
+     "empty domain)")
+
+# Set up the shallow water solver.
+solver_parameters = CoupledSWSolver.default_parameters()
+solver_parameters.dump_period = -1
+sw_solver = CoupledSWSolver(shallow_water_problem, solver_parameters)
+# Initialize the solver.
+solver = sw_solver.solve()
+state = solver.next()
+# Solve the current state of the problem.
+state = solver.next()
+
+def flow_field(position):
+    """Extract just the flow field from the current state at 'position'."""
+    return state["state"](position)[:-1]
 
 # The next step is to create the turbine farm. In this case, the
 # farm consists of 32 turbines, initially deployed in a regular grid layout.
@@ -30,18 +59,13 @@ farm = RectangularFarm(domain, site_x_start=160, site_x_end=480,
 # Turbines are then added to the site in a regular grid layout.
 farm.add_regular_turbine_layout(num_x=2, num_y=2)
 
-
-def flow(x):
-    """A dummy flow function where the flow is (1., 0.) everywhere."""
-    return numpy.array([2.0, 0.0])
-
 # Set the Wake problem.
 prob_params = SteadyWakeProblem.default_parameters()
 prob_params.domain = domain
 # Get the default paramteres from the Jensen model.
 model_params = Jensen.default_parameters()
 model_params.turbine_radius = turbine.radius
-prob_params.wake_model = Jensen(model_params, flow)
+prob_params.wake_model = Jensen(model_params, flow_field)
 # At present this is the only combination model that is correctly working.
 prob_params.combination_model = GeometricSum
 prob_params.tidal_farm = farm
@@ -61,4 +85,4 @@ functional = WakePowerFunctional(farm)
 # NOT REPRESENT AN ACCURATE POWER in watts! (We simply take the cube of the flow
 # velocity at each of the turbines.)
 flow_velocities = solver.solve()
-print functional.power(flow_velocities)
+info("Calculated 'power': %.2f" % (functional.power(flow_velocities)))
