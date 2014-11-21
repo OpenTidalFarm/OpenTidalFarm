@@ -14,7 +14,11 @@
 #
 
 # Gradient information may also be used to analyse the sensitivity of the chosen
-# functional to various model parameters - for example the bottom friction.
+# functional to various model parameters - for example the bottom friction:
+#
+# .. image:: sens_friction.png
+#     :scale: 20
+#
 # This enables the designer to identify which parameters may have a high impact
 # upon the quality of the chosen design (as judged by the choice of functional).
 
@@ -121,6 +125,11 @@ dj = rf.derivative(project=True)
 print "j with depth = 50 m: ", j
 plot(dj, interactive=True, title="Sensitivity with respect to depth at 50m")
 
+#
+# .. image:: sens_depth50.png
+#     :scale: 20
+#
+
 # Let's reduce the depth and reevaluate derivative
 
 prob_params.depth.assign(Constant(10))
@@ -129,6 +138,11 @@ dj = rf.derivative(project=True)
 print "j with depth = 10 m: ", j
 plot(dj, interactive=True, title="Sensitivity with respect to depth at 10m")
 
+#
+# .. image:: sens_depth10.png
+#     :scale: 20
+#
+
 # Finally let's compute the sensitivity with respect to viscosity
 
 control = Control(prob_params.viscosity)
@@ -136,6 +150,11 @@ rf = FenicsReducedFunctional(functional, control, solver)
 j = rf.evaluate()
 dj = rf.derivative(project=True)
 plot(dj, interactive=True, title="Sensitivity with respect to viscosity")
+
+#
+# .. image:: sens_visc.png
+#     :scale: 20
+#
 
 # The example code can be found in ``examples/channel-sensitivity/`` in the
 # ``OpenTidalFarm`` source tree, and executed as follows:
