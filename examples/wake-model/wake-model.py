@@ -1,4 +1,5 @@
 from opentidalfarm import *
+import pygenopt
 import numpy
 
 # Create a rectangular domain.
@@ -30,7 +31,7 @@ info("Calculating the ambient flow field (i.e. the flow field in an "
 
 # Set up the shallow water solver.
 solver_parameters = CoupledSWSolver.default_parameters()
-solver_parameters.dump_period = -1
+solver_parameters.dump_period = 1
 sw_solver = CoupledSWSolver(shallow_water_problem, solver_parameters)
 # Initialize the solver.
 solver = sw_solver.solve()
@@ -56,9 +57,6 @@ turbine = BumpTurbine(diameter=20.0, friction=12.0)
 farm = RectangularFarm(domain, site_x_start=160, site_x_end=480,
                        site_y_start=80, site_y_end=240, turbine=turbine)
 
-# Turbines are then added to the site in a regular grid layout.
-farm.add_regular_turbine_layout(num_x=2, num_y=2)
-
 # Set the Wake problem.
 prob_params = SteadyWakeProblem.default_parameters()
 prob_params.domain = domain
@@ -80,9 +78,36 @@ solver = SteadyWakeSolver(problem)
 # use the WakePowerFunctional class.
 functional = WakePowerFunctional(farm)
 
-# The power is calculated by calling the "power" method of the functional with a
-# list of velocities to calculate the power for. At present this POWER DOES
-# NOT REPRESENT AN ACCURATE POWER in watts! (We simply take the cube of the flow
-# velocity at each of the turbines.)
-flow_velocities = solver.solve()
-info("Calculated 'power': %.2f" % (functional.power(flow_velocities)))
+def fitness_function(turbine_positions):
+    position_tuples = turbine_positions.reshape(len(turbine_positions)/2, 2)
+    farm.set_turbine_positions(position_tuples)
+    flow_velocity = solver.solve()
+    return functional.power(flow_velocity)
+
+number_of_turbines = 5
+
+optimiser_parameters = pygenopt.Optimiser.default_parameters()
+optimiser_parameters["fitness_function"] = fitness_function
+optimiser_parameters["maximise"] = True
+optimiser_parameters["generations"] = 200
+optimiser_parameters["crossover"] = pygenopt.OnePoint
+optimiser_parameters["mutator"] = pygenopt.FitnessProportionate
+optimiser_parameters["mutation_rate"] = 0.07
+optimiser_parameters["selection"] = pygenopt.Best
+optimiser_parameters["selection_options"]["survival_rate"] = 0.7
+optimiser_parameters["population_options"]["population_size"] = 50
+optimiser_parameters["population_options"]["chromosome_shape"] = (
+                                                    (number_of_turbines, 2))
+optimiser_parameters["population_options"]["upper_limits"] = (640., 320.)
+optimiser_parameters["population_options"]["lower_limits"] = (0., 0.)
+
+optimiser = pygenopt.Optimiser(optimiser_parameters)
+best = optimiser.optimise()
+best = numpy.array(best).reshape(len(best)/2, 2)
+farm.set_turbine_positions(best)
+
+print farm.turbine_positions
+
+visualise = pygenopt.Visualisation(optimiser)
+visualise.each_generation_with_mean()
+visualise.show()

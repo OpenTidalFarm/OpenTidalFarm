@@ -19,4 +19,4 @@ class WakePowerFunctional(object):
     def power_individual(self, velocity_pair):
         """Computes the power extracted at a given velocity."""
         magnitude = numpy.linalg.norm(velocity_pair, 2)
-        return self.power_scale*magnitude**3
+        return self.power_scale*magnitude

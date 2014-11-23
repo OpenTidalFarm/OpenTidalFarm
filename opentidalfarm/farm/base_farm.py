@@ -72,7 +72,7 @@ class BaseFarm(object):
         :returns: The positions of turbines within the farm.
         :rtype: :func:`list`
         """
-        return self._parameters["position"]
+        return self.turbine_cache["position"]
 
 
     @property
@@ -81,7 +81,7 @@ class BaseFarm(object):
         :returns: The friction coefficients of turbines within the farm.
         :rtype: :func:`list`
         """
-        return self._parameters["friction"]
+        return self.turbine_cache["friction"]
 
 
     def add_turbine(self, coordinates):
@@ -163,7 +163,7 @@ class BaseFarm(object):
     def set_turbine_positions(self, positions):
         """Sets the turbine position and an equal friction parameter.
 
-        :param list positions: List of tuples containint x-y coordinates of
+        :param list positions: List of tuples containing x-y coordinates of
             turbines to be added.
         """
         self.turbine_cache["position"] = positions
