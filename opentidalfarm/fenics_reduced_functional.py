@@ -21,7 +21,7 @@ class FenicsReducedFunctional(object):
             raise ValueError, "solver argument of wrong type."
 
         self.functional = functional
-        if not PrototypeFunctional in functional.__bases__:
+        if not isinstance(functional, PrototypeFunctional):
             raise ValueError, "invalid functional argument."
 
         # Hidden attributes
@@ -48,9 +48,8 @@ class FenicsReducedFunctional(object):
         # interest.
         final_only = (not self.solver.problem._is_transient or
                       self._problem_params.functional_final_time_only)
-        functional = self.functional(farm, rho=self._problem_params.rho)
-        self.time_integrator = TimeIntegrator(self.solver.problem, functional,
-                                              final_only)
+        self.time_integrator = TimeIntegrator(self.solver.problem, 
+                                              self.functional, final_only)
 
         for sol in self.solver.solve(annotate=annotate):
             self.time_integrator.add(sol["time"], sol["state"], sol["tf"],

@@ -58,7 +58,7 @@ class ReducedFunctional(ReducedFunctionalPrototype):
             raise ValueError, "solver argument of wrong type."
 
         self.functional = functional
-        if not PrototypeFunctional in functional.__bases__:
+        if not isinstance(functional, PrototypeFunctional):
             raise ValueError, "invalid functional argument."
 
         # Create the default parameters
@@ -120,8 +120,7 @@ class ReducedFunctional(ReducedFunctionalPrototype):
 
             if self._solver_params.output_turbine_power:
                 turbines = farm.turbine_cache["turbine_field"]
-                power = self.functional(farm, self._problem_params.rho
-                    ).power(self.solver.current_state, turbines)
+                power = self.functional.power(self.solver.current_state, turbines)
                 self.power_file << project(power,
                                            farm.turbine_function_space,
                                            annotate=False)
@@ -193,8 +192,7 @@ class ReducedFunctional(ReducedFunctionalPrototype):
         # interest.
         final_only = (not self.solver.problem._is_transient or
                       self._problem_params.functional_final_time_only)
-        functional = self.functional(farm, rho=self._problem_params.rho)
-        self.time_integrator = TimeIntegrator(self.solver.problem, functional,
+        self.time_integrator = TimeIntegrator(self.solver.problem, self.functional,
                                               final_only)
 
         for sol in self.solver.solve(annotate=annotate):

@@ -85,7 +85,7 @@ solver = CoupledSWSolver(problem, sol_params)
 # We wish to study the effect that various model parameters have on the
 # power. Thus, we select the :class:`PowerFunctional`
 
-functional = PowerFunctional
+functional = PowerFunctional(problem)
 
 # First let's compute the sensitivity of the power with respect to the turbine
 # positions. So we set the "control" variable to the turbine positions by using

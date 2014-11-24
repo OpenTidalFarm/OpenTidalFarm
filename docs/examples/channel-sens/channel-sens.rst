@@ -97,7 +97,7 @@ power. Thus, we select the :class:`PowerFunctional`
 
 ::
 
-  functional = PowerFunctional
+  functional = PowerFunctional(problem)
   
 First let's compute the sensitivity of the power with respect to the turbine
 positions. So we set the "control" variable to the turbine positions by using
@@ -116,14 +116,14 @@ positions. So we set the "control" variable to the turbine positions by using
   print "dj w.r.t. turbine positions: ", turbine_location_sensitivity
   
 Next we compute the sensitivity of the power with respect to bottom friction.
-We redefine the control variable using the class :class:`Control` into which  
-we pass the parameter of interest 
+We redefine the control variable using the class :class:`Control` into which
+we pass the parameter of interest
 
 ::
 
   control = Control(prob_params.friction)
   
-Turbine positions are stored in different data structures (numpy arrays) 
+Turbine positions are stored in different data structures (numpy arrays)
 than functions such as bottom friction (dolfin functions), so we need to
 use a different reduced functional; the :class:`FenicsReducedFunctional`
 

@@ -16,17 +16,15 @@ class PowerFunctional(PrototypeFunctional):
 
     where :math:`c_t` defines the friction field due to the turbines.
 
-    :param farm: The farm for which the functional is being computed.
-    :type farm: Instance of the Farm class.
-    :param rho: The fluid density (kg/m^3).
-    :type rho: Float.
+    :param problem: The problem for which the functional is being computed.
+    :type problem: Instance of the problem class.
     """
 
-    def __init__(self, farm, rho):
+    def __init__(self, problem):
 
-        farm.update()
-        self.farm = farm
-        self.rho = rho
+        self.farm = problem.parameters.tidal_farm
+        self.rho = problem.parameters.rho
+        self.farm.update()
         # Create a copy of the parameters so that future changes will not
         # affect the definition of this object.
         # self.params = dict(farm.params)

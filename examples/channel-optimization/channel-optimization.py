@@ -127,7 +127,7 @@ solver = CoupledSWSolver(problem, sol_params)
 # optimize), the control (the variables that we want to change), and our shallow
 # water solver.
 
-functional = PowerFunctional
+functional = PowerFunctional(problem)
 control = TurbineFarmControl(farm)
 rf_params = ReducedFunctional.default_parameters()
 rf_params.automatic_scaling = 5
