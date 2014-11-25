@@ -17,11 +17,11 @@ class MemoizeMutable:
         h1 = to_tuple(args)
         h2 = to_tuple(kwds.items())
         h = tuple([h1, h2])
-        # Often useful to have a explicit 
+        # Often useful to have a explicit
         # turbine parameter -> functional value mapping,
         # i.e. no hashing on the key
         if self.hash_keys:
-            h = hash(h)  
+            h = hash(h)
         return h
 
     def __init__(self, fn, hash_keys=False):
@@ -67,3 +67,5 @@ class MemoizeMutable:
             self.memo = cPickle.load(open(filename, "rb"))
         except IOError:
             info_red("Warning: Checkpoint file '%s' not found." % filename)
+        except ValueError
+            raise ValueError("Error: Checkpoint file '%s' is invalid." % filename)
