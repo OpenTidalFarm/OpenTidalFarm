@@ -67,5 +67,5 @@ class MemoizeMutable:
             self.memo = cPickle.load(open(filename, "rb"))
         except IOError:
             info_red("Warning: Checkpoint file '%s' not found." % filename)
-        except ValueError
+        except ValueError:
             raise ValueError("Error: Checkpoint file '%s' is invalid." % filename)
