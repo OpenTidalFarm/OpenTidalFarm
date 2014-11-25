@@ -2,6 +2,8 @@ from opentidalfarm import *
 import pygenopt
 import numpy
 
+set_log_level(INFO)
+
 # Create a rectangular domain.
 domain = FileDomain("mesh/mesh.xml")
 
@@ -88,14 +90,8 @@ number_of_turbines = 5
 
 optimiser_parameters = pygenopt.Optimiser.default_parameters()
 optimiser_parameters["fitness_function"] = fitness_function
-optimiser_parameters["maximise"] = True
-optimiser_parameters["generations"] = 200
-optimiser_parameters["crossover"] = pygenopt.OnePoint
-optimiser_parameters["mutator"] = pygenopt.FitnessProportionate
-optimiser_parameters["mutation_rate"] = 0.07
-optimiser_parameters["selection"] = pygenopt.Best
 optimiser_parameters["selection_options"]["survival_rate"] = 0.7
-optimiser_parameters["population_options"]["population_size"] = 50
+optimiser_parameters["population_options"]["population_size"] = 100
 optimiser_parameters["population_options"]["chromosome_shape"] = (
                                                     (number_of_turbines, 2))
 optimiser_parameters["population_options"]["upper_limits"] = (640., 320.)
