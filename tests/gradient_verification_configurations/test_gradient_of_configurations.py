@@ -122,7 +122,7 @@ class TestConfigurations(object):
         solver_params.cache_forward_state = True
         solver = CoupledSWSolver(problem, solver_params)
 
-        functional = PowerFunctional
+        functional = PowerFunctional(problem)
         control = problem.parameters.tidal_farm
         rf_params = ReducedFunctionalParameters()
         rf_params.scale = 10**-6

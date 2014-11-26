@@ -77,7 +77,7 @@ class TestMultiSteadyState(object):
         solver_params.dolfin_solver["newton_solver"]["relative_tolerance"] = 1e-15
         solver = CoupledSWSolver(problem, solver_params)
 
-        functional = PowerFunctional
+        functional = PowerFunctional(problem)
         control = TurbineFarmControl(farm)
         rf_params = ReducedFunctionalParameters()
         rf_params.automatic_scaling = 5.

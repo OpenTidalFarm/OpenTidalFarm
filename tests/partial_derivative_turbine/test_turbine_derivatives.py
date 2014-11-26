@@ -90,7 +90,7 @@ class TestTurbineDerivatives(object):
         solver_params.dump_period = -1
         solver = CoupledSWSolver(problem, solver_params)
 
-        functional = PowerFunctional
+        functional = PowerFunctional(problem)
         rf_params = ReducedFunctionalParameters()
         m0 = farm.control_array
 

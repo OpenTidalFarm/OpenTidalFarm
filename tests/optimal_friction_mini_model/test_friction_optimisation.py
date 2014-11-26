@@ -50,7 +50,7 @@ class TestFrictionOptimisation(object):
         problem = self.default_problem(sin_ic)
         solver = DummySolver(problem)
 
-        functional = PowerFunctional
+        functional = PowerFunctional(problem)
         control = TurbineFarmControl(problem.parameters.tidal_farm)
         farm = problem.parameters.tidal_farm
         rf_params = ReducedFunctionalParameters()

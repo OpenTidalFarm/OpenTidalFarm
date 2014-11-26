@@ -78,7 +78,7 @@ class TestPositionOptimisation(object):
         farm = problem.parameters.tidal_farm
 
         solver = DummySolver(problem)
-        functional = PowerFunctional
+        functional = PowerFunctional(problem)
         control = TurbineFarmControl(farm)
         rf_params = ReducedFunctionalParameters()
         rf_params.automatic_scaling = 5.

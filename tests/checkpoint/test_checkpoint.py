@@ -54,7 +54,7 @@ class TestCheckpoint(object):
         rf_params = ReducedFunctionalParameters()
         rf_params.automatic_scaling = False
 
-        functional = PowerFunctional
+        functional = PowerFunctional(problem)
         control = TurbineFarmControl(farm)
         rf = ReducedFunctional(functional, control, solver, rf_params)
         bounds = [0, 100]

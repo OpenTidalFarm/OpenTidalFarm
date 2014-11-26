@@ -71,7 +71,7 @@ class TestDynamicTurbineControl(object):
         solver_params.cache_forward_state = False
         solver = CoupledSWSolver(problem, solver_params)
 
-        functional = PowerFunctional
+        functional = PowerFunctional(problem)
         control = TurbineFarmControl(farm)
         rf_params = ReducedFunctionalParameters()
         rf_params.scale = 10**-6

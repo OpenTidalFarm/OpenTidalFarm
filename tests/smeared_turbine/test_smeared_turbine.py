@@ -66,7 +66,7 @@ class TestSmearedTurbine(object):
         solver_params.dump_period = -1
         solver = CoupledSWSolver(problem, solver_params)
 
-        functional = PowerFunctional
+        functional = PowerFunctional(problem)
         control = TurbineFarmControl(farm)
         rf_params = ReducedFunctionalParameters()
         rf_params.automatic_scaling = False
