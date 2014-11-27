@@ -91,7 +91,8 @@ number_of_turbines = 5
 optimiser_parameters = pygenopt.Optimiser.default_parameters()
 optimiser_parameters["fitness_function"] = fitness_function
 optimiser_parameters["selection_options"]["survival_rate"] = 0.7
-optimiser_parameters["population_options"]["population_size"] = 100
+optimiser_parameters["population_options"]["population_size"] = 30
+optimiser_parameters["population_options"]["use_sensible_seeder"] = False
 optimiser_parameters["population_options"]["chromosome_shape"] = (
                                                     (number_of_turbines, 2))
 optimiser_parameters["population_options"]["upper_limits"] = (640., 320.)
@@ -102,7 +103,18 @@ best = optimiser.optimise()
 best = numpy.array(best).reshape(len(best)/2, 2)
 farm.set_turbine_positions(best)
 
-print farm.turbine_positions
+import pylab
+for x, y in farm.turbine_positions:
+    print x, y
+    pylab.plot(x, y, 'ko')
+
+xmin = 0
+xmax = 640.
+ymin = 0
+ymax = 320.
+pylab.xlim((xmin, xmax))
+pylab.ylim((ymin, ymax))
+pylab.show()
 
 visualise = pygenopt.Visualisation(optimiser)
 visualise.each_generation_with_mean()

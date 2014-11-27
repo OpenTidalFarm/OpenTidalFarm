@@ -20,6 +20,10 @@ class GeometricSum(WakeCombinationModel):
         """
         u_ij = numpy.asarray(self.u_ij)
         u_j = numpy.asarray(self.u_j)
+
+        u_ij = self._set_below_abs_tolerance_to_zero(u_ij)
+        u_j = self._set_below_abs_tolerance_to_zero(u_j)
+
         # Set all results from of zero division to zero.
         with numpy.errstate(all='ignore'):
             result = u_ij/u_j

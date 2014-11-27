@@ -39,3 +39,12 @@ class WakeCombinationModel(object):
         """
         array[numpy.isinf(array) + numpy.isnan(array)] = 0
         return array
+
+    def _set_below_abs_tolerance_to_zero(self, array, tolerance=1e-2):
+        """Sets values below the given tolerance to zero.
+
+        This is useful when wishing to avoid zero division errors when using the
+        'reduce' method.
+        """
+        array[abs(array) < tolerance] = 0
+        return array
