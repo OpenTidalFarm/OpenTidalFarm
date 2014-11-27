@@ -29,6 +29,6 @@ class SteadyWakeSolver(Solver):
                 u_j = wake_model.flow_at(turbine_j)
                 u_ij = u_i*flow_multiplier
                 combiner.add(u_ij, u_j)
-            flow_speeds.append(combiner.reduce())
+            flow_speeds.append(u_i * combiner.reduce())
 
         return numpy.asarray(flow_speeds)
