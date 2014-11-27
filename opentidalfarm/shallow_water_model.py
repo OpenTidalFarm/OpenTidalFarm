@@ -14,7 +14,7 @@ distance_to_upstream = 1. * 20
 
 def default_solver_parameters(newton):
     ''' Create a dictionary with the default solver parameters '''
-    linear_solver = 'mumps' if ('mumps' in map(lambda x: x[0], linear_solver_methods())) else 'default'
+    linear_solver = 'default' #'mumps' if ('mumps' in map(lambda x: x[0], linear_solver_methods())) else 'default'
     preconditioner = 'default'
 
     if newton:
@@ -151,7 +151,7 @@ def sw_solve(config, state, turbine_field=None, functional=None, annotate=True, 
     implicit_turbine_thrust_parametrisation = params["implicit_turbine_thrust_parametrisation"]
     cache_forward_state = params["cache_forward_state"]
     postsolver_callback = params["postsolver_callback"]
-    
+
     is_nonlinear = (include_advection or quadratic_friction or not linear_divergence)
 
     if not 0 <= functional_quadrature_degree <= 1:
