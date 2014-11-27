@@ -27,11 +27,9 @@ class Jensen(WakeModel):
         # Call the parent constructor.
         super(Jensen, self).__init__(flow_field)
 
-
     @staticmethod
     def default_parameters():
         return JensenParameters()
-
 
     def _wake_radius(self, distance):
         """Returns the radius of the wake a 'distance' downstream."""
@@ -39,16 +37,14 @@ class Jensen(WakeModel):
         wake_decay = self.parameters.wake_decay
         return (turbine_radius*(1. + 2*wake_decay* (distance/2*turbine_radius)))
 
-
     def in_wake(self, relative_position):
         """True if turbine is in the wake of another_turbine."""
         x0, y0 = relative_position
-        if (x0 < 0.):
+        if (x0 > 0.):
             return False
         else:
             wake_radius = self._wake_radius(x0)
-            return wake_radius < abs(y0)
-
+            return wake_radius > abs(y0)
 
     def multiplier(self, turbine, another_turbine):
         """Returns the a multiplier to scale the ambient flow by."""
