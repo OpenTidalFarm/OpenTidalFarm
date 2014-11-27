@@ -113,7 +113,6 @@ class StateWriter:
         W = config.function_space
         V = config.function_space.sub(0).collapse()
         Q = config.function_space.sub(1).collapse()
-        self.statefile = File("state.xdmf")
 
         self.state_out, self.u_out, self.p_out = self.output_files(config.finite_element.func_name)
         self.assigner_u = FunctionAssigner(V, W.sub(0))

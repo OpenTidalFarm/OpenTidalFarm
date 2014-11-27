@@ -28,10 +28,19 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
         self.last_state = None
         self.in_euclidian_space = False
         if self.__config__.params["dump_period"] > 0:
-            self.turbine_file = File(config.params['base_path'] + os.path.sep + "turbines.pvd", "compressed")
+            self.turbine_hdf5 = HDF5File(mpi_comm_world(),
+                    self.__config__.params['base_path'] + "/turbines.hdf5", "w")
+            self.turbine_xdmf = XDMFFile(mpi_comm_world(),
+                    self.__config__.params['base_path'] + "/turbines.xdmf")
+            self.turbine_xdmf.parameters["rewrite_function_mesh"] = False
+            self.turbine_xdmf.parameters["flush_output"] = True
+
 
             if config.params['output_turbine_power']:
-                self.power_file = File(config.params['base_path'] + os.path.sep + "power.pvd", "compressed")
+                self.power_xdmf = XDMFFile(mpi_comm_world(),
+                        self.__config__.params['base_path'] + "/power.xdmf")
+                self.power_xdmf.parameters["rewrite_function_mesh"] = False
+                self.power_xdmf.parameters["flush_output"] = True
 
         class Variable:
             name = ""
@@ -124,7 +133,7 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
                     info_red("Turbine power VTU's is not yet implemented with thrust based turbines parameterisations and dynamic turbine friction control.")
                 else:
                     turbines = self.__config__.turbine_cache.cache["turbine_field"]
-                    self.power_file << project(functional.power(state, turbines), config.turbine_function_space, annotate=False)
+                    self.power_xdmf << project(functional.power(state, turbines), config.turbine_function_space, annotate=False)
 
             # The functional depends on the turbine friction function which we do not have on scope here.
             # But dolfin-adjoint only cares about the name, so we can just create a dummy function with the desired name.
@@ -149,7 +158,7 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
 
             else:
                 if not config.params["include_time_term"]:
-                    raise NotImplementedError, "Multi-steady state simulations only work with 'functional_quadrature_degree=0' or 'functional_final_time_only=True'" 
+                    raise NotImplementedError, "Multi-steady state simulations only work with 'functional_quadrature_degree=0' or 'functional_final_time_only=True'"
                 J = Functional(functional.Jt(state, dummy_tf) * dt)
 
             if 'dynamic_turbine_friction' in config.params["controls"]:
@@ -215,7 +224,7 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
             m_dot = project(Constant(1), config.turbine_function_space)
             return H(m_dot)
 
-        # For smeared turbine parametrisations we only want to store the 
+        # For smeared turbine parametrisations we only want to store the
         # hash of the control values into the pickle datastructure
         hash_keys = (config.params["turbine_parametrisation"] == "smeared")
 
@@ -262,6 +271,7 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
     def j(self, m, annotate=True):
         ''' This memoised function returns the functional value for the parameter choice m. '''
         info_green('Start evaluation of j')
+        print 'Start evaluation of j'
         timer = dolfin.Timer("j evaluation")
         j = self.compute_functional_mem(m, annotate=annotate)
         timer.stop()
@@ -278,13 +288,16 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
                 # Computing dj will set the automatic scaling factor.
                 info_blue("Computing derivative to determine the automatic scaling factor")
                 self.dj(m, forget=False, optimisation_iteration=False)
+            print 'Finished evaluation of j'
             return j * self.scale * self.automatic_scaling_factor
         else:
+            print 'Finished evaluation of j'
             return j * self.scale
 
     def dj(self, m, forget, optimisation_iteration=True):
         ''' This memoised function returns the gradient of the functional for the parameter choice m. '''
         info_green('Start evaluation of dj')
+        print 'Start evaluation of dj'
         timer = dolfin.Timer("dj evaluation")
         dj = self.compute_gradient_mem(m, forget)
 
@@ -301,7 +314,11 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
                 if "dynamic_turbine_friction" in self.__config__.params["controls"]:
                     info_red("Turbine VTU output not yet implemented for dynamic turbine control")
                 else:
-                    self.turbine_file << self.__config__.turbine_cache.cache["turbine_field"]
+                    self.turbine_xdmf << (self.__config__.turbine_cache.cache["turbine_field"],
+                            float(self.__config__.optimisation_iteration))
+                    self.turbine_hdf5.write(self.__config__.turbine_cache.cache["turbine_field"],
+                            str(self.__config__.optimisation_iteration))
+                    self.turbine_hdf5.flush()
                     # Compute the total amount of friction due to turbines
                     if self.__config__.params["turbine_parametrisation"] == "smeared":
                         print "Total amount of friction: ", assemble(self.__config__.turbine_cache.cache["turbine_field"] * dx)
@@ -338,6 +355,7 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
         info_blue('Runtime: ' + str(timer.stop()) + " s")
         info_green('|dj| = ' + str(numpy.linalg.norm(dj)))
 
+        print 'Finished evaluation of dj'
         if self.__config__.params['automatic_scaling']:
             return dj * self.scale * self.automatic_scaling_factor
         else:
