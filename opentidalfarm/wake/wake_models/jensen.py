@@ -40,7 +40,7 @@ class Jensen(WakeModel):
     def in_wake(self, relative_position):
         """True if turbine is in the wake of another_turbine."""
         x0, y0 = relative_position
-        if (x0 > 0.):
+        if (x0 < 0.):
             return False
         else:
             wake_radius = self._wake_radius(x0)
