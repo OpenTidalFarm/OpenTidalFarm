@@ -1,6 +1,7 @@
 from dolfin import FunctionSpace
 import dolfin_adjoint
 from .farm import Farm
+from advanced_turbine_placement import AdvancedTurbinePlacementParameters
 
 class RectangularFarm(Farm):
     """Extends :py:class:`Farm`. Defines a rectangular Farm.
@@ -147,12 +148,12 @@ class RectangularFarm(Farm):
         return super(RectangularFarm, self)._staggered_turbine_layout(
             num_x, num_y, x_start, x_end, y_start, y_end)
 
-    def add_turbines_greedily(self, no_of_turbines=0):
-        """ Adds turbines to the site greedily
+    def add_advanced_turbine_layout(self, no_of_turbines=0):
+        """ Access to the advanced turbine layout functions 
         """
+        self.turbine_placement_parameters = AdvancedTurbinePlacementParameters()
+        self.turbine_placement_parameters.no_of_turbines = no_of_turbines
         self.advanced_turbine_placement = True
-        self.no_of_turbines = no_of_turbines
-
 
     def site_boundary_constraints(self):
         """Returns the site boundary constraints for a rectangular site.

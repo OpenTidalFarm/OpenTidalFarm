@@ -106,7 +106,7 @@ farm = RectangularFarm(domain, site_x_start=160, site_x_end=480,
 
 # Turbines are then added to the site in a regular grid layout.
 #farm.add_regular_turbine_layout(num_x=8, num_y=4)
-farm.add_turbines_greedily(no_of_turbines=15)
+farm.add_advanced_turbine_layout(no_of_turbines=15)
 
 prob_params.tidal_farm = farm
 
