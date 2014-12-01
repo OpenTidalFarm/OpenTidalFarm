@@ -18,6 +18,9 @@ class BaseFarm(object):
         # The measure of the farm site
         self.site_dx = self.domain.dx(site_ids)
 
+        # Default the advanced turbine placement mechanisms to off
+        self.advanced_turbine_placement = False
+
     def update(self):
         self.turbine_cache.update(self)
 
