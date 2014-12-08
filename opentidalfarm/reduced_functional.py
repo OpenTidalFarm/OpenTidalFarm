@@ -314,6 +314,7 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
                 if "dynamic_turbine_friction" in self.__config__.params["controls"]:
                     info_red("Turbine VTU output not yet implemented for dynamic turbine control")
                 else:
+                    print "Writing into iter_{}.".format(self.__config__.optimisation_iteration)
                     self.turbine_xdmf << (self.__config__.turbine_cache.cache["turbine_field"],
                             float(self.__config__.optimisation_iteration))
                     self.turbine_hdf5.write(self.__config__.turbine_cache.cache["turbine_field"],
