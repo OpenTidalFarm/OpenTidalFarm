@@ -322,7 +322,8 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
                     self.turbine_hdf5.flush()
                     # Compute the total amount of friction due to turbines
                     if self.__config__.params["turbine_parametrisation"] == "smeared":
-                        print "Total amount of friction: ", assemble(self.__config__.turbine_cache.cache["turbine_field"] * dx)
+                        print "Total amount of friction: ", assemble(self.__config__.turbine_cache.cache["turbine_field"]
+                                * self.__config__.site_dx(1))
 
         if self.save_functional_values and MPI.process_number() == 0:
             with open("functional_values.txt", "a") as functional_values:
