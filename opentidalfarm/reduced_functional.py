@@ -358,6 +358,7 @@ class ReducedFunctionalNumPy(dolfin_adjoint.ReducedFunctionalNumPy):
         info_green('|dj| = ' + str(numpy.linalg.norm(dj)))
 
         print 'Finished evaluation of dj'
+        MPI.barrier(mpi_comm_world())
         if self.__config__.params['automatic_scaling']:
             return dj * self.scale * self.automatic_scaling_factor
         else:
