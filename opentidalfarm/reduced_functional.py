@@ -122,7 +122,7 @@ class ReducedFunctional(ReducedFunctionalPrototype):
                 turbines = farm.turbine_cache["turbine_field"]
                 power = self.functional.power(self.solver.current_state, turbines)
                 self.power_file << project(power,
-                                           farm.turbine_function_space,
+                                           farm._turbine_function_space,
                                            annotate=False)
 
         if farm.turbine_specification.controls.dynamic_friction:
