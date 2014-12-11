@@ -425,7 +425,7 @@ CoupledSWSolverParameters."
                "is_final": self._finished(t, finish_time)})
 
         log(INFO, "Start of time loop")
-        adjointer.time.start(t)
+        #adjointer.time.start(t)
         timestep = 0
         while not self._finished(t, finish_time):
             # Update timestep
@@ -487,8 +487,8 @@ CoupledSWSolverParameters."
 
 
             # Increase the adjoint timestep
-            adj_inc_timestep(time=float(t), finished=self._finished(t,
-                finish_time))
+#            adj_inc_timestep(time=float(t), finished=self._finished(t,
+#                finish_time))
 
             yield({"time": t,
                    "u": u0,

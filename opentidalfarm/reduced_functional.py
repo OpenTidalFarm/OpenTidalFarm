@@ -75,8 +75,7 @@ class ReducedFunctional(ReducedFunctionalPrototype):
         if self._problem_params.tidal_farm.advanced_turbine_placement:
             #from IPython import embed; embed()
             advanced_turbine_placement = AdvancedTurbinePlacement(self)
-            advanced_turbine_placement.greedy_turbine_layout()
-            from IPython import embed; embed()
+            advanced_turbine_placement.hybrid_greedy_turbine_layout()
 
         # Caching variables that store which controls the last forward run was
         # performed
@@ -298,7 +297,7 @@ class ReducedFunctional(ReducedFunctionalPrototype):
         log(INFO, 'Start evaluation of dj')
         timer = dolfin.Timer("dj evaluation")
         dj = self._compute_gradient_mem(m, forget)
-
+        print self._problem_params.tidal_farm.turbine_positions
         # We assume that the gradient is computed at and only at the beginning
         # of each new optimisation iteration. Hence, this is the right moment
         # to store the turbine friction field and to increment the optimisation

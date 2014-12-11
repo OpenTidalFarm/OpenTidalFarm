@@ -33,6 +33,9 @@ from fenics_reduced_functional import FenicsReducedFunctional
 from boundary_conditions import BoundaryConditionSet
 from turbine_function import TurbineFunction
 
+# Wake models and combination models
+from opentidalfarm.wake import *
+
 # Option management instance.
 from options import options
 

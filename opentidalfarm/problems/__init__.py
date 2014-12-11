@@ -7,5 +7,7 @@ from multi_steady_sw import MultiSteadySWProblemParameters
 from multi_steady_sw import MultiSteadySWProblem
 from sw import SWProblemParameters
 from sw import SWProblem
+from steady_wake import SteadyWakeProblemParameters
+from steady_wake import SteadyWakeProblem
 from dummy import DummyProblemParameters
 from dummy import DummyProblem
