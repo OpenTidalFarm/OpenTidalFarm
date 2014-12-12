@@ -3,6 +3,7 @@ import dolfin_adjoint
 from .farm import Farm
 from advanced_turbine_placement import AdvancedTurbinePlacementParameters
 
+
 class RectangularFarm(Farm):
     """Extends :py:class:`Farm`. Defines a rectangular Farm.
 

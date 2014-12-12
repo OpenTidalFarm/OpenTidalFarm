@@ -2,6 +2,16 @@ import numpy
 import dolfin
 import opentidalfarm as otf
 
+
+class AdvancedTurbinePlacementParameters(object):
+    """ Parameters for the advanced turbine placement algorithms
+    """
+    def __init__(self):
+        self.number_of_turbines = 15
+
+
+
+
 class PrototypeAdvancedTurbinePlacement(object):
     """ Prototypical advanced turbine placement object
     """
@@ -16,10 +26,10 @@ class PrototypeAdvancedTurbinePlacement(object):
 
         # Fish out some useful objects for ease of accessibility
         self.solver = reduced_functional.solver
-        self.problem = reduced_functional.problem
+        self.problem = self.solver.problem
         self.problem_params = reduced_functional._problem_params
         self.farm = reduced_functional._problem_params.tidal_farm
-        self.placement_parameters = self.farm.turbine_placement_parameters.
+        self.placement_parameters = self.farm.turbine_placement_parameters
 
         # Perform some preliminary tasks
         self.construct_grid()
@@ -30,6 +40,7 @@ class PrototypeAdvancedTurbinePlacement(object):
         on a grid derived from the minimum distance constraints of the turbines.
         This method constructs that grid
         """
+        spacing = self.farm.turbine_specification.minimum_distance+2
         site_x_start = self.problem_params.tidal_farm.site_x_start
         site_x_end = self.problem_params.tidal_farm.site_x_end
         site_y_start = self.problem_params.tidal_farm.site_y_start
@@ -54,16 +65,16 @@ class PrototypeAdvancedTurbinePlacement(object):
         their corresponding points on the grid
         """
         ambient_velocity_on_grid = {}
-        find_ambient_flow_field()
+        self.find_ambient_flow_field()
         u = self.ambient_state
-        for i in range(len(coordinates)):
-            flow_vel = np.sqrt((u[0](self.grid[i]))**2 +
-                               (u[1](self.grid[i])**2))
+        for i in range(len(self.grid)):
+            flow_vel = numpy.sqrt((u[0](self.grid[i]))**2 +
+                                  (u[1](self.grid[i])**2))
             ambient_velocity_on_grid.update({flow_vel:self.grid[i]})
         self.ambient_velocity_on_grid = ambient_velocity_on_grid
 
 
-    def find_best_point(dictionary):
+    def find_best_point(self, dictionary):
         """ Find the grid point with the best performance from the dictionary
         and return the cartesian coordinate
         """
@@ -72,11 +83,11 @@ class PrototypeAdvancedTurbinePlacement(object):
         return best_location
 
 
-    def place_turbine(self, location):
+    def place_turbine(self, location, turbine_number):
         """ Add the turbines at the defined location
         """
         dolfin.info('Current turbines at: ')
         print self.farm.turbine_positions
-        dolfin.info('Placing turbine number %i' % i) 
-        self.farm.add_turbine(best_location)
+        dolfin.info('Placing turbine number %i' % turbine_number) 
+        self.farm.add_turbine(location)
         self.farm.update()

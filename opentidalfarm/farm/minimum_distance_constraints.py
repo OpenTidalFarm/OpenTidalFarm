@@ -75,14 +75,9 @@ class MinimumDistanceConstraints(dolfin_adjoint.InequalityConstraint):
 
         inequality_constraints = numpy.array(inequality_constraints)
         if any(inequality_constraints <= 0):
-            print 'DANGER WILL ROBINSON'
             dolfin.log(dolfin.WARNING,
                        "Minimum distance inequality constraints (should all "
                        "be > 0): %s" % inequality_constraints)
-        print 'MINIMUM DISTANCE CONSTRAINT OUTPUT * * * * * * * * * * * *'
-        print m
-        print inequality_constraints
-        print 'Minimumum Distance: ', self._minimum_distance
         return inequality_constraints
 
 

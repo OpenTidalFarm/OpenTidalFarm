@@ -7,6 +7,6 @@
 from .rectangular_farm import RectangularFarm
 from .farm import Farm
 from .continuum_farm import ContinuumFarm
-from .advanced_turbine_placement import AdvancedTurbinePlacement, AdvancedTurbinePlacementParameters
+from advanced_turbine_placement import * 
 
 __all__ = ["Farm", "ContinuumFarm", "RectangularFarm"]

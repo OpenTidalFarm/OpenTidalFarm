@@ -5,7 +5,7 @@ import helpers
 import dolfin_adjoint
 from dolfin import *
 from dolfin_adjoint import *
-from farm import AdvancedTurbinePlacement
+import farm
 from solvers import Solver
 from functionals import TimeIntegrator, PrototypeFunctional
 from memoize import MemoizeMutable
@@ -74,8 +74,8 @@ class ReducedFunctional(ReducedFunctionalPrototype):
         # Check for advanced turbine placement
         if self._problem_params.tidal_farm.advanced_turbine_placement:
             #from IPython import embed; embed()
-            advanced_turbine_placement = AdvancedTurbinePlacement(self)
-            advanced_turbine_placement.hybrid_greedy_turbine_layout()
+            advanced_turbine_placement = farm.HybridGreedyTurbinePlacement(self)
+            advanced_turbine_placement.place()
 
         # Caching variables that store which controls the last forward run was
         # performed
