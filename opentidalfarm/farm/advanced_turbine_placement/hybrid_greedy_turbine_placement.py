@@ -2,7 +2,8 @@ import dolfin
 import numpy
 import opentidalfarm as otf
 from copy import deepcopy
-from .prototype_advanced_placement import PrototypeAdvancedTurbinePlacement
+from .prototype_advanced_placement import PrototypeAdvancedTurbinePlacement, Sample
+
 
 class HybridGreedyTurbinePlacement(PrototypeAdvancedTurbinePlacement):
     """Place the turbines greedily based on a fitness function calculated
@@ -19,13 +20,15 @@ class HybridGreedyTurbinePlacement(PrototypeAdvancedTurbinePlacement):
     :type reduced functional: An instance of the reduced_functional object.
     """
 
-    dolfin.info("Placing turbines greedily... After each turbine is placed"
-                " the flow will be re-solved - for large numbers of turbines"
-                " this may take too long") 
 
     def __init__(self, reduced_functional):
         """ Constructor for the class
         """
+
+        dolfin.info("Placing turbines greedily... After each turbine is placed"
+                    " the flow will be re-solved - for large numbers of turbines"
+                    " this may take too long") 
+
         # Initialise the base_class
         super(HybridGreedyTurbinePlacement, self).__init__(reduced_functional)
 
@@ -77,22 +80,85 @@ class HybridGreedyTurbinePlacement(PrototypeAdvancedTurbinePlacement):
                 trialled_points.update({fitness_function(numpy.array(existing_turbines),
                                         wake_functional, wake_solver, wake_farm):i})
         dictionary = trialled_points
-        for item in sorted(trialled_points):
-            print item, trialled_points[item]
-        best_performance = sorted(dictionary.keys())[-1]
-        print dictionary[best_performance]
+#        for item in sorted(trialled_points):
+#            print item, trialled_points[item]
+#        best_performance = sorted(dictionary.keys())[-1]
+#        print dictionary[best_performance]
         return trialled_points
 
- 
-    def place(self):
-        #if not self.advanced_placement_parameters.auto_size_array:
+
+    def place_initial_turbine(self):
+        """ Places the first turbine where the flow is fastest
+        """ 
         dolfin.info('Calculating the flow to place turbine 1')
         self.find_ambient_velocity_on_grid()
         best_point = self.find_best_point(self.ambient_velocity_on_grid)
         self.place_turbine(best_point, 1)
-        for i in range(self.placement_parameters.number_of_turbines-1):
-            dolfin.info('Calculating the flow to place turbine %i' % (i+2))
-            self.find_ambient_flow_field()
-            best_point = self.find_best_point(self.best_point_from_wake_model())
-            self.place_turbine(best_point, i+1)
 
+ 
+    def compute_objective_functional(self):
+        """ Computes the objective functional for those turbines that have been
+        placed.
+        """
+        current_functional = self.functional.Jt(self.ambient_state,
+                self.farm.turbine_cache["turbine_field"])
+        current_functional = dolfin.assemble(current_functional)
+        number_of_turbines = len(self.farm.turbine_positions) 
+        dolfin.info('Current functional with %i turbines placed is %f' %
+                (number_of_turbines, current_functional))
+        return current_functional
+
+
+    def compute_ancillary_functional(self):
+        """ Computes the functional for those turbines that have been
+        placed - if a different functional is wanted to size the array than
+        arrange the turbines.
+        """
+        fin_functional = self.placement_parameters.sizing_functional
+        # Instantiate the financial functional
+        if fin_functional.problem == None:
+            fin_functional.late_instantiate(self.problem)
+        current_functional = fin_functional.profit(self.ambient_state,
+                self.farm.turbine_cache["turbine_field"]) 
+        number_of_turbines = len(self.farm.turbine_positions) 
+        dolfin.info('Current functional with %i turbines placed is %f' %
+                (number_of_turbines, current_functional))
+        self.record.append(Sample(number_of_turbines, current_functional, 0,
+                                  'low', self.farm.turbine_positions))
+        return current_functional
+
+
+    def place(self):
+        if not self.placement_parameters.auto_size_array:
+            self.place_initial_turbine()
+            for i in range(self.placement_parameters.number_of_turbines-1):
+                dolfin.info('Calculating the flow to place turbine %i' % (i+2))
+                self.find_ambient_flow_field()
+                best_point = self.find_best_point(self.best_point_from_wake_model())
+                self.place_turbine(best_point, i+1)
+                self.plot_turbine_positions()
+        else: 
+            i = 0
+            self.place_initial_turbine() 
+            improving = True
+            while improving:
+                if i == 0:
+                    self.place_initial_turbine()
+                    self.plot_turbine_positions()
+                    print 'Initial functional', self.compute_ancillary_functional()
+                else:
+                    last_functional = current_functional
+                    best_point = self.find_best_point(self.best_point_from_wake_model())
+                    self.place_turbine(best_point, i+1)
+                    self.plot_turbine_positions()
+                dolfin.info('Calculating the flow having placed turbine %i' % (i+1))
+                self.find_ambient_flow_field()
+                current_functional = self.compute_ancillary_functional()
+                functional_per_turbine = current_functional/(i+1)
+                dolfin.info('Functional value per turbine %f' %
+                        (functional_per_turbine))
+                if i is not 0:
+                    print 'Last v Current', last_functional, current_functional
+                    if last_functional > current_functional:
+                        improving = False
+                i += 1
