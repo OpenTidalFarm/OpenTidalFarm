@@ -96,17 +96,23 @@ class TurbineCache(dict):
 
         # Precompute the interpolation of the friction function for each
         # individual turbine.
-        if options["output_individual_power"]:
-            log(INFO, "Building individual turbine power friction functions "
-                      "for caching purposes...")
-            self["turbine_field_individual"] = []
-            for i in xrange(len(self._parameters["friction"])):
-                position_cpy = [self._parameters["position"][i]]
-                friction_cpy = [self._parameters["friction"][i]]
-                turbine = TurbineFunction(self, self._function_space,
-                                          self._specification)
-                tf = turbine()
-                self["turbine_field_individual"].append(tf)
+#        TODO what is this line (below) referring to???
+#        if options["output_individual_power"]:
+        log(INFO, "Building individual turbine power friction functions "
+                  "for caching purposes...")
+        self["turbine_field_individual"] = []
+        # Create a copy of the parameters 
+        original_parameters = copy.deepcopy(self._parameters)
+        for i in xrange(len(self._parameters["friction"])):
+            self._parameters = original_parameters
+            position_cpy = [self._parameters["position"][i]]
+            friction_cpy = [self._parameters["friction"][i]] 
+            self._parameters = {'friction': friction_cpy, 'position': position_cpy} 
+            turbine = TurbineFunction(self, self._function_space,
+                                      self._specification)
+            tf = turbine()
+            self["turbine_field_individual"].append(tf)
+        self._parameters = original_parameters
 
         # Precompute the derivatives with respect to the friction magnitude
         # of each turbine.

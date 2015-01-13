@@ -97,6 +97,11 @@ class ReducedFunctional(ReducedFunctionalPrototype):
         if self.parameters.load_checkpoints:
             self._load_checkpoint()
 
+        if self._solver_params.print_individual_turbine_power:
+            # if this is enabled, we need to instantiate the relevant helper
+            # and pass this to the solver 
+            output_writer = helpers.OutputWriter(self.functional)
+            self._solver_params.output_writer = output_writer
 
     @staticmethod
     def default_parameters():

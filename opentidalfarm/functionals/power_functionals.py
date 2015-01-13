@@ -4,7 +4,7 @@
 #       power extracted by an array.
 #"""
 
-from dolfin import dot, Constant, dx
+from dolfin import dot, Constant, dx, assemble
 from ..helpers import smooth_uflmin
 from prototype_functional import PrototypeFunctional
 
@@ -64,8 +64,32 @@ class PowerFunctional(PrototypeFunctional):
         """
         turbine_field_individual = \
                 self.farm.turbine_cache['turbine_field_individual'][i]
-        return self.power(state, turbine_field_individual) * self.farm.site_dx
+        return assemble(self.power(state, turbine_field_individual) *
+                        self.farm.site_dx)
 
+    def force(self, state, turbine_field):
+        """ Computes the force field over turbine field
+
+        :param state: Current solution state.
+        :type state: UFL
+        :param turbine_field: Turbine friction field
+        :type turbine_field: UFL
+        
+        """
+        return self.rho * turbine_field * dot(state[0], state[0]) + dot(state[1], state[1])
+
+    def force_individual(self, state, i):
+        """ Computes the total force on the i'th turbine
+
+        :param state: Current solution state
+        :type state: UFL
+        :param i: refers to the i'th turbine
+        :type i: Integer
+
+        """
+        turbine_field_individual = \
+                self.farm.turbine_cache['turbine_field_individual'][i]
+        return assemble(self.force(state, turbine_field_individual) * self.farm.site_dx(1))
 
 class PowerCurveFunctional(PrototypeFunctional):
 #    ''' Implements a functional for the power with a given power curve

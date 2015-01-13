@@ -49,6 +49,10 @@ class CoupledSWSolverParameters(FrozenClass):
     dump_period = 1
     print_individual_turbine_power = False
 
+    # If we're printing individual turbine information, the solver needs
+    # the helper functional instantiated in the reduced_functional which will live here
+    output_writer = None
+
     # Output settings
     output_dir = os.curdir
     output_turbine_power = False
@@ -485,7 +489,6 @@ CoupledSWSolverParameters."
                 log(INFO, "Write state to disk...")
                 writer.write(state)
 
-
             # Increase the adjoint timestep
             adj_inc_timestep(time=float(t), finished=self._finished(t,
                 finish_time))
@@ -496,5 +499,9 @@ CoupledSWSolverParameters."
                    "tf": tf,
                    "state": state,
                    "is_final": self._finished(t, finish_time)})
+
+        # If we're outputting the individual turbine power 
+        if self.parameters.print_individual_turbine_power:
+            self.parameters.output_writer.individual_turbine_power(self)
 
         log(INFO, "End of time loop.")

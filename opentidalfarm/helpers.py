@@ -261,3 +261,33 @@ attribute." % (self, key))
             attrs_dict[k] = val
 
         return yaml.dump(attrs_dict, default_flow_style=False)
+
+class OutputWriter(object):
+    """ Suite of tools to write output to disk
+    """
+
+    def __init__(self, functional):
+
+        self.functional = functional
+
+    def individual_turbine_power(self, solver):
+        """ Print out the individual turbine's power
+        """
+        log(INFO, "Computing individual turbine power extraction contribution.")
+        farm = solver.problem.parameters.tidal_farm
+        turbine_positions = farm.turbine_positions
+        individual_turbine_data = []
+        for i in range(len(turbine_positions)):
+            turbine_info = {}
+            turbine_info['location'] = turbine_positions[i]
+            turbine_info['power'] = self.functional.Jt_individual(solver.current_state, i)
+            turbine_info['force'] = self.functional.force_individual(solver.current_state, i)
+            turbine_info['friction'] = farm.turbine_cache._parameters['friction'][i] 
+            turbine_info['friction_field'] = farm.turbine_cache['turbine_field_individual'][i]
+            info("Contribution of turbine %d at x=%.3f, "
+                 "y=%.3f, is %.2f kW with a friction of %.2f." % (i, 
+                 turbine_info['location'][0], turbine_info['location'][1],
+                 turbine_info['power']*0.001, turbine_info['friction']))
+
+
+            
