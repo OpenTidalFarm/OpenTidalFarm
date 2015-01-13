@@ -103,7 +103,7 @@ class TurbineCache(dict):
             for i in xrange(len(self._parameters["friction"])):
                 position_cpy = [self._parameters["position"][i]]
                 friction_cpy = [self._parameters["friction"][i]]
-                turbine = TurbineFunction(self, self, self._function_space,
+                turbine = TurbineFunction(self, self._function_space,
                                           self._specification)
                 tf = turbine()
                 self["turbine_field_individual"].append(tf)
