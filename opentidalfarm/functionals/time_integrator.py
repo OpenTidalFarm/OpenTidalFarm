@@ -51,7 +51,7 @@ class TimeIntegrator(object):
         # But dolfin-adjoint only cares about the name, hence it is sufficient
         # to create dummy functions with the appropriate names.
         R = FunctionSpace(self.problem.parameters.domain.mesh, "R", 0)
-        Rvec = VectorFunctionSpace(self.problem.parameters.domain.mesh, "R", 0)
+        Rvec = MixedFunctionSpace([VectorFunctionSpace(self.problem.parameters.domain.mesh, "R", 0), R])
         tf = Function(R, name="turbine_friction")
         state = Function(Rvec, name="Current_state")
 
