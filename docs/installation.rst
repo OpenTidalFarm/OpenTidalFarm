@@ -12,6 +12,7 @@ Install using git:
 
    git clone git@github.com:OpenTidalFarm/OpenTidalFarm.git
    cd OpenTidalFarm
+   git co opentidalfarm-1.5
    git submodule init
    git submodule update
    python setup.py install
@@ -20,7 +21,7 @@ Install using pip:
 
 .. code-block:: bash
 
-   pip install git+git://github.com/OpenTidalFarm/OpenTidalFarm.git
+   pip install git+git://github.com/OpenTidalFarm/OpenTidalFarm.git@opentidalfarm-1.5
 
 Test the installation with
 
@@ -28,15 +29,15 @@ Test the installation with
 
     python -c "import opentidalfarm"
 
-If no errors occur, your installation was succesfull.    
+If no errors occur, your installation was succesfull.
 
 Dependencies
 ------------
 
-OpenTidalFarm depends on following packages:
+OpenTidalFarm 1.5 depends on following packages:
 
-- `FEniCS`_ (Follow the Ubuntu PPA installation)
-- `dolfin-adjoint`_ (Follow the Ubuntu PPA installation)
+- `FEniCS 1.5`_ (Follow the Ubuntu PPA installation)
+- `dolfin-adjoint 1.5`_ (Follow the Ubuntu PPA installation)
 - `SciPy >=0.11`_ - e.g. with:
 
    ``pip install scipy``
