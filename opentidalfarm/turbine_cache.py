@@ -73,7 +73,10 @@ class TurbineCache(dict):
         # For the smeared approached we just update the turbine_field.
         if self._specification.smeared:
             tf = Function(self._function_space, name="turbine_friction_cache")
-            optimization.set_local(tf, self._parameters["friction"])
+            # FIXME: This if statement is only required to handle the case where
+            # self._parameters["friction"] is not initialised yet.
+            if len(self._parameters["friction"]) > 0:
+                optimization.set_local(tf, self._parameters["friction"])
             self["turbine_field"] = tf
             return
 
