@@ -36,7 +36,7 @@ Dependencies
 
 OpenTidalFarm depends on following packages:
 
-- `FEniCS 1.4`_ (Follow the Ubuntu PPA installation)
+- `FEniCS`_ 1.4 (Follow the Ubuntu PPA installation)
 - `dolfin-adjoint`_ (Follow the Ubuntu PPA installation)
 - `SciPy >=0.11`_ - e.g. with:
 
