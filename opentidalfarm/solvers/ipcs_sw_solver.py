@@ -384,6 +384,10 @@ IPCSSWSolverParameters."
         adjointer.time.start(t)
         timestep = 0
 
+        # De/activate annotation
+        annotate_orig = parameters["adjoint"]["stop_annotating"]
+        parameters["adjoint"]["stop_annotating"] = not annotate
+
         while not self._finished(t, finish_time):
             # Update timestep
             timestep += 1
@@ -443,5 +447,8 @@ IPCSSWSolverParameters."
                    "eta": eta0,
                    "eddy_viscosity": eddy_viscosity,
                    "is_final": self._finished(t, finish_time)})
+
+        # Reset annotation flag
+        parameters["adjoint"]["stop_annotating"] = annotate_orig
 
         log(INFO, "End of time loop.")

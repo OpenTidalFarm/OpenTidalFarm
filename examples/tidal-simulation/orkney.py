@@ -154,19 +154,21 @@ sol_params.les_model = True
 sol_params.les_parameters["smagorinsky_coefficient"] = 1e-1
 solver = IPCSSWSolver(problem, sol_params)
 
-# Now we are ready to solve
+# Now we are ready to solve and store the results to file.
 
 f_eta = File("results-ipcs/eta.pvd")
 f_u = File("results-ipcs/u.pvd")
 f_eddy = File("results-ipcs/eddy.pvd")
 
 timer = Timer('')
-for s in solver.solve():
-    t = float(s["time"])
-    log(INFO, "Computed solution at time %f in %f s." % (t, timer.stop()))
-    f_eta << (s["eta"], t)
-    f_u << (s["u"], t)
-    f_eddy << (s["eddy_viscosity"], t)
+# The annotate=False flag deactivates the adjoint model, but saves memory
+# because the solutions do not need to be cached
+for sol in solver.solve(annotate=False):
+    simulation_time = float(sol["time"])
+    log(INFO, "Computed solution at time %f in %f s." % (simulation_time, timer.stop()))
+    f_eta << (sol["eta"], simulation_time)
+    f_u << (sol["u"], simulation_time)
+    f_eddy << (sol["eddy_viscosity"], simulation_time)
     timer.start()
 
 # The code for this example can be found in ``examples/tidal-simulation/`` in the
