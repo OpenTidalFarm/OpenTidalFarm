@@ -179,17 +179,19 @@ The other parameters are set as usual.
   sol_params = CoupledSWSolver.default_parameters()
   solver = CoupledSWSolver(problem, sol_params)
   
-Now we are ready to solve
+Now we are ready to solve and save the results to file.
 
 ::
 
   f_state = File("results/state.pvd")
   
   timer = Timer('')
-  for s in solver.solve():
-      t = float(s["time"])
-      log(INFO, "Computed solution at time %f in %f s." % (t, timer.stop()))
-      f_state << (s["state"], t)
+  # The annotate=False flag deactivates the adjoint model, but saves memory
+  # because the solutions do not need to be cached
+  for sol in solver.solve(annotate=False):
+      simulation_time = float(sol["time"])
+      log(INFO, "Computed solution at time %f in %f s." % (simulation_time, timer.stop()))
+      f_state << (sol["state"], simulation_time)
       timer.start()
   
 The code for this example can be found in ``examples/tidal-simulation/`` in the
