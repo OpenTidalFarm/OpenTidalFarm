@@ -30,7 +30,7 @@ class FenicsReducedFunctional(object):
         self._time_integrator = None
 
         # Controls
-        self.controls = enlist(controls)
+        self.controls = enlisting.enlist(controls)
 
     def evaluate(self, annotate=True):
         """ Return the functional value for the given control values. """
@@ -48,7 +48,7 @@ class FenicsReducedFunctional(object):
         # interest.
         final_only = (not self.solver.problem._is_transient or
                       self._problem_params.functional_final_time_only)
-        self.time_integrator = TimeIntegrator(self.solver.problem, 
+        self.time_integrator = TimeIntegrator(self.solver.problem,
                                               self.functional, final_only)
 
         for sol in self.solver.solve(annotate=annotate):
