@@ -161,8 +161,9 @@ f_u = File("results-ipcs/u.pvd")
 f_eddy = File("results-ipcs/eddy.pvd")
 
 timer = Timer('')
-# The annotate=False flag deactivates the adjoint model, but saves memory
-# because the solutions do not need to be cached
+# To save memory, we deactivate the adjoint model with annotate=False.
+# We do not need the adjoint because we will not solve an optimisation problem
+# or compute sensitivities
 for sol in solver.solve(annotate=False):
     simulation_time = float(sol["time"])
     log(INFO, "Computed solution at time %f in %f s." % (simulation_time, timer.stop()))
