@@ -23,8 +23,8 @@ class BaseFarm(object):
 
     @property
     def friction_function(self):
-        tf = self.turbine_cache["turbine_field"]
-        return tf
+        self.update()
+        return self.turbine_cache["turbine_field"]
 
 
     def _get_turbine_specification(self):
