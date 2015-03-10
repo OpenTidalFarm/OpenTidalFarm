@@ -6,6 +6,7 @@ from dolfin_adjoint import *
 class TurbineFunction(object):
 
     def __init__(self, cache, V, turbine_specification):
+
         self._parameters = copy.deepcopy(cache._parameters)
         self._turbine_specification = turbine_specification
         self._cache = cache

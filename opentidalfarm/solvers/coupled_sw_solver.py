@@ -359,7 +359,7 @@ CoupledSWSolverParameters."
         #norm_u_mid = conditional(inner(u_mid, u_mid)**0.5 < DOLFIN_EPS, Constant(0),
         #        inner(u_mid, u_mid)**0.5)
         norm_u_mid = inner(u_mid, u_mid)**0.5
-        R_mid = friction / H * norm_u_mid * inner(u_mid, v) * dx
+        R_mid = friction / H * norm_u_mid * inner(u_mid, v) * dx(self.mesh)
 
         if farm:
             R_mid += tf/H*dot(u_mid, u_mid)**0.5*inner(u_mid, v)*farm.site_dx
@@ -500,7 +500,7 @@ CoupledSWSolverParameters."
                    "state": state,
                    "is_final": self._finished(t, finish_time)})
 
-        # If we're outputting the individual turbine power 
+        # If we're outputting the individual turbine power
         if self.parameters.print_individual_turbine_power:
             self.parameters.output_writer.individual_turbine_power(self)
 

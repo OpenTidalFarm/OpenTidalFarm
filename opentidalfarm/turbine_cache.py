@@ -51,8 +51,7 @@ class TurbineCache(dict):
         position = farm._parameters["position"]
         friction = farm._parameters["friction"]
 
-        # If the parameters have not changed, then there is no need to do
-        # anything.
+        # If the parameters have not changed, there is nothing to do
         if self._parameters is not None:
             if (len(self._parameters["friction"])==len(friction) and
                 len(self._parameters["position"])==len(position) and
@@ -76,7 +75,7 @@ class TurbineCache(dict):
             # FIXME: This if statement is only required to handle the case where
             # self._parameters["friction"] is not initialised yet.
             if len(self._parameters["friction"]) > 0:
-                optimization.set_local(tf, self._parameters["friction"])
+                reduced_functional_numpy.set_local(tf, self._parameters["friction"])
             self["turbine_field"] = tf
             return
 
@@ -97,20 +96,17 @@ class TurbineCache(dict):
             tf = turbines(name="turbine_friction_cache")
             self["turbine_field"] = tf
 
-        # Precompute the interpolation of the friction function for each
-        # individual turbine.
-#        TODO what is this line (below) referring to???
-#        if options["output_individual_power"]:
+        # Precompute the interpolation of the friction function for each turbine.
         log(INFO, "Building individual turbine power friction functions "
                   "for caching purposes...")
         self["turbine_field_individual"] = []
-        # Create a copy of the parameters 
+        # Create a copy of the parameters
         original_parameters = copy.deepcopy(self._parameters)
         for i in xrange(len(self._parameters["friction"])):
             self._parameters = original_parameters
             position_cpy = [self._parameters["position"][i]]
-            friction_cpy = [self._parameters["friction"][i]] 
-            self._parameters = {'friction': friction_cpy, 'position': position_cpy} 
+            friction_cpy = [self._parameters["friction"][i]]
+            self._parameters = {'friction': friction_cpy, 'position': position_cpy}
             turbine = TurbineFunction(self, self._function_space,
                                       self._specification)
             tf = turbine()

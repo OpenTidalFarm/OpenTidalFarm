@@ -6,6 +6,7 @@ from ..helpers import FrozenClass
 
 class DummySolverParameters(FrozenClass):
     dump_period = -1
+    print_individual_turbine_power = False
 
 class DummySolver(Solver):
 
