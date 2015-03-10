@@ -2,12 +2,14 @@ import os
 import pytest
 from opentidalfarm import *
 
-
 class TestMultiSteadyState(object):
 
     @pytest.mark.parametrize(("steps"), [1, 3])
     def test_gradient_passes_taylor_test(self, steps,
             multi_steady_sw_problem_parameters):
+        
+        # Fix the random seed to obtain consistent results
+        numpy.random.seed(1)
 
         # Some domain information
         basin_x = 640.

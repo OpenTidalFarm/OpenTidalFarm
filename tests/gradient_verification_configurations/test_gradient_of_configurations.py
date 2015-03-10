@@ -110,6 +110,9 @@ class TestConfigurations(object):
                                          sw_linear_problem_parameters,
                                          steady_sw_problem_parameters):
 
+        # Fix random seed for consistent behavior
+        numpy.random.seed(21)
+
         # Define the discrete domain
         if steady:
             problem = self.create_steady_sw_problem(steady_sw_problem_parameters)
