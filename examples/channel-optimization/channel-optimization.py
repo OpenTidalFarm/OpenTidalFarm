@@ -119,6 +119,8 @@ problem = SteadySWProblem(prob_params)
 
 sol_params = CoupledSWSolver.default_parameters()
 sol_params.dump_period = 1
+#sol_params.print_individual_turbine_power = True
+#sol_params.output_turbine_power = True
 solver = CoupledSWSolver(problem, sol_params)
 
 # Next we create a reduced functional, that is the functional considered as a
@@ -130,7 +132,7 @@ solver = CoupledSWSolver(problem, sol_params)
 functional = PowerFunctional(problem)
 control = TurbineFarmControl(farm)
 rf_params = ReducedFunctional.default_parameters()
-rf_params.automatic_scaling = 5
+#rf_params.automatic_scaling = 5
 rf = ReducedFunctional(functional, control, solver, rf_params)
 
 # As always, we can print all options of the :class:`ReducedFunctional` with:
@@ -141,7 +143,8 @@ print rf_params
 # optimisation.
 
 lb, ub = farm.site_boundary_constraints()
-f_opt = maximize(rf, bounds=[lb, ub], method="L-BFGS-B", options={'maxiter': 100})
+ineq = farm.minimum_distance_constraints()
+f_opt = maximize(rf, bounds=[lb, ub], constraints=ineq, method="SLSQP", options={'maxiter': 100})
 
 # The example code can be found in ``examples/channel-optimization/`` in the
 # ``OpenTidalFarm`` source tree, and executed as follows:
