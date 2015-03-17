@@ -5,21 +5,32 @@ from matplotlib import pyplot as plt
 class TurbineParametrisation(object):
 
     def __init__(self, u_in=1, u_rated=2.5, ct_design= 0.6, diameter=20,
-                 rho=1000):
+                 rho=1000, plan_diameter=20):
         """ 
         u_in: cut in velocity
         u_rated: rated velocity
         ct_design: design thrust coefficient
         diameter: turbine diameter
         rho: density of medium (water)
+        turbine_x: 2 dimensional plan-view x dimension
+        turbine_y: 2 dimensional plan-view y dimension
         """
         self.u_in = u_in
         self.u_rated = u_rated
         self.ct_design = ct_design
         self.diameter = diameter
         self.rho = rho
+        self.plan_diameter = plan_diameter
 
         self.swept_area = np.pi * (diameter/2)**2
+        self.plan_area = plan_diameter ** 2
+
+        # The integral of the unit bump function computed with Wolfram Alpha:
+        # "integrate e^(-1/(1-x**2)-1/(1-y**2)+2) dx dy,
+        #  x=0..0.999, y=0..0.999"
+        # http://www.wolframalpha.com/input/?i=integrate+e%5E%28-1%2F%281-x**2%29-1%2F%281-y**2%29%2B2%29+dx+dy%2C+x%3D0..0.999%2C+y%3D0..0.999
+        self.unit_bump_int = 0.364152
+
 
     def thrust_coefficient(self, u):
         """ calculate the thrust coefficient
@@ -101,7 +112,21 @@ class TurbineParametrisation(object):
             plt.show()
             plt.clf()
 
-
+    def compute_K(self, u):
+        """ compute the coefficient with which to multiply the unit bump-function
+        of bottom friction which represents the turbine in the shallow water
+        equations
+        
+        u: turbine's upstream velocity
+        """
+        C_t = self.thrust_coefficient(u)
+        A_t = self.swept_area
+        A = self.plan_area
+        c_t = (C_t * A_t) / (2 * A)
+        # convert the unit bump function interval into the actual turbine bump
+        # function integral
+        bump_int = self.unit_bump_int*self.plan_diameter/4.
+        return c_t / bump_int
 
 u_in = 1.
 u_rated = 2.5  
@@ -116,6 +141,7 @@ tp = TurbineParametrisation(u_in=u_in,
                             rho=rho)
 
 print tp.power(2.5)
+print tp.compute_K(2.5)
 
 #tp.plot_power_curve(save_fig=False)
 
