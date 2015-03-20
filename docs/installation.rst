@@ -12,6 +12,7 @@ There are multiple ways how you can install OpenTidalFarm.
 Installation from source
 
 .. code-block:: bash
+
    curl -s https://bitbucket.org/simon_funke/fenics-developer-tools/raw/master/opentidalfarm-install.sh | bash
 
 This will compile and install OpenTidalFarm and all its dependencies in its own environment.
