@@ -145,6 +145,9 @@ interactive()  # Hold the plot until the user presses q.
 # is a dictionary and contains information like the current timelevel, the velocity and
 # free-surface functions.
 
+# How to run the example
+# **********************
+
 # The example code can be found in ``examples/channel-simulation/`` in the
 # ``OpenTidalFarm`` source tree, and executed as follows:
 

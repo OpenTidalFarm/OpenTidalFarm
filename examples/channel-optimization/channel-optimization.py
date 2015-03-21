@@ -143,6 +143,9 @@ print rf_params
 lb, ub = farm.site_boundary_constraints()
 f_opt = maximize(rf, bounds=[lb, ub], method="L-BFGS-B", options={'maxiter': 100})
 
+# How to run the example
+# **********************
+
 # The example code can be found in ``examples/channel-optimization/`` in the
 # ``OpenTidalFarm`` source tree, and executed as follows:
 

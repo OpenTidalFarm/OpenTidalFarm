@@ -202,6 +202,9 @@ The inner part of the loop is executed for each timestep. The variable :attr:`s`
 is a dictionary and contains information like the current timelevel, the velocity and
 free-surface functions.
 
+How to run the example
+**********************
+
 The example code can be found in ``examples/headland-simulation/`` in the
 ``OpenTidalFarm`` source tree, and run with:
 

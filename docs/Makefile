@@ -56,6 +56,8 @@ build_examples:
 	bin/pylit.py --overwrite yes $(EXAMPLES_IN)/headland-simulation/headland-simulation.py $(EXAMPLES_OUT)/headland/headland.rst
 	mkdir -p $(EXAMPLES_OUT)/tidal
 	bin/pylit.py --overwrite yes $(EXAMPLES_IN)/tidal-simulation/orkney-coupled.py $(EXAMPLES_OUT)/tidal/orkney.rst
+	mkdir -p $(EXAMPLES_OUT)/farm-performance
+	bin/pylit.py --overwrite yes $(EXAMPLES_IN)/farm-performance/farm-performance.py $(EXAMPLES_OUT)/farm-performance/farm-performance.rst
 	mkdir -p $(EXAMPLES_OUT)/channel-opt
 	bin/pylit.py --overwrite yes $(EXAMPLES_IN)/channel-optimization/channel-optimization.py $(EXAMPLES_OUT)/channel-opt/channel-opt.rst
 	mkdir -p $(EXAMPLES_OUT)/channel-sens

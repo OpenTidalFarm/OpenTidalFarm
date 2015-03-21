@@ -195,6 +195,9 @@ Now we are ready to solve and save the results to file.
       f_state << (sol["state"], simulation_time)
       timer.start()
   
+How to run the example
+**********************
+
 The code for this example can be found in ``examples/tidal-simulation/`` in the
 ``OpenTidalFarm`` source tree, and executed as follows:
 

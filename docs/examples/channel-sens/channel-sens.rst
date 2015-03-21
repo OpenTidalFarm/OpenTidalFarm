@@ -180,6 +180,9 @@ Finally let's compute the sensitivity with respect to viscosity
     :scale: 20
 
 
+How to run the example
+**********************
+
 The example code can be found in ``examples/channel-sensitivity/`` in the
 ``OpenTidalFarm`` source tree, and executed as follows:
 
