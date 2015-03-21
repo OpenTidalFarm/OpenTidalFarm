@@ -13,6 +13,16 @@
 # rectangular channel is 640 m x 320 m large. The farm area is in the channel
 # center and 320 m x 160 m large.
 
+# It shows how to:
+#   - set up a steady-state shallow water solver
+#   - add a tidal farm consisting and deploy 32 turbines;
+#   - define an optimisation objective, here the farm power production;
+#   - define an optimisation control, here the turbine positions;
+#   - define constraints to the controls, here bounds to restrict the positions
+#     of the turbines to the farm bounds;
+#   - run the optimisation and retrieve the optimal turbine positions and farm
+#     power production.
+
 # Even though the domain in this demo is quite simple, the concept applies to
 # more complex, realistic scenarios.
 #
@@ -122,7 +132,7 @@ sol_params.dump_period = 1
 solver = CoupledSWSolver(problem, sol_params)
 
 # Next we create a reduced functional, that is the functional considered as a
-# pure function of the control by implicitly solving the shallow water PDE. For
+# pure function of the control by implicitly solving the shallow water equations. For
 # that we need to specify the objective functional (the value that we want to
 # optimize), the control (the variables that we want to change), and our shallow
 # water solver.

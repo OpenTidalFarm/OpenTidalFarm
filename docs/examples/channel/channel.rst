@@ -16,6 +16,12 @@ This example simulates the flow in a channel with oscillating velocity
 in-/outflow on the west boundary, fixed surface height on the east boundary,
 and free-slip flow on the north and south boundaries.
 
+It shows how to:
+  - create a rectangular domain;
+  - specify velocity and surface elevation boundary conditions;
+  - set up a and solve the shallow water solver;
+  - plot the results.
+
 The shallow water equations to be solved are
 
 .. math::

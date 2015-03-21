@@ -15,6 +15,13 @@
 # This example demonstrates how OpenTidalFarm can be used for simulating the
 # tides in a realistic domain.
 #
+# It shows how to:
+#   - load a mesh from file;
+#   - use realistic tidal forcing on the open boundaries;
+#   - load the bathymetry from a NetCDF file;
+#   - use a non-homogenous viscosity;
+#   - solve a time-dependent shallow water solver and store the results to file.
+#
 # We will be simulating the tides in the Pentland Firth, Scotland for 12.5
 # hours, starting at 14:40 am on the 18.9.2001. The flow result at the end of
 # the simulation looks like:
@@ -176,3 +183,5 @@ for sol in solver.solve(annotate=False):
 #   $ mpirun -n 4 python orkney-coupled.py
 #
 # where 4 should be replaced by the number of CPU cores available.
+#
+# The results can be visualised with `Paraview <http://www.paraview.org/>`_.

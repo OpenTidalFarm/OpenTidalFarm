@@ -8,6 +8,9 @@
 Farm power production
 =====================
 
+Introduction
+************
+
 This demo estimates the power extraction of a tidal farm with 32 turbines.
 It shows how to
   - set up a rectangular domain

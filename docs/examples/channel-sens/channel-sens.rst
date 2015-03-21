@@ -22,9 +22,16 @@ functional to various model parameters - for example the bottom friction:
 This enables the designer to identify which parameters may have a high impact
 upon the quality of the chosen design (as judged by the choice of functional).
 
+This example shows how to:
+  - set up shallow water solver with a turbine farm;
+  - define an objective, here the farms power production;
+  - compute the sensitivity of this objective with respect to:
+     - viscosity;
+     - depth;
+     - bottom friction.
+
 Implementation
 **************
-
 
 As with other examples, we begin by defining a steady state shallow water
 problem, once more this is similar to the :ref:`channel_simulation`
