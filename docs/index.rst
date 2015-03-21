@@ -6,8 +6,8 @@
 Welcome to OpenTidalFarm's documentation!
 ==========================================
 
-OpenTidalFarm is an open-source optimisation software for tidal turbine
-farms.
+OpenTidalFarm is an open-source software for simulating and optimising tidal
+turbine farms.
 
 The positioning of the turbines in a tidal farm is a crucial decision.
 Simulations show that the optimal positioning can increase the power generation
