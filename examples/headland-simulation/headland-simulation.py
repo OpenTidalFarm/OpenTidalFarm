@@ -21,7 +21,8 @@
 #   - save output files to disk.
 #
 #
-# After a few timesteps the solution looks like this:
+# The following plot shows the vorticity function with velocity glyphs after a
+# few timesteps:
 
 # .. image:: simulation_result.png
 #     :scale: 40

@@ -5,7 +5,7 @@
 
 .. py:currentmodule:: opentidalfarm
 
-Sensitivity Analysis
+Sensitivity analysis
 ====================
 
 
