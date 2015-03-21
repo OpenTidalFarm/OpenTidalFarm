@@ -52,6 +52,8 @@ EXAMPLES_OUT = examples
 build_examples:
 	mkdir -p $(EXAMPLES_OUT)/channel
 	bin/pylit.py --overwrite yes $(EXAMPLES_IN)/channel-simulation/channel-simulation.py $(EXAMPLES_OUT)/channel/channel.rst
+	mkdir -p $(EXAMPLES_OUT)/headland
+	bin/pylit.py --overwrite yes $(EXAMPLES_IN)/headland-simulation/headland-simulation.py $(EXAMPLES_OUT)/headland/headland.rst
 	mkdir -p $(EXAMPLES_OUT)/tidal
 	bin/pylit.py --overwrite yes $(EXAMPLES_IN)/tidal-simulation/orkney-coupled.py $(EXAMPLES_OUT)/tidal/orkney.rst
 	mkdir -p $(EXAMPLES_OUT)/channel-opt
