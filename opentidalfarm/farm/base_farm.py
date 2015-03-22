@@ -59,12 +59,13 @@ class BaseFarm(object):
         :returns: A serialized representation of the farm based on the controls.
         :rtype: numpy.ndarray
         """
-        m = []
 
         if self._turbine_specification.smeared:
-            m = numpy.zeros(self._turbine_function_space.dim())
+            return self.friction_function.vector().array()
 
         else:
+            m = []
+
             if (self._turbine_specification.controls.friction or
                 self._turbine_specification.controls.dynamic_friction):
                 m += numpy.reshape(
@@ -74,7 +75,7 @@ class BaseFarm(object):
                 m += numpy.reshape(
                     self._parameters["position"], -1).tolist()
 
-        return numpy.asarray(m)
+            return numpy.asarray(m)
 
 
     @property
