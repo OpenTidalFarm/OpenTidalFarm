@@ -208,6 +208,7 @@ class ReducedFunctional(ReducedFunctionalPrototype):
         log(INFO, "----------------------------------")
         for time, val in zip(self.time_integrator.times, self.time_integrator.vals):
             log(INFO, "Time: {} s\t Value: {}.".format(float(time), val))
+        log(INFO, "----------------------------------")
 
         return float(self.time_integrator.integrate())
 
