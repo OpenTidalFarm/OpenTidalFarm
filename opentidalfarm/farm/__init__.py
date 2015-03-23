@@ -6,6 +6,5 @@
 """
 from .rectangular_farm import RectangularFarm
 from .farm import Farm
-from .continuum_farm import ContinuumFarm
 
-__all__ = ["Farm", "ContinuumFarm", "RectangularFarm"]
+__all__ = ["Farm", "RectangularFarm"]

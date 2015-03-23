@@ -3,6 +3,8 @@ import numpy
 from dolfin import *
 from dolfin_adjoint import *
 
+__all__ = ["TurbineFunction"]
+
 class TurbineFunction(object):
 
     def __init__(self, cache, V, turbine_specification):

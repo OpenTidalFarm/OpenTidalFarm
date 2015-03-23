@@ -3,6 +3,8 @@ from dolfin_adjoint import *
 from solvers import Solver
 from functionals import TimeIntegrator, PrototypeFunctional
 
+__all__ = ["FenicsReducedFunctional"]
+
 class FenicsReducedFunctional(object):
     """
     Following parameters are expected:

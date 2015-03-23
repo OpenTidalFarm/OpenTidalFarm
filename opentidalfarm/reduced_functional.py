@@ -11,6 +11,8 @@ from memoize import MemoizeMutable
 from options import options
 from reduced_functional_prototype import ReducedFunctionalPrototype
 
+__all__ = ["ReducedFunctional", "ReducedFunctionalParameters",
+           "TurbineFarmControl"]
 
 class ReducedFunctionalParameters(helpers.FrozenClass):
     """ A set of parameters for a :class:`ReducedFunctional`.

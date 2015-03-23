@@ -7,12 +7,15 @@ import math
 
 class TestMinimalDistanceConstraint(object):
 
-    def test_derivative(self):
-
+    def get_farm(self):
         turbine = BumpTurbine(diameter=10.0, friction=1.0)
         domain = RectangularDomain(0, 0, 3000, 1000, 20, 3)
         farm = Farm(domain, turbine)
         farm.add_turbine((1500, 500))
+        return farm
+
+    def test_derivative(self):
+        farm = self.get_farm()
 
         ieq = farm.minimum_distance_constraints()
 
@@ -24,6 +27,10 @@ class TestMinimalDistanceConstraint(object):
         minconv = helpers.test_gradient_array(ieqcons_J, ieqcons_dJ, x)
 
         assert minconv > 1.99
+
+    def test_site_constraint(self):
+
+        farm = self.get_farm()
 
         ieq = ConvexPolygonSiteConstraint(farm, [[0, 0], [10, 0], [10, 10]])
 

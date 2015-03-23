@@ -1,5 +1,7 @@
+__all__ = ["BoundaryConditionSet"]
+
 class BoundaryConditionSet(list):
-    """ Stores a list of boundary conditions. 
+    """ Stores a list of boundary conditions.
     Expression with an attribute named t will be
     automatically updated to the current timestep during the simultion.
     """

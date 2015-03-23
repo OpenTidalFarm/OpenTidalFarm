@@ -1,6 +1,6 @@
 import numpy
 import dolfin
-from .minimum_distance_constraints import MinimumDistanceConstraints
+from ..optimisation_helpers import MinimumDistanceConstraints
 from ..turbine_cache import TurbineCache
 
 class BaseFarm(object):
@@ -265,4 +265,4 @@ class BaseFarm(object):
         controls = self._turbine_specification.controls
         minimum_distance = self._turbine_specification.minimum_distance
         positions = self.turbine_positions
-        return MinimumDistanceConstraints(positions, minimum_distance, controls)
+        return MinimumDistanceConstraints(self, positions, minimum_distance, controls)

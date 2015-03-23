@@ -11,6 +11,8 @@ import datetime
 import scipy.interpolate
 import numpy
 
+__all__ = ["TidalForcing", "BathymetryDepthExpression"]
+
 # We need to store tnci_time as a non-class variable, otherwise
 # dolfin-adjoint tries to be clever and restores its values during the
 # adjoint runs which yields an wrong behaviour for
