@@ -99,7 +99,7 @@ class ReducedFunctional(ReducedFunctionalPrototype):
 
         if self._solver_params.print_individual_turbine_power:
             # if this is enabled, we need to instantiate the relevant helper
-            # and pass this to the solver 
+            # and pass this to the solver
             output_writer = helpers.OutputWriter(self.functional)
             self._solver_params.output_writer = output_writer
 
@@ -204,7 +204,12 @@ class ReducedFunctional(ReducedFunctionalPrototype):
             self.time_integrator.add(sol["time"], sol["state"], sol["tf"],
                                      sol["is_final"])
 
-        return self.time_integrator.integrate()
+        log(INFO, "Temporal breakdown of functional evaluation")
+        log(INFO, "----------------------------------")
+        for time, val in zip(self.time_integrator.times, self.time_integrator.vals):
+            log(INFO, "Time: {} s\t Value: {}.".format(float(time), val))
+
+        return float(self.time_integrator.integrate())
 
 
     def _set_revolve_parameters(self):
