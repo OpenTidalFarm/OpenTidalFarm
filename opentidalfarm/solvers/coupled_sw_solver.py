@@ -43,6 +43,9 @@ class CoupledSWSolverParameters(FrozenClass):
         Default: `os.curdir`
     :ivar output_turbine_power: Output the power generation of the individual
         turbines. Default: False
+    :ivar callback: A callback function that is executed for every time-level.
+        The callback function must take a single parameter which contains the
+        dictionary with the solution variables.
     """
 
     dolfin_solver = {"newton_solver": {}}
@@ -65,6 +68,9 @@ class CoupledSWSolverParameters(FrozenClass):
                                # snaps_on_disk,
                                # snaps_in_ram,
                                # verbose)
+
+    # Callback function
+    callback = lambda self, sol: None
 
     def __init__(self):
 
@@ -421,12 +427,14 @@ CoupledSWSolverParameters."
                 log(INFO, "Writing state to disk...")
                 writer.write(state)
 
-        yield({"time": t,
-               "u": u0,
-               "eta": h0,
-               "tf": tf,
-               "state": state,
-               "is_final": self._finished(t, finish_time)})
+        result = {"time": t,
+                  "u": u0,
+                  "eta": h0,
+                  "tf": tf,
+                  "state": state,
+                  "is_final": self._finished(t, finish_time)}
+        solver_params.callback(result)
+        yield(result)
 
         log(INFO, "Start of time loop")
         adjointer.time.start(t)
@@ -493,12 +501,14 @@ CoupledSWSolverParameters."
             adj_inc_timestep(time=float(t), finished=self._finished(t,
                 finish_time))
 
-            yield({"time": t,
-                   "u": u0,
-                   "eta": h0,
-                   "tf": tf,
-                   "state": state,
-                   "is_final": self._finished(t, finish_time)})
+            result = {"time": t,
+                      "u": u0,
+                      "eta": h0,
+                      "tf": tf,
+                      "state": state,
+                      "is_final": self._finished(t, finish_time)}
+            solver_params.callback(result)
+            yield(result)
 
         # If we're outputting the individual turbine power
         if self.parameters.print_individual_turbine_power:
