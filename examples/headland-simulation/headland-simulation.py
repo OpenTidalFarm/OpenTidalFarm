@@ -71,9 +71,9 @@ prob_params.domain = domain
 
 # We assume a propagating wave in the headland case and compute the phase
 # difference to drive flow in the channel.
-tidal_amplitude = 2.
+tidal_amplitude = 5.
 tidal_period = 12.42*60*60 # M2 tidal period
-H = 80 # channel depth
+H = 40 # channel depth
 eta_channel = "amp*sin(omega*t + omega/pow(g*H, 0.5)*x[0])"
 
 bcs = BoundaryConditionSet()
@@ -88,11 +88,11 @@ prob_params.bcs = bcs
 # The other parameters are straight forward:
 
 # Equation settings
-prob_params.viscosity = Constant(20)
+prob_params.viscosity = Constant(40)
 prob_params.depth = Constant(H)
 prob_params.friction = Constant(0.0025)
 # Temporal settings
-prob_params.theta = Constant(0.5)
+prob_params.theta = Constant(0.6)
 prob_params.start_time = Constant(0)
 prob_params.finish_time = Constant(tidal_period*5)
 prob_params.dt = Constant(tidal_period/100)
