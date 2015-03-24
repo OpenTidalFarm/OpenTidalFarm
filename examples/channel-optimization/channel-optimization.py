@@ -15,8 +15,8 @@
 
 # It shows how to:
 #   - set up a steady-state shallow water solver
-#   - add a tidal farm consisting and deploy 32 turbines;
-#   - define an optimisation objective, here the farm power production;
+#   - add a tidal farm with 32 turbines;
+#   - define an optimisation objective, here the farm's power production;
 #   - define an optimisation control, here the turbine positions;
 #   - define constraints to the controls, here bounds to restrict the positions
 #     of the turbines to the farm bounds;

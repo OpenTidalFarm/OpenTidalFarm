@@ -20,8 +20,30 @@ Following presentation gives a quick introduction to OpenTidalFarm:
 `OpenTidalFarm
 <https://www.slideboom.com/presentations/758051/OpenTidalFarm/>`_
 
-To download the source code or to report issues visit the `GitHub page
-<https://github.com/OpenTidalFarm/OpenTidalFarm>`_
+How to get started
+------------------
+
+1. Download and :doc:`install OpenTidalFarm <installation>` test.
+2. Try some of our :doc:`examples <examples>`.
+3. Read the :doc:`programmers reference <reference>` to set up your own study.
+
+For questions and to report issues use the `GitHub issue tracker
+<https://github.com/OpenTidalFarm/OpenTidalFarm/issues>`_.
+
+
+Features
+--------
+
+A selection of features are:
+
+- nonlinear shallow water model for flow predictions;
+- prediction of power production of a farm;
+- an efficient adjoint model to compute sensitivities;
+- optimise the turbine position and size to maximise the total farm power output;
+- site constraints and minimum distance between turbines;
+- optimisation of hundreds of turbines;
+- parallel support using MPI;
+- checkpoint support to restart optimisation.
 
 Contents
 ========
@@ -31,7 +53,6 @@ Contents
    :numbered:
 
    installation
-   features
    examples
    reference
    contributing

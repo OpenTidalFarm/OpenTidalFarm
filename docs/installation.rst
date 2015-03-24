@@ -71,4 +71,3 @@ OpenTidalFarm depends on following packages:
 .. _Uptide: https://github.com/stephankramer/uptide
 .. _UTM: https://pypi.python.org/pypi/utm
 .. _Download OpenTidalFarm: https://github.com/funsim/OpenTidalFarm/zipball/master
-
