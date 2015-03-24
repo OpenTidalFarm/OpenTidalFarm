@@ -42,6 +42,7 @@ class PowerFunctional(PrototypeFunctional):
 
         self._cut_in_speed = cut_in_speed
         self._cut_out_speed = cut_out_speed
+        self._eps = eps
 
 
     def Jt(self, state, turbine_field):
@@ -114,10 +115,10 @@ class PowerFunctional(PrototypeFunctional):
 
         factor = 1
         if self._cut_in_speed is not None:
-            factor *= conditional(speed_sq < self._cut_in_speed**2, self.eps, 1)
+            factor *= conditional(speed_sq < self._cut_in_speed**2, self._eps, 1)
 
         if self._cut_out_speed is not None:
-            factor *= conditional(speed_sq > self._cut_out_speed**2, self.eps, 1)
+            factor *= conditional(speed_sq > self._cut_out_speed**2, self._eps, 1)
 
         return factor
 
