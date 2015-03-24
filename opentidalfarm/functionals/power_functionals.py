@@ -12,16 +12,17 @@ from prototype_functional import PrototypeFunctional
 class PowerFunctional(PrototypeFunctional):
     r""" Implements a simple functional of the form:
 
-    .. math:: J(u, m) = \int g(u) \rho  c_t ||u||^3~ dx,
+    .. math:: J(u, m) = \int \rho  c_t ||sq(u)||^{1.5}~ dx,
 
     where :math:`c_t` defines the friction field due to the turbines, and
-    g(u) implements the cut-in/out behaviour of the turbine, i.e.
+    :math:`sq(u)` computes the squared velocity while taking into account the
+    cut-in/out behaviour of the turbine, i.e.
 
-    .. math:: g(u) =
+    .. math:: sq(u) =
         \begin{cases}
-           eps & \text{if } \|u\| < \textrm{cut_in_speed} \\
-           eps & \text{if } \|u\| > \textrm{cut_out_speed} \\
-           1 & \text{else.}
+           eps \|u\|^2 & \text{if } \|u\| < \textrm{cut_in_speed} \\
+           (cut\_out\_speed)^2 & \text{if } \|u\| > \textrm{cut_out_speed} \\
+           \|u\|^2 & \text{else.}
         \end{cases}
 
     :param problem: The problem for which the functional is being computed.
@@ -30,7 +31,7 @@ class PowerFunctional(PrototypeFunctional):
     :type cut_in_speed: float
     :param cut_out_speed: The turbine's cut out speed (Default: None).
     :type cut_out_speed: float
-    :param eps: The turbine's cut in/out accuracy (Default: 1e-10).
+    :param eps: The turbine's cut in speed slope (Default: 1e-10).
     :type esp: float
     """
 
@@ -65,9 +66,7 @@ class PowerFunctional(PrototypeFunctional):
         :type turbine_field: UFL
 
         """
-        return (self._cut_in_out(state) * self.rho *
-                turbine_field * (dot(state[0], state[0]) +
-                dot(state[1], state[1])) ** 1.5)
+        return self.rho * turbine_field * self._speed_squared(state) ** 1.5
 
     def Jt_individual(self, state, i):
         """ Computes the power output of the i'th turbine.
@@ -92,8 +91,7 @@ class PowerFunctional(PrototypeFunctional):
         :type turbine_field: UFL
 
         """
-        return (self._cut_in_out(state) * self.rho * turbine_field *
-                dot(state[0], state[0]) + dot(state[1], state[1]))
+        return self.rho * turbine_field * self._speed_squared(state)
 
     def force_individual(self, state, i):
         """ Computes the total force on the i'th turbine
@@ -108,19 +106,19 @@ class PowerFunctional(PrototypeFunctional):
                 self.farm.turbine_cache['turbine_field_individual'][i]
         return assemble(self.force(state, turbine_field_individual) * self.farm.site_dx(1))
 
-    def _cut_in_out(self, state):
-        """ Implements a cut in and out switching function """
+    def _speed_squared(self, state):
+        """ The velocity speed with turbine cut in and out speed limits """
 
         speed_sq = dot(state[0], state[0]) + dot(state[1], state[1])
 
-        factor = 1
         if self._cut_in_speed is not None:
-            factor *= conditional(speed_sq < self._cut_in_speed**2, self._eps, 1)
+            speed_sq *= conditional(speed_sq < self._cut_in_speed**2, self._eps, 1)
 
         if self._cut_out_speed is not None:
-            factor *= conditional(speed_sq > self._cut_out_speed**2, self._eps, 1)
+            speed_sq = conditional(speed_sq > self._cut_out_speed**2,
+                    self._cut_out_speed**2, speed_sq)
 
-        return factor
+        return speed_sq
 
 class PowerCurveFunctional(PrototypeFunctional):
 #    ''' Implements a functional for the power with a given power curve
