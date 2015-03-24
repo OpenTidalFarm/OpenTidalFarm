@@ -24,6 +24,7 @@ You can install OpenTidalFarm via pip or git, however make sure that you
 also install the :ref:`dependencies`:
 
 Using pip:
+
 .. code-block:: bash
 
    pip install git+git://github.com/OpenTidalFarm/OpenTidalFarm.git
