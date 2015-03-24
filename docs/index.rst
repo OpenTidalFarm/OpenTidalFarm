@@ -23,7 +23,7 @@ Following presentation gives a quick introduction to OpenTidalFarm:
 How to get started
 ------------------
 
-1. Download and :doc:`install OpenTidalFarm <installation>` test.
+1. Download and :doc:`install OpenTidalFarm <installation>`.
 2. Try some of our :doc:`examples <examples>`.
 3. Read the :doc:`programmers reference <reference>` to set up your own study.
 
