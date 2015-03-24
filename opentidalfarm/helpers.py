@@ -23,14 +23,14 @@ def norm_approx(u, alpha=1e-4):
 def smooth_uflmin(a, b, alpha=1e-8):
     r""" A smooth approximation to :math:`\min(a, b)`:
 
-    .. math:: \text{min}_\alpha(a, b) = a - \frac{1}{2} (\|a -b\|_\alpha + a - b)
+    .. math:: \text{min}_\alpha(a, b) = \frac{1}{2} (a + b - \|a - b\|_\alpha)
 
     :param a: First argument to :math:`\min`.
     :param b: Second argument to :math:`\min`.
     :param alpha: The approximation coefficient.
     :returns: ufl expression -- the approximate :math:`\min` function.
     """
-    return a - (norm_approx(a - b, alpha=alpha) + a - b) / 2
+    return (a + b - norm_approx(a - b, alpha=alpha)) / 2
 
 
 def get_rank():
@@ -282,12 +282,9 @@ class OutputWriter(object):
             turbine_info['location'] = turbine_positions[i]
             turbine_info['power'] = self.functional.Jt_individual(solver.current_state, i)
             turbine_info['force'] = self.functional.force_individual(solver.current_state, i)
-            turbine_info['friction'] = farm.turbine_cache._parameters['friction'][i] 
+            turbine_info['friction'] = farm.turbine_cache._parameters['friction'][i]
             turbine_info['friction_field'] = farm.turbine_cache['turbine_field_individual'][i]
             info("Contribution of turbine %d at x=%.3f, "
-                 "y=%.3f, is %.2f kW with a friction of %.2f." % (i, 
+                 "y=%.3f, is %.2f kW with a friction of %.2f." % (i,
                  turbine_info['location'][0], turbine_info['location'][1],
                  turbine_info['power']*0.001, turbine_info['friction']))
-
-
-            

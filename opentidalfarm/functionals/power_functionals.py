@@ -4,7 +4,7 @@
 #       power extracted by an array.
 #"""
 
-from dolfin import dot, Constant, dx, assemble
+from dolfin import dot, Constant, dx, assemble, conditional
 from ..helpers import smooth_uflmin
 from prototype_functional import PrototypeFunctional
 
@@ -12,22 +12,36 @@ from prototype_functional import PrototypeFunctional
 class PowerFunctional(PrototypeFunctional):
     r""" Implements a simple functional of the form:
 
-    .. math:: J(u, m) = \int \rho  c_t ||u||^3~ dx,
+    .. math:: J(u, m) = \int g(u) \rho  c_t ||u||^3~ dx,
 
-    where :math:`c_t` defines the friction field due to the turbines.
+    where :math:`c_t` defines the friction field due to the turbines, and
+    g(u) implements the cut-in/out behaviour of the turbine, i.e.
+
+    .. math:: g(u) =
+        \begin{cases}
+           eps & \text{if } \|u\| < \textrm{cut_in_speed} \\
+           eps & \text{if } \|u\| > \textrm{cut_out_speed} \\
+           1 & \text{else.}
+        \end{cases}
 
     :param problem: The problem for which the functional is being computed.
     :type problem: Instance of the problem class.
+    :param cut_in_speed: The turbine's cut in speed (Default: None).
+    :type cut_in_speed: float
+    :param cut_out_speed: The turbine's cut out speed (Default: None).
+    :type cut_out_speed: float
+    :param eps: The turbine's cut in/out accuracy (Default: 1e-10).
+    :type esp: float
     """
 
-    def __init__(self, problem):
+    def __init__(self, problem, cut_in_speed=None, cut_out_speed=None, eps=1e-10):
 
         self.farm = problem.parameters.tidal_farm
         self.rho = problem.parameters.rho
         self.farm.update()
-        # Create a copy of the parameters so that future changes will not
-        # affect the definition of this object.
-        # self.params = dict(farm.params)
+
+        self._cut_in_speed = cut_in_speed
+        self._cut_out_speed = cut_out_speed
 
 
     def Jt(self, state, turbine_field):
@@ -50,7 +64,8 @@ class PowerFunctional(PrototypeFunctional):
         :type turbine_field: UFL
 
         """
-        return (self.rho * turbine_field * (dot(state[0], state[0]) +
+        return (self._cut_in_out(state) * self.rho *
+                turbine_field * (dot(state[0], state[0]) +
                 dot(state[1], state[1])) ** 1.5)
 
     def Jt_individual(self, state, i):
@@ -74,9 +89,10 @@ class PowerFunctional(PrototypeFunctional):
         :type state: UFL
         :param turbine_field: Turbine friction field
         :type turbine_field: UFL
-        
+
         """
-        return self.rho * turbine_field * dot(state[0], state[0]) + dot(state[1], state[1])
+        return (self._cut_in_out(state) * self.rho * turbine_field *
+                dot(state[0], state[0]) + dot(state[1], state[1]))
 
     def force_individual(self, state, i):
         """ Computes the total force on the i'th turbine
@@ -90,6 +106,20 @@ class PowerFunctional(PrototypeFunctional):
         turbine_field_individual = \
                 self.farm.turbine_cache['turbine_field_individual'][i]
         return assemble(self.force(state, turbine_field_individual) * self.farm.site_dx(1))
+
+    def _cut_in_out(self, state):
+        """ Implements a cut in and out switching function """
+
+        speed_sq = dot(state[0], state[0]) + dot(state[1], state[1])
+
+        factor = 1
+        if self._cut_in_speed is not None:
+            factor *= conditional(speed_sq < self._cut_in_speed**2, self.eps, 1)
+
+        if self._cut_out_speed is not None:
+            factor *= conditional(speed_sq > self._cut_out_speed**2, self.eps, 1)
+
+        return factor
 
 class PowerCurveFunctional(PrototypeFunctional):
 #    ''' Implements a functional for the power with a given power curve
