@@ -13,10 +13,10 @@ Introduction
 
 This demo estimates the power extraction of a tidal farm with 32 turbines.
 It shows how to
-  - set up a rectangular domain
-  - define a tidal farm and deploy turbines
-  - solve the steady-state shallow water solver
-  - compute the power extraction of the farm
+- set up a rectangular domain
+- define a tidal farm and deploy turbines
+- solve the steady-state shallow water solver
+- compute the power extraction of the farm
 
 Even though the domain in this demo is quite simple, the concept applies to
 more complex, realistic time-dependent scenarios.
