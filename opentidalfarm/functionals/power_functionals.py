@@ -10,13 +10,13 @@ from prototype_functional import PrototypeFunctional
 
 
 class PowerFunctional(PrototypeFunctional):
-    r""" Implements a simple functional of the form:
+    r""" Implements a functional of the form:
 
     .. math:: J(u, m) = \int \rho  c_t ||sq(u)||^{1.5}~ dx,
 
-    where :math:`c_t` defines the friction field due to the turbines, and
-    :math:`sq(u)` computes the squared velocity while taking into account the
-    cut-in/out behaviour of the turbine, i.e.
+    where :math:`c_t` is the friction due to the turbines, and
+    :math:`sq(u)` is the squared velocity that takes into account the
+    cut-in/out behaviour of the turbines, i.e.
 
     .. math:: sq(u) =
         \begin{cases}
