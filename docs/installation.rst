@@ -6,27 +6,29 @@ It is recommended to use OpenTidalFarm on the `Ubuntu`_ operating system.
 Quick install
 -------------
 
-There are multiple ways how you can install OpenTidalFarm.
-
-
 Installation from source
+************************
+
+Following command will install OpenTidalFarm and all its dependencies into a isolated environment on your computer.
 
 .. code-block:: bash
 
    curl -s https://bitbucket.org/simon_funke/fenics-developer-tools/raw/master/opentidalfarm-install.sh | bash
 
-This will compile and install OpenTidalFarm and all its dependencies in its own environment.
 
-Alternatively you can install OpenTidalFarm via pip or git. In this case, make sure that you
-also install the dependencies (see section below):
 
-Install using pip:
+Install using pip
+*****************
 
+You can install OpenTidalFarm via pip or git, however make sure that you
+also install the :ref:`dependencies`:
+
+Using pip:
 .. code-block:: bash
 
    pip install git+git://github.com/OpenTidalFarm/OpenTidalFarm.git
 
-Install using git:
+Using git:
 
 .. code-block:: bash
 
@@ -37,13 +39,16 @@ Install using git:
    python setup.py install
 
 
-Test the installation with
+Test installation
+-----------------
 
 .. code-block:: bash
 
     python -c "import opentidalfarm"
 
 If no errors occur, your installation was succesfull.
+
+.. _dependencies:
 
 Dependencies
 ------------
