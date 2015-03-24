@@ -104,7 +104,7 @@ class PowerFunctional(PrototypeFunctional):
         """
         turbine_field_individual = \
                 self.farm.turbine_cache['turbine_field_individual'][i]
-        return assemble(self.force(state, turbine_field_individual) * self.farm.site_dx(1))
+        return assemble(self.force(state, turbine_field_individual) * self.farm.site_dx)
 
     def _speed_squared(self, state):
         """ The velocity speed with turbine cut in and out speed limits """
