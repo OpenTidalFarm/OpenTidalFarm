@@ -2,6 +2,9 @@
 Citing
 ======
 
+Papers
+------
+
 Please cite the following paper if you are using OpenTidalFarm:
 
 * **SW Funke, PE Farrell, MD Piggott (2014)**.
