@@ -1,6 +1,6 @@
 from opentidalfarm import *
 
-class TestFunctionals(object):
+class TestPowerFunctionals(object):
 
     def setup(self):
         prob_params = SteadySWProblem.default_parameters()
@@ -33,11 +33,11 @@ class TestFunctionals(object):
         u3  = Constant((3, 0))
         u4  = Constant((4, 0))
 
-        u0_power = assemble(functional.power(u0, farm.friction_function)*dx)
-        u1_power = assemble(functional.power(u1, farm.friction_function)*dx)
-        u2_power = assemble(functional.power(u2, farm.friction_function)*dx)
-        u3_power = assemble(functional.power(u3, farm.friction_function)*dx)
-        u4_power = assemble(functional.power(u4, farm.friction_function)*dx)
+        u0_power = assemble(functional.Jt(u0, farm.friction_function))
+        u1_power = assemble(functional.Jt(u1, farm.friction_function))
+        u2_power = assemble(functional.Jt(u2, farm.friction_function))
+        u3_power = assemble(functional.Jt(u3, farm.friction_function))
+        u4_power = assemble(functional.Jt(u4, farm.friction_function))
 
         # Test cubic dependency on velocity
         assert 0 == u0_power
@@ -47,11 +47,11 @@ class TestFunctionals(object):
 
         # Test cut in/out speeds for turbines
         functional = PowerFunctional(problem, cut_in_speed=1.5, cut_out_speed=3)
-        u0_power_cut = assemble(functional.power(u0, farm.friction_function)*dx)
-        u1_power_cut = assemble(functional.power(u1, farm.friction_function)*dx)
-        u2_power_cut = assemble(functional.power(u2, farm.friction_function)*dx)
-        u3_power_cut = assemble(functional.power(u3, farm.friction_function)*dx)
-        u4_power_cut = assemble(functional.power(u4, farm.friction_function)*dx)
+        u0_power_cut = assemble(functional.Jt(u0, farm.friction_function))
+        u1_power_cut = assemble(functional.Jt(u1, farm.friction_function))
+        u2_power_cut = assemble(functional.Jt(u2, farm.friction_function))
+        u3_power_cut = assemble(functional.Jt(u3, farm.friction_function))
+        u4_power_cut = assemble(functional.Jt(u4, farm.friction_function))
 
         assert u0_power_cut == u0_power
         assert u1_power_cut < 1e-6      # Cut in speed kicks in

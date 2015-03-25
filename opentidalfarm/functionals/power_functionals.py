@@ -10,7 +10,7 @@ from prototype_functional import PrototypeFunctional
 
 
 class PowerFunctional(PrototypeFunctional):
-    r""" Implements a functional of the form:
+    r""" Implements a power functional of the form:
 
     .. math:: J(u, m) = \int \rho  c_t ||sq(u)||^{1.5}~ dx,
 
