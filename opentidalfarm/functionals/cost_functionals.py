@@ -25,9 +25,11 @@ class CostFunctional(PrototypeFunctional):
         self.farm = problem.parameters.tidal_farm
         self.farm.update()
 
-    def Jt(self, turbine_field):
+    def Jt(self, state, turbine_field):
         """ Computes the cost of the farm.
 
+        :param state: Current solution state
+        :type state: dolfin.Function
         :param turbine_field: Turbine friction field
         :type turbine_field: dolfin.Function
 
@@ -43,9 +45,11 @@ class CostFunctional(PrototypeFunctional):
         """
         return turbine_field
 
-    def Jt_individual(self, i):
+    def Jt_individual(self, state, i):
         """ Computes the cost of the i'th turbine.
 
+        :param state: Current solution state
+        :type state: dolfin.Function
         :param i: turbine index
         :type i: Integer
 

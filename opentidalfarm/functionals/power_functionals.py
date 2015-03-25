@@ -50,9 +50,9 @@ class PowerFunctional(PrototypeFunctional):
         """ Computes the power output of the farm.
 
         :param state: Current solution state
-        :type state: UFL
+        :type state: dolfin.Function
         :param turbine_field: Turbine friction field
-        :type turbine_field: UFL
+        :type turbine_field: dolfin.Function
 
         """
         return self.power(state, turbine_field)*self.farm.site_dx
@@ -61,9 +61,9 @@ class PowerFunctional(PrototypeFunctional):
         """ Computes the power field over the domain.
 
         :param state: Current solution state.
-        :type state: UFL
+        :type state: dolfin.Function
         :param turbine_field: Turbine friction field
-        :type turbine_field: UFL
+        :type turbine_field: dolfin.Function
 
         """
         return self.rho * turbine_field * self._speed_squared(state) ** 1.5
@@ -72,7 +72,7 @@ class PowerFunctional(PrototypeFunctional):
         """ Computes the power output of the i'th turbine.
 
         :param state: Current solution state
-        :type state: UFL
+        :type state: dolfin.Function
         :param i: refers to the i'th turbine
         :type i: Integer
 
@@ -86,9 +86,9 @@ class PowerFunctional(PrototypeFunctional):
         """ Computes the force field over turbine field
 
         :param state: Current solution state.
-        :type state: UFL
+        :type state: dolfin.Function
         :param turbine_field: Turbine friction field
-        :type turbine_field: UFL
+        :type turbine_field: dolfin.Function
 
         """
         return self.rho * turbine_field * self._speed_squared(state)
@@ -97,7 +97,7 @@ class PowerFunctional(PrototypeFunctional):
         """ Computes the total force on the i'th turbine
 
         :param state: Current solution state
-        :type state: UFL
+        :type state: dolfin.Function
         :param i: refers to the i'th turbine
         :type i: Integer
 
