@@ -18,7 +18,7 @@ class DummySolver(Solver):
         self.problem = problem
         self.parameters = DummySolverParameters()
         self.tf = None
-        self.current_state = None
+        self.state = None
         self.optimisation_iteration = 0
 
     def setup(self, W, turbine_field, annotate=True):
@@ -56,7 +56,7 @@ class DummySolver(Solver):
 
         # Define functions
         state = Function(W, name="Current_state")  # solution of the next timestep
-        self.current_state = state
+        self.state = state
         state.assign(ic, annotate=False)
 
         self.setup(W, turbine_friction, annotate)

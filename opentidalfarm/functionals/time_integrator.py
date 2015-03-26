@@ -21,6 +21,7 @@ class TimeIntegrator(object):
             self.times.append(time)
 
     def integrate(self):
+        """ Integrats the functional with a second order scheme. """
 
         if len(self.vals) == 0:
             raise ValueError("Cannot integrate empty set.")
@@ -46,14 +47,14 @@ class TimeIntegrator(object):
 
         return sum(w * dt * self.vals)
 
-    def dolfin_adjoint_functional(self):
-        # The functional depends on dolfin functions which are not in scope.
+    def dolfin_adjoint_functional(self, state):
+        """ Constructs the dolfin-adjoint.Functional """
+
+        # The functional depends on the turbine_function which is not in scope.
         # But dolfin-adjoint only cares about the name, hence it is sufficient
-        # to create dummy functions with the appropriate names.
+        # to create a dummy function with the appropriate name.
         R = FunctionSpace(self.problem.parameters.domain.mesh, "R", 0)
-        Rvec = MixedFunctionSpace([VectorFunctionSpace(self.problem.parameters.domain.mesh, "R", 0), R])
         tf = Function(R, name="turbine_friction")
-        state = Function(Rvec, name="Current_state")
 
         if self.final_only:
             return Functional(self.functional.Jt(state, tf) * dt[FINISH_TIME])

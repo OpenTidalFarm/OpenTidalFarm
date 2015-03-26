@@ -120,14 +120,14 @@ class ReducedFunctional(ReducedFunctionalPrototype):
         if numpy.any(m != self.last_m):
             self._compute_functional(m, annotate=True)
 
-        J = self.time_integrator.dolfin_adjoint_functional()
+        J = self.time_integrator.dolfin_adjoint_functional(self.solver.state)
 
         # Output power
         if self.solver.parameters.dump_period > 0:
 
             if self._solver_params.output_turbine_power:
                 turbines = farm.turbine_cache["turbine_field"]
-                power = self.functional.power(self.solver.current_state, turbines)
+                power = self.functional.power(self.solver.state, turbines)
                 self.power_file << project(power,
                                            farm._turbine_function_space,
                                            annotate=False)

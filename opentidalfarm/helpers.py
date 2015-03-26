@@ -280,8 +280,8 @@ class OutputWriter(object):
         for i in range(len(turbine_positions)):
             turbine_info = {}
             turbine_info['location'] = turbine_positions[i]
-            turbine_info['power'] = self.functional.Jt_individual(solver.current_state, i)
-            turbine_info['force'] = self.functional.force_individual(solver.current_state, i)
+            turbine_info['power'] = self.functional.Jt_individual(solver.state, i)
+            turbine_info['force'] = self.functional.force_individual(solver.state, i)
             turbine_info['friction'] = farm.turbine_cache._parameters['friction'][i]
             turbine_info['friction_field'] = farm.turbine_cache['turbine_field_individual'][i]
             info("Contribution of turbine %d at x=%.3f, "

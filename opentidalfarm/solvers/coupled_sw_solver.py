@@ -155,7 +155,7 @@ CoupledSWSolverParameters."
         # next solve
         self.state_cache = {}
 
-        self.current_state = None
+        self.state = None
 
         self.mesh = problem.parameters.domain.mesh
         V, H = self.problem.parameters.finite_element(self.mesh)
@@ -269,7 +269,7 @@ CoupledSWSolverParameters."
 
         # Define functions
         state = Function(self.function_space, name="Current_state")
-        self.current_state = state
+        self.state = state
         state_new = Function(self.function_space, name="New_state")
 
         # Load initial condition (or initial guess for stady problems)
