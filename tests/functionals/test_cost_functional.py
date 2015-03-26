@@ -31,7 +31,8 @@ class TestCostFunctionals(object):
 
         problem, farm = self._setup(n_x, n_y)
         functional = CostFunctional(problem)
-        cost = assemble(functional.Jt(farm.friction_function))
+        state = Constant((0, 0))
+        cost = assemble(functional.Jt(state, farm.friction_function))
 
         # Cost should be the equivalent to the integral of a single turbine
         assert abs(cost - n_x*n_y*farm.turbine_specification.integral*20*12) < 1
