@@ -497,10 +497,7 @@ CoupledSWSolverParameters."
                 log(INFO, "Write state to disk...")
                 writer.write(state)
 
-            # Increase the adjoint timestep
-            adj_inc_timestep(time=float(t), finished=self._finished(t,
-                finish_time))
-
+            # Return the results
             result = {"time": t,
                       "u": u0,
                       "eta": h0,
@@ -509,6 +506,11 @@ CoupledSWSolverParameters."
                       "is_final": self._finished(t, finish_time)}
             solver_params.callback(result)
             yield(result)
+
+            # Increase the adjoint timestep
+            adj_inc_timestep(time=float(t), finished=self._finished(t,
+                finish_time))
+
 
         # If we're outputting the individual turbine power
         if self.parameters.print_individual_turbine_power:
