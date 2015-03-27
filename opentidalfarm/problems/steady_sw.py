@@ -21,7 +21,7 @@ class SteadySWProblemParameters(FrozenClass):
     :ivar g: Gravitational constant. Default: 9.81
     :ivar viscosity: Water viscosity. Default: 3.0
     :ivar friction: Natural bottom friction. Default: 0.0025
-    :ivar rho: Density of water. Default: 1000.0
+    :ivar rho: Density of water. Default: 1025.0
 
     Equation parameters:
 
@@ -56,7 +56,7 @@ class SteadySWProblemParameters(FrozenClass):
     g = 9.81
     viscosity = 3.0
     friction = 0.0025
-    rho = 1000.
+    rho = 1025.
     tidal_farm = None
 
     # Equation settings
