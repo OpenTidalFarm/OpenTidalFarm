@@ -47,7 +47,9 @@ class Mock(object):
             return Mock()
 
 MOCK_MODULES = ['dolfin', 'dolfin_adjoint',
-        'dolfin_adjoint.ReducedFunctionalNumPy', 'ufl',
+        'dolfin_adjoint.ReducedFunctionalNumPy',
+        'dolfin_adjoint.EqualityConstraint',
+        'dolfin_adjoint.InequalityConstraint', 'ufl',
         'uptide', 'uptide.netcdf_reader', 'uptide.tidal_netcdf', 'numpy',
         'utm', 'scipy', 'scipy.interpolate']
 for mod_name in MOCK_MODULES:
