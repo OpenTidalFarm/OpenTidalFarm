@@ -18,6 +18,7 @@ from which one can derive the optimal number of turbines to be deployed, and
 their approximate layout within the farm.
 
 It shows how to
+
 - set up a time-dependent shallow water model with a continuous farm representation;
 - define a callback function that is called after every optimisation iteration;
 - run the optimization
