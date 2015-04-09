@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# .. _headland_simulation:
+# .. _headland_optimization:
 #
 # .. py:currentmodule:: opentidalfarm
 #
@@ -14,20 +14,13 @@
 #
 # This example simulates the flow in a headland channel with oscillating
 # head-driven flow. It shows how to
-#   - read in an external mesh file;
-#   - apply boundary conditions for a sinusoidal, head-driven flow;
-#   - solve the transient shallow water equations;
-#   - compute vorticity of the flow field;
-#   - save output files to disk.
+# - read in an external mesh file;
+# - apply boundary conditions for a sinusoidal, head-driven flow;
+# - solve the transient shallow water equations;
+# - compute vorticity of the flow field;
+# - save output files to disk.
 #
-#
-# The following plot shows the vorticity function with velocity glyphs after a
-# few timesteps:
 
-# .. image:: simulation_result.png
-#     :scale: 40
-#     :align: center
-#
 # The equations to be solved are the shallow water equations
 #
 # .. math::
@@ -55,6 +48,7 @@ import argparse
 from opentidalfarm import *
 from model_turbine import ModelTurbine
 from vorticity_solver import VorticitySolver
+from impact_functional import ImpactFunctional
 import time
 
 model_turbine = ModelTurbine()
@@ -66,6 +60,7 @@ parser.add_argument('--turbines', required=True, type=int, help='number of turbi
 parser.add_argument('--optimize', action='store_true', help='Optimise instead of just simulate')
 parser.add_argument('--withcuts', action='store_true', help='with cut in/out speeds')
 parser.add_argument('--cost', type=float, default=0., help='the cost coefficient')
+parser.add_argument('--impact', type=float, default=0., help='the impact coefficient')
 args = parser.parse_args()
 
 # Next we get the default parameters of a shallow water problem and configure it
@@ -153,7 +148,7 @@ prob_params.friction = Constant(0.0025)
 # Temporal settings
 prob_params.theta = Constant(0.6)
 prob_params.start_time = Constant(0)
-prob_params.finish_time = Constant(tidal_period)
+prob_params.finish_time = Constant(2*tidal_period)
 prob_params.dt = Constant(tidal_period/100)
 prob_params.functional_final_time_only = False
 # The initial condition consists of three components: u_x, u_y and eta
@@ -177,8 +172,8 @@ problem = SWProblem(prob_params)
 
 sol_params = CoupledSWSolver.default_parameters()
 sol_params.dump_period = 1
-sol_params.output_dir = "output_{}_turbines_optimize_{}_cutinout_{}_cost_{}".format(args.turbines,
-        args.optimize, args.withcuts, args.cost)
+sol_params.output_dir = "output_{}_turbines_optimize_{}_cutinout_{}_cost_{}_impact_{}".format(args.turbines,
+        args.optimize, args.withcuts, args.cost, args.impact)
 sol_params.cache_forward_state = False
 solver = CoupledSWSolver(problem, sol_params)
 
@@ -194,7 +189,9 @@ if args.withcuts:
 else:
     power_functional = PowerFunctional(problem)
 cost_functional = args.cost * CostFunctional(problem)
-functional = power_functional - cost_functional
+impact_functional = args.impact * ImpactFunctional(problem, base_u)
+functional = power_functional - cost_functional - impact_functional
+functional = impact_functional
 
 # Define the control
 control = TurbineFarmControl(farm)
@@ -206,6 +203,14 @@ if args.optimize:
     rf_params.save_checkpoints = True
     rf_params.load_checkpoints = True
 
+def callback(s):
+    f = HDF5File(mpi_comm_world(),
+            'output_0_turbines_optimize_False_cutinout_False_cost_0.0_impact_0.0/solution.h5', 'r')
+    f.read(base_u_tmp, 'u_{}'.format(float(s["time"])))
+    base_u.assign(base_u_tmp, annotate=True)
+
+if args.impact > 0:
+    solver.parameters.callback = callback
 rf = ReducedFunctional(functional, control, solver, rf_params)
 
 # As always, we can print all options of the :class:`ReducedFunctional` with:

@@ -13,3 +13,4 @@ Examples
    examples/farm-performance/farm-performance
    examples/channel-opt/channel-opt
    examples/channel-sens/channel-sens
+   examples/headland-optimization/headland-optimization
