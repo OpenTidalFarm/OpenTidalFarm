@@ -20,8 +20,8 @@ class PowerFunctional(PrototypeFunctional):
 
     .. math:: sq(u) =
         \begin{cases}
-           eps \|u\|^2 & \text{if } \|u\| < \textrm{cut_in_speed} \\
-           (cut\_out\_speed)^2 & \text{if } \|u\| > \textrm{cut_out_speed} \\
+           eps \|u\|^2 & \text{if } \|u\| < {cut\_in\_speed} \\
+           (cut\_out\_speed)^2 & \text{if } \|u\| > {cut\_out\_speed} \\
            \|u\|^2 & \text{else.}
         \end{cases}
 
