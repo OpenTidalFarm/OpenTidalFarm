@@ -14,6 +14,7 @@
 #
 # This example simulates the flow in a headland channel with oscillating
 # head-driven flow. It shows how to
+#
 # - read in an external mesh file;
 # - apply boundary conditions for a sinusoidal, head-driven flow;
 # - solve the transient shallow water equations;
