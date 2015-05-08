@@ -377,6 +377,25 @@ class ReducedFunctional(ReducedFunctionalPrototype):
 
         return self._dj(m_array, forget)
 
+    def derivative_with_check(self, m, seed=0.1, tol=1.8, forget=True):
+        ''' This function checks the correctness and returns the gradient of 
+        the functional for the parameter choice m. '''
+
+        info_red("Checking derivative at m = " + str(m))
+        p = numpy.random.rand(len(m))
+        minconv = helpers.test_gradient_array(self.evaluate,
+                                              self._dj,
+                                              m,
+                                              seed=seed,
+                                              perturbation_direction=p)
+        if minconv < tol:
+            info_red("The gradient taylor remainder test failed.")
+            sys.exit(1)
+        else:
+            info_green("The gradient taylor remainder test passed.")
+
+        return self._dj(m, forget)
+
 
 class TurbineFarmControl(object):
     """This class is required to that the parameter set works with
