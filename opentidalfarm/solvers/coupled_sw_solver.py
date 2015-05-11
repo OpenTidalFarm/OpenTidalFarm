@@ -368,8 +368,15 @@ CoupledSWSolverParameters."
         R_mid = friction / H * norm_u_mid * inner(u_mid, v) * dx(self.mesh)
 
         if farm:
-            R_mid += tf/H*dot(u_mid, u_mid)**0.5*inner(u_mid, v)*farm.site_dx
 
+            if not farm.turbine_specification.thrust:
+                R_mid += tf/H*dot(u_mid, u_mid)**0.5*inner(u_mid, v)*farm.site_dx
+            else: 
+                u_mag = dot(u_mid, u_mid)**0.5
+                C_t = farm.turbine_specification.compute_C_t(u_mag)
+                R_mid += (tf * farm.turbine_specification.turbine_parametrisation_constant * \
+                          C_t / H) * u_mag * inner(u_mid, v) * farm.site_dx
+        
         # Advection term
         if include_advection:
             Ad_mid = inner(dot(grad(u_mid), u_mid), v) * dx

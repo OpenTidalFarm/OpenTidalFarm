@@ -381,7 +381,7 @@ class ReducedFunctional(ReducedFunctionalPrototype):
         ''' This function checks the correctness and returns the gradient of 
         the functional for the parameter choice m. '''
 
-        info_red("Checking derivative at m = " + str(m))
+        log(INFO, "Checking derivative at m = " + str(m))
         p = numpy.random.rand(len(m))
         minconv = helpers.test_gradient_array(self.evaluate,
                                               self._dj,
@@ -389,10 +389,10 @@ class ReducedFunctional(ReducedFunctionalPrototype):
                                               seed=seed,
                                               perturbation_direction=p)
         if minconv < tol:
-            info_red("The gradient taylor remainder test failed.")
+            log(INFO, "The gradient taylor remainder test failed.")
             sys.exit(1)
         else:
-            info_green("The gradient taylor remainder test passed.")
+            log(INFO, "The gradient taylor remainder test passed.")
 
         return self._dj(m, forget)
 
