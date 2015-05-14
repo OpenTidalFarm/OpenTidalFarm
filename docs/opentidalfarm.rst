@@ -13,3 +13,4 @@
     opentidalfarm.reduced_functional
     opentidalfarm.optimization
     opentidalfarm.internal
+    opentidalfarm.scripts

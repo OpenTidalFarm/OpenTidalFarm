@@ -144,7 +144,7 @@ The other parameters are straight forward:
 ::
 
   # Equation settings
-  nu = Constant(40)
+  nu = Constant(60)
   prob_params.viscosity = nu
   prob_params.depth = Constant(H)
   prob_params.friction = Constant(0.0025)
