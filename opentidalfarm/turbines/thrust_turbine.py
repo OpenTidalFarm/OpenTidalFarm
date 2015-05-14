@@ -2,11 +2,9 @@ from .base_turbine import BaseTurbine
 from .controls import Controls
 from dolfin import *
 
-from IPython import embed
-
 class ThrustTurbine(BaseTurbine):
-    def __init__(self, 
-                 friction=1.0, 
+    def __init__(self,
+                 friction=1.0,
                  diameter=20.,
                  swept_diameter=20.,
                  c_t_design=0.6,
@@ -24,7 +22,7 @@ class ThrustTurbine(BaseTurbine):
                                             controls=controls,
                                             thrust=True)
 
-        # To parametrise a square 2D plan-view turbine to characterise a 
+        # To parametrise a square 2D plan-view turbine to characterise a
         # realistic tidal turbine with a circular swept area in the section
         # plane we assume that the specified 2D turbine diameter is equal to the
         # circular swept diameter
