@@ -12,10 +12,10 @@ def compute_error(problem_params, eta0, k):
     # The source terms, which originate from plugging the analytical solution
     # in the flow equations
     advection_source = u_exact + " * " + du_exact
-    viscosity_source = "friction/depth * " + u_exact + " * pow(pow(" + \
+    friction_source = "friction/depth * " + u_exact + " * pow(pow(" + \
                        u_exact + ", 2), 0.5)"
 
-    source = Expression((viscosity_source + "+" + advection_source, "0.0"),
+    source = Expression((friction_source + "+" + advection_source, "0.0"),
                         eta0=eta0,
                         g=problem_params.g,
                         depth=problem_params.depth,
@@ -90,7 +90,7 @@ def setup_model(parameters, sin_ic, time_step, finish_time, mesh_x, mesh_y=2):
 
     bcs = BoundaryConditionSet()
     bcs.add_bc("u", flather_expr, facet_id=[1, 2], bctype="flather")
-    bcs.add_bc("u", Constant((0, 0)), facet_id=3, bctype="weak_dirichlet")
+    bcs.add_bc("u", facet_id=3, bctype="free_slip")
     parameters.bcs = bcs
 
     return parameters, eta0, k

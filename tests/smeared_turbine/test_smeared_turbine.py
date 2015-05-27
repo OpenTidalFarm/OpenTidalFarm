@@ -47,7 +47,7 @@ class TestSmearedTurbine(object):
             k=k
         )
         bcs.add_bc("u", bc_expr, [1, 2], "flather")
-        bcs.add_bc("u", Constant((0, 0)), 3, "weak_dirichlet")
+        bcs.add_bc("u", facet_id=3, bctype="free_slip")
 
         class Site(SubDomain):
             def inside(self, x, on_boundary):

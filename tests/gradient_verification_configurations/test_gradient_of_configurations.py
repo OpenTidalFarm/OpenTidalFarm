@@ -24,7 +24,7 @@ class TestConfigurations(object):
         bcs = BoundaryConditionSet()
         bcs.add_bc("u", Constant((2.0 + 1e-10, 0)), 1, "strong_dirichlet")
         bcs.add_bc("eta", Constant(0.0), 2, "strong_dirichlet")
-        bcs.add_bc("u", Constant((0, 0)), 3, "weak_dirichlet")
+        bcs.add_bc("u", facet_id=3, bctype="free_slip")
         problem_params.bcs = bcs
 
         # Create a farm and deploy some turbines
@@ -75,7 +75,7 @@ class TestConfigurations(object):
                          t=problem_params.start_time,
                          k=pi / 3000)
         bcs.add_bc("u", flather_bc_expr, [1, 2], "flather")
-        bcs.add_bc("u", Constant((1e-10, 1e-10)), 3, "weak_dirichlet")
+        bcs.add_bc("u", facet_id=3, bctype="free_slip")
         problem_params.bcs = bcs
 
         problem_params.initial_condition = Constant((1e-9, 0, 0))

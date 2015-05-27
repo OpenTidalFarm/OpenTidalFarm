@@ -70,7 +70,7 @@ class TestFlatherBoundaryConditionsWithViscosity(object):
             k=k
         )
         bcs.add_bc("u", bc_expr, [1, 2], "flater")
-        bcs.add_bc("u", Constant((0, 0)), 3, "weak_dirichlet")
+        bcs.add_bc("u", facet_id=3, bctype="free_slip")
 
         # Initial condition
         ic_expr = sin_ic(eta0, k,

@@ -312,15 +312,14 @@ CoupledSWSolverParameters."
         # The surface integral contribution from the divergence term
         bc_contr = -H * dot(u_mid, n) * q * ds
 
-        for function_name, u_expr, facet_id, bctype in problem_params.bcs:
-            if (function_name is not "u" or
-                bctype not in ["flather", "weak_dirichlet"]):
-                continue
+        for function_name, u_expr, facet_id, bctype in bcs.filter(function_name='u'):
 
-            if bctype == 'weak_dirichlet':
+            if bctype in ('weak_dirichlet', 'free_slip'):
                 # Subtract the divergence integral again
                 bc_contr -= -H * dot(u_mid, n) * q * ds(facet_id)
-                bc_contr -= H * dot(u_expr, n) * q * ds(facet_id)
+                # for weak Dirichlet we replace it with the bc expression
+                if bctype=='weak_dirichlet':
+                  bc_contr -= H * dot(u_expr, n) * q * ds(facet_id)
 
             elif bctype == 'flather':
                 # The Flather boundary condition requires two facet_ids.
@@ -339,8 +338,7 @@ CoupledSWSolverParameters."
 
 
         # Pressure gradient term
-        weak_eta_bcs = [bc for bc in problem_params.bcs if bc[0] is "eta"
-                        and bc[-1] is "weak_dirichlet"]
+        weak_eta_bcs = bcs.filter(function_name='eta', bctype='weak_dirichlet')
 
         # don't integrate pressure gradient by parts (a.o. allows dg test function v)
         C_mid = g * inner(v, grad(h_mid)) * dx
@@ -389,7 +387,7 @@ CoupledSWSolverParameters."
               Ad_mid += (inner(un('+')*(u_mid('+')-u_mid('-')), v('+')) + inner(un('-')*(u_mid('-')-u_mid('+')), v('-')))*dS
 
             # apply weak_diricihlet bc for the advection term at the incoming boundaries only
-            for function_name, u_expr, facet_id, bctype in problem_params.bcs:
+            for function_name, u_expr, facet_id, bctype in bcs:
 
                 if function_name =="u" and bctype == 'weak_dirichlet':
                     # this is the same thing as for DG above, except u_up is the boundary value and u_down is u+ or u- (they are the same)

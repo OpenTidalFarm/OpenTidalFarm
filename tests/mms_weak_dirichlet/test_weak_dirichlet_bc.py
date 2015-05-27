@@ -82,7 +82,7 @@ class TestWeakDirichletBoundaryConditions(object):
             k=k)
         bcs.add_bc("u", bc_expr, 1, "weak_dirichlet")
         bcs.add_bc("u", bc_expr, 2, "weak_dirichlet")
-        bcs.add_bc("u", Constant((0, 0)), 3, "weak_dirichlet")
+        bcs.add_bc("u", facet_id=3, bctype="free_slip")
         problem_params.bcs = bcs
 
         problem = SWProblem(problem_params)
@@ -131,7 +131,7 @@ class TestWeakDirichletBoundaryConditions(object):
             k=k)
         bcs.add_bc("u", bc_expr, 1, "weak_dirichlet")
         bcs.add_bc("u", bc_expr, 2, "weak_dirichlet")
-        bcs.add_bc("u", Constant((0, 0)), 3, "weak_dirichlet")
+        bcs.add_bc("u", facet_id=3, bctype="free_slip")
         problem_params.bcs = bcs
 
         problem = SWProblem(problem_params)

@@ -55,7 +55,7 @@ bcs = BoundaryConditionSet()
 bcs.add_bc("u", Constant((2, 0)), facet_id=1)
 bcs.add_bc("eta", Constant(0), facet_id=2)
 # The free-slip boundary conditions.
-bcs.add_bc("u", Constant((0, 0)), facet_id=3, bctype="weak_dirichlet")
+bcs.add_bc("u", facet_id=3, bctype="free_slip")
 
 # Set the shallow water parameters
 prob_params = SteadySWProblem.default_parameters()

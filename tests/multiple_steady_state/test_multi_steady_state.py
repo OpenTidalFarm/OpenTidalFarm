@@ -48,7 +48,7 @@ class TestMultiSteadyState(object):
                 delta_eta=delta_eta, t=Constant(0), steps=steps)
         bcs.add_bc("eta", expl, 1, "strong_dirichlet")
         bcs.add_bc("eta", expr, 2, "strong_dirichlet")
-        bcs.add_bc("u", Constant((0, 0)), 3, "weak_dirichlet")
+        bcs.add_bc("u", facet_id=3, bctype="free_slip")
         problem_params.bcs = bcs
 
         # Create a turbine specification.
