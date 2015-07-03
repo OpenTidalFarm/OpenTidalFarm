@@ -24,10 +24,19 @@ For work on global optimisation of turbine locations through the use of a hybrid
 
 For work on the addition of cost models into the OpenTidalFarm framework please see:
 
-* **DM Culley, SW Funke, SC Kramer, MD Piggott (2014)**.
+* **DM Culley, SW Funke, SC Kramer, MD Piggott (2016)**.
   *Integration of cost modelling within the micro-siting design optimisation of tidal turbine arrays*,
-  submitted. `doi:10.6084/m9.figshare.1219374 <http://dx.doi.org/10.6084/m9.figshare.1219374>`__.
-  [`PDF <http://files.figshare.com/1758939/cable_routing_submitted.pdf>`__].
+  Renewable Energy, 85, pp. 215-227. 
+  `doi:10.1016/j.renene.2015.06.013 
+  <http://dx.doi.org/10.1016/j.renene.2015.06.013>`__.
+  [`PDF
+  <http://www.sciencedirect.com/science/article/pii/S0960148115300379/pdfft?md5=7c4008b8c7de80180f1740dc988be5d3&pid=1-s2.0-S0960148115300379-main.pdf>`__].
+
+For work on array sizing and sensitivity analysis please see:
+
+* **DM Culley, SW Funke, SC Kramer, MD Piggott (2015)**.
+  *Tidal stream resource assessment through optimisation of array design with quantification of uncertainty*,
+  accepted to The Proceedings of the 11th European Wave and Tidal Energy Conference, Nantes, 2015.
 
 For a general piece on the role OpenTidalFarm might play in the overall tidal turbine array design process see:
 
