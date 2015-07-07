@@ -33,7 +33,7 @@ class SWProblemParameters(SteadySWProblemParameters):
     finish_time = 100.0
 
     # Functional time integration parameters
-    functional_final_time_only = True
+    functional_final_time_only = False
 
 
 class SWProblem(SteadySWProblem):
