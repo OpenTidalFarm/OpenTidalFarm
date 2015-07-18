@@ -284,7 +284,7 @@ class ReducedFunctional(ReducedFunctionalPrototype):
         if self.parameters.save_checkpoints:
             self._save_checkpoint()
 
-        log(INFO, 'Runtime: %f s.' % timer.value())
+        log(INFO, 'Runtime: %f s.' % timer.elapsed()[0])
         log(INFO, 'j = %e.' % float(j))
         self.last_j = j
 
@@ -378,7 +378,7 @@ class ReducedFunctional(ReducedFunctionalPrototype):
         return self._dj(m_array, forget)
 
     def derivative_with_check(self, m, seed=0.1, tol=1.8, forget=True):
-        ''' This function checks the correctness and returns the gradient of 
+        ''' This function checks the correctness and returns the gradient of
         the functional for the parameter choice m. '''
 
         log(INFO, "Checking derivative at m = " + str(m))

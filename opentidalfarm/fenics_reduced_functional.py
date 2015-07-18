@@ -61,7 +61,7 @@ class FenicsReducedFunctional(object):
 
         timer.stop()
 
-        log(INFO, 'Runtime: %f s.' % timer.value())
+        log(INFO, 'Runtime: %f s.' % timer.elapsed()[0])
         log(INFO, 'j = %e.' % float(j))
 
         return j
