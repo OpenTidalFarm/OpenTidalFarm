@@ -23,7 +23,7 @@ class SWProblemParameters(SteadySWProblemParameters):
 
     :ivar functional_final_time_only: Boolean indicating if the functional
         should be integrated over time or evaluated at the end of time only.
-        Default: True.
+        Default: False.
     """
 
     # Time parameters
