@@ -98,14 +98,9 @@ the :class:`TidalForcing` class.
   bcs.add_bc("eta", eta_expr, facet_id=1)
   bcs.add_bc("eta", eta_expr, facet_id=2)
   
-The free-slip boundary conditions are a special case. The boundary condition
-type `weak_dirichlet` enforces the boundary value *only* in the *normal*
-direction of the boundary. Hence, a zero weak Dirichlet boundary condition
-gives us free-slip, while a zero `strong_dirichlet` boundary condition would
-give us no-slip.
-
-::
-
+  # Apply a strong no-slip boundary condition. This can be changed to
+  # free slip (weakly enforced), by leaving out the Constant((0, 0))
+  # argument and changing bctype to "free_slip"
   bcs.add_bc("u", Constant((0, 0)), facet_id=3, bctype="strong_dirichlet")
   prob_params.bcs = bcs
   
