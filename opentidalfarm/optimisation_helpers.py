@@ -290,17 +290,10 @@ class MinimumDistanceConstraintsLargeArrays(InequalityConstraint):
 
     .. math::
 
-        \sum_{i,j=0, i>j}^{N-1} P(||x_i - x_j||) \ge 0
+        \sum_{i,j=0, i>j}^{N-1} \min(||p_i - p_j||^2 - D^2, 0) \ge 0
 
-    where N is the number of turbines, and :math:`x_i` is the position of the i'th
-    turbine.
-    The penalty function P is defined as:
-
-    .. math::
-
-        P(x) := \min(x^2-D^2, 0)
-
-    where D is the minimum distance between two turbines.
+    where N is the number of turbines, :math:`p_i` is the position of the i'th
+    turbine and D is the minimum distance between two turbines.
 
     .. note:: This class subclasses `dolfin_adjoint.InequalityConstraint`_. The
         following method names must not change:
