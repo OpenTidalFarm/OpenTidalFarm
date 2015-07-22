@@ -1,13 +1,20 @@
+OpenTidalFarm changelog
+
 1.6 (not yet released):
-	- Support for FEniCS 1.6
 	- Continuous farm representation
 	- Add a minimum distance constraints with many turbines (>300)
 	- New examples
+	- Compatible with FEniCS 1.6
 
-1.5:
-	- Support for FEniCS 1.5
-	- Sensitivity analysis
+1.5 (19.01.2015):
+	- Support for sensitivity analysis
 	- New examples
+	- Compatible with FEniCS 1.5
 
-0.9:
-	- First release
+1.4 (19.11.2014):
+	- Complete code rewrite
+	- Compatible with FEniCS 1.4
+
+0.9.1 (09.07.2014):
+	- First public release
+	- Compatible with FEniCS 1.4
