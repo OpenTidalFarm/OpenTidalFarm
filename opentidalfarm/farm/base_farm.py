@@ -1,6 +1,7 @@
 import numpy
 import dolfin
 from ..optimisation_helpers import MinimumDistanceConstraints
+from ..optimisation_helpers import MinimumDistanceConstraintsLargeArrays
 from ..turbine_cache import TurbineCache
 
 class BaseFarm(object):
@@ -46,6 +47,7 @@ class BaseFarm(object):
     @property
     def number_of_turbines(self):
         """The number of turbines in the farm.
+
         :returns: The number of turbines in the farm.
         :rtype: int
         """
@@ -291,12 +293,12 @@ class BaseFarm(object):
             return points
 
         # Fetch the points
-        points = lhs(number_turbines) 
+        points = lhs(number_turbines)
 
         #Scale the points
         points[:,0] = (points[:,0] * site_x) + start_x
         points[:,1] = (points[:,1] * site_y) + start_y
-        
+
         for i in range(len(points)):
             self.add_turbine((points[i,0], points[i,1]))
 
@@ -311,7 +313,7 @@ class BaseFarm(object):
         # the other layout options.
         dolfin.info('LHS generated starting layout may not fulfill inequality '\
                     'constraints if set... use caution')
-        
+
 
     def set_turbine_positions(self, positions):
         """Sets the turbine position and an equal friction parameter.
@@ -331,11 +333,16 @@ class BaseFarm(object):
                                    "boundaries.")
 
 
-    def minimum_distance_constraints(self):
+    def minimum_distance_constraints(self, large=False):
         """Returns an instance of MinimumDistanceConstraints.
 
-        :returns: An instance of InequalityConstraint defining the minimum distance between turbines.
-        :rtype: :doc:`opentidalfarm.farm.MinimumDistanceConstraints`
+        :param bool large: Use a minimum distance implementation that is
+            suitable for large farms (i.e. many turbines). Default: False
+        :returns: An instance of dolfin_adjoint.InequalityConstraint that
+            enforces a minimum distance between turbines.
+        :rtype: :py:class:`MinimumDistanceConstraints`
+            (if large=False) or :py:class:`MinimumDistanceConstraintsLargeArray`
+            (if large=True)
 
         """
         # Check we have some turbines.
@@ -347,4 +354,7 @@ class BaseFarm(object):
         controls = self._turbine_specification.controls
         minimum_distance = self._turbine_specification.minimum_distance
         positions = self.turbine_positions
-        return MinimumDistanceConstraints(self, positions, minimum_distance, controls)
+        if large:
+            return MinimumDistanceConstraintsLargeArrays(positions, minimum_distance, controls)
+        else:
+            return MinimumDistanceConstraints(positions, minimum_distance, controls)

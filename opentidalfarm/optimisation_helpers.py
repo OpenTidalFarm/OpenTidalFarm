@@ -5,9 +5,9 @@ from dolfin import Constant, log, INFO
 from helpers import function_eval
 from dolfin_adjoint import InequalityConstraint, EqualityConstraint
 
-__all__ = ["MinimumDistanceConstraints", "friction_constraints",
-    "get_domain_constraints", "position_constraints", "get_distance_function",
-    "ConvexPolygonSiteConstraint", "DomainRestrictionConstraints"]
+__all__ = ["MinimumDistanceConstraints", "MinimumDistanceConstraintsLargeArrays",
+    "friction_constraints", "get_domain_constraints", "position_constraints",
+    "get_distance_function", "ConvexPolygonSiteConstraint", "DomainRestrictionConstraints"]
 
 def position_constraints(config):
     ''' This function returns the constraints to ensure that the turbine
@@ -174,7 +174,7 @@ class MinimumDistanceConstraints(InequalityConstraint):
             http://dolfin-adjoint.org/documentation/api.html#dolfin_adjoint.InequalityConstraint
 
     """
-    def __init__(self, farm, turbine_positions, minimum_distance, controls):
+    def __init__(self, turbine_positions, minimum_distance, controls):
         """Create MinimumDistanceConstraints
 
         :param serialized_turbines: The serialized turbine paramaterisation.
@@ -190,7 +190,6 @@ class MinimumDistanceConstraints(InequalityConstraint):
                                       "constraints to be used.")
 
 
-        self._farm = farm
         self._turbines = numpy.asarray(turbine_positions).flatten().tolist()
         self._minimum_distance = minimum_distance
         self._controls = controls
@@ -277,6 +276,182 @@ class MinimumDistanceConstraints(InequalityConstraint):
                 p_ineq_c[friction_length+2*j] = -2*(m[2*i] - m[2*j])
                 p_ineq_c[friction_length+2*i+1] = 2*(m[2*i+1] - m[2*j+1])
                 p_ineq_c[friction_length+2*j+1] = -2*(m[2*i+1] - m[2*j+1])
+                inequality_constraints.append(p_ineq_c)
+
+        return numpy.array(inequality_constraints)
+
+
+class MinimumDistanceConstraintsLargeArrays(InequalityConstraint):
+    """This class implements minimum distance constraints between turbines
+    which is well suited for large arrays.
+
+    It enforces the minimum distance with only one enquality constraint of the
+    form:
+
+    .. math::
+
+        \sum_{i,j=0, i>j}^{N-1} P(||x_i - x_j||)
+
+    where N is the number of turbines, and :math:`x_i` is the position of the i'th
+    turbine.
+    The penalty function P is defined as:
+
+    .. math::
+
+        P(x) := \min(x^2-D^2, 0)
+
+    where D is the minimum distance between two turbines.
+
+    .. note:: This class subclasses `dolfin_adjoint.InequalityConstraint`_. The
+        following method names must not change:
+
+        * ``length(self)``
+        * ``function(self, m)``
+        * ``jacobian(self, m)``
+
+
+        _dolfin_adjoint.InequalityConstraint:
+            http://dolfin-adjoint.org/documentation/api.html#dolfin_adjoint.InequalityConstraint
+
+    """
+    def __init__(self, turbine_positions, minimum_distance, controls):
+        """Create MinimumDistanceConstraints
+
+        :param serialized_turbines: The serialized turbine paramaterisation.
+        :type serialized_turbines: numpy.ndarray.
+        :param minimum_distance: The minimum distance allowed between turbines.
+        :type minimum_distance: float.
+        :raises: NotImplementedError
+
+
+        """
+        if len(turbine_positions)==0:
+            raise NotImplementedError("Turbines must be deployed for distance "
+                                      "constraints to be used.")
+
+
+        self._turbines = numpy.asarray(turbine_positions).flatten().tolist()
+        self._minimum_distance = minimum_distance
+        self._controls = controls
+
+
+    def _sl2norm(self, x):
+        """Calculates the squared l2norm of a vector x."""
+        return sum([v**2 for v in x])
+
+
+    def length(self):
+        """Returns the number of constraints ``len(function(m))``."""
+        return 1
+
+
+    def _penalty(self, x_sq):
+        return min(0, x_sq - self._minimum_distance**2)
+
+    def _dpenalty(self, x_sq):
+        """ Returns the derivative of the penalty function """
+        if x_sq > self._minimum_distance**2:
+            return 0.0
+        else:
+            return x_sq
+
+
+    def function(self, m):
+        """Return an object which must be >0 for the point to be feasible.
+
+        :param m: The serialized paramaterisation of the turbines.
+        :tpye m: numpy.ndarray.
+        :returns: numpy.ndarray -- each entry must be zero for a poinst to be
+            feasible.
+
+        """
+        dolfin.log(dolfin.PROGRESS, "Calculating minimum distance constraints.")
+        value = 0
+        for i in range(len(m)/2):
+            for j in range(len(m)/2):
+                if i <= j:
+                    continue
+                dist_sq = self._sl2norm([m[2*i]-m[2*j],
+                                         m[2*i+1]-m[2*j+1]])
+                value += self._penalty(dist_sq)
+
+        if value <= 0:
+            dolfin.log(dolfin.WARNING,
+                       "Minimum distance inequality constraints (should all "
+                       "be => 0): %s" % value)
+        return numpy.array([value])
+
+
+    def jacobian(self, m):
+        """Returns the gradient of the constraint function.
+
+        Return a list of vector-like objects representing the gradient of the
+        constraint function with respect to the parameter m.
+
+        :param m: The serialized paramaterisation of the turbines.
+        :tpye m: numpy.ndarray.
+        :returns: numpy.ndarray -- the gradient of the constraint function with
+            respect to each input parameter m.
+
+        """
+        dolfin.log(dolfin.PROGRESS, "Calculating the jacobian of minimum "
+                   "distance constraints function.")
+
+        # Need to add space for zeros for the friction
+        if self._controls.position and self._controls.friction:
+            p_ineq_c = numpy.zeros(len(m*3/2))
+            friction_length = len(m)/2
+        else:
+            p_ineq_c = numpy.zeros(len(m))
+            friction_length = 0
+
+        eps = 1e-2
+
+        fun_m = self.function(m)
+        for i in range(len(p_ineq_c)):
+            m_pert = numpy.copy(m)
+            m_pert[i] += eps
+            fun_m_pert = self.function(m_pert)
+            p_ineq_c[i] = (fun_m_pert - fun_m) / eps
+
+        return numpy.array([p_ineq_c])
+
+
+    def jacobian_(self, m):
+        """Returns the gradient of the constraint function.
+
+        Return a list of vector-like objects representing the gradient of the
+        constraint function with respect to the parameter m.
+
+        :param m: The serialized paramaterisation of the turbines.
+        :tpye m: numpy.ndarray.
+        :returns: numpy.ndarray -- the gradient of the constraint function with
+            respect to each input parameter m.
+
+        """
+        dolfin.log(dolfin.PROGRESS, "Calculating the jacobian of minimum "
+                   "distance constraints function.")
+        inequality_constraints = []
+
+        # Need to add space for zeros for the friction
+        if self._controls.position and self._controls.friction:
+            p_ineq_c = numpy.zeros(len(m*3/2))
+            friction_length = len(m)/2
+        else:
+            p_ineq_c = numpy.zeros(len(m))
+            friction_length = 0
+
+        for i in range(len(m)/2):
+            for j in range(len(m)/2):
+                if i <= j:
+                    continue
+
+                # The control vector contains the friction coefficients first,
+                # so we need to shift here
+                p_ineq_c[friction_length+2*i] += 2*(m[2*i] - m[2*j])
+                p_ineq_c[friction_length+2*j] += -2*(m[2*i] - m[2*j])
+                p_ineq_c[friction_length+2*i+1] += 2*(m[2*i+1] - m[2*j+1])
+                p_ineq_c[friction_length+2*j+1] += -2*(m[2*i+1] - m[2*j+1])
                 inequality_constraints.append(p_ineq_c)
 
         return numpy.array(inequality_constraints)
