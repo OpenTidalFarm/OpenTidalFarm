@@ -290,7 +290,7 @@ class MinimumDistanceConstraintsLargeArrays(InequalityConstraint):
 
     .. math::
 
-        \sum_{i,j=0, i>j}^{N-1} P(||x_i - x_j||)
+        \sum_{i,j=0, i>j}^{N-1} P(||x_i - x_j||) \ge 0
 
     where N is the number of turbines, and :math:`x_i` is the position of the i'th
     turbine.
