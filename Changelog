@@ -1,0 +1,13 @@
+1.6 (not yet released):
+	- Support for FEniCS 1.6
+	- Continuous farm representation
+	- Add a minimum distance constraints with many turbines (>300)
+	- New examples
+
+1.5:
+	- Support for FEniCS 1.5
+	- Sensitivity analysis
+	- New examples
+
+0.9:
+	- First release
