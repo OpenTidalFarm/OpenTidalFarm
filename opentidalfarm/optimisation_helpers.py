@@ -348,12 +348,13 @@ class MinimumDistanceConstraintsLargeArrays(InequalityConstraint):
     def _penalty(self, x_sq):
         return min(0, x_sq - self._minimum_distance**2)
 
+
     def _dpenalty(self, x_sq):
         """ Returns the derivative of the penalty function """
-        if x_sq > self._minimum_distance**2:
+        if x_sq - self._minimum_distance**2 > 0:
             return 0.0
         else:
-            return x_sq
+            return 1.0
 
 
     def function(self, m):
@@ -396,41 +397,6 @@ class MinimumDistanceConstraintsLargeArrays(InequalityConstraint):
         """
         dolfin.log(dolfin.PROGRESS, "Calculating the jacobian of minimum "
                    "distance constraints function.")
-
-        # Need to add space for zeros for the friction
-        if self._controls.position and self._controls.friction:
-            p_ineq_c = numpy.zeros(len(m*3/2))
-            friction_length = len(m)/2
-        else:
-            p_ineq_c = numpy.zeros(len(m))
-            friction_length = 0
-
-        eps = 1e-2
-
-        fun_m = self.function(m)
-        for i in range(len(p_ineq_c)):
-            m_pert = numpy.copy(m)
-            m_pert[i] += eps
-            fun_m_pert = self.function(m_pert)
-            p_ineq_c[i] = (fun_m_pert - fun_m) / eps
-
-        return numpy.array([p_ineq_c])
-
-
-    def jacobian_(self, m):
-        """Returns the gradient of the constraint function.
-
-        Return a list of vector-like objects representing the gradient of the
-        constraint function with respect to the parameter m.
-
-        :param m: The serialized paramaterisation of the turbines.
-        :tpye m: numpy.ndarray.
-        :returns: numpy.ndarray -- the gradient of the constraint function with
-            respect to each input parameter m.
-
-        """
-        dolfin.log(dolfin.PROGRESS, "Calculating the jacobian of minimum "
-                   "distance constraints function.")
         inequality_constraints = []
 
         # Need to add space for zeros for the friction
@@ -446,15 +412,18 @@ class MinimumDistanceConstraintsLargeArrays(InequalityConstraint):
                 if i <= j:
                     continue
 
+                dist_sq = self._sl2norm([m[2*i]-m[2*j],
+                                         m[2*i+1]-m[2*j+1]])
+                dvalue = self._dpenalty(dist_sq)
+
                 # The control vector contains the friction coefficients first,
                 # so we need to shift here
-                p_ineq_c[friction_length+2*i] += 2*(m[2*i] - m[2*j])
-                p_ineq_c[friction_length+2*j] += -2*(m[2*i] - m[2*j])
-                p_ineq_c[friction_length+2*i+1] += 2*(m[2*i+1] - m[2*j+1])
-                p_ineq_c[friction_length+2*j+1] += -2*(m[2*i+1] - m[2*j+1])
-                inequality_constraints.append(p_ineq_c)
+                p_ineq_c[friction_length+2*i] += dvalue * 2*(m[2*i] - m[2*j])
+                p_ineq_c[friction_length+2*j] += dvalue * (-2*(m[2*i] - m[2*j]))
+                p_ineq_c[friction_length+2*i+1] += dvalue * 2*(m[2*i+1] - m[2*j+1])
+                p_ineq_c[friction_length+2*j+1] += dvalue * (-2*(m[2*i+1] - m[2*j+1]))
 
-        return numpy.array(inequality_constraints)
+        return numpy.array([p_ineq_c])
 
 class ConvexPolygonSiteConstraint(InequalityConstraint):
     ''' Generates the inequality constraints for generic polygon constraints.
