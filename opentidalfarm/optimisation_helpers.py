@@ -261,7 +261,7 @@ class MinimumDistanceConstraints(InequalityConstraint):
 
                 # Need to add space for zeros for the friction
                 if self._controls.position and self._controls.friction:
-                    prime_inequality_constraints = numpy.zeros(len(m*3/2))
+                    prime_inequality_constraints = numpy.zeros(len(m)*3/2)
                     friction_length = len(m)/2
                 else:
                     prime_inequality_constraints = numpy.zeros(len(m))
@@ -360,6 +360,11 @@ class MinimumDistanceConstraintsLargeArrays(InequalityConstraint):
 
         """
         dolfin.log(dolfin.PROGRESS, "Calculating minimum distance constraints.")
+
+        if self._controls.position and self._controls.friction:
+            friction_length = len(m)/3
+            m = m[friction_length:]
+
         value = 0
         for i in range(len(m)/2):
             for j in range(len(m)/2):
@@ -392,13 +397,13 @@ class MinimumDistanceConstraintsLargeArrays(InequalityConstraint):
                    "distance constraints function.")
         inequality_constraints = []
 
-        # Need to add space for zeros for the friction
         if self._controls.position and self._controls.friction:
-            p_ineq_c = numpy.zeros(len(m*3/2))
-            friction_length = len(m)/2
+            friction_length = len(m)/3
+            m = m[friction_length:]
         else:
-            p_ineq_c = numpy.zeros(len(m))
             friction_length = 0
+
+        p_ineq_c = numpy.zeros(friction_length + len(m))
 
         for i in range(len(m)/2):
             for j in range(len(m)/2):
