@@ -9,7 +9,7 @@ class RectangularFarm(Farm):
 
     """
     def __init__(self, domain, site_x_start, site_x_end, site_y_start,
-                 site_y_end, turbine=None, site_ids=None):
+                 site_y_end, turbine=None, site_ids=None, order=2):
         """Initializes an empty rectangular farm with the given dimensions.
 
         :param mesh: The name of the mesh file to use, e.g. 'mesh.xml' if the
@@ -30,7 +30,7 @@ class RectangularFarm(Farm):
 
         # Create a turbine function space and set the function space in the
         # cache.
-        self._turbine_function_space = FunctionSpace(self.domain.mesh, "CG", 2)
+        self._turbine_function_space = FunctionSpace(self.domain.mesh, "CG", order)
         self.turbine_cache.set_function_space(self._turbine_function_space)
 
         # Store site dimensions.
@@ -150,7 +150,7 @@ class RectangularFarm(Farm):
 
     def add_lhs_turbine_layout(self, number_turbines, x_start=None,
                                x_end=None, y_start=None, y_end=None):
-        """Adds to the farm a turbine layout based upon a latin hypercube 
+        """Adds to the farm a turbine layout based upon a latin hypercube
         sampling of the turbine area.
 
         :param turbine: Defines the type of turbine to add to the farm.
@@ -177,7 +177,7 @@ class RectangularFarm(Farm):
         return super(RectangularFarm, self)._lhs_turbine_layout(
             number_turbines, x_start, x_end, y_start, y_end)
 
-        
+
     def site_boundary_constraints(self):
         """Returns the site boundary constraints for a rectangular site.
 
