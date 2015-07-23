@@ -213,6 +213,12 @@ class RectangularFarm(Farm):
                                    dolfin_adjoint.Constant(lower_y)]
         upper_bounds = n_turbines*[dolfin_adjoint.Constant(upper_x),
                                    dolfin_adjoint.Constant(upper_y)]
+
         return lower_bounds, upper_bounds
 
+    def friction_constraints(self):
+        n_turbines = len(self.turbine_positions)
+        lower_bounds = n_turbines*[dolfin_adjoint.Constant(0)]
+        upper_bounds = n_turbines*[dolfin_adjoint.Constant(self._turbine_specification.friction)]
 
+        return lower_bounds, upper_bounds
