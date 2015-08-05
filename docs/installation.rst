@@ -6,8 +6,8 @@ It is recommended to use OpenTidalFarm on the `Ubuntu`_ operating system.
 Quick install
 -------------
 
-Installation from source
-************************
+Automatic installation fromusing hashdist
+*****************************************
 
 Following command will install OpenTidalFarm and all its dependencies into a isolated environment on your computer.
 
@@ -15,33 +15,9 @@ Following command will install OpenTidalFarm and all its dependencies into a iso
 
    curl -s https://bitbucket.org/simon_funke/fenics-developer-tools/raw/master/opentidalfarm-install.sh | bash
 
+Select the option "[1] latest stable version of FEniCS" during the installation.
 
-
-Install using pip
-*****************
-
-You can install OpenTidalFarm via pip or git, however make sure that you
-also install the :ref:`dependencies`:
-
-Using pip:
-
-.. code-block:: bash
-
-   pip install git+git://github.com/OpenTidalFarm/OpenTidalFarm.git
-
-Using git:
-
-.. code-block:: bash
-
-   git clone git@github.com:OpenTidalFarm/OpenTidalFarm.git
-   cd OpenTidalFarm
-   git submodule init
-   git submodule update
-   python setup.py install
-
-
-Test installation
------------------
+Once finished, you can test the installation with:
 
 .. code-block:: bash
 
@@ -49,12 +25,12 @@ Test installation
 
 If no errors occur, your installation was succesfull.
 
-.. _dependencies:
+If you have any problems with the installation, please use our `Issue tracker`_.
 
-Dependencies
-------------
+Manual installation
+**********************
 
-OpenTidalFarm depends on following packages:
+For the manual installation of OpenTidalFarm, you first need to install its dependencies:
 
 - `FEniCS`_ (Follow the Ubuntu PPA installation)
 - `dolfin-adjoint`_ (Follow the Ubuntu PPA installation)
@@ -70,6 +46,32 @@ OpenTidalFarm depends on following packages:
 
    ``pip install utm``
 
+
+Finally, you can install OpenTidalFarm with this command:
+
+.. code-block:: bash
+
+   pip install git+git://github.com/OpenTidalFarm/OpenTidalFarm.git
+
+Once finished, you can test the installation with:
+
+.. code-block:: bash
+
+    python -c "import opentidalfarm"
+
+If no errors occur, your installation was succesfull.
+
+One can download the examples with all mesh data with these commands:
+
+.. code-block:: bash
+
+   git clone git@github.com:OpenTidalFarm/OpenTidalFarm.git
+   cd OpenTidalFarm
+   git submodule init
+   git submodule update
+
+The examples are then stored in the "OpenTidalFarm/examples" directory.
+
 .. _Ubuntu: http://www.ubuntu.com/
 .. _FEniCS: http://fenicsproject.org/download/
 .. _dolfin-adjoint: http://dolfin-adjoint.org/download/index.html
@@ -77,3 +79,4 @@ OpenTidalFarm depends on following packages:
 .. _Uptide: https://github.com/stephankramer/uptide
 .. _UTM: https://pypi.python.org/pypi/utm
 .. _Download OpenTidalFarm: https://github.com/funsim/OpenTidalFarm/zipball/master
+.. _Issue tracker: https://github.com/OpenTidalFarm/OpenTidalFarm/issues
