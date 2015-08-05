@@ -6,7 +6,7 @@ It is recommended to use OpenTidalFarm on the `Ubuntu`_ operating system.
 Quick install
 -------------
 
-Automatic installation fromusing hashdist
+Automatic installation using hashdist
 *****************************************
 
 Following command will install OpenTidalFarm and all its dependencies into a isolated environment on your computer.
