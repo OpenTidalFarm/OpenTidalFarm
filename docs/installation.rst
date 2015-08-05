@@ -34,7 +34,7 @@ For the manual installation of OpenTidalFarm, you first need to install its depe
 
 - `FEniCS`_ (Follow the Ubuntu PPA installation)
 - `dolfin-adjoint`_ (Follow the Ubuntu PPA installation)
-- `SciPy >=0.11`_ - e.g. with:
+- `SciPy >=0.11`_ 
 
    ``pip install scipy``
 
@@ -42,7 +42,7 @@ For the manual installation of OpenTidalFarm, you first need to install its depe
 
    ``pip install git+git://github.com/stephankramer/uptide.git``
 
-- `UTM`_ - e.g. with:
+- `UTM`_ 
 
    ``pip install utm``
 
