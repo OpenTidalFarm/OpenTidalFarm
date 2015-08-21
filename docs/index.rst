@@ -49,6 +49,7 @@ News
 - 16.07.2014: OpenTidalFarm 0.9 released (compatibled with FEniCS 1.4)
 
   - Initial release.
+  - Support for discrete farm optimisation.
 
 
 Features
