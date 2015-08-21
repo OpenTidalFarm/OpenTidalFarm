@@ -34,7 +34,21 @@ News
 ----
 
 - 19.01.2015: OpenTidalFarm 1.5 released (compatibled with FEniCS 1.5)
+
+  - Support of continuous farm optimisation.
+  - Support for sensitivity analysis.
+
 - 20.08.2014: OpenTidalFarm 1.4 released (compatibled with FEniCS 1.4)
+
+  - Complete rewrite of OpenTidalFarm.
+
+- 20.08.2014: OpenTidalFarm 0.9.1 released (compatibled with FEniCS 1.4)
+
+  - Bugfix release.
+
+- 16.07.2014: OpenTidalFarm 0.9 released (compatibled with FEniCS 1.4)
+
+  - Initial release.
 
 
 Features
