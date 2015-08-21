@@ -30,6 +30,12 @@ How to get started
 For questions and to report issues use the `GitHub issue tracker
 <https://github.com/OpenTidalFarm/OpenTidalFarm/issues>`_.
 
+News
+----
+
+- 19.01.2015: OpenTidalFarm 1.5 released (compatibled with FEniCS 1.5)
+- 20.08.2014: OpenTidalFarm 1.4 released (compatibled with FEniCS 1.4)
+
 
 Features
 --------
