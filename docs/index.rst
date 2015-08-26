@@ -10,8 +10,8 @@
     </script>
 
 
-Welcome to OpenTidalFarm's documentation!
-==========================================
+Welcome to OpenTidalFarm
+========================
 
 OpenTidalFarm is an open-source software for simulating and optimising tidal
 turbine farms.
