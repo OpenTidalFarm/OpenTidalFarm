@@ -18,7 +18,7 @@ Then you need to install these OpenTidalFarm dependencies:
 
    ``pip install scipy``
 
-- `yaml`_
+- `pyyaml`_
 
    ``pip install pyyaml``
 
@@ -64,6 +64,8 @@ The examples are then stored in the "OpenTidalFarm/examples" directory.
 .. _UTM: https://pypi.python.org/pypi/utm
 .. _Download OpenTidalFarm: https://github.com/funsim/OpenTidalFarm/zipball/master
 .. _Issue tracker: https://github.com/OpenTidalFarm/OpenTidalFarm/issues
+.. _SciPy: http://www.scipy.org
+.. _pyyaml: http://pyyaml.org
 
 Automatic installation using hashdist (experimental)
 ****************************************************

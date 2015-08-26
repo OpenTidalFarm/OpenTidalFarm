@@ -1,7 +1,14 @@
-.. OpenTidalFarm documentation master file, created by
-   sphinx-quickstart on Thu Jul 17 14:18:42 2014.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+.. raw:: html
+
+    <link rel="stylesheet" href="_static/flexslider/flexslider.css" type="text/css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
+    <script src="_static/flexslider/jquery.flexslider-min.js"></script>
+    <script type="text/javascript" charset="utf-8">
+      $(window).load(function() {
+          $('.flexslider').flexslider();
+      });
+    </script>
+
 
 Welcome to OpenTidalFarm's documentation!
 ==========================================
@@ -19,6 +26,30 @@ optimisation algorithm onto a accurate flow prediction model.
 Following presentation gives a quick introduction to OpenTidalFarm:
 `OpenTidalFarm
 <https://www.slideboom.com/presentations/758051/OpenTidalFarm/>`_
+
+
+.. raw:: html
+
+    <div class="flexslider">
+      <ul class="slides">
+        <li>
+          <img src="_static/slider_media/discrete_satellite.png" />
+          <p class="flex-caption">OpenTidalFarm applied to the Pentland Firth</p>
+        </li>
+        <li>
+          <img src="_static/slider_media/discrete_streamlines.png" />
+          <p class="flex-caption">256 optimised tidal turbine locations with streamlines</p>
+        </li>
+        <li>
+          <img src="_static/slider_media/discrete_turbine133_iter_plot.png" />
+          <p class="flex-caption">Zoom in to optimised turbine locations</p>
+        </li>
+        <li>
+          <img src="_static/slider_media/smooth_turbine.png" />
+          <p class="flex-caption">Multi-farm tidal optimisation</p>
+        </li>
+      </ul>
+    </div>
 
 How to get started
 ------------------
