@@ -1,10 +1,17 @@
-.. OpenTidalFarm documentation master file, created by
-   sphinx-quickstart on Thu Jul 17 14:18:42 2014.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+.. raw:: html
 
-Welcome to OpenTidalFarm's documentation!
-==========================================
+    <link rel="stylesheet" href="_static/flexslider/flexslider.css" type="text/css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
+    <script src="_static/flexslider/jquery.flexslider-min.js"></script>
+    <script type="text/javascript" charset="utf-8">
+      $(window).load(function() {
+          $('.flexslider').flexslider();
+      });
+    </script>
+
+
+Welcome to OpenTidalFarm
+========================
 
 OpenTidalFarm is an open-source software for simulating and optimising tidal
 turbine farms.
@@ -20,6 +27,30 @@ Following presentation gives a quick introduction to OpenTidalFarm:
 `OpenTidalFarm
 <https://www.slideboom.com/presentations/758051/OpenTidalFarm/>`_
 
+
+.. raw:: html
+
+    <div class="flexslider">
+      <ul class="slides">
+        <li>
+          <img src="_static/slider_media/discrete_satellite.png" />
+          <p class="flex-caption">OpenTidalFarm applied to the Pentland Firth</p>
+        </li>
+        <li>
+          <img src="_static/slider_media/discrete_streamlines.png" />
+          <p class="flex-caption">256 optimised tidal turbine locations with streamlines</p>
+        </li>
+        <li>
+          <img src="_static/slider_media/discrete_turbine133_iter_plot.png" />
+          <p class="flex-caption">Zoom in to optimised turbine locations</p>
+        </li>
+        <li>
+          <img src="_static/slider_media/smooth_turbine.png" />
+          <p class="flex-caption">Multi-farm tidal optimisation</p>
+        </li>
+      </ul>
+    </div>
+
 How to get started
 ------------------
 
@@ -29,6 +60,27 @@ How to get started
 
 For questions and to report issues use the `GitHub issue tracker
 <https://github.com/OpenTidalFarm/OpenTidalFarm/issues>`_.
+
+News
+----
+
+- 19.01.2015: OpenTidalFarm 1.5 released (compatibled with FEniCS 1.5)
+
+  - Support of continuous farm optimisation.
+  - Support for sensitivity analysis.
+
+- 20.08.2014: OpenTidalFarm 1.4 released (compatibled with FEniCS 1.4)
+
+  - Complete rewrite of OpenTidalFarm.
+
+- 20.08.2014: OpenTidalFarm 0.9.1 released (compatibled with FEniCS 1.4)
+
+  - Bugfix release.
+
+- 16.07.2014: OpenTidalFarm 0.9 released (compatibled with FEniCS 1.4)
+
+  - Initial release.
+  - Support for discrete farm optimisation.
 
 
 Features

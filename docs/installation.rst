@@ -6,37 +6,21 @@ It is recommended to use OpenTidalFarm on the `Ubuntu`_ operating system.
 Quick install
 -------------
 
-Automatic installation using hashdist
-*****************************************
+Manual installation (recommended)
+*********************************
 
-Following command will install OpenTidalFarm and all its dependencies into a isolated environment on your computer.
-
-.. code-block:: bash
-
-   curl -s https://bitbucket.org/simon_funke/fenics-developer-tools/raw/master/opentidalfarm-install.sh | bash
-
-Select the option "[1] latest stable version of FEniCS" during the installation.
-
-Once finished, you can test the installation with:
-
-.. code-block:: bash
-
-    python -c "import opentidalfarm"
-
-If no errors occur, your installation was succesfull.
-
-If you have any problems with the installation, please use our `Issue tracker`_.
-
-Manual installation
-**********************
-
-For the manual installation of OpenTidalFarm, you first need to install its dependencies:
+For the manual installation of OpenTidalFarm you need to have the Ubuntu Linux.
+Then you need to install these OpenTidalFarm dependencies:
 
 - `FEniCS`_ (Follow the Ubuntu PPA installation)
 - `dolfin-adjoint`_ (Follow the Ubuntu PPA installation)
-- `SciPy >=0.11`_
+- `SciPy`_
 
    ``pip install --user scipy``
+
+- `pyyaml`_
+
+   ``pip install --user pyyaml``
 
 - `Uptide`_
 
@@ -74,9 +58,31 @@ The examples are then stored in the "OpenTidalFarm/examples" directory.
 
 .. _Ubuntu: http://www.ubuntu.com/
 .. _FEniCS: http://fenicsproject.org/download/
-.. _dolfin-adjoint: http://dolfin-adjoint.org/download/index.html
-.. _SciPy >=0.11: https://github.com/scipy/scipy
+.. _dolfin-adjoint: http://www.dolfin-adjoint.org/download/index.html
 .. _Uptide: https://github.com/stephankramer/uptide
 .. _UTM: https://pypi.python.org/pypi/utm
 .. _Download OpenTidalFarm: https://github.com/funsim/OpenTidalFarm/zipball/master
 .. _Issue tracker: https://github.com/OpenTidalFarm/OpenTidalFarm/issues
+.. _SciPy: http://www.scipy.org
+.. _pyyaml: http://pyyaml.org
+
+Automatic installation using hashdist (experimental)
+****************************************************
+
+Following command will install OpenTidalFarm and all its dependencies into a isolated environment on your computer.
+
+.. code-block:: bash
+
+   curl -s https://bitbucket.org/simon_funke/fenics-developer-tools/raw/master/opentidalfarm-install.sh | bash
+
+Select the option "[1] latest stable version of FEniCS" during the installation.
+
+Once finished, you can test the installation with:
+
+.. code-block:: bash
+
+    python -c "import opentidalfarm"
+
+If no errors occur, your installation was succesfull.
+
+If you have any problems with the installation, please use our `Issue tracker`_.
