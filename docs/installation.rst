@@ -34,24 +34,24 @@ For the manual installation of OpenTidalFarm, you first need to install its depe
 
 - `FEniCS`_ (Follow the Ubuntu PPA installation)
 - `dolfin-adjoint`_ (Follow the Ubuntu PPA installation)
-- `SciPy >=0.11`_ 
+- `SciPy >=0.11`_
 
-   ``pip install scipy``
+   ``pip install --user scipy``
 
 - `Uptide`_
 
-   ``pip install git+git://github.com/stephankramer/uptide.git``
+   ``pip install --user git+git://github.com/stephankramer/uptide.git``
 
-- `UTM`_ 
+- `UTM`_
 
-   ``pip install utm``
+   ``pip install --user utm``
 
 
 Finally, you can install OpenTidalFarm with this command:
 
 .. code-block:: bash
 
-   pip install git+git://github.com/OpenTidalFarm/OpenTidalFarm.git
+   pip install --user git+git://github.com/OpenTidalFarm/OpenTidalFarm.git
 
 Once finished, you can test the installation with:
 
