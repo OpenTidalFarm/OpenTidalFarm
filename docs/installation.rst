@@ -31,11 +31,11 @@ Then you need to install these OpenTidalFarm dependencies:
    ``pip install --user utm``
 
 
-Finally, you can install OpenTidalFarm with this command:
+Finally, you can install the most recent version of OpenTidalFarm with:
 
 .. code-block:: bash
 
-   pip install --user git+git://github.com/OpenTidalFarm/OpenTidalFarm.git
+   pip install --user https://github.com/OpenTidalFarm/OpenTidalFarm/archive/master.zip
 
 Once finished, you can test the installation with:
 
@@ -86,3 +86,24 @@ Once finished, you can test the installation with:
 If no errors occur, your installation was succesfull.
 
 If you have any problems with the installation, please use our `Issue tracker`_.
+
+Older versions
+**************
+
+Version 1.5
+
+.. code-block:: bash
+
+   pip install --user https://github.com/OpenTidalFarm/OpenTidalFarm/archive/opentidalfarm-1.5.zip
+
+Version 1.4
+
+.. code-block:: bash
+
+   pip install --user https://github.com/OpenTidalFarm/OpenTidalFarm/archive/opentidalfarm-1.4.zip
+
+Version 0.9.1
+
+.. code-block:: bash
+
+   pip install --user https://github.com/OpenTidalFarm/OpenTidalFarm/archive/opentidalfarm-0.9.1.zip
