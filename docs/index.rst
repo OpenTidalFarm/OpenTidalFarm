@@ -48,6 +48,10 @@ Following presentation gives a quick introduction to OpenTidalFarm:
           <img src="_static/slider_media/smooth_turbine.png" />
           <p class="flex-caption">Multi-farm tidal optimisation</p>
         </li>
+        <li>
+          <img src="_static/slider_media/otf_graphic.png" />
+          <p class="flex-caption">The dynamical core of OpenTidalFarm. It implements a shallow water solver, an adjoint solver, and an optimisation loop.</p>
+        </li>
       </ul>
     </div>
 
