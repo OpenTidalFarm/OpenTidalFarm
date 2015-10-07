@@ -94,3 +94,7 @@ Poster presentation:
   `doi:10.6084/m9.figshare.1219384 <http://dx.doi.org/10.6084/m9.figshare.1219384>`__.
   [`PDF <http://files.figshare.com/1771609/poster_submitted_reduced_size.pdf>`__].
 
+* **T Schwedes (2015)**.
+  *Mesh dependence in PDE-constrained optimisation problems  with an application in tidal turbine array layouts*,
+  master presentation.
+  [`PDF <_static/schwedes_mres.pdf>`__].
