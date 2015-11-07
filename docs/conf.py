@@ -157,12 +157,12 @@ html_theme = 'alabaster'
 #html_theme_options = {}
 #html_theme_options['script_files'] = "flexslider/jquery.flexslider-min.js"
 #html_theme_options['css_files'] = "_static/flexslider/flexslider.css"
-html_context = {"script_files": [#"_static/jquery.min.js",
-                                 "_static/flexslider/jquery.flexslider-min.js",
-                                 ],
-                "css_files": ["_static/flexslider/flexslider.css"]
-                }
-
+#html_context = {"script_files": ["_static/jquery.min.js",
+#                                 "_static/flexslider/jquery.flexslider-min.js",
+#                                 ],
+#                "css_files": ["_static/flexslider/flexslider.css"]
+#                }
+#
 # Add any paths that contain custom themes here, relative to this directory.
 #html_theme_path = ['_themes']
 
