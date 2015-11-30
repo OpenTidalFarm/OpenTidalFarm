@@ -10,7 +10,7 @@ from math import pi
 
 class TestTurbineCorrection(object):
 
-    def test_gradient_passes_taylor_test(self, steady_sw_problem_parameters):
+    def test_turbine_correction(self, steady_sw_problem_parameters):
         parameters["form_compiler"]["quadrature_degree"] = 4
         prob_params=steady_sw_problem_parameters
 
