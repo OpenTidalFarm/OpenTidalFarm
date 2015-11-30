@@ -74,7 +74,7 @@ class CoupledSWSolverParameters(FrozenClass):
 
     def __init__(self):
 
-        linear_solver = 'mumps' if ('mumps' in map(lambda x: x[0], linear_solver_methods())) else 'default'
+        linear_solver = 'mumps' if 'mumps' in linear_solver_methods() else 'default'
         preconditioner = 'default'
 
         self.dolfin_solver["newton_solver"]["linear_solver"] = linear_solver
