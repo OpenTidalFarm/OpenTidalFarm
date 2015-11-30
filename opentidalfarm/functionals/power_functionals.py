@@ -119,32 +119,3 @@ class PowerFunctional(PrototypeFunctional):
                     self._cut_out_speed**2, speed_sq)
 
         return speed_sq
-
-class PowerCurveFunctional(PrototypeFunctional):
-#    ''' Implements a functional for the power with a given power curve
-#    :math:`J(u, m) = \int_\Omega P(u)`
-#    where m controls the strength of each turbine.
-    """ TODO: doesn't work yet...
-    """
-    def __init__(self, farm):
-        ''' Constructs a new DefaultFunctional. The turbine settings are
-        derived from the settings params. '''
-        farm.update()
-        self.farm = farm
-        # Create a copy of the parameters so that future changes will not
-        # affect the definition of this object.
-        self.params = dict(farm.params)
-        assert(self.params["turbine_thrust_parametrisation"] or \
-               self.params["implicit_turbine_thrust_parametrisation"])
-
-    def Jt(self, state, tf):
-        up_u = state[3]  # Extract the upstream velocity
-        #ux = state[0]
-        def power_function(u):
-            # A simple power function implementation.
-            # Could be replaced with a polynomial approximation.
-            fac = Constant(1.5e6 / (3 ** 3))
-            return smooth_uflmin(1.5e6, fac * u ** 3)
-
-        P = power_function(up_u)*tf/self.farm.turbine_specification.integral*dx
-        return P
