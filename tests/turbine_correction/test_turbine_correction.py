@@ -8,7 +8,7 @@ import os.path
 from math import pi
 
 
-class TestSmearedTurbine(object):
+class TestTurbineCorrection(object):
 
     def test_gradient_passes_taylor_test(self, steady_sw_problem_parameters):
         parameters["form_compiler"]["quadrature_degree"] = 4
@@ -64,7 +64,6 @@ class TestSmearedTurbine(object):
         problem = SteadySWProblem(prob_params)
 
         solver_params = CoupledSWSolver.default_parameters()
-        #solver_params.dump_period = -1
         solver_params.dolfin_solver["newton_solver"]["relative_tolerance"] = 1e-7
         solver = CoupledSWSolver(problem, solver_params)
 
@@ -74,7 +73,6 @@ class TestSmearedTurbine(object):
         tf = s['tf']
         u = s['u']
         scaling = farm.turbine_specification.turbine_parametrisation_constant
-        #C_t = farm.turbine_specification.compute_C_t(dot(u, u)**0.5)
         F_applied = assemble(tf*scaling*C_t*dot(u,u)*dx)
         F_desired = 0.5*0.6*pi*100.*9
         print "F_applied, F_desired: ", F_applied, F_desired
