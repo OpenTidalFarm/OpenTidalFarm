@@ -20,7 +20,7 @@ class RectangularDomain(Domain):
     def __init__(self, x0, y0, x1, y1, nx, ny):
         #: A :class:`dolfin.Mesh` containing the mesh.
         mpi_comm = dolfin.mpi_comm_world()
-        self.mesh = dolfin.RectangleMesh(mpi_comm, dolfin.Point(x0, x0),
+        self.mesh = dolfin.RectangleMesh(mpi_comm, dolfin.Point(x0, y0),
                 dolfin.Point(x1, y1), nx, ny)
 
         class Left(dolfin.SubDomain):
