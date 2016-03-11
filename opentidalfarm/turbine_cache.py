@@ -75,7 +75,7 @@ class TurbineCache(dict):
             # FIXME: This if statement is only required to handle the case where
             # self._parameters["friction"] is not initialised yet.
             if len(self._parameters["friction"]) > 0:
-                reduced_functional_numpy.set_local(tf, self._parameters["friction"])
+                tf.vector()[:] = self._parameters["friction"]
             self["turbine_field"] = tf
             return
 
