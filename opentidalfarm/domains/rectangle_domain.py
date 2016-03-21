@@ -48,10 +48,10 @@ class RectangularDomain(Domain):
         right.mark(self.facet_ids, 2)
         sides.mark(self.facet_ids, 3)
         #: A :class:`dolfin.Measure` for the facet parts.
-        self._ds = dolfin.Measure('ds')[self.facet_ids]
+        self._ds = dolfin.Measure('ds')(subdomain_data=self.facet_ids)
 
         #: A :class:`dolfin.CellFunction` containing the area markers.
         self.cell_ids = dolfin.CellFunction("size_t", self.mesh)
         self.cell_ids.set_all(0)
         #: A :class:`dolfin.Measure` for the cell cell_ids.
-        self._dx = dolfin.Measure("dx")[self.cell_ids]
+        self._dx = dolfin.Measure("dx")(subdomain_data=self.cell_ids)

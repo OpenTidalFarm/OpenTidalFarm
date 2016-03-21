@@ -34,9 +34,9 @@ class FileDomain(Domain):
         #: A :class:`dolfin.FacetFunction` containing the surface markers.
         self.facet_ids = dolfin.MeshFunction("size_t", self.mesh, facet_ids_file)
         #: A :class:`dolfin.Measure` for the facet parts.
-        self._ds = dolfin.Measure('ds')[self.facet_ids]
+        self._ds = dolfin.Measure('ds')(subdomain_data=self.facet_ids)
 
         #: A :class:`dolfin.CellFunction` containing the area markers.
         self.cell_ids = dolfin.MeshFunction("size_t", self.mesh, cell_ids_file)
         #: A :class:`dolfin.Measure` for the cell subdomains.
-        self._dx = dolfin.Measure("dx")[self.cell_ids]
+        self._dx = dolfin.Measure("dx")(subdomain_data=self.cell_ids)
