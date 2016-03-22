@@ -55,7 +55,7 @@ class TestDynamicTurbineControl(object):
             ("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0"),
             eta0=eta0, g=problem_params.g,
             depth=problem_params.depth,
-            t=problem_params.start_time, k=k)
+            t=problem_params.start_time, k=k, degree=2)
 
         bcs.add_bc("u", expression, 1, "weak_dirichlet")
         bcs.add_bc("u", expression, 2, "weak_dirichlet")
