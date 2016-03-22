@@ -5,7 +5,6 @@ import pytest
 
 class TestDynamicTurbineControl(object):
 
-    @pytest.mark.xfail
     def test_gradient_passes_taylor_test(self, sw_nonlinear_problem_parameters):
         problem_params = sw_nonlinear_problem_parameters
         # Load domain
@@ -14,7 +13,7 @@ class TestDynamicTurbineControl(object):
         domain = FileDomain(meshfile)
 
         # Create a turbine
-        turbine = BumpTurbine(diameter=50., friction=1.0,
+        turbine = BumpTurbine(diameter=40., friction=1.0,
                               controls=Controls(dynamic_friction=True))
 
         # Adjust some global options
@@ -36,7 +35,7 @@ class TestDynamicTurbineControl(object):
                                site_y_end=site_y_start+site_y,
                                turbine=turbine)
 
-        farm.add_regular_turbine_layout(num_x=2, num_y=2)
+        farm.add_regular_turbine_layout(num_x=2, num_y=3)
 
         # Set problem parameters
         problem_params.finish_time = problem_params.start_time + \

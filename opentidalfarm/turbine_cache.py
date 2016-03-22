@@ -87,31 +87,25 @@ class TurbineCache(dict):
         # If the turbine friction is controlled dynamically, we need to cache
         # the turbine field for every timestep.
         if self._controlled_by.dynamic_friction:
-            self["turbine_field"] = []
-            for t in xrange(len(self._parameters["friction"])):
-                tf = turbines(name="turbine_friction_cache_t_"+str(t),
-                              timestep=t)
-                self["turbine_field"].append(tf)
+            self["turbine_field"] = [
+                turbines(name="turbine_friction_cache_t_"+str(t),
+                timestep=t) for t in xrange(len(self._parameters["friction"]))
+                ]
         else:
-            tf = turbines(name="turbine_friction_cache")
-            self["turbine_field"] = tf
+            self["turbine_field"] = turbines(name="turbine_friction_cache")
 
         # Precompute the interpolation of the friction function for each turbine.
         log(INFO, "Building individual turbine power friction functions "
                   "for caching purposes...")
-        self["turbine_field_individual"] = []
-        # Create a copy of the parameters
-        original_parameters = copy.deepcopy(self._parameters)
-        for i in xrange(len(self._parameters["friction"])):
-            self._parameters = original_parameters
-            position_cpy = [self._parameters["position"][i]]
-            friction_cpy = [self._parameters["friction"][i]]
-            self._parameters = {'friction': friction_cpy, 'position': position_cpy}
-            turbine = TurbineFunction(self, self._function_space,
-                                      self._specification)
-            tf = turbine()
-            self["turbine_field_individual"].append(tf)
-        self._parameters = original_parameters
+        if self._controlled_by.dynamic_friction:
+            self["turbine_field_individual"] = [
+                    TurbineFunction(self, self._function_space,
+                        self._specification)(timestep=i)
+                    for i in xrange(len(self._parameters["friction"]))]
+        else:
+            self["turbine_field_individual"] = [
+                    TurbineFunction(self, self._function_space,
+                        self._specification)()]
 
         # Precompute the derivatives with respect to the friction magnitude
         # of each turbine.
