@@ -82,7 +82,7 @@ class TestTurbineDerivatives(object):
         problem_params.domain = domain
         problem_params.initial_condition = sin_ic(eta0, k,
                                              problem_params.depth,
-                                             problem_params.start_time)
+                                             problem_params.start_time, degree=2)
         problem_params.tidal_farm = farm
         problem = SWProblem(problem_params)
 

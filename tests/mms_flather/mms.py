@@ -21,7 +21,8 @@ def compute_error(problem_params, eta0, k):
                         depth=problem_params.depth,
                         t=Constant(problem_params.start_time),
                         k=k,
-                        friction=problem_params.friction)
+                        friction=problem_params.friction,
+                        degree=2)
 
     problem_params.f_u = source
     problem = SWProblem(problem_params)
@@ -39,8 +40,9 @@ def compute_error(problem_params, eta0, k):
                               eta0=eta0, g=problem.parameters.g,
                               depth=problem.parameters.depth,
                               t=Constant(problem.parameters.finish_time),
-                              k=k)
-    return errornorm(analytic_sol, state)
+                              k=k,
+                              degree=2)
+    return errornorm(analytic_sol, state, degree_rise=2)
 
 
 def setup_model(parameters, sin_ic, time_step, finish_time, mesh_x, mesh_y=2):
@@ -76,7 +78,8 @@ def setup_model(parameters, sin_ic, time_step, finish_time, mesh_x, mesh_y=2):
                                                   mesh_y)
 
     # Initial condition
-    ic_expr = sin_ic(eta0, k, parameters.depth, parameters.start_time)
+    ic_expr = sin_ic(eta0=eta0, k=k, depth=parameters.depth,
+            start_time=parameters.start_time, degree=2)
     parameters.initial_condition = ic_expr
 
     # Set the analytical boundary conditions
@@ -86,7 +89,8 @@ def setup_model(parameters, sin_ic, time_step, finish_time, mesh_x, mesh_y=2):
         g=parameters.g,
         depth=parameters.depth,
         t=Constant(parameters.start_time),
-        k=k)
+        k=k,
+        degree=2)
 
     bcs = BoundaryConditionSet()
     bcs.add_bc("u", flather_expr, facet_id=[1, 2], bctype="flather")

@@ -22,7 +22,7 @@ class TestFlatherBoundaryConditionsWithViscosity(object):
                             eta0=eta0, g=problem_params.g,
                             depth=problem_params.depth,
                             t=problem_params.start_time,
-                            k=k, viscosity=problem_params.viscosity)
+                            k=k, viscosity=problem_params.viscosity, degree=2)
         problem_params.f_u = source
         problem = SWProblem(problem_params)
 
@@ -40,7 +40,7 @@ class TestFlatherBoundaryConditionsWithViscosity(object):
                                   eta0=eta0, g=problem.parameters.g,
                                   depth=problem.parameters.depth,
                                   t=problem.parameters.finish_time,
-                                  k=k)
+                                  k=k, degree=2)
         return errornorm(analytic_sol, state)
 
 
@@ -67,7 +67,7 @@ class TestFlatherBoundaryConditionsWithViscosity(object):
             g=linear_problem_params.g,
             depth=linear_problem_params.depth,
             t=linear_problem_params.start_time,
-            k=k
+            k=k, degree=2
         )
         bcs.add_bc("u", bc_expr, [1, 2], "flater")
         bcs.add_bc("u", facet_id=3, bctype="free_slip")
@@ -75,7 +75,7 @@ class TestFlatherBoundaryConditionsWithViscosity(object):
         # Initial condition
         ic_expr = sin_ic(eta0, k,
                          linear_problem_params.depth,
-                         linear_problem_params.start_time)
+                         linear_problem_params.start_time, degree=2)
         linear_problem_params.initial_condition = ic_expr
 
         return self.error(linear_problem_params, eta0, k)

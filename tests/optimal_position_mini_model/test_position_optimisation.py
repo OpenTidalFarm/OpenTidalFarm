@@ -43,7 +43,7 @@ def BumpInitialCondition(x0, y0, x1, y1):
         def value_shape(self):
             return (3,)
 
-    return BumpExpr()
+    return BumpExpr(degree=2)
 
 class TestPositionOptimisation(object):
     def default_problem(self):

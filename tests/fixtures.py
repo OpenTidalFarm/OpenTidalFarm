@@ -5,7 +5,7 @@ from opentidalfarm import *
 def sin_ic():
     class SinusoidalExpr(Expression):
         '''An Expression class for a sinusoidal initial condition.'''
-        def __init__(self, eta0, k, depth, start_time):
+        def __init__(self, eta0, k, depth, start_time, degree):
             self.eta0 = eta0
             self.k = k
             self.depth = depth

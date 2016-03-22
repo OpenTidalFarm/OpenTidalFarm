@@ -39,7 +39,7 @@ class TestFrictionOptimisation(object):
       problem_params.tidal_farm = farm
 
       k = pi/3000.
-      problem_params.initial_condition = sin_ic(2.0, k, 50., 0.0)
+      problem_params.initial_condition = sin_ic(2.0, k, 50., 0.0, degree=2)
       problem_params.domain = domain
       problem_params.finite_element = finite_elements.p1dgp2
       problem = DummyProblem(problem_params)

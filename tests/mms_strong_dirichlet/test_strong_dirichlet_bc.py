@@ -24,8 +24,8 @@ class TestStringDirichletBoundaryConditions(object):
              "eta0*cos(k*x[0]-sqrt(g*depth)*k*t)"), \
              eta0=eta0, g=problem.parameters.g, \
              depth=problem.parameters.depth, \
-             t=float(problem.parameters.finish_time), k=k)
-      return errornorm(analytic_sol, state)
+             t=float(problem.parameters.finish_time), k=k, degree=2)
+      return errornorm(analytic_sol, state, degree_rise=2)
 
     def compute_spatial_error(self, problem_params, refinement_level, sin_ic):
         nx = 2 * 2**refinement_level
@@ -43,12 +43,12 @@ class TestStringDirichletBoundaryConditions(object):
 
         # Boundary conditions
         bcs = BoundaryConditionSet()
-        bc_expr = Expression(("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0"), 
-                                eta0=eta0, 
-                                g=problem_params.g, 
-                                depth=problem_params.depth, 
-                                t=problem_params.start_time, 
-                                k=k)
+        bc_expr = Expression(("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0"),
+                                eta0=eta0,
+                                g=problem_params.g,
+                                depth=problem_params.depth,
+                                t=problem_params.start_time,
+                                k=k, degree=2)
 
         bcs.add_bc("u", bc_expr, 1)
         bcs.add_bc("u", bc_expr, 2)
@@ -56,9 +56,9 @@ class TestStringDirichletBoundaryConditions(object):
         problem_params.bcs = bcs
 
         # Initial condition
-        ic_expr = sin_ic(eta0, k, 
+        ic_expr = sin_ic(eta0, k,
                          problem_params.depth,
-                         problem_params.start_time)
+                         problem_params.start_time, degree=2)
         problem_params.initial_condition = ic_expr
 
         problem = SWProblem(problem_params)
@@ -74,21 +74,21 @@ class TestStringDirichletBoundaryConditions(object):
         domain = RectangularDomain(0, 0, 3000, 1000, nx, ny)
         problem_params.domain = domain
 
-        problem_params.finish_time = 2 * pi / (sqrt(problem_params.g * 
+        problem_params.finish_time = 2 * pi / (sqrt(problem_params.g *
             problem_params.depth) * k)
-        problem_params.dt = Constant(problem_params.finish_time / 
+        problem_params.dt = Constant(problem_params.finish_time /
                 (4 * 2**refinement_level))
         problem_params.theta = 0.5
 
         # Boundary conditions
         bcs = BoundaryConditionSet()
         bc_expr = Expression(
-            ("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0"), 
-            eta0=eta0, 
-            g=problem_params.g, 
-            depth=problem_params.depth, 
-            t=problem_params.start_time, 
-            k=k)
+            ("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0"),
+            eta0=eta0,
+            g=problem_params.g,
+            depth=problem_params.depth,
+            t=problem_params.start_time,
+            k=k, degree=2)
 
         bcs.add_bc("u", bc_expr, 1, "strong_dirichlet")
         bcs.add_bc("u", bc_expr, 2, "strong_dirichlet")
@@ -96,27 +96,27 @@ class TestStringDirichletBoundaryConditions(object):
         problem_params.bcs = bcs
 
         # Initial condition
-        ic_expr = sin_ic(eta0, k, 
+        ic_expr = sin_ic(eta0, k,
                          problem_params.depth,
-                         problem_params.start_time)
+                         problem_params.start_time, degree=2)
         problem_params.initial_condition = ic_expr
 
         problem = SWProblem(problem_params)
 
         return self.error(problem, eta0, k)
 
-    
+
     def test_spatial_convergence_is_two(self, sw_linear_problem_parameters,
             sin_ic):
         errors = []
         tests = 4
         for refinement_level in range(tests):
-            error = self.compute_spatial_error(sw_linear_problem_parameters, 
+            error = self.compute_spatial_error(sw_linear_problem_parameters,
                                                refinement_level, sin_ic)
             errors.append(error)
 
-        # Compute the order of convergence 
-        conv = [] 
+        # Compute the order of convergence
+        conv = []
         for i in range(len(errors)-1):
           conv.append(-math.log(errors[i+1] / errors[i], 2))
 
@@ -129,11 +129,11 @@ class TestStringDirichletBoundaryConditions(object):
         errors = []
         tests = 4
         for refinement_level in range(tests):
-          error = self.compute_temporal_error(sw_linear_problem_parameters, 
+          error = self.compute_temporal_error(sw_linear_problem_parameters,
                                                refinement_level, sin_ic)
           errors.append(error)
-        # Compute the order of convergence 
-        conv = [] 
+        # Compute the order of convergence
+        conv = []
         for i in range(len(errors)-1):
           conv.append(-math.log(errors[i+1] / errors[i], 2))
 

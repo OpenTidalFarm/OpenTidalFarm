@@ -45,7 +45,7 @@ def model(controls, problem_params, sin_ic):
         g=problem_params.g,
         depth=problem_params.depth,
         t=problem_params.start_time,
-        k=k)
+        k=k, degree=2)
     bcs = BoundaryConditionSet()
     bcs.add_bc("u", expression, 1, "strong_dirichlet")
     bcs.add_bc("u", expression, 2, "strong_dirichlet")
@@ -54,7 +54,7 @@ def model(controls, problem_params, sin_ic):
 
     # Initial condition
     problem_params.initial_condition = sin_ic(eta0,
-            k, problem_params.depth, problem_params.start_time)
+            k, problem_params.depth, problem_params.start_time, degree=2)
 
     # Physical parameters
     problem_params.friction = 0.0025

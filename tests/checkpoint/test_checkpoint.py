@@ -34,7 +34,8 @@ class TestCheckpoint(object):
         problem_params = DummyProblem.default_parameters()
         problem_params.domain = domain
         problem_params.finite_element = finite_elements.p1dgp2
-        problem_params.initial_condition = ic(2.0, pi/3000., 50, start_time=0.0)
+        problem_params.initial_condition = ic(2.0, pi/3000., 50, start_time=0.0,
+                degree=2)
         problem_params.dt = 1.0  # dt is used in the functional only,
                                  # so we set it here to 1.0
         problem_params.functional_final_time_only = True

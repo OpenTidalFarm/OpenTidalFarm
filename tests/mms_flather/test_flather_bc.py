@@ -19,7 +19,7 @@ class TestFlatherBoundaryConditions(object):
             mesh_y = 2
             time_step = 0.25
 
-            model = setup_model(sw_linear_problem_parameters, sin_ic, time_step, 
+            model = setup_model(sw_linear_problem_parameters, sin_ic, time_step,
                                 finish_time, mesh_x, mesh_y)
             error = compute_error(*model)
             errors.append(error)
@@ -48,13 +48,13 @@ class TestFlatherBoundaryConditions(object):
             mesh_x = 2**4
             time_step = finish_time/(2*2**l)
 
-            model = setup_model(sw_linear_problem_parameters, sin_ic, time_step, 
+            model = setup_model(sw_linear_problem_parameters, sin_ic, time_step,
                                 finish_time, mesh_x)
             error = compute_error(*model)
             errors.append(error)
 
-        # Compute the orders of convergence 
-        conv = [] 
+        # Compute the orders of convergence
+        conv = []
         for i in range(len(errors)-1):
             convergence_order = -math.log(errors[i+1]/errors[i], 2)
             conv.append(convergence_order)

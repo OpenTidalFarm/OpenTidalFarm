@@ -73,7 +73,7 @@ class TestConfigurations(object):
                          g=problem_params.g,
                          depth=problem_params.depth,
                          t=problem_params.start_time,
-                         k=pi / 3000)
+                         k=pi / 3000, degree=2)
         bcs.add_bc("u", flather_bc_expr, [1, 2], "flather")
         bcs.add_bc("u", facet_id=3, bctype="free_slip")
         problem_params.bcs = bcs

@@ -44,7 +44,7 @@ class TestSmearedTurbine(object):
             g=prob_params.g,
             depth=prob_params.depth,
             t=prob_params.start_time,
-            k=k
+            k=k, degree=2
         )
         bcs.add_bc("u", bc_expr, [1, 2], "flather")
         bcs.add_bc("u", facet_id=3, bctype="free_slip")

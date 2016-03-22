@@ -21,11 +21,11 @@ class TestWeakDirichletBoundaryConditions(object):
         state = sol["state"]
 
         solution.t = problem.parameters.finish_time
-        return errornorm(solution, state)
+        return errornorm(solution, state, degree_rise=2)
 
 
     def compute_spatial_error(self, problem_params, refinement_level):
-        nx = 2 * 2**refinement_level
+        nx = 2**refinement_level
         ny = 5
 
         # Set domain
@@ -57,7 +57,7 @@ class TestWeakDirichletBoundaryConditions(object):
             (u_str, "0", eta_str),
             eta0=eta0, g=problem_params.g,
             depth=problem_params.depth,
-            t=problem_params.start_time, k=k)
+            t=problem_params.start_time, k=k, degree=8)
         problem_params.friction = 0.0
         u_source = Expression(
                 ('{u}*{dudx}+friction*pow({u},2)/depth-viscosity*{dudx2}'.format(u=u_str, dudx=dudx_str, dudx2=dudx2_str),"0"),
@@ -66,7 +66,7 @@ class TestWeakDirichletBoundaryConditions(object):
             depth=problem_params.depth,
             t=problem_params.start_time, k=k,
             friction=problem_params.friction,
-            viscosity=problem_params.viscosity)
+            viscosity=problem_params.viscosity, degree=8)
         problem_params.f_u = u_source
 
         problem_params.initial_condition = solution
@@ -79,7 +79,7 @@ class TestWeakDirichletBoundaryConditions(object):
             g=problem_params.g,
             depth=problem_params.depth,
             t=problem_params.start_time,
-            k=k)
+            k=k, degree=4)
         bcs.add_bc("u", bc_expr, 1, "weak_dirichlet")
         bcs.add_bc("u", bc_expr, 2, "weak_dirichlet")
         bcs.add_bc("u", facet_id=3, bctype="free_slip")
@@ -116,7 +116,7 @@ class TestWeakDirichletBoundaryConditions(object):
             (u_str, "0", eta_str),
             eta0=eta0, g=problem_params.g,
             depth=problem_params.depth,
-            t=problem_params.start_time, k=k)
+            t=problem_params.start_time, k=k, degree=4)
 
         problem_params.initial_condition = solution
 
@@ -128,7 +128,7 @@ class TestWeakDirichletBoundaryConditions(object):
             g=problem_params.g,
             depth=problem_params.depth,
             t=problem_params.start_time,
-            k=k)
+            k=k, degree=4)
         bcs.add_bc("u", bc_expr, 1, "weak_dirichlet")
         bcs.add_bc("u", bc_expr, 2, "weak_dirichlet")
         bcs.add_bc("u", facet_id=3, bctype="free_slip")
@@ -152,7 +152,7 @@ class TestWeakDirichletBoundaryConditions(object):
 
         log(INFO, "Spatial Taylor remainders are : %s" % str(errors))
         log(INFO, "Spatial order of convergence (expecting 1.0): %s" % str(conv))
-        assert min(conv) > 1.0
+        assert min(conv) > 0.99
 
     def test_temporal_convergence_is_two(self, sw_linear_problem_parameters):
         errors = []
@@ -168,4 +168,4 @@ class TestWeakDirichletBoundaryConditions(object):
 
         log(INFO, "Temporal Taylor remainders are : %s" % str(errors))
         log(INFO, "Temporal order of convergence (expecting 2.0): %s" % str(conv))
-        assert min(conv) > 1.8
+        assert min(conv) > 1.9
