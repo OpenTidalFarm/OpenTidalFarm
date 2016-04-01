@@ -156,7 +156,8 @@ control = Control(prob_params.viscosity)
 rf = FenicsReducedFunctional(functional, control, solver)
 j = rf.evaluate()
 dj = rf.derivative(project=True)
-plot(dj, interactive=True, title="Sensitivity with respect to viscosity")
+plot(dj, title="Sensitivity with respect to viscosity")
+interactive()
 
 #
 # .. image:: sens_visc.png

@@ -239,7 +239,7 @@ sol_h5.close()
 # Save optimal friction as xdmf
 optimal_turbine_friction_file = XDMFFile(mpi_comm_world(),
      sol_params.output_dir+"/optimal_turbine_friction.xdmf")
-optimal_turbine_friction_file << farm.friction_function
+optimal_turbine_friction_file.write(farm.friction_function)
 
 # Compute the total turbine friction
 total_friction = assemble(farm.friction_function*farm.site_dx(1))

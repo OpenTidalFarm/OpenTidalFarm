@@ -5,7 +5,7 @@ from functionals import TimeIntegrator, PrototypeFunctional
 
 __all__ = ["FenicsReducedFunctional"]
 
-class FenicsReducedFunctional(object):
+class FenicsReducedFunctional(ReducedFunctional):
     """
     Following parameters are expected:
 
@@ -22,7 +22,7 @@ class FenicsReducedFunctional(object):
         if not isinstance(solver, Solver):
             raise ValueError, "solver argument of wrong type."
 
-        self.functional = functional
+        self._functional = functional
         if not isinstance(functional, PrototypeFunctional):
             raise ValueError, "invalid functional argument."
 
@@ -33,6 +33,20 @@ class FenicsReducedFunctional(object):
 
         # Controls
         self.controls = enlisting.enlist(controls)
+
+        # Conform to dolfin-adjoint API
+        self.scale = 1
+        self.eval_cb_pre = lambda *args: None
+        self.eval_cb_post = lambda *args: None
+        self.derivative_cb_pre = lambda *args: None
+        self.derivative_cb_post = lambda *args: None
+        self.replay_cb = lambda *args: None
+        self.hessian_cb = lambda *args: None
+        self.cache = None
+        self.current_func_value = None
+        self.hessian = None
+        self.functional = Functional(None)
+
 
     def evaluate(self, annotate=True):
         """ Return the functional value for the given control values. """
@@ -51,7 +65,7 @@ class FenicsReducedFunctional(object):
         final_only = (not self.solver.problem._is_transient or
                       self._problem_params.functional_final_time_only)
         self.time_integrator = TimeIntegrator(self.solver.problem,
-                                              self.functional, final_only)
+                                              self._functional, final_only)
 
         for sol in self.solver.solve(annotate=annotate):
             self.time_integrator.add(sol["time"], sol["state"], sol["tf"],
@@ -66,6 +80,11 @@ class FenicsReducedFunctional(object):
 
         return j
 
+
+    def __call__(self, *args, **kwargs):
+        return self.evaluate(*args, **kwargs)
+
+
     def derivative(self, forget=False, **kwargs):
         """ Computes the first derivative of the functional with respect to its
         controls by solving the adjoint equations. """
@@ -73,7 +92,7 @@ class FenicsReducedFunctional(object):
         log(INFO, 'Start evaluation of dj')
         timer = dolfin.Timer("dj evaluation")
 
-        J = self.time_integrator.dolfin_adjoint_functional()
+        J = self.time_integrator.dolfin_adjoint_functional(self.solver.state)
         dj = compute_gradient(J, self.controls, forget=forget, **kwargs)
         dolfin.parameters["adjoint"]["stop_annotating"] = False
 
