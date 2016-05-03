@@ -49,7 +49,7 @@ class FenicsReducedFunctional(ReducedFunctional):
 
 
     def evaluate(self, annotate=True):
-        """ Return the functional value for the given control values. """
+        """ Computes the functional value by running the forward model. """
 
         log(INFO, 'Start evaluation of j')
         timer = dolfin.Timer("j evaluation")
@@ -81,8 +81,25 @@ class FenicsReducedFunctional(ReducedFunctional):
         return j
 
 
-    def __call__(self, *args, **kwargs):
-        return self.evaluate(*args, **kwargs)
+    def __call__(self, value):
+        """ Evaluates the reduced functional for the given control value.
+
+        Args:
+            value: The point in control space where to perform the Taylor test. Must be of the same type as the Control (e.g. Function, Constant or lists of latter).
+
+        Returns:
+            float: The functional value.
+        """
+
+        # Update the control values.
+        # Note that we do not update the control values on the tape,
+        # because OpenTidalFarm reannotates the tape in each iteartion.
+	for c, v in zip(self.controls, value):
+            vec = c.coeff.vector()
+            vec.zero()
+            vec.axpy(1, v.vector())
+
+        return self.evaluate()
 
 
     def derivative(self, forget=False, **kwargs):

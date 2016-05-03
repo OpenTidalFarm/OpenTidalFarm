@@ -71,6 +71,8 @@ class TurbineCache(dict):
 
         # For the smeared approached we just update the turbine_field.
         if self._specification.smeared:
+            if hasattr(self, "turbine_field"):
+                return
             tf = Function(self._function_space, name="turbine_friction_cache")
             # FIXME: This if statement is only required to handle the case where
             # self._parameters["friction"] is not initialised yet.
