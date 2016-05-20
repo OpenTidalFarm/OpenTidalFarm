@@ -1,5 +1,5 @@
-FIREDRAKE OPENTIDAL FARM
-========================
+FIREDRAKE OPENTIDALFARM
+=======================
 
 This branch is for the firedrake-porting of opentidalfarm
 

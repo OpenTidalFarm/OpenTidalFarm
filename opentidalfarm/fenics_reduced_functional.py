@@ -1,5 +1,5 @@
-from dolfin import *
-from dolfin_adjoint import *
+from firedrake import *
+from firedrake_adjoint import *
 from solvers import Solver
 from functionals import TimeIntegrator, PrototypeFunctional
 
@@ -10,7 +10,7 @@ class FenicsReducedFunctional(ReducedFunctional):
     Following parameters are expected:
 
     :ivar functional: a :class:`PrototypeFunctional` class.
-    :ivar controls: a (optionally list of) :class:`dolfin_adjoint.DolfinAdjointControl` object.
+    :ivar controls: a (optionally list of) :class:`firedrake_adjoint.DolfinAdjointControl` object.
     :ivar solver: a :class:`Solver` object.
 
     This class has a parameter attribute for further adjustments.
@@ -34,7 +34,7 @@ class FenicsReducedFunctional(ReducedFunctional):
         # Controls
         self.controls = enlisting.enlist(controls)
 
-        # Conform to dolfin-adjoint API
+        # Conform to firedrake-adjoint API
         self.scale = 1
         self.eval_cb_pre = lambda *args: None
         self.eval_cb_post = lambda *args: None
@@ -52,13 +52,13 @@ class FenicsReducedFunctional(ReducedFunctional):
         """ Computes the functional value by running the forward model. """
 
         log(INFO, 'Start evaluation of j')
-        timer = dolfin.Timer("j evaluation")
+        timer = firedrake.Timer("j evaluation")
 
         farm = self.solver.problem.parameters.tidal_farm
 
-        # Configure dolfin-adjoint
+        # Configure firedrake-adjoint
         adj_reset()
-        dolfin.parameters["adjoint"]["record_all"] = True
+        firedrake.parameters["adjoint"]["record_all"] = True
 
         # Solve the shallow water system and integrate the functional of
         # interest.
@@ -107,11 +107,11 @@ class FenicsReducedFunctional(ReducedFunctional):
         controls by solving the adjoint equations. """
 
         log(INFO, 'Start evaluation of dj')
-        timer = dolfin.Timer("dj evaluation")
+        timer = firedrake.Timer("dj evaluation")
 
-        J = self.time_integrator.dolfin_adjoint_functional(self.solver.state)
+        J = self.time_integrator.firedrake_adjoint_functional(self.solver.state)
         dj = compute_gradient(J, self.controls, forget=forget, **kwargs)
-        dolfin.parameters["adjoint"]["stop_annotating"] = False
+        firedrake.parameters["adjoint"]["stop_annotating"] = False
 
         log(INFO, "Runtime: " + str(timer.stop()) + " s")
 

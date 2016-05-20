@@ -1,5 +1,5 @@
-from dolfin import *
-from dolfin_adjoint import *
+from firedrake import *
+from firedrake_adjoint import *
 from solver import Solver
 from ..problems import DummyProblem
 from ..helpers import FrozenClass

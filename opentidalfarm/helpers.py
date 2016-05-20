@@ -1,10 +1,10 @@
 import random
 import yaml
 import os.path
-import dolfin
+import firedrake
 import numpy
-from dolfin import *
-from dolfin_adjoint import *
+from firedrake import *
+from firedrake_adjoint import *
 
 
 def norm_approx(u, alpha=1e-4):
@@ -202,13 +202,13 @@ def cpu0only(f):
 
 
 def function_eval(func, point):
-    ''' A parallel safe evaluation of dolfin functions '''
+    ''' A parallel safe evaluation of firedrake functions '''
     try:
         val = func(point)
     except RuntimeError:
         val = -numpy.inf
 
-    if dolfin.__version__ >= '1.3.0+':
+    if firedrake.__version__ >= '1.3.0+':
         maxval = MPI.max(mpi_comm_world(), val)
     else:
         maxval = MPI.max(val)

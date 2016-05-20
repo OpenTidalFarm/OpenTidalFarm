@@ -1,4 +1,4 @@
-from dolfin_adjoint import ReducedFunctionalNumPy
+from firedrake_adjoint import ReducedFunctionalNumPy
 
 
 class ReducedFunctionalPrototype(ReducedFunctionalNumPy):
@@ -7,7 +7,7 @@ class ReducedFunctionalPrototype(ReducedFunctionalNumPy):
     This should be overloaded by implemented reduced functionals, this ensures
     that reduced functional objects for different solvers may be scaled and
     combined, and that the requisite methods are present in order to
-    interface with the dolfin-adjoint optimsation framework
+    interface with the firedrake-adjoint optimsation framework
 
     .. note::
 
@@ -19,7 +19,7 @@ class ReducedFunctionalPrototype(ReducedFunctionalNumPy):
         pass
 
     def __call__(self, m, **kwargs):
-        """ Interface function for dolfin_adjoint.ReducedFunctional, this
+        """ Interface function for firedrake_adjoint.ReducedFunctional, this
         method does not require overloading, it redirects to the \
         reduced_functional method to preserve naming consitency. It then \
         returns the functional value for the control choice
@@ -40,7 +40,7 @@ class ReducedFunctionalPrototype(ReducedFunctionalNumPy):
                 needs to be overloaded')
 
     def derivative(self, m, **kwargs):
-        """ Interface function for dolfin_adjoint.ReducedFunctional, this
+        """ Interface function for firedrake_adjoint.ReducedFunctional, this
         method should return the derivative of the functional value with
         respect to the control choice
 

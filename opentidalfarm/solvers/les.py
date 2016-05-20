@@ -1,6 +1,6 @@
 # Adapted from the Firedrake-Fluids project.
-from dolfin import *
-from dolfin_adjoint import *
+from firedrake import *
+from firedrake_adjoint import *
 
 class LES(object):
     r""" A solver for computing the eddy viscosity by solving:

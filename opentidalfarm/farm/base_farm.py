@@ -1,5 +1,5 @@
 import numpy
-import dolfin
+import firedrake
 from ..optimisation_helpers import MinimumDistanceConstraints
 from ..optimisation_helpers import MinimumDistanceConstraintsLargeArrays
 from ..turbine_cache import TurbineCache
@@ -114,7 +114,7 @@ class BaseFarm(object):
         self._parameters["position"].append(coordinates)
         self._parameters["friction"].append(turbine.friction)
 
-        dolfin.info("Turbine added at (%.2f, %.2f)." % (coordinates[0],
+        firedrake.info("Turbine added at (%.2f, %.2f)." % (coordinates[0],
                                                         coordinates[1]))
 
     def _staggered_turbine_layout(self, num_x, num_y, site_x_start, site_x_end,
@@ -174,7 +174,7 @@ class BaseFarm(object):
                 for i in range(len(ys)-1):
                     self.add_turbine((x, ys[i] + 0.5*(ys[i+1]-ys[i])))
 
-        dolfin.info("Added %i turbines to the site in an %ix%i rectangular "
+        firedrake.info("Added %i turbines to the site in an %ix%i rectangular "
                     "array." % (num_x*num_y, num_x, num_y))
 
     def _regular_turbine_layout(self, num_x, num_y, site_x_start, site_x_end,
@@ -229,7 +229,7 @@ class BaseFarm(object):
             for y in numpy.linspace(start_y, end_y, num_y):
                 self.add_turbine((x,y))
 
-        dolfin.info("Added %i turbines to the site in an %ix%i rectangular "
+        firedrake.info("Added %i turbines to the site in an %ix%i rectangular "
                     "array." % (num_x*num_y, num_x, num_y))
 
 
@@ -302,7 +302,7 @@ class BaseFarm(object):
         for i in range(len(points)):
             self.add_turbine((points[i,0], points[i,1]))
 
-        dolfin.info("Used latin hypercube sampling to add %i turbines to the site"\
+        firedrake.info("Used latin hypercube sampling to add %i turbines to the site"\
                     % number_turbines)
 
         # NOTE there is no simple way of checking the starting design satisfies
@@ -311,7 +311,7 @@ class BaseFarm(object):
         # turbine positions are updated the constraints should be fulfilled.
         # However, with densely populated sites, it may be wise to use one of
         # the other layout options.
-        dolfin.info('LHS generated starting layout may not fulfill inequality '\
+        firedrake.info('LHS generated starting layout may not fulfill inequality '\
                     'constraints if set... use caution')
 
 
@@ -338,7 +338,7 @@ class BaseFarm(object):
 
         :param bool large: Use a minimum distance implementation that is
             suitable for large farms (i.e. many turbines). Default: False
-        :returns: An instance of dolfin_adjoint.InequalityConstraint that
+        :returns: An instance of firedrake_adjoint.InequalityConstraint that
             enforces a minimum distance between turbines.
         :rtype: :py:class:`MinimumDistanceConstraints`
             (if large=False) or :py:class:`MinimumDistanceConstraintsLargeArray`

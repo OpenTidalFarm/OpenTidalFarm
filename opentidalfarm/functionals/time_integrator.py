@@ -1,6 +1,6 @@
 import numpy
-from dolfin import *
-from dolfin_adjoint import *
+from firedrake import *
+from firedrake_adjoint import *
 from ..problems import MultiSteadySWProblem
 
 
@@ -47,11 +47,11 @@ class TimeIntegrator(object):
 
         return sum(w * dt * self.vals)
 
-    def dolfin_adjoint_functional(self, state):
-        """ Constructs the dolfin-adjoint.Functional """
+    def firedrake_adjoint_functional(self, state):
+        """ Constructs the firedrake-adjoint.Functional """
 
         # The functional depends on the turbine_function which is not in scope.
-        # But dolfin-adjoint only cares about the name, hence it is sufficient
+        # But firedrake-adjoint only cares about the name, hence it is sufficient
         # to create a dummy function with the appropriate name.
         R = FunctionSpace(self.problem.parameters.domain.mesh, "R", 0)
         tf = Function(R, name="turbine_friction")

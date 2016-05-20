@@ -1,5 +1,5 @@
-from dolfin import FunctionSpace
-import dolfin_adjoint
+from firedrake import FunctionSpace
+import firedrake_adjoint
 from .farm import Farm
 
 class RectangularFarm(Farm):
@@ -186,7 +186,7 @@ class RectangularFarm(Farm):
 
         :raises: ValueError
         :returns: Tuple of lists of length equal to the twice the number of
-            turbines. Each list contains dolfin_adjoint.Constant objects of the
+            turbines. Each list contains firedrake_adjoint.Constant objects of the
             upper and lower bound coordinates.
 
         """
@@ -209,16 +209,16 @@ class RectangularFarm(Farm):
                              "domain large enough?")
 
         # The control variable is ordered as [t1_x, t1_y, t2_x, t2_y, t3_x, ...]
-        lower_bounds = n_turbines*[dolfin_adjoint.Constant(lower_x),
-                                   dolfin_adjoint.Constant(lower_y)]
-        upper_bounds = n_turbines*[dolfin_adjoint.Constant(upper_x),
-                                   dolfin_adjoint.Constant(upper_y)]
+        lower_bounds = n_turbines*[firedrake_adjoint.Constant(lower_x),
+                                   firedrake_adjoint.Constant(lower_y)]
+        upper_bounds = n_turbines*[firedrake_adjoint.Constant(upper_x),
+                                   firedrake_adjoint.Constant(upper_y)]
 
         return lower_bounds, upper_bounds
 
     def friction_constraints(self):
         n_turbines = len(self.turbine_positions)
-        lower_bounds = n_turbines*[dolfin_adjoint.Constant(0)]
-        upper_bounds = n_turbines*[dolfin_adjoint.Constant(self._turbine_specification.friction)]
+        lower_bounds = n_turbines*[firedrake_adjoint.Constant(0)]
+        upper_bounds = n_turbines*[firedrake_adjoint.Constant(self._turbine_specification.friction)]
 
         return lower_bounds, upper_bounds

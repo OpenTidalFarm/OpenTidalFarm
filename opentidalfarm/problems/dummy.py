@@ -1,4 +1,4 @@
-from dolfin_adjoint import Constant
+from firedrake_adjoint import Constant
 from problem import Problem
 from ..helpers import FrozenClass
 from .. import finite_elements

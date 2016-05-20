@@ -1,11 +1,11 @@
-import dolfin_adjoint
-import dolfin
+import firedrake_adjoint
+import firedrake
 import numpy
 
-class MinimumDistanceConstraints(dolfin_adjoint.InequalityConstraint):
+class MinimumDistanceConstraints(firedrake_adjoint.InequalityConstraint):
     """This class implements minimum distance constraints between turbines.
 
-    .. note:: This class subclasses `dolfin_adjoint.InequalityConstraint`_. The
+    .. note:: This class subclasses `firedrake_adjoint.InequalityConstraint`_. The
         following method names must not change:
 
         * ``length(self)``
@@ -13,7 +13,7 @@ class MinimumDistanceConstraints(dolfin_adjoint.InequalityConstraint):
         * ``jacobian(self, m)``
 
 
-        _dolfin_adjoint.InequalityConstraint:
+        _firedrake_adjoint.InequalityConstraint:
             http://dolfin-adjoint.org/documentation/api.html#dolfin_adjoint.InequalityConstraint
 
     """
@@ -63,7 +63,7 @@ class MinimumDistanceConstraints(dolfin_adjoint.InequalityConstraint):
             feasible.
 
         """
-        dolfin.log(dolfin.PROGRESS, "Calculating minimum distance constraints.")
+        firedrake.log(firedrake.PROGRESS, "Calculating minimum distance constraints.")
         inequality_constraints = []
         for i in range(len(m)/2):
             for j in range(len(m)/2):
@@ -75,7 +75,7 @@ class MinimumDistanceConstraints(dolfin_adjoint.InequalityConstraint):
 
         inequality_constraints = numpy.array(inequality_constraints)
         if any(inequality_constraints <= 0):
-            dolfin.log(dolfin.WARNING,
+            firedrake.log(firedrake.WARNING,
                        "Minimum distance inequality constraints (should all "
                        "be > 0): %s" % inequality_constraints)
         return inequality_constraints
@@ -93,7 +93,7 @@ class MinimumDistanceConstraints(dolfin_adjoint.InequalityConstraint):
             respect to each input parameter m.
 
         """
-        dolfin.log(dolfin.PROGRESS, "Calculating the jacobian of minimum "
+        firedrake.log(firedrake.PROGRESS, "Calculating the jacobian of minimum "
                    "distance constraints function.")
         inequality_constraints = []
 

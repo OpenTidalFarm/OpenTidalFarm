@@ -1,6 +1,6 @@
 from .base_turbine import BaseTurbine
 from .controls import Controls
-from dolfin import *
+from firedrake import *
 
 class ThrustTurbine(BaseTurbine):
     def __init__(self,

@@ -1,5 +1,5 @@
 import os
-from dolfin import FunctionSpace
+from firedrake import FunctionSpace
 from .base_farm import BaseFarm
 
 
@@ -12,7 +12,7 @@ class Farm(BaseFarm):
     :ivar turbine: A :class:`Turbine` object describing the domain.
     :ivar site_ids: A list of integers describing the subdomain identifiers of
         the farm(s)
-    :ivar function_space: A :class:`dolfin.FunctionSpace` that specifies in
+    :ivar function_space: A :class:`firedrake.FunctionSpace` that specifies in
         which function space the turbine friction is in.
 
     """
