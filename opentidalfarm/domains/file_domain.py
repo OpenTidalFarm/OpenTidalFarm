@@ -1,6 +1,7 @@
 import os.path
 import firedrake
 from domain import Domain
+from firedrake import *
 
 
 class FileDomain(Domain):
@@ -32,11 +33,11 @@ class FileDomain(Domain):
                             "_physical_region.xml")
 
         #: A :class:`firedrake.FacetFunction` containing the surface markers.
-        self.facet_ids = firedrake.MeshFunction("size_t", self.mesh, facet_ids_file)
+        self.facet_ids = None # firedrake.MeshFunction("size_t", self.mesh, facet_ids_file)
         #: A :class:`firedrake.Measure` for the facet parts.
-        self._ds = firedrake.Measure('ds')(subdomain_data=self.facet_ids)
+        self._ds = ds
 
         #: A :class:`firedrake.CellFunction` containing the area markers.
-        self.cell_ids = firedrake.MeshFunction("size_t", self.mesh, cell_ids_file)
+        self.cell_ids = None # firedrake.MeshFunction("size_t", self.mesh, cell_ids_file)
         #: A :class:`firedrake.Measure` for the cell subdomains.
-        self._dx = firedrake.Measure("dx")(subdomain_data=self.cell_ids)
+        self._dx = dx
