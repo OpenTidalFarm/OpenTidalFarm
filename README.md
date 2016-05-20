@@ -1,3 +1,9 @@
+FIREDRAKE OPENTIDAL FARM
+========================
+
+This branch is for the firedrake-porting of opentidalfarm
+
+
 About OpenTidalFarm 
 ===================
 OpenTidalFarm is a layout optimisation software for tidal turbine farms. 
