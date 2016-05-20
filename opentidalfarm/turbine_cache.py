@@ -1,7 +1,7 @@
 import copy
 import numpy
-from dolfin import *
-from dolfin_adjoint import *
+from firedrake import *
+from firedrake_adjoint import *
 from turbine_function import TurbineFunction
 from options import options
 

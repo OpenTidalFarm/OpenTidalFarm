@@ -1,7 +1,7 @@
 import os.path
 
-from dolfin import *
-from dolfin_adjoint import *
+from firedrake import *
+from firedrake_adjoint import *
 
 from .. import finite_elements
 from ..problems import SWProblem
@@ -16,7 +16,7 @@ class IPCSSWSolverParameters(FrozenClass):
 
     Performance parameters:
 
-    :ivar dolfin_solver: The dictionary with parameters for the dolfin
+    :ivar firedrake_solver: The dictionary with parameters for the firedrake
         Newton solver. A list of valid entries can be printed with:
 
         .. code-block:: python
@@ -39,7 +39,7 @@ class IPCSSWSolverParameters(FrozenClass):
 
     """
 
-    dolfin_solver = {"newton_solver": {}}
+    firedrake_solver = {"newton_solver": {}}
 
     # Large eddy simulation
     les_model = True
@@ -54,9 +54,9 @@ class IPCSSWSolverParameters(FrozenClass):
         linear_solver = 'mumps' if ('mumps' in map(lambda x: x[0], linear_solver_methods())) else 'default'
         preconditioner = 'default'
 
-        self.dolfin_solver["newton_solver"]["linear_solver"] = linear_solver
-        self.dolfin_solver["newton_solver"]["preconditioner"] = preconditioner
-        self.dolfin_solver["newton_solver"]["maximum_iterations"] = 20
+        self.firedrake_solver["newton_solver"]["linear_solver"] = linear_solver
+        self.firedrake_solver["newton_solver"]["preconditioner"] = preconditioner
+        self.firedrake_solver["newton_solver"]["maximum_iterations"] = 20
 
 
 class IPCSSWSolver(Solver):

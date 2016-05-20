@@ -1,4 +1,4 @@
-import dolfin
+import firedrake
 
 class BaseTurbine(object):
     """A base turbine class from which others are derived."""

@@ -28,8 +28,8 @@ from boundary_conditions import *
 from turbine_function import *
 from options import *
 
-from dolfin import *
-from dolfin_adjoint import minimize, maximize, Function, solve, Control, \
+from firedrake import *
+from firedrake_adjoint import minimize, maximize, Function, solve, Control, \
                            Constant
 
 # We set the perturbation_direction with a constant seed, so that it is

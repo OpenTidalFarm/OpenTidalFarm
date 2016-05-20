@@ -1,6 +1,6 @@
 from types import MethodType
-from dolfin import Constant
-from dolfin_adjoint import Constant
+from firedrake import Constant
+from firedrake_adjoint import Constant
 from problem import Problem
 from ..helpers import FrozenClass
 from ..boundary_conditions import BoundaryConditionSet
@@ -32,7 +32,7 @@ class SteadySWProblemParameters(FrozenClass):
     :ivar linear_divergence: Boolean indicating if the divergence equation is
         linearised. Default: False
     :ivar f_u: A source term for the velocity component as a
-        :class:`dolfin.Expression`. Default: Constant((0, 0))
+        :class:`firedrake.Expression`. Default: Constant((0, 0))
 
     Boundary conditions:
 

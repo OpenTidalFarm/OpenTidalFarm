@@ -1,7 +1,7 @@
 from problem import Problem
 from steady_sw import SteadySWProblemParameters
 from steady_sw import SteadySWProblem
-from dolfin_adjoint import Constant
+from firedrake_adjoint import Constant
 
 
 class MultiSteadySWProblemParameters(SteadySWProblemParameters):

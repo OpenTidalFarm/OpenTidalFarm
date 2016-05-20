@@ -1,4 +1,4 @@
-from dolfin import *
+from firedrake import *
 
 
 class Domain(object):
@@ -20,11 +20,11 @@ class Domain(object):
 
     @property
     def ds(self):
-        """A :class:`dolfin.Measure` for the facet parts of the domain."""
+        """A :class:`firedrake.Measure` for the facet parts of the domain."""
         return self._ds
 
 
     @property
     def dx(self):
-        """A :class:`dolfin.Measure` for the cell subdomains."""
+        """A :class:`firedrake.Measure` for the cell subdomains."""
         return self._dx

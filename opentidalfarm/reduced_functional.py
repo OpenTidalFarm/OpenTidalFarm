@@ -2,9 +2,9 @@ import sys
 import os.path
 import numpy
 import helpers
-import dolfin_adjoint
-from dolfin import *
-from dolfin_adjoint import *
+import firedrake_adjoint
+from firedrake import *
+from firedrake_adjoint import *
 from solvers import Solver
 from functionals import TimeIntegrator, PrototypeFunctional
 from memoize import MemoizeMutable
@@ -44,7 +44,7 @@ class ReducedFunctional(ReducedFunctionalPrototype):
     Following parameters are expected:
 
     :ivar functional: a :class:`PrototypeFunctional` class.
-    :ivar controls: a :class:`TurbineFarmControl` or :class:`dolfin_adjoint.DolfinAdjointControl` class.
+    :ivar controls: a :class:`TurbineFarmControl` or :class:`firedrake_adjoint.DolfinAdjointControl` class.
     :ivar solver: a :class:`Solver` object.
     :ivar parameters: a :class:`ReducedFunctionalParameters` object.
 
@@ -52,7 +52,7 @@ class ReducedFunctional(ReducedFunctionalPrototype):
     """
 
     def __init__(self, functional, controls, solver, parameters):
-        # For consistency with the dolfin-adjoint API.
+        # For consistency with the firedrake-adjoint API.
         self.scale = parameters.scale
 
         self.solver = solver
@@ -83,7 +83,7 @@ class ReducedFunctional(ReducedFunctionalPrototype):
                 power_filename = os.path.join(solver.parameters.output_dir, "power.pvd")
                 self.power_file = File(power_filename, "compressed")
 
-        # dolfin-adjoint requires the ReducedFunctional to have a member
+        # firedrake-adjoint requires the ReducedFunctional to have a member
         # variable `parameter` which must be a list comprising an instance of a
         # class (here, TurbineFarmControl) which has a method named `data`
         # which returns a numpy.ndarray of the parameters used for optimisation,
@@ -120,7 +120,7 @@ class ReducedFunctional(ReducedFunctionalPrototype):
         if numpy.any(m != self.last_m):
             self._compute_functional(m, annotate=True)
 
-        J = self.time_integrator.dolfin_adjoint_functional(self.solver.state)
+        J = self.time_integrator.firedrake_adjoint_functional(self.solver.state)
 
         # Output power
         if self.solver.parameters.dump_period > 0:
@@ -141,14 +141,14 @@ class ReducedFunctional(ReducedFunctionalPrototype):
         else:
             parameters = FunctionControl("turbine_friction_cache")
 
-        djdtf = dolfin_adjoint.compute_gradient(J, parameters, forget=forget)
-        dolfin.parameters["adjoint"]["stop_annotating"] = False
+        djdtf = firedrake_adjoint.compute_gradient(J, parameters, forget=forget)
+        firedrake.parameters["adjoint"]["stop_annotating"] = False
 
         # Decide if we need to apply the chain rule to get the gradient of
         # interest.
         if farm.turbine_specification.smeared:
             # We are looking for the gradient with respect to the friction
-            dj = dolfin_adjoint.optimization.get_global(djdtf)
+            dj = firedrake_adjoint.optimization.get_global(djdtf)
 
         else:
             # Let J be the functional, m the parameter and u the solution of the
@@ -190,9 +190,9 @@ class ReducedFunctional(ReducedFunctionalPrototype):
         self._update_turbine_farm(m)
         farm = self.solver.problem.parameters.tidal_farm
 
-        # Configure dolfin-adjoint
+        # Configure firedrake-adjoint
         adj_reset()
-        dolfin.parameters["adjoint"]["record_all"] = True
+        firedrake.parameters["adjoint"]["record_all"] = True
         self._set_revolve_parameters()
 
         # Solve the shallow water system and integrate the functional of
@@ -277,7 +277,7 @@ class ReducedFunctional(ReducedFunctionalPrototype):
     def evaluate(self, m, annotate=True):
         """ Return the functional value for the given parameter array. """
         log(INFO, 'Start evaluation of j')
-        timer = dolfin.Timer("j evaluation")
+        timer = firedrake.Timer("j evaluation")
         j = self._compute_functional_mem(m, annotate=annotate)
         timer.stop()
 
@@ -301,7 +301,7 @@ class ReducedFunctional(ReducedFunctionalPrototype):
     def _dj(self, m, forget, new_optimisation_iteration=True):
         """ This memoised function returns the gradient of the functional for the parameter choice m. """
         log(INFO, 'Start evaluation of dj')
-        timer = dolfin.Timer("dj evaluation")
+        timer = firedrake.Timer("dj evaluation")
         dj = self._compute_gradient_mem(m, forget)
 
         # We assume that the gradient is computed at and only at the beginning
@@ -399,7 +399,7 @@ class ReducedFunctional(ReducedFunctionalPrototype):
 
 class TurbineFarmControl(object):
     """This class is required to that the parameter set works with
-    dolfin-adjoint."""
+    firedrake-adjoint."""
     def __init__(self, farm):
         self.farm = farm
 

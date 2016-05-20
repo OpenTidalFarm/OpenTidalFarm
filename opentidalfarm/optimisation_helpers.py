@@ -1,9 +1,9 @@
 import os.path
 import numpy
-import dolfin
-from dolfin import Constant, log, INFO
+import firedrake
+from firedrake import Constant, log, INFO
 from helpers import function_eval
-from dolfin_adjoint import InequalityConstraint, EqualityConstraint
+from firedrake_adjoint import InequalityConstraint, EqualityConstraint
 
 __all__ = ["MinimumDistanceConstraints", "MinimumDistanceConstraintsLargeArrays",
     "friction_constraints", "get_domain_constraints", "position_constraints",
@@ -55,20 +55,20 @@ class DomainRestrictionConstraints(InequalityConstraint):
         self.feasible_area = feasible_area
 
         # Compute the gradient of the feasible area
-        fs = dolfin.FunctionSpace(feasible_area.function_space().mesh(),
+        fs = firedrake.FunctionSpace(feasible_area.function_space().mesh(),
                                   "DG",
                                   feasible_area.function_space().ufl_element().degree() - 1)
 
-        feasible_area_grad = (dolfin.Function(fs),
-                              dolfin.Function(fs))
-        t = dolfin.TestFunction(fs)
+        feasible_area_grad = (firedrake.Function(fs),
+                              firedrake.Function(fs))
+        t = firedrake.TestFunction(fs)
         log(INFO, "Solving for gradient of feasible area")
         for i in range(2):
-            form = dolfin.inner(feasible_area_grad[i], t) * dolfin.dx - dolfin.inner(feasible_area.dx(i), t) * dolfin.dx
-            if dolfin.NonlinearVariationalSolver.default_parameters().has_parameter("linear_solver"):
-                dolfin.solve(form == 0, feasible_area_grad[i], solver_parameters={"linear_solver": "cg", "preconditioner": "amg"})
+            form = firedrake.inner(feasible_area_grad[i], t) * firedrake.dx - firedrake.inner(feasible_area.dx(i), t) * firedrake.dx
+            if firedrake.NonlinearVariationalSolver.default_parameters().has_parameter("linear_solver"):
+                firedrake.solve(form == 0, feasible_area_grad[i], solver_parameters={"linear_solver": "cg", "preconditioner": "amg"})
             else:
-                dolfin.solve(form == 0, feasible_area_grad[i], solver_parameters={"newton_solver": {"linear_solver": "cg", "preconditioner": "amg"}})
+                firedrake.solve(form == 0, feasible_area_grad[i], solver_parameters={"newton_solver": {"linear_solver": "cg", "preconditioner": "amg"}})
         self.feasible_area_grad = feasible_area_grad
 
         self.attraction_center = attraction_center
@@ -128,12 +128,12 @@ def get_domain_constraints(config, feasible_area, attraction_center):
     return DomainRestrictionConstraints(config, feasible_area, attraction_center)
 
 def get_distance_function(config, domains):
-    V = dolfin.FunctionSpace(config.domain.mesh, "CG", 1)
-    v = dolfin.TestFunction(V)
-    d = dolfin.TrialFunction(V)
-    sol = dolfin.Function(V)
-    s = dolfin.interpolate(Constant(1.0), V)
-    domains_func = dolfin.Function(dolfin.FunctionSpace(config.domain.mesh, "DG", 0))
+    V = firedrake.FunctionSpace(config.domain.mesh, "CG", 1)
+    v = firedrake.TestFunction(V)
+    d = firedrake.TrialFunction(V)
+    sol = firedrake.Function(V)
+    s = firedrake.interpolate(Constant(1.0), V)
+    domains_func = firedrake.Function(firedrake.FunctionSpace(config.domain.mesh, "DG", 0))
     domains_func.vector().set_local(domains.array().astype(numpy.float))
 
     def boundary(x):
@@ -149,20 +149,20 @@ def get_distance_function(config, domains):
 
         return min_val == 1.0
 
-    bc = dolfin.DirichletBC(V, 0.0, boundary)
+    bc = firedrake.DirichletBC(V, 0.0, boundary)
 
     # Solve the diffusion problem with a constant source term
     log(INFO, "Solving diffusion problem to identify feasible area ...")
-    a = dolfin.inner(dolfin.grad(d), dolfin.grad(v)) * dolfin.dx
-    L = dolfin.inner(s, v) * dolfin.dx
-    dolfin.solve(a == L, sol, bc)
+    a = firedrake.inner(firedrake.grad(d), firedrake.grad(v)) * firedrake.dx
+    L = firedrake.inner(s, v) * firedrake.dx
+    firedrake.solve(a == L, sol, bc)
 
     return sol
 
 class MinimumDistanceConstraints(InequalityConstraint):
     """This class implements minimum distance constraints between turbines.
 
-    .. note:: This class subclasses `dolfin_adjoint.InequalityConstraint`_. The
+    .. note:: This class subclasses `firedrake_adjoint.InequalityConstraint`_. The
         following method names must not change:
 
         * ``length(self)``
@@ -170,8 +170,8 @@ class MinimumDistanceConstraints(InequalityConstraint):
         * ``jacobian(self, m)``
 
 
-        _dolfin_adjoint.InequalityConstraint:
-            http://dolfin-adjoint.org/documentation/api.html#dolfin_adjoint.InequalityConstraint
+        _firedrake_adjoint.InequalityConstraint:
+            http://firedrake-adjoint.org/documentation/api.html#firedrake_adjoint.InequalityConstraint
 
     """
     def __init__(self, turbine_positions, minimum_distance, controls):
@@ -220,7 +220,7 @@ class MinimumDistanceConstraints(InequalityConstraint):
             feasible.
 
         """
-        dolfin.log(dolfin.PROGRESS, "Calculating minimum distance constraints.")
+        firedrake.log(firedrake.PROGRESS, "Calculating minimum distance constraints.")
         inequality_constraints = []
         for i in range(len(m)/2):
             for j in range(len(m)/2):
@@ -232,7 +232,7 @@ class MinimumDistanceConstraints(InequalityConstraint):
 
         inequality_constraints = numpy.array(inequality_constraints)
         if any(inequality_constraints <= 0):
-            dolfin.log(dolfin.WARNING,
+            firedrake.log(firedrake.WARNING,
                        "Minimum distance inequality constraints (should all "
                        "be > 0): %s" % inequality_constraints)
         return inequality_constraints
@@ -250,7 +250,7 @@ class MinimumDistanceConstraints(InequalityConstraint):
             respect to each input parameter m.
 
         """
-        dolfin.log(dolfin.PROGRESS, "Calculating the jacobian of minimum "
+        firedrake.log(firedrake.PROGRESS, "Calculating the jacobian of minimum "
                    "distance constraints function.")
         inequality_constraints = []
 
@@ -295,7 +295,7 @@ class MinimumDistanceConstraintsLargeArrays(InequalityConstraint):
     where N is the number of turbines, :math:`p_i` is the position of the i'th
     turbine and D is the minimum distance between two turbines.
 
-    .. note:: This class subclasses `dolfin_adjoint.InequalityConstraint`_. The
+    .. note:: This class subclasses `firedrake_adjoint.InequalityConstraint`_. The
         following method names must not change:
 
         * ``length(self)``
@@ -303,7 +303,7 @@ class MinimumDistanceConstraintsLargeArrays(InequalityConstraint):
         * ``jacobian(self, m)``
 
 
-        _dolfin_adjoint.InequalityConstraint:
+        _firedrake_adjoint.InequalityConstraint:
             http://dolfin-adjoint.org/documentation/api.html#dolfin_adjoint.InequalityConstraint
 
     """
@@ -359,7 +359,7 @@ class MinimumDistanceConstraintsLargeArrays(InequalityConstraint):
             feasible.
 
         """
-        dolfin.log(dolfin.PROGRESS, "Calculating minimum distance constraints.")
+        firedrake.log(firedrake.PROGRESS, "Calculating minimum distance constraints.")
 
         if self._controls.position and self._controls.friction:
             friction_length = len(m)/3
@@ -375,7 +375,7 @@ class MinimumDistanceConstraintsLargeArrays(InequalityConstraint):
                 value += self._penalty(dist_sq)
 
         if value <= 0:
-            dolfin.log(dolfin.WARNING,
+            firedrake.log(firedrake.WARNING,
                        "Minimum distance inequality constraints (should all "
                        "be => 0): %s" % value)
         return numpy.array([value])
@@ -393,7 +393,7 @@ class MinimumDistanceConstraintsLargeArrays(InequalityConstraint):
             respect to each input parameter m.
 
         """
-        dolfin.log(dolfin.PROGRESS, "Calculating the jacobian of minimum "
+        firedrake.log(firedrake.PROGRESS, "Calculating the jacobian of minimum "
                    "distance constraints function.")
         inequality_constraints = []
 

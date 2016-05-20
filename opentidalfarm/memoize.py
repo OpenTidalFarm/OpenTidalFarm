@@ -1,7 +1,7 @@
 import os
 import signal
 import cPickle
-from dolfin import log, INFO, WARNING
+from firedrake import log, INFO, WARNING
 from helpers import cpu0only
 
 def to_tuple(obj):

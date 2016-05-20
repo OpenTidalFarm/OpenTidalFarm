@@ -4,7 +4,7 @@
 #       cost of an array.
 #"""
 
-from dolfin import dot, Constant, dx, assemble, conditional
+from firedrake import dot, Constant, dx, assemble, conditional
 from ..helpers import smooth_uflmin
 from prototype_functional import PrototypeFunctional
 
@@ -29,9 +29,9 @@ class CostFunctional(PrototypeFunctional):
         """ Computes the cost of the farm.
 
         :param state: Current solution state
-        :type state: dolfin.Function
+        :type state: firedrake.Function
         :param turbine_field: Turbine friction field
-        :type turbine_field: dolfin.Function
+        :type turbine_field: firedrake.Function
 
         """
         return self._cost(turbine_field)*self.farm.site_dx
@@ -40,7 +40,7 @@ class CostFunctional(PrototypeFunctional):
         """ Computes the cost of the turbine farm.
 
         :param turbine_field: Turbine friction field
-        :type turbine_field: dolfin.Function
+        :type turbine_field: firedrake.Function
 
         """
         return turbine_field
@@ -49,7 +49,7 @@ class CostFunctional(PrototypeFunctional):
         """ Computes the cost of the i'th turbine.
 
         :param state: Current solution state
-        :type state: dolfin.Function
+        :type state: firedrake.Function
         :param i: turbine index
         :type i: Integer
 

@@ -1,7 +1,7 @@
-from dolfin import Expression  # Keep readthedocs happy
+from firedrake import Expression  # Keep readthedocs happy
 
-from dolfin import *
-from dolfin_adjoint import *
+from firedrake import *
+from firedrake_adjoint import *
 # this imports NetCDFFile from netCDF4, Scientific.IO.NetCDF or scipy.io.netcdf (whichever is available)
 from uptide.netcdf_reader import NetCDFFile
 import utm
@@ -14,7 +14,7 @@ import numpy
 __all__ = ["TidalForcing", "BathymetryDepthExpression"]
 
 # We need to store tnci_time as a non-class variable, otherwise
-# dolfin-adjoint tries to be clever and restores its values during the
+# firedrake-adjoint tries to be clever and restores its values during the
 # adjoint runs which yields an wrong behaviour for
 # the "tnci_time != self.t" statement below
 tnci_time = None
@@ -53,7 +53,7 @@ class TidalForcing(Expression):
           values[0] = self.tnci.get_val((latlon[1], latlon[0]), allow_extrapolation=True)
         except uptide.netcdf_reader.CoordinateError:
           # uptide raises a CoordinateError if interpolated within the land mask, this shouldn't happen
-          # but dolfin evaluates too many points in the interior of the domain which are then not used
+          # but firedrake evaluates too many points in the interior of the domain which are then not used
           # but some of those might overlap with landmask, therefore set to NaN instead of raising an exception
           # so that /if/ the value is used we'll notice it
           values[0] = numpy.NaN

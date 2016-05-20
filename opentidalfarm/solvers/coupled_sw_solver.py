@@ -1,7 +1,7 @@
 import os.path
 
-from dolfin import *
-from dolfin_adjoint import *
+from firedrake import *
+from firedrake_adjoint import *
 
 from solver import Solver
 from ..problems import SWProblem
@@ -15,7 +15,7 @@ class CoupledSWSolverParameters(FrozenClass):
 
     Following parameters are available:
 
-    :ivar dolfin_solver: The dictionary with parameters for the dolfin
+    :ivar firedrake_solver: The dictionary with parameters for the firedrake
         Newton solver. A list of valid entries can be printed with:
 
         .. code-block:: python
@@ -48,7 +48,7 @@ class CoupledSWSolverParameters(FrozenClass):
         dictionary with the solution variables.
     """
 
-    dolfin_solver = {"newton_solver": {}}
+    firedrake_solver = {"newton_solver": {}}
     dump_period = 1
     print_individual_turbine_power = False
 
@@ -77,9 +77,9 @@ class CoupledSWSolverParameters(FrozenClass):
         linear_solver = 'mumps' if 'mumps' in linear_solver_methods() else 'default'
         preconditioner = 'default'
 
-        self.dolfin_solver["newton_solver"]["linear_solver"] = linear_solver
-        self.dolfin_solver["newton_solver"]["preconditioner"] = preconditioner
-        self.dolfin_solver["newton_solver"]["maximum_iterations"] = 20
+        self.firedrake_solver["newton_solver"]["linear_solver"] = linear_solver
+        self.firedrake_solver["newton_solver"]["preconditioner"] = preconditioner
+        self.firedrake_solver["newton_solver"]["maximum_iterations"] = 20
 
 
 class CoupledSWSolver(Solver):
@@ -132,7 +132,7 @@ class CoupledSWSolver(Solver):
     in the problem specification.
 
     The resulting equations are solved with Newton-iterations and the linear
-    problems solved as specified in the `dolfin_solver` setting in
+    problems solved as specified in the `firedrake_solver` setting in
     :class:`CoupledSWSolverParameters`.
     """
 
@@ -476,7 +476,7 @@ CoupledSWSolverParameters."
                 log(INFO, "Solve shallow water equations.")
 
             solve(F == 0, state_new, bcs=strong_bcs,
-                  solver_parameters=solver_params.dolfin_solver,
+                  solver_parameters=solver_params.firedrake_solver,
                   annotate=annotate,
                   J=derivative(F, state_new))
 
