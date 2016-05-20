@@ -146,8 +146,8 @@ class StateWriter:
         solve(self.M_p_out, self.p_out_state.vector(), rhs, "cg", "sor",
               annotate=False)
 
-        self.u_out << self.u_out_state
-        self.p_out << self.p_out_state
+        self.u_out.write(self.u_out_state)
+        self.p_out.write(self.p_out_state)
 
         if self.callback is not None:
             self.callback(state, self.u_out_state, self.p_out_state,

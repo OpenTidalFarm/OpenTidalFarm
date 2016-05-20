@@ -128,9 +128,9 @@ class ReducedFunctional(ReducedFunctionalPrototype):
             if self._solver_params.output_turbine_power:
                 turbines = farm.turbine_cache["turbine_field"]
                 power = self.functional.power(self.solver.state, turbines)
-                self.power_file << project(power,
-                                           farm._turbine_function_space,
-                                           annotate=False)
+                self.power_file.write(project(power,
+                                              farm._turbine_function_space,
+                                              annotate=False)
 
         if farm.turbine_specification.controls.dynamic_friction:
             parameters = []
@@ -322,7 +322,7 @@ class ReducedFunctional(ReducedFunctionalPrototype):
                     log(WARNING, ("Turbine VTU output not yet implemented for "
                                   " dynamic turbine control"))
                 else:
-                    self.turbine_file << farm.turbine_cache["turbine_field"]
+                    self.turbine_file.write(farm.turbine_cache["turbine_field"])
                     # Compute the total amount of friction due to turbines
                     if farm.turbine_specification.smeared:
                         log(INFO, "Total amount of friction: %f" %
