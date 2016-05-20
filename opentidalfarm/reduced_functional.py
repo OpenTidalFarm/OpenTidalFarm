@@ -130,7 +130,7 @@ class ReducedFunctional(ReducedFunctionalPrototype):
                 power = self.functional.power(self.solver.state, turbines)
                 self.power_file.write(project(power,
                                               farm._turbine_function_space,
-                                              annotate=False)
+                                              annotate=False))
 
         if farm.turbine_specification.controls.dynamic_friction:
             parameters = []
