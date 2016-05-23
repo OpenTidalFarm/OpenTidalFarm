@@ -72,8 +72,11 @@ prob_params = SWProblem.default_parameters()
 turbine = SmearedTurbine(friction=12.0)
 
 # and pass that to the farm
-farm = RectangularFarm(mesh, site_x_start=160, site_x_end=480,
+farm = RectangularFarm(mesh2d, site_x_start=160, site_x_end=480,
                                site_y_start=80, site_y_end=240, turbine=turbine)
+
+coupler_params = Coupler.default_parameters()
+coupled_problem = Coupler(solver_obj, farm, coupler_params)
 
 from IPython import embed; embed()
 

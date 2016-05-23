@@ -27,6 +27,20 @@ class Coupler(object):
             raise TypeError('coupler_parameters must be of type \
                             CouplerParameters')
 
+        self.solver = thetis_solver
+        self.farm = farm
+        self.params = coupler_parameters
+
+        print 'Inside coupler'
+        from IPython import embed; embed()
+
+    def solve(self):
+        """ Solves the coupled flow / farm problem
+        """
+#        self.solver.options.quadratic_drag = self.farm.friction_function
+        self.solver.iterate()
+
+
 
     @staticmethod
     def default_parameters():
