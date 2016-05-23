@@ -28,6 +28,8 @@ from boundary_conditions import *
 from turbine_function import *
 from options import *
 
+from thetis import *
+
 from firedrake import *
 from firedrake_adjoint import minimize, maximize, Function, solve, Control, \
                            Constant

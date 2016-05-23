@@ -16,12 +16,12 @@ class Farm(BaseFarm):
         which function space the turbine friction is in.
 
     """
-    def __init__(self, domain, turbine=None, site_ids=None, function_space=None):
+    def __init__(self, mesh, turbine=None, site_ids=None, function_space=None):
         # Initialize the base class
-        super(Farm, self).__init__(domain, turbine, site_ids)
+        super(Farm, self).__init__(mesh, turbine, site_ids)
 
         if function_space is None:
-            function_space = FunctionSpace(self.domain.mesh, "CG", 2)
+            function_space = FunctionSpace(self.mesh, "CG", 2)
         self._turbine_function_space = function_space
 
         # Set the function space in the cache.

@@ -8,7 +8,7 @@ class RectangularFarm(Farm):
     This class holds the turbines within a rectangular site.
 
     """
-    def __init__(self, domain, site_x_start, site_x_end, site_y_start,
+    def __init__(self, mesh, site_x_start, site_x_end, site_y_start,
                  site_y_end, turbine=None, site_ids=None, order=2):
         """Initializes an empty rectangular farm with the given dimensions.
 
@@ -26,11 +26,11 @@ class RectangularFarm(Farm):
 
         """
         # Initialize the base clas
-        super(RectangularFarm, self).__init__(domain, turbine, site_ids)
+        super(RectangularFarm, self).__init__(mesh, turbine, site_ids)
 
         # Create a turbine function space and set the function space in the
         # cache.
-        self._turbine_function_space = FunctionSpace(self.domain.mesh, "CG", order)
+        self._turbine_function_space = FunctionSpace(self.mesh, "CG", order)
         self.turbine_cache.set_function_space(self._turbine_function_space)
 
         # Store site dimensions.

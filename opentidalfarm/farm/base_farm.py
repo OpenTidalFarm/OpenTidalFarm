@@ -6,18 +6,18 @@ from ..turbine_cache import TurbineCache
 
 class BaseFarm(object):
     """A base Farm class from which other Farm classes should be derived."""
-    def __init__(self, domain=None, turbine=None, site_ids=None):
+    def __init__(self, mesh=None, turbine=None, site_ids=None):
         """Create an empty Farm."""
         # Create a chaching object for the interpolated turbine friction fields
         # (as their computation is very expensive)
         self.turbine_cache = TurbineCache()
         self._parameters = {"friction": [], "position": []}
 
-        self.domain = domain
+        self.mesh = mesh
         self._set_turbine_specification(turbine)
 
         # The measure of the farm site
-        self.site_dx = self.domain.dx(site_ids)
+        self.site_dx = self.mesh.dx(site_ids)
 
     def update(self):
         self.turbine_cache.update(self)
