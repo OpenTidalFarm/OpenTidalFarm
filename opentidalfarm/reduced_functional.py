@@ -54,6 +54,7 @@ class ReducedFunctional(ReducedFunctionalPrototype):
     def __init__(self, functional, controls, solver, parameters):
         # For consistency with the dolfin-adjoint API.
         self.scale = parameters.scale
+        self.rf = self
 
         self.solver = solver
         if not isinstance(solver, Solver):
@@ -395,6 +396,9 @@ class ReducedFunctional(ReducedFunctionalPrototype):
             log(INFO, "The gradient taylor remainder test passed.")
 
         return self._dj(m, forget)
+
+    def mpi_comm(self):
+        return mpi_comm_world()
 
 
 class TurbineFarmControl(object):
