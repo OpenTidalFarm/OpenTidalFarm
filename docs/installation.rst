@@ -49,7 +49,7 @@ One can download the examples with all mesh data with these commands:
 
 .. code-block:: bash
 
-   git clone git@github.com:OpenTidalFarm/OpenTidalFarm.git
+   git clone https://github.com/OpenTidalFarm/OpenTidalFarm.git
    cd OpenTidalFarm
    git submodule init
    git submodule update
