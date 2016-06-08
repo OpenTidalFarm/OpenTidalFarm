@@ -63,6 +63,13 @@ For work on global optimisation of turbine locations through the use of a hybrid
   submitted. `arXiv:1410.2476 <http://xxx.tau.ac.il/abs/1410.2476v1>`__ [math.OC]
   [`PDF <http://arxiv.org/pdf/1410.2476v1>`__].
 
+For work on turbulence modelling in OpenTidalFarm and the validity of turbine placement from steady-state adjoint computations, please see:
+
+* **CT Jacobs, MD Piggott, SC Kramer, SW Funke (2016)**.
+  *On the validity of tidal turbine array configurations obtained from steady-state adjoint optimisation*,
+  in Proceedings of the VII European Congress on Computational Methods in Applied Sciences and Engineering (ECCOMAS 2016), Crete, Greece, 5-10 June 2016. arXiv:1601.08091
+  [`PDF <http://arxiv.org/pdf/1601.08091v1.pdf>`__]
+
 Finally, OpenTidalFarm relies on external tools to achieve its goals, such as:
 
 * **A Logg, K-A Mardal, GN Wells et al. (2013)**.
@@ -98,3 +105,9 @@ Poster presentation:
   *Mesh dependence in PDE-constrained optimisation problems  with an application in tidal turbine array layouts*,
   master presentation.
   [`PDF <_static/schwedes_mres.pdf>`__].
+
+OpenTidalFarm at the VII European Congress on Computational Methods in Applied Sciences and Engineering (ECCOMAS 2016):
+
+* **CT Jacobs, MD Piggott, SC Kramer, SW Funke (2016)**.
+  *On the validity of tidal turbine array configurations obtained from steady-state adjoint optimisation*.
+  [`Slides <http://christianjacobs.uk/eccomas2016-slides/>`__]
