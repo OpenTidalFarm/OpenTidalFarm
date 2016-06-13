@@ -80,7 +80,6 @@ domain = RectangularDomain(x0=0, y0=0, x1=100, y1=50, nx=20, ny=10)
 # different boundary conditions on different parts of the domain. You can plot
 # and inspect the boundary ids with:
 
-plot(domain.facet_ids)
 
 # Once the domain is created we attach it to the problem parameters:
 
@@ -139,9 +138,14 @@ solver = CoupledSWSolver(problem, sol_params)
 
 # Now we are ready to solve the problem.
 
+f_u = XDMFFile(mpi_comm_world(), "u.xdmf")
+f_eta = XDMFFile(mpi_comm_world(), "eta.xdmf")
 for s in solver.solve():
     print "Computed solution at time %f" % s["time"]
-    plot(s["state"])
+    u, eta = s["state"].split()
+    f_u.write(u)
+    f_eta.write(eta)
+
 interactive()  # Hold the plot until the user presses q.
 
 # The inner part of the loop is executed for each timestep. The variable :attr:`s`
