@@ -146,8 +146,6 @@ for s in solver.solve():
     f_u.write(u)
     f_eta.write(eta)
 
-interactive()  # Hold the plot until the user presses q.
-
 # The inner part of the loop is executed for each timestep. The variable :attr:`s`
 # is a dictionary and contains information like the current timelevel, the velocity and
 # free-surface functions.
