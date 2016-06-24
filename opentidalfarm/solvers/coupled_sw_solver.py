@@ -349,12 +349,14 @@ CoupledSWSolverParameters."
 
         # Bottom friction
         friction = problem_params.friction
-
         if not farm:
             tf = Constant(0)
         elif type(farm.friction_function) == list:
-            tf = Function(farm.friction_function[0], name="turbine_friction", annotate=annotate)
-        else:
+	        tf = Function(farm.friction_function[0].function_space(),
+                          name="turbine_friction", annotate=annotate)
+            tf.assign(theta*farm.friction_function[1]+(1.-float(theta))*\
+                      farm.friction_function[0], annotate=annotate)
+	else:
             tf = Function(farm.friction_function, name="turbine_friction", annotate=annotate)
 
         # Friction term
@@ -421,6 +423,9 @@ CoupledSWSolverParameters."
         if include_time_term:
             F += M - M0
 
+        # Used in the dynamic friction case
+        F_without_R_mid = F - dt * R_mid
+
         # Generate the scheme specific strong boundary conditions
         strong_bcs = self._generate_strong_bcs()
 
@@ -444,6 +449,8 @@ CoupledSWSolverParameters."
         log(INFO, "Start of time loop")
         adjointer.time.start(t)
         timestep = 0
+        import dolfin
+        f = dolfin.File("turbine_friction_test.pvd")
         while not self._finished(t, finish_time):
             # Update timestep
             timestep += 1
@@ -456,7 +463,23 @@ CoupledSWSolverParameters."
 
             # Update source term
             f_u.t = Constant(t_theta)
-
+ 
+            # Set the control function for the upcoming timestep.
+            if farm:
+                if type(farm.friction_function) == list:
+                    tf.assign(theta*farm.friction_function[timestep]+(1.-float(theta))\
+                              *farm.friction_function[timestep-1], annotate=annotate)
+                    if not farm.turbine_specification.thrust:
+                        R_mid += tf/H*dot(u_mid, u_mid)**0.5*inner(u_mid,v)*farm.site_dx
+                    else: 
+                        u_mag = dot(u_mid, u_mid)**0.5
+                        C_t = farm.turbine_specification.compute_C_t(u_mag)
+                        R_mid += (tf*farm.turbine_specification.turbine_parametrisation_constant * C_t / H) * u_mag * inner(u_mid, v) * farm.site_dx
+                    F = F_without_R_mid + dt * R_mid 
+                else:
+                    tf.assign(farm.friction_function)
+                f << tf
+           
             # Set the initial guess for the solve
             if cache_forward_state and self.state_cache.has_key(float(t)):
                 log(INFO, "Read initial guess from cache for t=%f." % t)
@@ -490,12 +513,7 @@ CoupledSWSolverParameters."
                     self.state_cache[float(t)] = Function(self.function_space)
                 self.state_cache[float(t)].assign(state_new, annotate=False)
 
-            # Set the control function for the upcoming timestep.
-            if farm:
-                if type(farm.friction_function) == list:
-                    tf.assign(farm.friction_function[timestep])
-                else:
-                    tf.assign(farm.friction_function)
+
 
             if (solver_params.dump_period > 0 and
                 timestep % solver_params.dump_period == 0):
