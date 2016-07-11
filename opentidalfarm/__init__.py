@@ -36,3 +36,6 @@ from dolfin_adjoint import minimize, maximize, Function, solve, Control, \
 # consistent in a parallel environment.
 import numpy
 numpy.random.seed(21)
+
+# Allow zero derivatives in dolfin-adjoint
+parameters['adjoint']['allow_zero_derivatives'] = True
