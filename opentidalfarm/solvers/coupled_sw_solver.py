@@ -352,7 +352,7 @@ CoupledSWSolverParameters."
         if not farm:
             tf = Constant(0)
         elif type(farm.friction_function) == list:
-	    tf = Function(farm.friction_function[0].function_space(),
+	    tf = Function(farm.friction_function[0],
                           name="turbine_friction", annotate=annotate)
             tf.assign(theta*farm.friction_function[1]+(1.-float(theta))*\
                       farm.friction_function[0], annotate=annotate)
