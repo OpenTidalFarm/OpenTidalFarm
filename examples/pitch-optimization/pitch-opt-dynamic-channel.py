@@ -121,7 +121,7 @@ rf = ReducedFunctional(functional, control, solver, rf_params)
 # Now we can define the constraints for the controls and start the
 # optimization.
 lb, ub = farm.friction_constraints(n_time_steps=n_time_steps,
-                                   lower_bounds=0., upper_bounds=500.)
+                                   lower_bounds=0., upper_bounds=13.)
 f_opt = maximize(rf, bounds=[lb,ub],  method="L-BFGS-B", 
         options={'maxiter': 5,'ftol': 1.0e-04})
 f_opt = f_opt.reshape((n_time_steps, n_turbines_x, n_turbines_y))
@@ -129,6 +129,11 @@ f_opt = f_opt.reshape((n_time_steps, n_turbines_x, n_turbines_y))
 # Print the optimized friction coefficients for each timestep and each
 # position. 
 print f_opt
+
+# Store the friction coefficients in a text file.
+file = open("friction_coeff.txt", "w")
+file.write("%s\n" % f_opt)
+file.close()
 
 # How to run the example
 # **********************

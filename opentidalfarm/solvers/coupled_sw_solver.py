@@ -168,9 +168,6 @@ CoupledSWSolverParameters."
         """
         return CoupledSWSolverParameters()
 
-    def _finished(self, current_time, finish_time):
-        return float(current_time - finish_time) >= - 1e3*DOLFIN_EPS
-
     def _generate_strong_bcs(self):
 
         bcs = self.problem.parameters.bcs
@@ -442,7 +439,7 @@ CoupledSWSolverParameters."
                   "eta": h0,
                   "tf": tf,
                   "state": state,
-                  "is_final": self._finished(t, finish_time)}
+                  "is_final": problem_params.finished(t, finish_time)}
         solver_params.callback(result)
         yield(result)
 
@@ -451,7 +448,7 @@ CoupledSWSolverParameters."
         timestep = 0
         import dolfin
         f = dolfin.File("turbine_friction_test.pvd")
-        while not self._finished(t, finish_time):
+        while not problem_params.finished(t, finish_time):
             # Update timestep
             timestep += 1
             t = Constant(t + dt)
@@ -463,7 +460,7 @@ CoupledSWSolverParameters."
 
             # Update source term
             f_u.t = Constant(t_theta)
-
+            
             # Set the control function for the upcoming timestep.
             if farm:
                 if type(farm.friction_function) == list:
@@ -526,12 +523,12 @@ CoupledSWSolverParameters."
                       "eta": h0,
                       "tf": tf,
                       "state": state,
-                      "is_final": self._finished(t, finish_time)}
+                      "is_final": problem_params.finished(t, finish_time)}
             solver_params.callback(result)
             yield(result)
 
             # Increase the adjoint timestep
-            adj_inc_timestep(time=float(t), finished=self._finished(t,
+            adj_inc_timestep(time=float(t), finished=problem_params.finished(t,
                 finish_time))
 
 

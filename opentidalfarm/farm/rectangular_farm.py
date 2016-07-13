@@ -9,7 +9,7 @@ class RectangularFarm(Farm):
 
     """
     def __init__(self, domain, site_x_start, site_x_end, site_y_start,
-                 site_y_end, turbine=None, site_ids=None, order=2):
+                 site_y_end, turbine=None, site_ids=None, order=2, n_time_steps=None):
         """Initializes an empty rectangular farm with the given dimensions.
 
         :param mesh: The name of the mesh file to use, e.g. 'mesh.xml' if the
@@ -23,11 +23,15 @@ class RectangularFarm(Farm):
         :type site_y_start: float
         :param site_y_end: The maximum y-coordinate for the site.
         :type site_y_end: float
-
+        :param n_time_steps: Only used with dynamic friction and should be
+                             calculated with problem_parameters.n_time_steps. 
         """
         # Initialize the base clas
-        super(RectangularFarm, self).__init__(domain, turbine, site_ids)
-
+        super(RectangularFarm, self).__init__(domain, turbine, site_ids,
+                                              n_time_steps=n_time_steps)
+    
+        self.n_time_steps = n_time_steps
+        
         # Create a turbine function space and set the function space in the
         # cache.
         self._turbine_function_space = FunctionSpace(self.domain.mesh, "CG", order)
@@ -216,11 +220,15 @@ class RectangularFarm(Farm):
 
         return lower_bounds, upper_bounds
 
-    def friction_constraints(self, n_time_steps=1, lower_bounds=0., upper_bounds=None):
+    def friction_constraints(self, lower_bounds=0., upper_bounds=None):
         if (upper_bounds == None):
             upper_bounds = upper_bounds = self._turbine_specification.friction
         n_turbines = len(self.turbine_positions)
-        lower_bounds = n_time_steps*n_turbines*[dolfin_adjoint.Constant(lower_bounds)]
-        upper_bounds = n_time_steps*n_turbines*[dolfin_adjoint.Constant(upper_bounds)]
+        if (self.n_time_steps == None):
+            self.n_time_steps = 0
+        lower_bounds = (self.n_time_steps+1)*n_turbines*\
+                       [dolfin_adjoint.Constant(lower_bounds)]
+        upper_bounds = (self.n_time_steps+1)*n_turbines*\
+                       [dolfin_adjoint.Constant(upper_bounds)]
 
         return lower_bounds, upper_bounds
