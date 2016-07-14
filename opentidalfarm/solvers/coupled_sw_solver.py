@@ -367,10 +367,11 @@ CoupledSWSolverParameters."
 
         if farm:
 
+            u_mag = dot(u_mid, u_mid)**0.5
+
             if not farm.turbine_specification.thrust:
-                R_mid += tf/H*dot(u_mid, u_mid)**0.5*inner(u_mid, v)*farm.site_dx
+                R_mid += tf/H*u_mag*inner(u_mid, v)*farm.site_dx
             else:
-                u_mag = dot(u_mid, u_mid)**0.5
                 C_t = farm.turbine_specification.compute_C_t(u_mag)
                 R_mid += (tf * farm.turbine_specification.turbine_parametrisation_constant * \
                           C_t / H) * u_mag * inner(u_mid, v) * farm.site_dx
