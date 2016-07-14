@@ -17,14 +17,16 @@
 # potential of a site in a realistic domain.
 #
 # We will be simulating the tides in the Pentland Firth, Scotland for 12.5
-# hours, starting at 14:40 am on the 18.9.2001. The flow result at the end of
-# the simulation looks like:
+# hours, starting at 14:40 am on the 18.9.2001.
 #
-# .. image:: flow.png
-#     :scale: 80
-#
-# This example requires some large data files, that must be downloaded
+# This example uses a "continuous turbine approach", as described in
+#    **Funke SW, Kramer SC, Piggott MD**, *Design optimisation and resource assessment
+#    for tidal-stream renewable energy farms using a new continuous turbine
+#    approach*
+
+# To run this example, some data files must be downloaded
 # separately by calling in the source code directory:
+#
 #
 # .. code-block:: bash
 #
@@ -137,8 +139,8 @@ prob_params.viscosity = nu_func
 prob_params.friction = Constant(0.0025)
 # Temporal settings
 prob_params.start_time = Constant(0)
-prob_params.finish_time = Constant(5*60) # 12.5*60*60)
-prob_params.dt = Constant(2.5*60)
+prob_params.finish_time = Constant(20*60) # 12.5*60*60)
+prob_params.dt = Constant(5*60)
 # The initial condition consists of three components: u_x, u_y and eta.
 # Note that we set the velocity components to a small positive number, as some
 # components of the Jacobian of the quadratic friction term is
@@ -155,18 +157,23 @@ problem = SWProblem(prob_params)
 
 # Next we create a shallow water solver. Here we choose to solve the shallow
 # water equations in its fully coupled form:
+
 sol_params = CoupledSWSolver.default_parameters()
 solver = CoupledSWSolver(problem, sol_params)
 
 #plot(farm.domain.cell_ids)
 
+
+# Now we can define the functional and control values:
+
 functional = PowerFunctional(problem)
 control = TurbineFarmControl(farm)
+
+# Finally, we create the reduced functional and start the optimisation.
+
 rf_params = ReducedFunctionalParameters()
 rf_params.automatic_scaling = False
-
 rf = ReducedFunctional(functional, control, solver, rf_params)
-
 f_opt = maximize(rf, bounds=[0, 0.05890486225480861],
                  method="L-BFGS-B", options={'maxiter': 30})
 

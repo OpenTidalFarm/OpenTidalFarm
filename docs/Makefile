@@ -64,6 +64,8 @@ build_examples:
 	bin/pylit.py --overwrite yes $(EXAMPLES_IN)/channel-sensitivities/channel-sensitivities.py $(EXAMPLES_OUT)/channel-sens/channel-sens.rst
 	mkdir -p $(EXAMPLES_OUT)/headland-optimization
 	bin/pylit.py --overwrite yes $(EXAMPLES_IN)/headland-optimization/headland-optimization.py $(EXAMPLES_OUT)/headland-optimization/headland-optimization.rst
+	mkdir -p $(EXAMPLES_OUT)/resource-assessment
+	bin/pylit.py --overwrite yes $(EXAMPLES_IN)/resource-assessment/resource-assessment.py $(EXAMPLES_OUT)/resource-assessment/resource-assessment.rst
 
 auto_apidoc:
 	sphinx-apidoc -T -f -o . ../opentidalfarm/
