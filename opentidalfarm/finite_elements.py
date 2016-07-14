@@ -1,77 +1,77 @@
 from dolfin import *
 
 
-def rt0(mesh):
+def rt0():
     "Return a function space U*H on mesh from the rt0 space."
 
-    V = FunctionSpace(mesh, 'Raviart-Thomas', 1)  # Velocity space
+    V = FiniteElement('Raviart-Thomas', triangle, 1)  # Velocity space
 
-    H = FunctionSpace(mesh, 'DG', 0)               # Height space
+    H = FiniteElement('DG', triangle, 0)               # Height space
 
     return V, H
 
 
-def p2p1(mesh):
+def p2p1():
     "Return a function space U*H on mesh from the P2P1 space."
 
-    V = VectorFunctionSpace(mesh, 'CG', 2, dim=2)  # Velocity space
+    V = VectorElement('CG', triangle, 2, dim=2)  # Velocity space
 
-    H = FunctionSpace(mesh, 'CG', 1)               # Height space
+    H = FiniteElement('CG', triangle, 1)               # Height space
 
     return V, H
 
-def mini(mesh):
+def mini():
     "Return a function space U*H on mesh from the mini space."
 
-    V = VectorFunctionSpace(mesh, 'CG', 1, dim=2) + VectorFunctionSpace(mesh, 'Bubble', 3) # Velocity space
+    V = VectorElement('CG', triangle, 1, dim=2) + VectorElement('Bubble', triangle, 3) # Velocity space
 
-    H = FunctionSpace(mesh, 'CG', 1)               # Height space
+    H = FiniteElement('CG', triangle, 1)               # Height space
 
     return V, H
 
-def p1dgp2(mesh):
+def p1dgp2():
     "Return a function space U*H on mesh from the P1dgP2 space."
 
-    V = VectorFunctionSpace(mesh, 'DG', 1, dim=2)  # Velocity space
+    V = VectorElement('DG', triangle, 1, dim=2)  # Velocity space
 
-    H = FunctionSpace(mesh, 'CG', 2)               # Height space
+    H = FiniteElement('CG', triangle, 2)               # Height space
 
     return V, H
 
-def p0p1(mesh):
+def p0p1():
     "Return a function space U*H on mesh from the P0P1 space."
 
-    V = VectorFunctionSpace(mesh, 'DG', 0, dim=2)  # Velocity space
+    V = VectorElement('DG', triangle, 0, dim=2)  # Velocity space
 
-    H = FunctionSpace(mesh, 'CG', 1)               # Height space
+    H = FiniteElement('CG', triangle, 1)               # Height space
 
     return V, H
 
-def bdfmp1dg(mesh):
+def bdfmp1dg():
     "Return a function space U*H on mesh from the BFDM1 space."
 
     V = FunctionSpace(mesh, 'BDFM', 1)             # Velocity space
 
-    H = FunctionSpace(mesh, 'DG', 1)               # Height space
+    H = FiniteElement('DG', triangle, 1)               # Height space
 
     return V, H
 
 
-def bdmp0(mesh):
+def bdmp0():
     "Return a function space U*H on mesh from the BFDM1 space."
 
     V = FunctionSpace(mesh, 'BDM', 1)              # Velocity space
 
-    H = FunctionSpace(mesh, 'DG', 0)               # Height space
+    H = FiniteElement('DG', triangle, 0)               # Height space
 
     return V, H
 
 
-def bdmp1dg(mesh):
+def bdmp1dg():
     "Return a function space U*H on mesh from the BFDM1 space."
 
     V = FunctionSpace(mesh, 'BDM', 1)             # Velocity space
 
-    H = FunctionSpace(mesh, 'DG', 1)              # Height space
+    H = FiniteElement('DG', triangle, 1)              # Height space
 
     return V, H

@@ -158,8 +158,8 @@ CoupledSWSolverParameters."
         self.state = None
 
         self.mesh = problem.parameters.domain.mesh
-        V, H = self.problem.parameters.finite_element(self.mesh)
-        self.function_space = MixedFunctionSpace([V, H])
+        elements = self.problem.parameters.finite_element()
+        self.function_space = FunctionSpace(self.mesh, MixedElement(elements))
         self.optimisation_iteration = 0
 
     @staticmethod
@@ -353,9 +353,9 @@ CoupledSWSolverParameters."
         if not farm:
             tf = Constant(0)
         elif type(farm.friction_function) == list:
-            tf = Function(farm.friction_function[0], name="turbine_friction", annotate=annotate)
+            tf = farm.friction_function[0].copy(deepcopy=True, name="turbine_friction", annotate=annotate)
         else:
-            tf = Function(farm.friction_function, name="turbine_friction", annotate=annotate)
+            tf = farm.friction_function.copy(deepcopy=True, name="turbine_friction", annotate=annotate)
 
         # Friction term
         # FIXME: FEniCS fails on assembling the below form for u_mid = 0, even
@@ -369,12 +369,12 @@ CoupledSWSolverParameters."
 
             if not farm.turbine_specification.thrust:
                 R_mid += tf/H*dot(u_mid, u_mid)**0.5*inner(u_mid, v)*farm.site_dx
-            else: 
+            else:
                 u_mag = dot(u_mid, u_mid)**0.5
                 C_t = farm.turbine_specification.compute_C_t(u_mag)
                 R_mid += (tf * farm.turbine_specification.turbine_parametrisation_constant * \
                           C_t / H) * u_mag * inner(u_mid, v) * farm.site_dx
-        
+
         # Advection term
         if include_advection:
             Ad_mid = inner(dot(grad(u_mid), u_mid), v) * dx
