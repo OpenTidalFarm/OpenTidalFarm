@@ -93,9 +93,11 @@ class FenicsReducedFunctional(ReducedFunctional):
 
         # Update the control values.
         # Note that we do not update the control values on the tape,
-        # because OpenTidalFarm reannotates the tape in each iteartion.
+        # because OpenTidalFarm reannotates the tape in each iteration.
 	for c, v in zip(self.controls, value):
             vec = c.coeff.vector()
+            if vec.id() == v.vector().id():
+                continue
             vec.zero()
             vec.axpy(1, v.vector())
 

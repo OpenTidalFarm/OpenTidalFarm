@@ -180,7 +180,8 @@ Finally let's compute the sensitivity with respect to viscosity
   rf = FenicsReducedFunctional(functional, control, solver)
   j = rf.evaluate()
   dj = rf.derivative(project=True)
-  plot(dj, interactive=True, title="Sensitivity with respect to viscosity")
+  plot(dj, title="Sensitivity with respect to viscosity")
+  interactive()
   
 
 .. image:: sens_visc.png
