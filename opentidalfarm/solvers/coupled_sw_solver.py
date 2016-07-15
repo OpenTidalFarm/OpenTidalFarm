@@ -467,13 +467,6 @@ CoupledSWSolverParameters."
                 if type(farm.friction_function) == list:
                     tf.assign(theta*farm.friction_function[timestep]+(1.-float(theta))\
                               *farm.friction_function[timestep-1], annotate=annotate)
-                    if not farm.turbine_specification.thrust:
-                        R_mid += tf/H*dot(u_mid, u_mid)**0.5*inner(u_mid,v)*farm.site_dx
-                    else:
-                        u_mag = dot(u_mid, u_mid)**0.5
-                        C_t = farm.turbine_specification.compute_C_t(u_mag)
-                        R_mid += (tf*farm.turbine_specification.turbine_parametrisation_constant * C_t / H) * u_mag * inner(u_mid, v) * farm.site_dx
-                    F = F_without_R_mid + dt * R_mid
                 else:
                     tf.assign(farm.friction_function)
                 f << tf
