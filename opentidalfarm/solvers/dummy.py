@@ -32,7 +32,7 @@ class DummySolver(Solver):
         self.A = (1.0 + turbine_field) * inner(v, u) * dx
         self.A += inner(q, h) * dx
 
-        self.tf = Function(turbine_field, name="turbine_friction", annotate=annotate)
+        self.tf = turbine_field.copy(deepcopy=True, name="turbine_friction", annotate=annotate)
 
         self.annotate = annotate
 
@@ -47,8 +47,8 @@ class DummySolver(Solver):
         mesh = problem_params.domain.mesh
 
         # Create function spaces
-        V, H = problem_params.finite_element(mesh)
-        W = MixedFunctionSpace([V, H])
+        element = problem_params.finite_element()
+        W = FunctionSpace(mesh, MixedElement(element))
 
         # Load initial condition
         # Projection is necessary to obtain 2nd order convergence

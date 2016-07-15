@@ -56,7 +56,7 @@ class ThrustTurbine(BaseTurbine):
             # velocity. Since the drag term is computed from the local depth-averaged
             # velocity (which is lower) we need to compensate for this. The theory
             # behind this is explained in http://arxiv.org/abs/1506.03611
-            
+
             if water_depth is None:
                 raise ValueError("The water_depth needs to be specifed for the upwind correction")
             # the "numerical" cross-section this is the cross section over which

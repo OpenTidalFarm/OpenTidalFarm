@@ -1,5 +1,6 @@
 import numpy
 import dolfin
+import dolfin_adjoint
 from ..optimisation_helpers import MinimumDistanceConstraints
 from ..optimisation_helpers import MinimumDistanceConstraintsLargeArrays
 from ..turbine_cache import TurbineCache
@@ -62,6 +63,23 @@ class BaseFarm(object):
         """
         return len(self.turbine_cache["position"])
 
+    @property
+    def control_array_global(self):
+        """A serialized representation of the farm based on the controls.
+
+        In contrast to the control_array property, this property returns the
+        global array of all CPUs. In serial, control_array and
+        control_array_global are equivalent.
+
+        :returns: A serialized representation of the farm based on the controls.
+        :rtype: numpy.ndarray
+        """
+
+        if self._turbine_specification.smeared:
+            return dolfin_adjoint.optimization.get_global(self.friction_function)
+
+        else:
+            return self.control_array
 
     @property
     def control_array(self):

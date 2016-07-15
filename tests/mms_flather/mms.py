@@ -41,8 +41,8 @@ def compute_error(problem_params, eta0, k):
                               depth=problem.parameters.depth,
                               t=Constant(problem.parameters.finish_time),
                               k=k,
-                              degree=2)
-    return errornorm(analytic_sol, state, degree_rise=2)
+                              degree=3)
+    return errornorm(analytic_sol, state, degree_rise=1)
 
 
 def setup_model(parameters, sin_ic, time_step, finish_time, mesh_x, mesh_y=2):

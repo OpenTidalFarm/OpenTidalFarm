@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <dolfin xmlns:dolfin="http://fenicsproject.org">
   <mesh_function type="uint" dim="1" size="3707">
-    <entity index="0" value="0"/>
-    <entity index="1" value="0"/>
+    <entity index="0" value="3"/>
+    <entity index="1" value="1"/>
     <entity index="2" value="0"/>
-    <entity index="3" value="0"/>
-    <entity index="4" value="0"/>
+    <entity index="3" value="3"/>
+    <entity index="4" value="2"/>
     <entity index="5" value="0"/>
-    <entity index="6" value="0"/>
-    <entity index="7" value="0"/>
+    <entity index="6" value="3"/>
+    <entity index="7" value="1"/>
     <entity index="8" value="0"/>
-    <entity index="9" value="0"/>
-    <entity index="10" value="0"/>
+    <entity index="9" value="2"/>
+    <entity index="10" value="3"/>
     <entity index="11" value="0"/>
     <entity index="12" value="0"/>
     <entity index="13" value="0"/>
@@ -729,119 +729,119 @@
     <entity index="725" value="0"/>
     <entity index="726" value="0"/>
     <entity index="727" value="0"/>
-    <entity index="728" value="0"/>
+    <entity index="728" value="3"/>
     <entity index="729" value="0"/>
     <entity index="730" value="0"/>
-    <entity index="731" value="0"/>
+    <entity index="731" value="3"/>
     <entity index="732" value="0"/>
     <entity index="733" value="0"/>
-    <entity index="734" value="0"/>
+    <entity index="734" value="3"/>
     <entity index="735" value="0"/>
     <entity index="736" value="0"/>
     <entity index="737" value="0"/>
     <entity index="738" value="0"/>
-    <entity index="739" value="0"/>
+    <entity index="739" value="3"/>
     <entity index="740" value="0"/>
     <entity index="741" value="0"/>
-    <entity index="742" value="0"/>
+    <entity index="742" value="3"/>
     <entity index="743" value="0"/>
     <entity index="744" value="0"/>
-    <entity index="745" value="0"/>
+    <entity index="745" value="3"/>
     <entity index="746" value="0"/>
     <entity index="747" value="0"/>
     <entity index="748" value="0"/>
-    <entity index="749" value="0"/>
+    <entity index="749" value="3"/>
     <entity index="750" value="0"/>
     <entity index="751" value="0"/>
     <entity index="752" value="0"/>
-    <entity index="753" value="0"/>
+    <entity index="753" value="3"/>
     <entity index="754" value="0"/>
     <entity index="755" value="0"/>
-    <entity index="756" value="0"/>
+    <entity index="756" value="3"/>
     <entity index="757" value="0"/>
     <entity index="758" value="0"/>
     <entity index="759" value="0"/>
-    <entity index="760" value="0"/>
+    <entity index="760" value="3"/>
     <entity index="761" value="0"/>
     <entity index="762" value="0"/>
-    <entity index="763" value="0"/>
+    <entity index="763" value="3"/>
     <entity index="764" value="0"/>
     <entity index="765" value="0"/>
     <entity index="766" value="0"/>
     <entity index="767" value="0"/>
-    <entity index="768" value="0"/>
+    <entity index="768" value="2"/>
     <entity index="769" value="0"/>
     <entity index="770" value="0"/>
-    <entity index="771" value="0"/>
+    <entity index="771" value="2"/>
     <entity index="772" value="0"/>
     <entity index="773" value="0"/>
-    <entity index="774" value="0"/>
+    <entity index="774" value="2"/>
     <entity index="775" value="0"/>
     <entity index="776" value="0"/>
     <entity index="777" value="0"/>
-    <entity index="778" value="0"/>
+    <entity index="778" value="2"/>
     <entity index="779" value="0"/>
     <entity index="780" value="0"/>
     <entity index="781" value="0"/>
-    <entity index="782" value="0"/>
+    <entity index="782" value="2"/>
     <entity index="783" value="0"/>
     <entity index="784" value="0"/>
     <entity index="785" value="0"/>
     <entity index="786" value="0"/>
-    <entity index="787" value="0"/>
+    <entity index="787" value="3"/>
     <entity index="788" value="0"/>
     <entity index="789" value="0"/>
-    <entity index="790" value="0"/>
+    <entity index="790" value="3"/>
     <entity index="791" value="0"/>
     <entity index="792" value="0"/>
-    <entity index="793" value="0"/>
+    <entity index="793" value="3"/>
     <entity index="794" value="0"/>
     <entity index="795" value="0"/>
     <entity index="796" value="0"/>
-    <entity index="797" value="0"/>
+    <entity index="797" value="3"/>
     <entity index="798" value="0"/>
     <entity index="799" value="0"/>
     <entity index="800" value="0"/>
-    <entity index="801" value="0"/>
+    <entity index="801" value="3"/>
     <entity index="802" value="0"/>
     <entity index="803" value="0"/>
-    <entity index="804" value="0"/>
+    <entity index="804" value="3"/>
     <entity index="805" value="0"/>
     <entity index="806" value="0"/>
     <entity index="807" value="0"/>
-    <entity index="808" value="0"/>
+    <entity index="808" value="3"/>
     <entity index="809" value="0"/>
     <entity index="810" value="0"/>
     <entity index="811" value="0"/>
-    <entity index="812" value="0"/>
+    <entity index="812" value="3"/>
     <entity index="813" value="0"/>
     <entity index="814" value="0"/>
-    <entity index="815" value="0"/>
+    <entity index="815" value="3"/>
     <entity index="816" value="0"/>
     <entity index="817" value="0"/>
-    <entity index="818" value="0"/>
+    <entity index="818" value="3"/>
     <entity index="819" value="0"/>
     <entity index="820" value="0"/>
     <entity index="821" value="0"/>
-    <entity index="822" value="0"/>
+    <entity index="822" value="3"/>
     <entity index="823" value="0"/>
     <entity index="824" value="0"/>
     <entity index="825" value="0"/>
     <entity index="826" value="0"/>
-    <entity index="827" value="0"/>
+    <entity index="827" value="1"/>
     <entity index="828" value="0"/>
     <entity index="829" value="0"/>
-    <entity index="830" value="0"/>
+    <entity index="830" value="1"/>
     <entity index="831" value="0"/>
     <entity index="832" value="0"/>
-    <entity index="833" value="0"/>
+    <entity index="833" value="1"/>
     <entity index="834" value="0"/>
     <entity index="835" value="0"/>
-    <entity index="836" value="0"/>
+    <entity index="836" value="1"/>
     <entity index="837" value="0"/>
     <entity index="838" value="0"/>
     <entity index="839" value="0"/>
-    <entity index="840" value="0"/>
+    <entity index="840" value="1"/>
     <entity index="841" value="0"/>
     <entity index="842" value="0"/>
     <entity index="843" value="0"/>
@@ -1685,7 +1685,7 @@
     <entity index="1681" value="0"/>
     <entity index="1682" value="0"/>
     <entity index="1683" value="0"/>
-    <entity index="1684" value="2"/>
+    <entity index="1684" value="0"/>
     <entity index="1685" value="0"/>
     <entity index="1686" value="0"/>
     <entity index="1687" value="0"/>
@@ -1849,7 +1849,7 @@
     <entity index="1845" value="0"/>
     <entity index="1846" value="0"/>
     <entity index="1847" value="0"/>
-    <entity index="1848" value="3"/>
+    <entity index="1848" value="0"/>
     <entity index="1849" value="0"/>
     <entity index="1850" value="0"/>
     <entity index="1851" value="0"/>
@@ -2018,7 +2018,7 @@
     <entity index="2014" value="0"/>
     <entity index="2015" value="0"/>
     <entity index="2016" value="0"/>
-    <entity index="2017" value="3"/>
+    <entity index="2017" value="0"/>
     <entity index="2018" value="0"/>
     <entity index="2019" value="0"/>
     <entity index="2020" value="0"/>
@@ -2297,7 +2297,7 @@
     <entity index="2293" value="0"/>
     <entity index="2294" value="0"/>
     <entity index="2295" value="0"/>
-    <entity index="2296" value="1"/>
+    <entity index="2296" value="0"/>
     <entity index="2297" value="0"/>
     <entity index="2298" value="0"/>
     <entity index="2299" value="0"/>
@@ -2476,7 +2476,7 @@
     <entity index="2472" value="0"/>
     <entity index="2473" value="0"/>
     <entity index="2474" value="0"/>
-    <entity index="2475" value="1"/>
+    <entity index="2475" value="0"/>
     <entity index="2476" value="0"/>
     <entity index="2477" value="0"/>
     <entity index="2478" value="0"/>
@@ -2513,9 +2513,9 @@
     <entity index="2509" value="0"/>
     <entity index="2510" value="0"/>
     <entity index="2511" value="0"/>
-    <entity index="2512" value="3"/>
+    <entity index="2512" value="0"/>
     <entity index="2513" value="0"/>
-    <entity index="2514" value="3"/>
+    <entity index="2514" value="0"/>
     <entity index="2515" value="0"/>
     <entity index="2516" value="0"/>
     <entity index="2517" value="0"/>
@@ -2574,8 +2574,8 @@
     <entity index="2570" value="0"/>
     <entity index="2571" value="0"/>
     <entity index="2572" value="0"/>
-    <entity index="2573" value="3"/>
-    <entity index="2574" value="3"/>
+    <entity index="2573" value="0"/>
+    <entity index="2574" value="0"/>
     <entity index="2575" value="0"/>
     <entity index="2576" value="0"/>
     <entity index="2577" value="0"/>
@@ -2635,7 +2635,7 @@
     <entity index="2631" value="0"/>
     <entity index="2632" value="0"/>
     <entity index="2633" value="0"/>
-    <entity index="2634" value="2"/>
+    <entity index="2634" value="0"/>
     <entity index="2635" value="0"/>
     <entity index="2636" value="0"/>
     <entity index="2637" value="0"/>
@@ -2759,13 +2759,13 @@
     <entity index="2755" value="0"/>
     <entity index="2756" value="0"/>
     <entity index="2757" value="0"/>
-    <entity index="2758" value="3"/>
+    <entity index="2758" value="0"/>
     <entity index="2759" value="0"/>
     <entity index="2760" value="0"/>
-    <entity index="2761" value="3"/>
+    <entity index="2761" value="0"/>
     <entity index="2762" value="0"/>
     <entity index="2763" value="0"/>
-    <entity index="2764" value="3"/>
+    <entity index="2764" value="0"/>
     <entity index="2765" value="0"/>
     <entity index="2766" value="0"/>
     <entity index="2767" value="0"/>
@@ -2858,7 +2858,7 @@
     <entity index="2854" value="0"/>
     <entity index="2855" value="0"/>
     <entity index="2856" value="0"/>
-    <entity index="2857" value="2"/>
+    <entity index="2857" value="0"/>
     <entity index="2858" value="0"/>
     <entity index="2859" value="0"/>
     <entity index="2860" value="0"/>
@@ -2906,9 +2906,9 @@
     <entity index="2902" value="0"/>
     <entity index="2903" value="0"/>
     <entity index="2904" value="0"/>
-    <entity index="2905" value="3"/>
+    <entity index="2905" value="0"/>
     <entity index="2906" value="0"/>
-    <entity index="2907" value="3"/>
+    <entity index="2907" value="0"/>
     <entity index="2908" value="0"/>
     <entity index="2909" value="0"/>
     <entity index="2910" value="0"/>
@@ -2958,7 +2958,7 @@
     <entity index="2954" value="0"/>
     <entity index="2955" value="0"/>
     <entity index="2956" value="0"/>
-    <entity index="2957" value="3"/>
+    <entity index="2957" value="0"/>
     <entity index="2958" value="0"/>
     <entity index="2959" value="0"/>
     <entity index="2960" value="0"/>
@@ -3000,7 +3000,7 @@
     <entity index="2996" value="0"/>
     <entity index="2997" value="0"/>
     <entity index="2998" value="0"/>
-    <entity index="2999" value="3"/>
+    <entity index="2999" value="0"/>
     <entity index="3000" value="0"/>
     <entity index="3001" value="0"/>
     <entity index="3002" value="0"/>
@@ -3021,7 +3021,7 @@
     <entity index="3017" value="0"/>
     <entity index="3018" value="0"/>
     <entity index="3019" value="0"/>
-    <entity index="3020" value="1"/>
+    <entity index="3020" value="0"/>
     <entity index="3021" value="0"/>
     <entity index="3022" value="0"/>
     <entity index="3023" value="0"/>
@@ -3032,7 +3032,7 @@
     <entity index="3028" value="0"/>
     <entity index="3029" value="0"/>
     <entity index="3030" value="0"/>
-    <entity index="3031" value="2"/>
+    <entity index="3031" value="0"/>
     <entity index="3032" value="0"/>
     <entity index="3033" value="0"/>
     <entity index="3034" value="0"/>
@@ -3042,7 +3042,7 @@
     <entity index="3038" value="0"/>
     <entity index="3039" value="0"/>
     <entity index="3040" value="0"/>
-    <entity index="3041" value="3"/>
+    <entity index="3041" value="0"/>
     <entity index="3042" value="0"/>
     <entity index="3043" value="0"/>
     <entity index="3044" value="0"/>
@@ -3134,10 +3134,10 @@
     <entity index="3130" value="0"/>
     <entity index="3131" value="0"/>
     <entity index="3132" value="0"/>
-    <entity index="3133" value="3"/>
+    <entity index="3133" value="0"/>
     <entity index="3134" value="0"/>
     <entity index="3135" value="0"/>
-    <entity index="3136" value="3"/>
+    <entity index="3136" value="0"/>
     <entity index="3137" value="0"/>
     <entity index="3138" value="0"/>
     <entity index="3139" value="0"/>
@@ -3150,7 +3150,7 @@
     <entity index="3146" value="0"/>
     <entity index="3147" value="0"/>
     <entity index="3148" value="0"/>
-    <entity index="3149" value="1"/>
+    <entity index="3149" value="0"/>
     <entity index="3150" value="0"/>
     <entity index="3151" value="0"/>
     <entity index="3152" value="0"/>
@@ -3178,13 +3178,13 @@
     <entity index="3174" value="0"/>
     <entity index="3175" value="0"/>
     <entity index="3176" value="0"/>
-    <entity index="3177" value="3"/>
+    <entity index="3177" value="0"/>
     <entity index="3178" value="0"/>
-    <entity index="3179" value="3"/>
+    <entity index="3179" value="0"/>
     <entity index="3180" value="0"/>
     <entity index="3181" value="0"/>
     <entity index="3182" value="0"/>
-    <entity index="3183" value="3"/>
+    <entity index="3183" value="0"/>
     <entity index="3184" value="0"/>
     <entity index="3185" value="0"/>
     <entity index="3186" value="0"/>
@@ -3248,7 +3248,7 @@
     <entity index="3244" value="0"/>
     <entity index="3245" value="0"/>
     <entity index="3246" value="0"/>
-    <entity index="3247" value="3"/>
+    <entity index="3247" value="0"/>
     <entity index="3248" value="0"/>
     <entity index="3249" value="0"/>
     <entity index="3250" value="0"/>
@@ -3261,20 +3261,20 @@
     <entity index="3257" value="0"/>
     <entity index="3258" value="0"/>
     <entity index="3259" value="0"/>
-    <entity index="3260" value="3"/>
+    <entity index="3260" value="0"/>
     <entity index="3261" value="0"/>
     <entity index="3262" value="0"/>
     <entity index="3263" value="0"/>
     <entity index="3264" value="0"/>
     <entity index="3265" value="0"/>
-    <entity index="3266" value="3"/>
+    <entity index="3266" value="0"/>
     <entity index="3267" value="0"/>
     <entity index="3268" value="0"/>
     <entity index="3269" value="0"/>
     <entity index="3270" value="0"/>
-    <entity index="3271" value="1"/>
+    <entity index="3271" value="0"/>
     <entity index="3272" value="0"/>
-    <entity index="3273" value="3"/>
+    <entity index="3273" value="0"/>
     <entity index="3274" value="0"/>
     <entity index="3275" value="0"/>
     <entity index="3276" value="0"/>
@@ -3285,18 +3285,18 @@
     <entity index="3281" value="0"/>
     <entity index="3282" value="0"/>
     <entity index="3283" value="0"/>
-    <entity index="3284" value="3"/>
+    <entity index="3284" value="0"/>
     <entity index="3285" value="0"/>
     <entity index="3286" value="0"/>
     <entity index="3287" value="0"/>
     <entity index="3288" value="0"/>
-    <entity index="3289" value="2"/>
+    <entity index="3289" value="0"/>
     <entity index="3290" value="0"/>
     <entity index="3291" value="0"/>
     <entity index="3292" value="0"/>
-    <entity index="3293" value="3"/>
+    <entity index="3293" value="0"/>
     <entity index="3294" value="0"/>
-    <entity index="3295" value="1"/>
+    <entity index="3295" value="0"/>
     <entity index="3296" value="0"/>
     <entity index="3297" value="0"/>
     <entity index="3298" value="0"/>
@@ -3315,7 +3315,7 @@
     <entity index="3311" value="0"/>
     <entity index="3312" value="0"/>
     <entity index="3313" value="0"/>
-    <entity index="3314" value="1"/>
+    <entity index="3314" value="0"/>
     <entity index="3315" value="0"/>
     <entity index="3316" value="0"/>
     <entity index="3317" value="0"/>
@@ -3335,7 +3335,7 @@
     <entity index="3331" value="0"/>
     <entity index="3332" value="0"/>
     <entity index="3333" value="0"/>
-    <entity index="3334" value="3"/>
+    <entity index="3334" value="0"/>
     <entity index="3335" value="0"/>
     <entity index="3336" value="0"/>
     <entity index="3337" value="0"/>
@@ -3343,7 +3343,7 @@
     <entity index="3339" value="0"/>
     <entity index="3340" value="0"/>
     <entity index="3341" value="0"/>
-    <entity index="3342" value="2"/>
+    <entity index="3342" value="0"/>
     <entity index="3343" value="0"/>
     <entity index="3344" value="0"/>
     <entity index="3345" value="0"/>
@@ -3457,7 +3457,7 @@
     <entity index="3453" value="0"/>
     <entity index="3454" value="0"/>
     <entity index="3455" value="0"/>
-    <entity index="3456" value="2"/>
+    <entity index="3456" value="0"/>
     <entity index="3457" value="0"/>
     <entity index="3458" value="0"/>
     <entity index="3459" value="0"/>

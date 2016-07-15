@@ -32,6 +32,8 @@ from dolfin import *
 from dolfin_adjoint import minimize, maximize, Function, solve, Control, \
                            Constant
 
+parameters["form_compiler"]["representation"] = "uflacs"
+
 # We set the perturbation_direction with a constant seed, so that it is
 # consistent in a parallel environment.
 import numpy

@@ -176,7 +176,9 @@ IPCSSWSolverParameters."
         self.state_cache = {}
 
         self.mesh = problem.parameters.domain.mesh
-        self.V, self.Q = self.problem.parameters.finite_element(self.mesh)
+        ele_u, ele_eta = self.problem.parameters.finite_element()
+        self.V = FunctionSpace(self.mesh, ele_u)
+        self.Q = FunctionSpace(self.mesh, ele_eta)
 
 
     @staticmethod

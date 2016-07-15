@@ -68,10 +68,19 @@ For questions and to report issues use the `GitHub issue tracker
 News
 ----
 
+- 14.07.2016: OpenTidalFarm 2016.1 released (compatibled with FEniCS 2016.1)
+
+  - Continuous farm representation
+  - Add a minimum distance constraints with many turbines (>300)
+  - Support for turbine with thrust coefficient
+  - New examples
+  - Compatible with FEniCS 2016.1
+
 - 19.01.2015: OpenTidalFarm 1.5 released (compatibled with FEniCS 1.5)
 
-  - Support of continuous farm optimisation.
-  - Support for sensitivity analysis.
+  - Support for sensitivity analysis
+  - New examples
+  - Compatible with FEniCS 1.5
 
 - 20.08.2014: OpenTidalFarm 1.4 released (compatibled with FEniCS 1.4)
 

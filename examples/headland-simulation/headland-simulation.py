@@ -167,13 +167,13 @@ for s in solver.solve(annotate=False):
 
     # Write velocity, surface elevation and vorticity to files
     u.assign(project(s["u"]), V)
-    u_xdmf << u, float(s["time"])
+    u_xdmf.write(u, float(s["time"]))
 
     eta.assign(project(s["eta"]), Q)
-    eta_xdmf << eta, float(s["time"])
+    eta_xdmf.write(eta, float(s["time"]))
 
     vort = vort_solver.solve(u)
-    vort_xdmf << vort, float(s["time"])
+    vort_xdmf.write(vort, float(s["time"]))
 
 # The inner part of the loop is executed for each timestep. The variable :attr:`s`
 # is a dictionary and contains information like the current timelevel, the velocity and

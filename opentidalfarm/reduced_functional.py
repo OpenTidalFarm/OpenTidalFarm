@@ -118,7 +118,7 @@ class ReducedFunctional(ReducedFunctionalPrototype):
         farm = self.solver.problem.parameters.tidal_farm
 
         # If any of the parameters changed, the forward model needs to be re-run
-        if numpy.any(m != self.last_m):
+        if self.last_m is None or numpy.any(m != self.last_m):
             self._compute_functional(m, annotate=True)
 
         J = self.time_integrator.dolfin_adjoint_functional(self.solver.state)
@@ -408,4 +408,4 @@ class TurbineFarmControl(object):
         self.farm = farm
 
     def data(self):
-        return numpy.asarray(self.farm.control_array)
+        return self.farm.control_array_global
