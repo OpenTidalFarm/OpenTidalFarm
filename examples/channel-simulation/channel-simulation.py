@@ -113,7 +113,7 @@ prob_params.friction = Constant(0.0)
 # Temporal settings
 prob_params.theta = Constant(0.5)
 prob_params.start_time = Constant(0)
-prob_params.finish_time = Constant(500)
+prob_params.finish_time = Constant(25)
 prob_params.dt = Constant(0.5)
 # The initial condition consists of three components: u_x, u_y and eta
 # Note that we do not set all components to zero, as some components of the
@@ -137,12 +137,21 @@ sol_params = CoupledSWSolver.default_parameters()
 sol_params.dump_period = -1
 solver = CoupledSWSolver(problem, sol_params)
 
+# We create some files to store the velocity, u, and surface elevation, eta, at
+# each timestep, so it can be viewed in ParaView later.
+
+f_u = XDMFFile(mpi_comm_world(), "u.xdmf")
+f_eta = XDMFFile(mpi_comm_world(), "eta.xdmf")
+
 # Now we are ready to solve the problem.
 
 for s in solver.solve():
     print "Computed solution at time %f" % s["time"]
-    plot(s["state"])
-interactive()  # Hold the plot until the user presses q.
+    u, eta = s["state"].split()
+    f_u.write(u)
+    f_eta.write(eta)
+    plot(u, title="u at time: {}".format(s["time"]))
+    plot(eta, title="eta at time: {}".format(s["time"]))
 
 # The inner part of the loop is executed for each timestep. The variable :attr:`s`
 # is a dictionary and contains information like the current timelevel, the velocity and
