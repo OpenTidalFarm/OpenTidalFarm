@@ -80,7 +80,7 @@ class CoupledSWSolverParameters(FrozenClass):
         self.dolfin_solver["newton_solver"]["linear_solver"] = linear_solver
         self.dolfin_solver["newton_solver"]["preconditioner"] = preconditioner
         self.dolfin_solver["newton_solver"]["maximum_iterations"] = 20
-
+        self.dolfin_solver["newton_solver"]["convergence_criterion"] = "incremental"
 
 class CoupledSWSolver(Solver):
     r""" The coupled solver solves the shallow water equations as a fully coupled

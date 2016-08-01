@@ -154,8 +154,11 @@ for s in solver.solve():
     f_eddy_viscosity.write(s["eddy_viscosity"])
     plot(s["u"], title="u")
     plot(s["eta"], title="eta")
-    plot(s["eddy_viscosity"], title="eddy viscosity")
+    plot(s["eddy_viscosity"], title="eddy viscosity")i
+
+# (Plots is not shown in docker. View the stored xdmf-files instead.)
 interactive()  # Hold the plot until the user presses q.
+
 
 # The inner part of the loop is executed for each timestep. The variable :attr:`s`
 # is a dictionary and contains information like the current timelevel, the velocity and
