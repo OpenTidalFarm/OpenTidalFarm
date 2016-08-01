@@ -19,6 +19,9 @@ class TestDynamicTurbineControl(object):
         # Adjust some global options
         options["output_turbine_power"] = False
 
+        # Set problem parameters
+        problem_params.finish_time = problem_params.start_time + \
+                                     2 * problem_params.dt
 
         # Create Tidalfarm
         basin_x = 640.
@@ -33,16 +36,10 @@ class TestDynamicTurbineControl(object):
                                site_x_end=site_x_start+site_x,
                                site_y_start=site_y_start,
                                site_y_end=site_y_start+site_y,
-                               turbine=turbine)
+                               turbine=turbine,
+                               n_time_steps=problem_params.n_time_steps)
 
         farm.add_regular_turbine_layout(num_x=2, num_y=3)
-
-        # Set problem parameters
-        problem_params.finish_time = problem_params.start_time + \
-                                     2 * problem_params.dt
-
-        friction = farm._parameters["friction"]
-        farm._parameters["friction"] = [friction]*3
 
         # Boundary conditions
         bcs = BoundaryConditionSet()

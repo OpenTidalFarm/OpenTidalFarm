@@ -168,9 +168,6 @@ CoupledSWSolverParameters."
         """
         return CoupledSWSolverParameters()
 
-    def _finished(self, current_time, finish_time):
-        return float(current_time - finish_time) >= - 1e3*DOLFIN_EPS
-
     def _generate_strong_bcs(self):
 
         bcs = self.problem.parameters.bcs
@@ -349,15 +346,16 @@ CoupledSWSolverParameters."
 
         # Bottom friction
         friction = problem_params.friction
-
         if not farm:
             tf = Constant(0)
         elif type(farm.friction_function) == list:
-            tf = farm.friction_function[0].copy(deepcopy=True, name="turbine_friction", annotate=annotate)
+            tf = farm.friction_function[0].copy(deepcopy=True,
+                    name="turbine_friction", annotate=annotate)
+            tf.assign(theta*farm.friction_function[1]+(1.-float(theta))*\
+                      farm.friction_function[0], annotate=annotate)
         else:
-            tf = farm.friction_function.copy(deepcopy=True, name="turbine_friction", annotate=annotate)
-
-        # Friction term
+            tf = farm.friction_function.copy(deepcopy=True,
+                                             name="turbine_friction", annotate=annotate)       
         # FIXME: FEniCS fails on assembling the below form for u_mid = 0, even
         # though it is differentiable. Even this potential fix does not help:
         #norm_u_mid = conditional(inner(u_mid, u_mid)**0.5 < DOLFIN_EPS, Constant(0),
@@ -438,14 +436,14 @@ CoupledSWSolverParameters."
                   "eta": h0,
                   "tf": tf,
                   "state": state,
-                  "is_final": self._finished(t, finish_time)}
+                  "is_final": problem_params.finished(t, finish_time)}
         solver_params.callback(result)
         yield(result)
 
         log(INFO, "Start of time loop")
         adjointer.time.start(t)
         timestep = 0
-        while not self._finished(t, finish_time):
+        while not problem_params.finished(t, finish_time):
             # Update timestep
             timestep += 1
             t = Constant(t + dt)
@@ -457,6 +455,15 @@ CoupledSWSolverParameters."
 
             # Update source term
             f_u.t = Constant(t_theta)
+
+            # Set the control function for the upcoming timestep.
+            if farm:
+                if type(farm.friction_function) == list:
+                    tf.assign(theta*farm.friction_function[timestep]+(1.\
+                              -float(theta))*farm.friction_function[timestep-1], 
+                              annotate=annotate)
+                else:
+                    tf.assign(farm.friction_function)
 
             # Set the initial guess for the solve
             if cache_forward_state and self.state_cache.has_key(float(t)):
@@ -491,13 +498,6 @@ CoupledSWSolverParameters."
                     self.state_cache[float(t)] = Function(self.function_space)
                 self.state_cache[float(t)].assign(state_new, annotate=False)
 
-            # Set the control function for the upcoming timestep.
-            if farm:
-                if type(farm.friction_function) == list:
-                    tf.assign(farm.friction_function[timestep])
-                else:
-                    tf.assign(farm.friction_function)
-
             if (solver_params.dump_period > 0 and
                 timestep % solver_params.dump_period == 0):
                 log(INFO, "Write state to disk...")
@@ -509,12 +509,12 @@ CoupledSWSolverParameters."
                       "eta": h0,
                       "tf": tf,
                       "state": state,
-                      "is_final": self._finished(t, finish_time)}
+                      "is_final": problem_params.finished(t, finish_time)}
             solver_params.callback(result)
             yield(result)
 
             # Increase the adjoint timestep
-            adj_inc_timestep(time=float(t), finished=self._finished(t,
+            adj_inc_timestep(time=float(t), finished=problem_params.finished(t,
                 finish_time))
 
 

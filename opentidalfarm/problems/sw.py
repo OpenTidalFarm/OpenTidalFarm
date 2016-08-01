@@ -35,6 +35,12 @@ class SWProblemParameters(SteadySWProblemParameters):
     # Functional time integration parameters
     functional_final_time_only = False
 
+    @property
+    def n_time_steps(self):
+        n = int(float(self.finish_time - self.start_time) / float(self.dt))
+        if (not self.finished(self.start_time+n*self.dt, self.finish_time)):
+            n += 1
+        return n
 
 class SWProblem(SteadySWProblem):
     r""" Create a transient shallow water problem:
