@@ -43,18 +43,20 @@ class CoupledSWSolverParameters(FrozenClass):
         Default: `os.curdir`
     :ivar output_turbine_power: Output the power generation of the individual
         turbines. Default: False
+    :ivar output_individual_turbine_power: Output a numpy textfile containing
+        the turbine power for each turbine. Default: False
     :ivar output_j: Output the evaluation of the choosen functional (e.g power)
         for each iteration and store it in a numpy textfile. (This is the same
         j that is printed each iteration, when the FEniCS log level is INFO or
-        above.)
+        above.) Default: False
     :ivar output_temporal_breakdown_of_j: Output the j at each timestep and at
         iteration. The output is stored in a numpy textfile. (This is the same
         temporal breakdown which is shown when the FEniCS log level is INFO or
-        above.)
+        above.) Default: False
     :ivar output_abs_u_at_turbine_positions: Output the absolute value of the
-        velocity at each turbine position.
+        velocity at each turbine position. Default: False
     :ivar output_control_array: Output a numpy textfile containing the
-        control array from each optimization iteration.
+        control array from each optimization iteration. Default: False
     :ivar callback: A callback function that is executed for every time-level.
         The callback function must take a single parameter which contains the
         dictionary with the solution variables.
@@ -71,6 +73,7 @@ class CoupledSWSolverParameters(FrozenClass):
     # Output settings
     output_dir = os.curdir
     output_turbine_power = False
+    output_individual_turbine_power = False
     output_j = False
     output_temporal_breakdown_of_j = False
     output_control_array = False
@@ -535,7 +538,9 @@ CoupledSWSolverParameters."
 
 
         # If we're outputting the individual turbine power
-        if self.parameters.print_individual_turbine_power:
+        if (self.parameters.print_individual_turbine_power
+            or ((solver_params.dump_period > 0)
+            and self.parameters.output_individual_turbine_power)):
             self.parameters.output_writer.individual_turbine_power(self)
 
         log(INFO, "End of time loop.")

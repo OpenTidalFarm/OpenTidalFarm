@@ -106,7 +106,9 @@ class ReducedFunctional(ReducedFunctionalPrototype):
         if self.parameters.load_checkpoints:
             self._load_checkpoint()
 
-        if self._solver_params.print_individual_turbine_power:
+        if (self._solver_params.print_individual_turbine_power
+            or ((self.solver.parameters.dump_period > 0)
+            and self._solver_params.output_individual_turbine_power)):
             # if this is enabled, we need to instantiate the relevant helper
             # and pass this to the solver
             output_writer = helpers.OutputWriter(self.functional)
@@ -219,14 +221,18 @@ class ReducedFunctional(ReducedFunctionalPrototype):
             log(INFO, "Time: {} s\t Value: {}.".format(float(time), val))
         log(INFO, "----------------------------------")
 
-        if self._solver_params.output_temporal_breakdown_of_j:
-            filename = os.path.join(self.solver.parameters.output_dir,
-                                    "iter_{}/temporal_breakdown_of_j.txt"\
-                                    .format(self.solver.optimisation_iteration))
+        if ((self.solver.parameters.dump_period > 0)
+            and self._solver_params.output_temporal_breakdown_of_j):
+            dir = os.path.join(self.solver.parameters.output_dir,
+                               "iter_{}".format(self.solver.optimisation_iteration))
+            if not os.path.exists(dir):
+                os.mkdir(dir)
+            filename = os.path.join(dir, "temporal_breakdown_of_j.txt")
             numpy.savetxt(filename, self.time_integrator.vals)
 
         j = float(self.time_integrator.integrate())
-        if self._solver_params.output_j:
+        if ((self.solver.parameters.dump_period > 0)
+            and self._solver_params.output_j):
             filename = os.path.join(self.solver.parameters.output_dir, "j.txt")
             j_file = open(filename, 'a')
             numpy.savetxt(j_file, [j])
@@ -308,10 +314,13 @@ class ReducedFunctional(ReducedFunctionalPrototype):
         log(INFO, 'j = %e.' % float(j))
         self.last_j = j
 
-        if self.solver.parameters.output_control_array:
-            filename = os.path.join(self.solver.parameters.output_dir,
-                                    "iter_{}/control_array.txt"\
-                                    .format(self.solver.optimisation_iteration))
+        if ((self.solver.parameters.dump_period > 0)
+           and self.solver.parameters.output_control_array):
+            dir = os.path.join(self.solver.parameters.output_dir,
+                               "iter_{}".format(self.solver.optimisation_iteration))
+            if not os.path.exists(dir):
+                os.mkdir(dir)
+            filename = os.path.join(dir, "control_array.txt")
             numpy.savetxt(filename, m)
 
         if self.parameters.automatic_scaling:
