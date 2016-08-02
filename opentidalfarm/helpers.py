@@ -149,6 +149,17 @@ class StateWriter:
         self.u_out << self.u_out_state
         self.p_out << self.p_out_state
 
+        if self.solver.parameters.output_abs_u_at_turbine_positions:
+            u_at_turbines = []
+            for position in self.solver.problem.parameters\
+                            .tidal_farm.turbine_positions:
+                u_at_turbines.append((state[0](position)**2
+                                      +state[1](position)**2)**0.5)
+                f_name = os.path.join(self.solver.parameters.output_dir,
+                         "iter_{0}//abs_u_at_turb_pos_t_{1}.txt"\
+                         .format(self.optimisation_iteration, self.timestep))
+                numpy.savetxt(f_name, u_at_turbines)
+
         if self.callback is not None:
             self.callback(state, self.u_out_state, self.p_out_state,
                           self.timestep, self.optimisation_iteration)

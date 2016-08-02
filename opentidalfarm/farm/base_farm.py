@@ -183,8 +183,8 @@ class BaseFarm(object):
         end_x = site_x_end - turbine.radius
         end_y = site_y_end - turbine.radius
         # Check that we can fit enough turbines in each direction.
-        too_many_x = turbine.diameter*num_x > end_x-start_x
-        too_many_y = turbine.diameter*num_y > end_y-start_y
+        too_many_x = turbine.diameter*num_x > site_x_end - site_x_start
+        too_many_y = turbine.diameter*num_y > site_y_end - site_y_start
         # Raise exceptions if too many turbines are placed in a certain
         # direction.
         if too_many_x and too_many_y:
@@ -243,8 +243,8 @@ class BaseFarm(object):
         end_x = site_x_end - turbine.radius
         end_y = site_y_end - turbine.radius
         # Check that we can fit enough turbines in each direction.
-        too_many_x = turbine.diameter*num_x > end_x-start_x
-        too_many_y = turbine.diameter*num_y > end_y-start_y        
+        too_many_x = turbine.diameter*num_x > site_x_end - site_x_start
+        too_many_y = turbine.diameter*num_y > site_y_end - site_y_start
         # Raise exceptions if too many turbines are placed in a certain
         # direction.
         if too_many_x and too_many_y:

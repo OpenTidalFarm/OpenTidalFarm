@@ -84,6 +84,12 @@ class ReducedFunctional(ReducedFunctionalPrototype):
                 power_filename = os.path.join(solver.parameters.output_dir, "power.pvd")
                 self.power_file = File(power_filename, "compressed")
 
+            # Just to clean any 'j.txt' files from previous simulations.
+            if self._solver_params.output_j:
+                filename = os.path.join(self.solver.parameters.output_dir, "j.txt")
+                j_file = open(filename, 'w')
+                j_file.close()
+
         # dolfin-adjoint requires the ReducedFunctional to have a member
         # variable `parameter` which must be a list comprising an instance of a
         # class (here, TurbineFarmControl) which has a method named `data`
@@ -213,7 +219,20 @@ class ReducedFunctional(ReducedFunctionalPrototype):
             log(INFO, "Time: {} s\t Value: {}.".format(float(time), val))
         log(INFO, "----------------------------------")
 
-        return float(self.time_integrator.integrate())
+        if self._solver_params.output_temporal_breakdown_of_j:
+            filename = os.path.join(self.solver.parameters.output_dir,
+                                    "iter_{}/temporal_breakdown_of_j.txt"\
+                                    .format(self.solver.optimisation_iteration))
+            numpy.savetxt(filename, self.time_integrator.vals)
+
+        j = float(self.time_integrator.integrate())
+        if self._solver_params.output_j:
+            filename = os.path.join(self.solver.parameters.output_dir, "j.txt")
+            j_file = open(filename, 'a')
+            numpy.savetxt(j_file, [j])
+            j_file.close()
+
+        return j
 
 
     def _set_revolve_parameters(self):
@@ -289,6 +308,12 @@ class ReducedFunctional(ReducedFunctionalPrototype):
         log(INFO, 'j = %e.' % float(j))
         self.last_j = j
 
+        if self.solver.parameters.output_control_array:
+            filename = os.path.join(self.solver.parameters.output_dir,
+                                    "iter_{}/control_array.txt"\
+                                    .format(self.solver.optimisation_iteration))
+            numpy.savetxt(filename, m)
+
         if self.parameters.automatic_scaling:
             if self._automatic_scaling_factor is None:
                 # Computing dj will set the automatic scaling factor.
@@ -320,8 +345,12 @@ class ReducedFunctional(ReducedFunctionalPrototype):
                 if self._compute_gradient_mem.has_cache(m, forget):
                     self._update_turbine_farm(m)
                 if farm.turbine_specification.controls.dynamic_friction:
-                    log(WARNING, ("Turbine VTU output not yet implemented for "
-                                  " dynamic turbine control"))
+                    filename = os.path.join(self.solver.parameters.output_dir,
+                               "iter_{}/turbine_friction.pvd"\
+                               .format(self.solver.optimisation_iteration-1))
+                    friction_file = File(filename)
+                    for timestep in range(0,len(farm.friction_function)):
+                        friction_file << farm.friction_function[timestep]
                 else:
                     self.turbine_file << farm.turbine_cache["turbine_field"]
                     # Compute the total amount of friction due to turbines
