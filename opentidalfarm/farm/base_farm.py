@@ -60,7 +60,7 @@ class BaseFarm(object):
         :returns: The number of turbines in the farm.
         :rtype: int
         """
-        return len(self.turbine_cache["position"])
+        return len(self._parameters["position"])
 
     @property
     def control_array_global(self):

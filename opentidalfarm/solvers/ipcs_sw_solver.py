@@ -166,9 +166,10 @@ class IPCSSWSolver(Solver):
             raise TypeError, "parameters must be of type \
 IPCSSWSolverParameters."
 
+        super(IPCSSWSolver, self).__init__()
+
         self.problem = problem
         self.parameters = parameters
-        self.optimisation_iteration = 0
 
         # If cache_for_nonlinear_initial_guess is true, then we store all
         # intermediate state variables in this dictionary to be used for the
@@ -184,9 +185,6 @@ IPCSSWSolverParameters."
     @staticmethod
     def default_parameters():
         return IPCSSWSolverParameters()
-
-    def _finished(self, current_time, finish_time):
-        return float(current_time - finish_time) >= - 1e3*DOLFIN_EPS
 
     def _generate_strong_bcs(self, dgu):
 
@@ -390,7 +388,7 @@ IPCSSWSolverParameters."
         annotate_orig = parameters["adjoint"]["stop_annotating"]
         parameters["adjoint"]["stop_annotating"] = not annotate
 
-        while not self._finished(t, finish_time):
+        while not problem_params.finished(t, finish_time):
             # Update timestep
             timestep += 1
             t = Constant(t + dt)

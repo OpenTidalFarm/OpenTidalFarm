@@ -15,11 +15,12 @@ class DummySolver(Solver):
         if not isinstance(problem, DummyProblem):
             raise TypeError, "problem must be of type DummyProblem"
 
+        super(DummySolver, self).__init__()
+
         self.problem = problem
         self.parameters = DummySolverParameters()
         self.tf = None
         self.state = None
-        self.optimisation_iteration = 0
 
     def setup(self, W, turbine_field, annotate=True):
         (v, q) = TestFunctions(W)

@@ -234,3 +234,16 @@ class RectangularFarm(Farm):
                        [dolfin_adjoint.Constant(upper_bounds)]
 
         return lower_bounds, upper_bounds
+
+    def constraints(self, lower_friction_bounds=0, upper_friction_bounds=None):
+        lower_bounds = []
+        upper_bounds = []
+        if (self._turbine_specification.controls.friction
+            or self._turbine_specification.controls.dynamic_friction):
+            lower_bounds, upper_bounds = self.friction_constraints(lower_friction_bounds,
+                                                                   upper_friction_bounds)
+        if (self._turbine_specification.controls.position):
+            lower_pos_bounds, upper_pos_bounds = self.site_boundary_constraints()
+            lower_bounds += lower_pos_bounds
+            upper_bounds += upper_pos_bounds
+        return lower_bounds, upper_bounds

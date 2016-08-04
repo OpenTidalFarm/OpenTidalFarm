@@ -56,7 +56,7 @@ class CoupledSWSolverParameters(FrozenClass):
     :ivar output_abs_u_at_turbine_positions: Output the absolute value of the
         velocity at each turbine position. Default: False
     :ivar output_control_array: Output a numpy textfile containing the
-        control array from each optimization iteration. Default: False
+        control array from each optimisation and search iteration. Default: False
     :ivar callback: A callback function that is executed for every time-level.
         The callback function must take a single parameter which contains the
         dictionary with the solution variables.
@@ -166,6 +166,8 @@ class CoupledSWSolver(Solver):
             raise TypeError, "solver_params must be of type \
 CoupledSWSolverParameters."
 
+        super(CoupledSWSolver, self).__init__()
+
         self.problem = problem
         self.parameters = solver_params
 
@@ -179,7 +181,6 @@ CoupledSWSolverParameters."
         self.mesh = problem.parameters.domain.mesh
         elements = self.problem.parameters.finite_element()
         self.function_space = FunctionSpace(self.mesh, MixedElement(elements))
-        self.optimisation_iteration = 0
 
     @staticmethod
     def default_parameters():
