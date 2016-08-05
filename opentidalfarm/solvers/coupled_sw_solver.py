@@ -1,4 +1,5 @@
 import os.path
+from os import mkdir
 
 from dolfin import *
 from dolfin_adjoint import *
@@ -164,7 +165,7 @@ class CoupledSWSolver(Solver):
 
         if not isinstance(solver_params, CoupledSWSolverParameters):
             raise TypeError, "solver_params must be of type \
-CoupledSWSolverParameters."
+            CoupledSWSolverParameters."
 
         super(CoupledSWSolver, self).__init__()
 
@@ -207,6 +208,16 @@ CoupledSWSolverParameters."
             bcs_eta.append(bc)
 
         return bcs_u + bcs_eta
+
+    def get_optimisation_and_search_directory(self):
+        dir = os.path.join(self.parameters.output_dir,
+              "iter_{}".format(self.optimisation_iteration))
+        if not os.path.exists(dir):
+            mkdir(dir)
+        dir = os.path.join(dir, "search_{}".format(self.search_iteration))
+        if not os.path.exists(dir):
+            mkdir(dir)
+        return dir
 
     def solve(self, annotate=True):
         ''' Returns an iterator for solving the shallow water equations. '''

@@ -439,7 +439,7 @@ IPCSSWSolverParameters."
             eta0.assign(eta1)
 
             # Increase the adjoint timestep
-            adj_inc_timestep(time=float(t), finished=self._finished(t,
+            adj_inc_timestep(time=float(t), finished=problem_params.finished(t,
                 finish_time))
 
             yield({"time": t,
