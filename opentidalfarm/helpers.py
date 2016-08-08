@@ -275,34 +275,22 @@ class OutputWriter(object):
 
     def __init__(self, functional):
         self.functional = functional
-        self.time_step = 0
 
     def individual_turbine_power(self, solver):
         """ Print out the individual turbine's power or save it to file.
         """
-        if solver.parameters.print_individual_turbine_power:
-            log(INFO, "Computing individual turbine power extraction contribution.")
+        log(INFO, "Computing individual turbine power extraction contribution.")
         farm = solver.problem.parameters.tidal_farm
         turbine_positions = farm.turbine_positions
         individual_turbine_data = []
-        individual_power = []
         for i in range(len(turbine_positions)):
             turbine_info = {}
+            turbine_info['location'] = turbine_positions[i]
             turbine_info['power'] = self.functional.Jt_individual(solver.state, i)
-            if solver.parameters.output_individual_turbine_power:
-                individual_power.append(turbine_info['power'])
-            else:
-                turbine_info['location'] = turbine_positions[i]
-                turbine_info['force'] = self.functional.force_individual(solver.state, i)
-                turbine_info['friction'] = farm.turbine_cache._parameters['friction'][i]
-                turbine_info['friction_field'] = farm.turbine_cache['turbine_field_individual'][i]
-                info("Contribution of turbine %d at x=%.3f, "
-                     "y=%.3f, is %.2f kW with a friction of %.2f." % (i,
-                     turbine_info['location'][0], turbine_info['location'][1],
-                     turbine_info['power']*0.001, turbine_info['friction']))
-        if solver.parameters.output_individual_turbine_power:
-            dir = solver.get_optimisation_and_search_directory()
-            filename = os.path.join(dir, "individual_turbine_power_t_{}.txt"\
-                                  .format(self.time_step))
-            numpy.savetxt(filename, individual_power)
-            self.time_step += 1
+            turbine_info['force'] = self.functional.force_individual(solver.state, i)
+            turbine_info['friction'] = farm.turbine_cache._parameters['friction'][i]
+            turbine_info['friction_field'] = farm.turbine_cache['turbine_field_individual'][i]
+            info("Contribution of turbine %d at x=%.3f, "
+                 "y=%.3f, is %.2f kW with a friction of %.2f." % (i,
+                 turbine_info['location'][0], turbine_info['location'][1],
+                 turbine_info['power']*0.001, turbine_info['friction']))

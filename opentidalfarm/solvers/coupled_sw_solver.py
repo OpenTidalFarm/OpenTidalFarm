@@ -44,8 +44,6 @@ class CoupledSWSolverParameters(FrozenClass):
         Default: `os.curdir`
     :ivar output_turbine_power: Output the power generation of the individual
         turbines. Default: False
-    :ivar output_individual_turbine_power: Output a numpy textfile containing
-        the turbine power for each turbine. Default: False
     :ivar output_j: Output the evaluation of the choosen functional (e.g power)
         for each iteration and store it in a numpy textfile. (This is the same
         j that is printed each iteration, when the FEniCS log level is INFO or
@@ -74,7 +72,6 @@ class CoupledSWSolverParameters(FrozenClass):
     # Output settings
     output_dir = os.curdir
     output_turbine_power = False
-    output_individual_turbine_power = False
     output_j = False
     output_temporal_breakdown_of_j = False
     output_control_array = False
@@ -482,7 +479,7 @@ class CoupledSWSolver(Solver):
         log(INFO, "Start of time loop")
         adjointer.time.start(t)
         timestep = 0
-        while self._finished(t, finish_time):
+        while not self._finished(t, finish_time):
             # Update timestep
             timestep += 1
             t = Constant(t + dt)
