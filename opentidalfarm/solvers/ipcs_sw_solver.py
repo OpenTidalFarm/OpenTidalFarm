@@ -210,6 +210,12 @@ IPCSSWSolverParameters."
 
         return bcs_u, bcs_eta
 
+    def _finished(self, current_time, finish_time):
+        if (hasattr(self.problem.parameters, 'finished')):
+            return self.problem.parameters.finished(current_time)
+        else:
+            return float(current_time - finish_time) >= - 1e3*DOLFIN_EPS
+
     def solve(self, annotate=True):
         ''' Solve the shallow water equations '''
 
@@ -388,7 +394,7 @@ IPCSSWSolverParameters."
         annotate_orig = parameters["adjoint"]["stop_annotating"]
         parameters["adjoint"]["stop_annotating"] = not annotate
 
-        while not problem_params.finished(t, finish_time):
+        while not self._finished(t, finish_time):
             # Update timestep
             timestep += 1
             t = Constant(t + dt)
@@ -439,7 +445,7 @@ IPCSSWSolverParameters."
             eta0.assign(eta1)
 
             # Increase the adjoint timestep
-            adj_inc_timestep(time=float(t), finished=problem_params.finished(t,
+            adj_inc_timestep(time=float(t), finished=self._finished(t,
                 finish_time))
 
             yield({"time": t,

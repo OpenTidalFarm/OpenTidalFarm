@@ -72,6 +72,16 @@ class ReducedFunctional(ReducedFunctionalPrototype):
         self._time_integrator = None
         self._automatic_scaling_factor = None
 
+        # For storing the friction function for each time step as one changing
+        # function and not as multiple functions
+        if (isinstance(self.solver.problem.parameters.tidal_farm.\
+                       friction_function, list)):
+            self._friction_plot_function = self.solver.problem.parameters\
+                                           .tidal_farm.friction_function[0]
+        else:
+            self._friction_plot_function = self.solver.problem.parameters\
+                                           .tidal_farm.friction_function
+
         # Caching variables that store which controls the last forward run was
         # performed
         self.last_m = None
@@ -373,7 +383,9 @@ class ReducedFunctional(ReducedFunctionalPrototype):
                     filename = os.path.join(dir, "turbine_friction.pvd")
                     friction_file = File(filename)
                     for timestep in range(0,len(farm.friction_function)):
-                        friction_file << farm.friction_function[timestep]
+                        self._friction_plot_function.assign(
+                            farm.friction_function[timestep])
+                        friction_file << self._friction_plot_function
                 else:
                     self.turbine_file << farm.turbine_cache["turbine_field"]
                     # Compute the total amount of friction due to turbines

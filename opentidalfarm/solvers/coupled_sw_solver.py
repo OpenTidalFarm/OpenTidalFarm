@@ -219,6 +219,14 @@ class CoupledSWSolver(Solver):
             mkdir(dir)
         return dir
 
+    # For dynamic friction the problem parameters need to use the same
+    # finished funciton as in the solver to avoid machine precision error.
+    def _finished(self, current_time, finish_time):
+        if (hasattr(self.problem.parameters, 'finished')):
+            return self.problem.parameters.finished(current_time)
+        else:
+            return float(current_time - finish_time) >= - 1e3*DOLFIN_EPS
+
     def solve(self, annotate=True):
         ''' Returns an iterator for solving the shallow water equations. '''
 
@@ -467,14 +475,14 @@ class CoupledSWSolver(Solver):
                   "eta": h0,
                   "tf": tf,
                   "state": state,
-                  "is_final": problem_params.finished(t, finish_time)}
+                  "is_final": self._finished(t, finish_time)}
         solver_params.callback(result)
         yield(result)
 
         log(INFO, "Start of time loop")
         adjointer.time.start(t)
         timestep = 0
-        while not problem_params.finished(t, finish_time):
+        while self._finished(t, finish_time):
             # Update timestep
             timestep += 1
             t = Constant(t + dt)
@@ -540,12 +548,12 @@ class CoupledSWSolver(Solver):
                       "eta": h0,
                       "tf": tf,
                       "state": state,
-                      "is_final": problem_params.finished(t, finish_time)}
+                      "is_final": self._finished(t, finish_time)}
             solver_params.callback(result)
             yield(result)
 
             # Increase the adjoint timestep
-            adj_inc_timestep(time=float(t), finished=problem_params.finished(t,
+            adj_inc_timestep(time=float(t), finished=self._finished(t,
                 finish_time))
 
 

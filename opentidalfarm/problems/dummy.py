@@ -23,7 +23,6 @@ class DummyProblemParameters(FrozenClass):
 
     functional_final_time_only = False
 
-
 class DummyProblem(Problem):
 
     def __init__(self, parameters):

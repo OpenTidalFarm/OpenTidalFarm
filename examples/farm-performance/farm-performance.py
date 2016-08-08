@@ -88,7 +88,7 @@ farm = RectangularFarm(domain, site_x_start=160, site_x_end=480,
 
 # We could also add turbines manually via the
 # :class:`RectangularFarm.add_turbine`.
-# For simplicity, we use a helper functions to deploy 32 turbines in a staggered grid layout.
+# For simplicity, we use a helper functions to deploy 28 turbines in a staggered grid layout.
 
 farm.add_staggered_turbine_layout(num_x=8, num_y=4)
 prob_params.tidal_farm = farm

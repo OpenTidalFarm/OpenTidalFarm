@@ -2,7 +2,7 @@ from problem import Problem
 from steady_sw import SteadySWProblemParameters
 from steady_sw import SteadySWProblem
 from dolfin_adjoint import Constant
-
+from dolfin import DOLFIN_EPS
 
 class SWProblemParameters(SteadySWProblemParameters):
     """ A set of parameters for a :class:`SWProblem`.
@@ -41,6 +41,11 @@ class SWProblemParameters(SteadySWProblemParameters):
         if (not self.finished(self.start_time+n*self.dt, self.finish_time)):
             n += 1
         return n
+
+    # Needed here in order to avoid machine precision error when calcualting
+    # number of timesteps for dynamic friction..
+    def finished(self, current_time):
+        return float(current_time - finish_time) >= - 1e3*DOLFIN_EPS
 
 class SWProblem(SteadySWProblem):
     r""" Create a transient shallow water problem:

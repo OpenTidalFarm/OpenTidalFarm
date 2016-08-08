@@ -1,6 +1,5 @@
 from types import MethodType
 from dolfin import Constant
-from dolfin import DOLFIN_EPS
 from dolfin_adjoint import Constant
 from problem import Problem
 from ..helpers import FrozenClass
@@ -75,11 +74,6 @@ class SteadySWProblemParameters(FrozenClass):
 
     # Boundary conditions
     bcs = BoundaryConditionSet()
-
-    # Used in order to avoid machine precision error when calcualting number of 
-    # timesteps for dynamic friction. 
-    def finished(self, current_time, finish_time):
-        return float(current_time - finish_time) >= - 1e3*DOLFIN_EPS
 
 class SteadySWProblem(Problem):
     r""" Create a steady-state shallow water problem:
