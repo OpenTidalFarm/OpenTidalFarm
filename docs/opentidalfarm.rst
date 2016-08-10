@@ -8,8 +8,9 @@
     opentidalfarm.domains
     opentidalfarm.problems
     opentidalfarm.solvers
-    opentidalfarm.functionals
+    opentidalfarm.turbines
     opentidalfarm.farm
+    opentidalfarm.functionals
     opentidalfarm.reduced_functional
     opentidalfarm.optimization
     opentidalfarm.internal

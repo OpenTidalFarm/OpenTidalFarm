@@ -1,5 +1,5 @@
 class Controls(object):
-    """Holds the controls for optimisation.
+    """Specifies the controls for optimisation.
 
     This class holds the controls for optimisation, such as the position and the
     friction of the turbines. The user initializes this class with their desired

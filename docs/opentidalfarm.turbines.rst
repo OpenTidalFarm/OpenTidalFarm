@@ -1,0 +1,4 @@
+Turbines
+========
+
+.. automodule:: opentidalfarm.turbines

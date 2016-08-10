@@ -2,6 +2,7 @@ from .base_turbine import BaseTurbine
 from .controls import Controls
 
 class BumpTurbine(BaseTurbine):
+    """ Create a turbine that is modelled as a bump of bottom friction """
     def __init__(self, friction=12.0, diameter=20., minimum_distance=None,
                  controls=Controls(position=True)):
 

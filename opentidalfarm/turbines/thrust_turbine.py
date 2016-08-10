@@ -3,6 +3,11 @@ from .controls import Controls
 from dolfin import *
 
 class ThrustTurbine(BaseTurbine):
+    """ Create a turbine that is modelled as a bump of bottom friction.
+        In addition this turbine implements cut in and out speeds for the
+        power production.
+
+        This turbine introduces a non-linearity, which is handled explicitly. """
     def __init__(self,
                  friction=1.0,
                  diameter=20.,
