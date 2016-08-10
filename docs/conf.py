@@ -48,6 +48,7 @@ class Mock(object):
 
 MOCK_MODULES = ['dolfin', 'dolfin_adjoint',
         'dolfin_adjoint.ReducedFunctionalNumPy',
+        'dolfin_adjoint.ReducedFunctional',
         'dolfin_adjoint.EqualityConstraint',
         'dolfin_adjoint.InequalityConstraint', 'ufl',
         'uptide', 'uptide.netcdf_reader', 'uptide.tidal_netcdf', 'numpy',
