@@ -1,6 +1,6 @@
 from distutils.core import setup
 setup(name='OpenTidalFarm',
-      version='0.2',
+      version='dev',
       author='Simon Funke',
       author_email='simon.funke@gmail.com',
       url='http://www.opentidalfarm.com',
