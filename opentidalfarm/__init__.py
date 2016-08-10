@@ -29,7 +29,7 @@ from turbine_function import *
 
 from dolfin import *
 from dolfin_adjoint import minimize, maximize, Function, solve, Control, \
-                           Constant
+                           Constant, parameters
 
 parameters["form_compiler"]["representation"] = "uflacs"
 

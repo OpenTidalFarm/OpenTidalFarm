@@ -58,6 +58,9 @@ for mod_name in MOCK_MODULES:
     except:
             print "Generating mock module %s." % mod_name
             sys.modules[mod_name] = Mock()
+import dolfin_adjoint
+dolfin_adjoint.parameters = {}
+dolfin_adjoint.parameters["form_compiler"] = {}
 
 #
 # If extensions (or modules to document with autodoc) are in another directory,
