@@ -25,11 +25,6 @@ class TestCheckpoint(object):
         farm = Farm(domain, turbine=turbine)
         farm.add_turbine([500.,500.])
 
-        # Adjust some global options.
-        options["dump_period"] = -1
-        options["output_turbine_power"] = False
-        options["save_checkpoints"] = True
-
         # Set the problem parameters.
         problem_params = DummyProblem.default_parameters()
         problem_params.domain = domain

@@ -1,4 +1,5 @@
 import os.path
+from os import mkdir
 
 from dolfin import *
 from dolfin_adjoint import *
@@ -43,6 +44,18 @@ class CoupledSWSolverParameters(FrozenClass):
         Default: `os.curdir`
     :ivar output_turbine_power: Output the power generation of the individual
         turbines. Default: False
+    :ivar output_j: Output the evaluation of the choosen functional (e.g power)
+        for each iteration and store it in a numpy textfile. (This is the same
+        j that is printed each iteration, when the FEniCS log level is INFO or
+        above.) Default: False
+    :ivar output_temporal_breakdown_of_j: Output the j at each timestep and at
+        iteration. The output is stored in a numpy textfile. (This is the same
+        temporal breakdown which is shown when the FEniCS log level is INFO or
+        above.) Default: False
+    :ivar output_abs_u_at_turbine_positions: Output the absolute value of the
+        velocity at each turbine position. Default: False
+    :ivar output_control_array: Output a numpy textfile containing the
+        control array from each optimisation and search iteration. Default: False
     :ivar callback: A callback function that is executed for every time-level.
         The callback function must take a single parameter which contains the
         dictionary with the solution variables.
@@ -59,6 +72,10 @@ class CoupledSWSolverParameters(FrozenClass):
     # Output settings
     output_dir = os.curdir
     output_turbine_power = False
+    output_j = False
+    output_temporal_breakdown_of_j = False
+    output_control_array = False
+    output_abs_u_at_turbine_positions = False
 
     # Performance settings
     cache_forward_state = True
@@ -80,7 +97,7 @@ class CoupledSWSolverParameters(FrozenClass):
         self.dolfin_solver["newton_solver"]["linear_solver"] = linear_solver
         self.dolfin_solver["newton_solver"]["preconditioner"] = preconditioner
         self.dolfin_solver["newton_solver"]["maximum_iterations"] = 20
-
+        self.dolfin_solver["newton_solver"]["convergence_criterion"] = "incremental"
 
 class CoupledSWSolver(Solver):
     r""" The coupled solver solves the shallow water equations as a fully coupled
@@ -145,7 +162,9 @@ class CoupledSWSolver(Solver):
 
         if not isinstance(solver_params, CoupledSWSolverParameters):
             raise TypeError, "solver_params must be of type \
-CoupledSWSolverParameters."
+            CoupledSWSolverParameters."
+
+        super(CoupledSWSolver, self).__init__()
 
         self.problem = problem
         self.parameters = solver_params
@@ -160,16 +179,12 @@ CoupledSWSolverParameters."
         self.mesh = problem.parameters.domain.mesh
         elements = self.problem.parameters.finite_element()
         self.function_space = FunctionSpace(self.mesh, MixedElement(elements))
-        self.optimisation_iteration = 0
 
     @staticmethod
     def default_parameters():
         """ Return the default parameters for the :class:`CoupledSWSolver`.
         """
         return CoupledSWSolverParameters()
-
-    def _finished(self, current_time, finish_time):
-        return float(current_time - finish_time) >= - 1e3*DOLFIN_EPS
 
     def _generate_strong_bcs(self):
 
@@ -190,6 +205,24 @@ CoupledSWSolverParameters."
             bcs_eta.append(bc)
 
         return bcs_u + bcs_eta
+
+    def get_optimisation_and_search_directory(self):
+        dir = os.path.join(self.parameters.output_dir,
+              "iter_{}".format(self.optimisation_iteration))
+        if not os.path.exists(dir):
+            mkdir(dir)
+        dir = os.path.join(dir, "search_{}".format(self.search_iteration))
+        if not os.path.exists(dir):
+            mkdir(dir)
+        return dir
+
+    # For dynamic friction the problem parameters need to use the same
+    # finished funciton as in the solver to avoid machine precision error.
+    def _finished(self, current_time, finish_time):
+        if (hasattr(self.problem.parameters, 'finished')):
+            return self.problem.parameters.finished(current_time)
+        else:
+            return float(current_time - finish_time) >= - 1e3*DOLFIN_EPS
 
     def solve(self, annotate=True):
         ''' Returns an iterator for solving the shallow water equations. '''
@@ -349,15 +382,16 @@ CoupledSWSolverParameters."
 
         # Bottom friction
         friction = problem_params.friction
-
         if not farm:
             tf = Constant(0)
         elif type(farm.friction_function) == list:
-            tf = farm.friction_function[0].copy(deepcopy=True, name="turbine_friction", annotate=annotate)
+            tf = farm.friction_function[0].copy(deepcopy=True,
+                    name="turbine_friction", annotate=annotate)
+            tf.assign(theta*farm.friction_function[1]+(1.-float(theta))*\
+                      farm.friction_function[0], annotate=annotate)
         else:
-            tf = farm.friction_function.copy(deepcopy=True, name="turbine_friction", annotate=annotate)
-
-        # Friction term
+            tf = farm.friction_function.copy(deepcopy=True,
+                                             name="turbine_friction", annotate=annotate)
         # FIXME: FEniCS fails on assembling the below form for u_mid = 0, even
         # though it is differentiable. Even this potential fix does not help:
         #norm_u_mid = conditional(inner(u_mid, u_mid)**0.5 < DOLFIN_EPS, Constant(0),
@@ -458,6 +492,15 @@ CoupledSWSolverParameters."
             # Update source term
             f_u.t = Constant(t_theta)
 
+            # Set the control function for the upcoming timestep.
+            if farm:
+                if type(farm.friction_function) == list:
+                    tf.assign(theta*farm.friction_function[timestep]+(1.\
+                              -float(theta))*farm.friction_function[timestep-1],
+                              annotate=annotate)
+                else:
+                    tf.assign(farm.friction_function)
+
             # Set the initial guess for the solve
             if cache_forward_state and self.state_cache.has_key(float(t)):
                 log(INFO, "Read initial guess from cache for t=%f." % t)
@@ -491,13 +534,6 @@ CoupledSWSolverParameters."
                     self.state_cache[float(t)] = Function(self.function_space)
                 self.state_cache[float(t)].assign(state_new, annotate=False)
 
-            # Set the control function for the upcoming timestep.
-            if farm:
-                if type(farm.friction_function) == list:
-                    tf.assign(farm.friction_function[timestep])
-                else:
-                    tf.assign(farm.friction_function)
-
             if (solver_params.dump_period > 0 and
                 timestep % solver_params.dump_period == 0):
                 log(INFO, "Write state to disk...")
@@ -519,7 +555,9 @@ CoupledSWSolverParameters."
 
 
         # If we're outputting the individual turbine power
-        if self.parameters.print_individual_turbine_power:
+        if (self.parameters.print_individual_turbine_power
+            or ((solver_params.dump_period > 0)
+            and self.parameters.output_turbine_power)):
             self.parameters.output_writer.individual_turbine_power(self)
 
         log(INFO, "End of time loop.")

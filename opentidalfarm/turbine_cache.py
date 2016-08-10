@@ -3,7 +3,6 @@ import numpy
 from dolfin import *
 from dolfin_adjoint import *
 from turbine_function import TurbineFunction
-from options import options
 
 class TurbineCache(dict):
     def __init__(self, *args, **kw):

@@ -35,7 +35,6 @@ class TestFrictionOptimisation(object):
       farm._parameters["friction"] = (
           12.0*numpy.random.rand(len(farm._parameters["position"])))
 
-      options["output_turbine_power"] = False
       problem_params.tidal_farm = farm
 
       k = pi/3000.

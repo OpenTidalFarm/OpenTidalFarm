@@ -128,7 +128,6 @@ class StateWriter:
     def __init__(self, solver, callback=None):
         self.timestep = 0
         self.solver = solver
-        self.optimisation_iteration = solver.optimisation_iteration
         self.u_out, self.p_out = self.output_files(
             solver.problem.parameters.finite_element.func_name)
         self.M_u_out, self.v_out, self.u_out_state = self.u_output_projector(
@@ -149,9 +148,20 @@ class StateWriter:
         self.u_out << self.u_out_state
         self.p_out << self.p_out_state
 
+        if self.solver.parameters.output_abs_u_at_turbine_positions:
+            u_at_turbines = []
+            for position in self.solver.problem.parameters\
+                            .tidal_farm.turbine_positions:
+                u_at_turbines.append((state[0](position)**2
+                                      +state[1](position)**2)**0.5)
+                dir = self.solver.get_optimisation_and_search_directory()
+                filename = os.path.join(dir, "abs_u_at_turb_pos_t_{}.txt"\
+                                        .format(self.timestep))
+                numpy.savetxt(filename, u_at_turbines)
+
         if self.callback is not None:
             self.callback(state, self.u_out_state, self.p_out_state,
-                          self.timestep, self.optimisation_iteration)
+                          self.timestep, self.solver.optimisation_iteration)
 
         self.timestep += 1
 
@@ -180,13 +190,10 @@ class StateWriter:
         return M_out, v_out, out_state
 
     def output_files(self, basename):
+        dir = self.solver.get_optimisation_and_search_directory()
         # Output file
-        u_out = File(os.path.join(self.solver.parameters.output_dir,
-            "iter_{}".format(self.optimisation_iteration), basename + "_u.pvd"),
-            "compressed")
-        p_out = File(os.path.join(self.solver.parameters.output_dir,
-            "iter_{}".format(self.optimisation_iteration), basename + "_p.pvd"),
-            "compressed")
+        u_out = File(os.path.join(dir, basename + "_u.pvd"), "compressed")
+        p_out = File(os.path.join(dir, basename + "_p.pvd"), "compressed")
         return u_out, p_out
 
 
@@ -267,11 +274,10 @@ class OutputWriter(object):
     """
 
     def __init__(self, functional):
-
         self.functional = functional
 
     def individual_turbine_power(self, solver):
-        """ Print out the individual turbine's power
+        """ Print out the individual turbine's power or save it to file.
         """
         log(INFO, "Computing individual turbine power extraction contribution.")
         farm = solver.problem.parameters.tidal_farm

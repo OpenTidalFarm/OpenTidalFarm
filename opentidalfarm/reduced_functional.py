@@ -8,7 +8,6 @@ from dolfin_adjoint import *
 from solvers import Solver
 from functionals import TimeIntegrator, PrototypeFunctional
 from memoize import MemoizeMutable
-from options import options
 from reduced_functional_prototype import ReducedFunctionalPrototype
 
 __all__ = ["ReducedFunctional", "ReducedFunctionalParameters",
@@ -27,7 +26,7 @@ class ReducedFunctionalParameters(helpers.FrozenClass):
     :ivar load_checkpoints: If True, the checkpoints are loaded from file and
         used. Default: False
     :ivar save_checkpoints: Automatically store checkpoints after each
-        optimisation iteration. Default: False
+        search iteration. Default: False
     :ivar checkpoint_basefilename: The base filename (without extensions) for
         storing or loading the checkpoints. Default: 'checkpoints'.
     """
@@ -55,7 +54,6 @@ class ReducedFunctional(ReducedFunctionalPrototype):
         # For consistency with the dolfin-adjoint API.
         self.scale = parameters.scale
         self.rf = self
-
         self.solver = solver
         if not isinstance(solver, Solver):
             raise ValueError, "solver argument of wrong type."
@@ -73,6 +71,16 @@ class ReducedFunctional(ReducedFunctionalPrototype):
         self._time_integrator = None
         self._automatic_scaling_factor = None
 
+        # For storing the friction function for each time step as one changing
+        # function and not as multiple functions
+        if (isinstance(self.solver.problem.parameters.tidal_farm.\
+                       friction_function, list)):
+            self._friction_plot_function = self.solver.problem.parameters\
+                                           .tidal_farm.friction_function[0]
+        else:
+            self._friction_plot_function = self.solver.problem.parameters\
+                                           .tidal_farm.friction_function
+
         # Caching variables that store which controls the last forward run was
         # performed
         self.last_m = None
@@ -83,6 +91,16 @@ class ReducedFunctional(ReducedFunctionalPrototype):
             if self._solver_params.output_turbine_power:
                 power_filename = os.path.join(solver.parameters.output_dir, "power.pvd")
                 self.power_file = File(power_filename, "compressed")
+
+            # Just to clean any 'j.txt' files from previous simulations.
+            if self._solver_params.output_j:
+                dir = os.path.join(self.solver.parameters.output_dir,
+                                   "iter_{}".format(self.solver.optimisation_iteration))
+                if not os.path.exists(dir):
+                    os.mkdir(dir)
+                filename = os.path.join(dir, "j.txt")
+                j_file = open(filename, 'w')
+                j_file.close()
 
         # dolfin-adjoint requires the ReducedFunctional to have a member
         # variable `parameter` which must be a list comprising an instance of a
@@ -100,7 +118,9 @@ class ReducedFunctional(ReducedFunctionalPrototype):
         if self.parameters.load_checkpoints:
             self._load_checkpoint()
 
-        if self._solver_params.print_individual_turbine_power:
+        if (self._solver_params.print_individual_turbine_power
+            or ((self.solver.parameters.dump_period > 0)
+            and self._solver_params.output_turbine_power)):
             # if this is enabled, we need to instantiate the relevant helper
             # and pass this to the solver
             output_writer = helpers.OutputWriter(self.functional)
@@ -168,18 +188,33 @@ class ReducedFunctional(ReducedFunctionalPrototype):
 
             elif farm.turbine_specification.controls.dynamic_friction:
                 # Compute the derivatives with respect to the turbine friction
-                for djdtf_arr, t in zip(djdtf, farm.turbine_cache["turbine_derivative_friction"]):
+                for djdtf_arr, t in zip(djdtf,
+                                    farm.turbine_cache["turbine_derivative_friction"]):
                     for tfd in t:
                         farm.update()
                         dj.append(djdtf_arr.vector().inner(tfd.vector()))
 
-            if farm.turbine_specification.controls.position:
-                # Compute the derivatives with respect to the turbine position
-                for d in farm.turbine_cache["turbine_derivative_pos"]:
-                    for var in ('turbine_pos_x', 'turbine_pos_y'):
-                        farm.update()
-                        tfd = d[var]
-                        dj.append(djdtf.vector().inner(tfd.vector()))
+            if (farm.turbine_specification.controls.position):
+                if (farm.turbine_specification.controls.dynamic_friction):
+                    # Compute the derivatives with respect to the turbine position
+                    farm.update()
+                    turb_deriv_pos = farm.turbine_cache["turbine_derivative_pos"]
+                    n_time_steps =len(turb_deriv_pos)
+                    for n in xrange(farm.number_of_turbines):
+                        for var in ('turbine_pos_x', 'turbine_pos_y'):
+                            dj_t = 0
+                            for t in xrange(n_time_steps):
+                                tfd_t = turb_deriv_pos[t][n][var]
+                                dj_t += djdtf_arr.vector().inner(tfd_t.vector())
+                            dj.append(dj_t)
+
+                else:
+                    # Compute the derivatives with respect to the turbine position
+                    for d in farm.turbine_cache["turbine_derivative_pos"]:
+                        for var in ('turbine_pos_x', 'turbine_pos_y'):
+                            farm.update()
+                            tfd = d[var]
+                            dj.append(djdtf.vector().inner(tfd.vector()))
 
             dj = numpy.array(dj)
 
@@ -213,7 +248,25 @@ class ReducedFunctional(ReducedFunctionalPrototype):
             log(INFO, "Time: {} s\t Value: {}.".format(float(time), val))
         log(INFO, "----------------------------------")
 
-        return float(self.time_integrator.integrate())
+        if ((self.solver.parameters.dump_period > 0)
+            and self._solver_params.output_temporal_breakdown_of_j):
+            dir = self.solver.get_optimisation_and_search_directory()
+            filename = os.path.join(dir, "temporal_breakdown_of_j.txt")
+            numpy.savetxt(filename, self.time_integrator.vals)
+
+        j = float(self.time_integrator.integrate())
+        if ((self.solver.parameters.dump_period > 0)
+            and self._solver_params.output_j):
+            dir = os.path.join(self.solver.parameters.output_dir,
+                  "iter_{}".format(self.solver.optimisation_iteration))
+            if not os.path.exists(dir):
+                os.mkdir(dir)
+            filename = os.path.join(dir, "j.txt")
+            j_file = open(filename, 'a')
+            numpy.savetxt(j_file, [j])
+            j_file.close()
+
+        return j
 
 
     def _set_revolve_parameters(self):
@@ -289,28 +342,33 @@ class ReducedFunctional(ReducedFunctionalPrototype):
         log(INFO, 'j = %e.' % float(j))
         self.last_j = j
 
+        if ((self.solver.parameters.dump_period > 0)
+           and self.solver.parameters.output_control_array):
+            dir = self.solver.get_optimisation_and_search_directory()
+            filename = os.path.join(dir, "control_array.txt")
+            numpy.savetxt(filename, m)
+
         if self.parameters.automatic_scaling:
             if self._automatic_scaling_factor is None:
                 # Computing dj will set the automatic scaling factor.
                 log(INFO, ("Computing derivative to determine the automatic "
                            "scaling factor"))
-                self._dj(m, forget=False, new_optimisation_iteration=False)
+                self._dj(m, forget=False, new_search_iteration=False)
             return j*self.scale*self._automatic_scaling_factor
         else:
             return j*self.scale
 
-    def _dj(self, m, forget, new_optimisation_iteration=True):
+    def _dj(self, m, forget, new_search_iteration=True):
         """ This memoised function returns the gradient of the functional for the parameter choice m. """
         log(INFO, 'Start evaluation of dj')
         timer = dolfin.Timer("dj evaluation")
         dj = self._compute_gradient_mem(m, forget)
 
         # We assume that the gradient is computed at and only at the beginning
-        # of each new optimisation iteration. Hence, this is the right moment
-        # to store the turbine friction field and to increment the optimisation
+        # of each new search iteration. Hence, this is the right moment
+        # to store the turbine friction field and to increment the search
         # iteration counter.
-        if new_optimisation_iteration:
-            self.solver.optimisation_iteration += 1
+        if new_search_iteration:
             farm = self.solver.problem.parameters.tidal_farm
 
             if (self.solver.parameters.dump_period > 0 and
@@ -320,14 +378,20 @@ class ReducedFunctional(ReducedFunctionalPrototype):
                 if self._compute_gradient_mem.has_cache(m, forget):
                     self._update_turbine_farm(m)
                 if farm.turbine_specification.controls.dynamic_friction:
-                    log(WARNING, ("Turbine VTU output not yet implemented for "
-                                  " dynamic turbine control"))
+                    dir = self.solver.get_optimisation_and_search_directory()
+                    filename = os.path.join(dir, "turbine_friction.pvd")
+                    friction_file = File(filename)
+                    for timestep in range(0,len(farm.friction_function)):
+                        self._friction_plot_function.assign(
+                            farm.friction_function[timestep])
+                        friction_file << self._friction_plot_function
                 else:
                     self.turbine_file << farm.turbine_cache["turbine_field"]
                     # Compute the total amount of friction due to turbines
                     if farm.turbine_specification.smeared:
                         log(INFO, "Total amount of friction: %f" %
                             assemble(farm.turbine_cache["turbine_field"]*dx))
+            self.solver.search_iteration += 1
 
         if self.parameters.save_checkpoints:
             self._save_checkpoint()

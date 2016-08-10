@@ -151,7 +151,8 @@ print rf_params
 # optimisation.
 
 lb, ub = farm.site_boundary_constraints()
-f_opt = maximize(rf, bounds=[lb, ub], method="L-BFGS-B", options={'maxiter': 100})
+f_opt = maximize(rf, bounds=[lb, ub], method="L-BFGS-B", options={'maxiter':
+100, 'ftol': 1e-03})
 
 # How to run the example
 # **********************

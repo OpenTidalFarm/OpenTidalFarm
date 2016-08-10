@@ -7,13 +7,21 @@ from ..turbine_cache import TurbineCache
 
 class BaseFarm(object):
     """A base Farm class from which other Farm classes should be derived."""
-    def __init__(self, domain=None, turbine=None, site_ids=None):
+    def __init__(self, domain=None, turbine=None, site_ids=None, 
+                 n_time_steps=None):
         """Create an empty Farm."""
         # Create a chaching object for the interpolated turbine friction fields
         # (as their computation is very expensive)
+        # n_time_steps is only used with dynamic friction.
         self.turbine_cache = TurbineCache()
         self._parameters = {"friction": [], "position": []}
 
+        self._dynamic_friction_t_0 = []
+        self.n_time_steps = n_time_steps
+        if (turbine.controls.dynamic_friction and n_time_steps == None):
+            raise ValueError("n_time_steps need to be set when dynamic "\
+                    "friction is used. (Use problem_parameters.n_time_steps to"\
+                    " get the number of time steps.).")
         self.domain = domain
         self._set_turbine_specification(turbine)
 
@@ -52,7 +60,7 @@ class BaseFarm(object):
         :returns: The number of turbines in the farm.
         :rtype: int
         """
-        return len(self.turbine_cache["position"])
+        return len(self._parameters["position"])
 
     @property
     def control_array_global(self):
@@ -130,7 +138,12 @@ class BaseFarm(object):
 
         turbine = self._turbine_specification
         self._parameters["position"].append(coordinates)
-        self._parameters["friction"].append(turbine.friction)
+        if (turbine.controls.dynamic_friction):
+            self._dynamic_friction_t_0.append(turbine.friction)
+            self._parameters["friction"] = [self._dynamic_friction_t_0] *\
+                                           (self.n_time_steps + 1)
+        else:
+            self._parameters["friction"].append(turbine.friction)
 
         dolfin.info("Turbine added at (%.2f, %.2f)." % (coordinates[0],
                                                         coordinates[1]))
@@ -170,8 +183,8 @@ class BaseFarm(object):
         end_x = site_x_end - turbine.radius
         end_y = site_y_end - turbine.radius
         # Check that we can fit enough turbines in each direction.
-        too_many_x = turbine.diameter*num_x > end_x-start_x
-        too_many_y = turbine.diameter*num_y > end_y-start_y
+        too_many_x = turbine.diameter*num_x > site_x_end - site_x_start
+        too_many_y = turbine.diameter*num_y > site_y_end - site_y_start
         # Raise exceptions if too many turbines are placed in a certain
         # direction.
         if too_many_x and too_many_y:
@@ -230,8 +243,8 @@ class BaseFarm(object):
         end_x = site_x_end - turbine.radius
         end_y = site_y_end - turbine.radius
         # Check that we can fit enough turbines in each direction.
-        too_many_x = turbine.diameter*num_x > end_x-start_x
-        too_many_y = turbine.diameter*num_y > end_y-start_y
+        too_many_x = turbine.diameter*num_x > site_x_end - site_x_start
+        too_many_y = turbine.diameter*num_y > site_y_end - site_y_start
         # Raise exceptions if too many turbines are placed in a certain
         # direction.
         if too_many_x and too_many_y:

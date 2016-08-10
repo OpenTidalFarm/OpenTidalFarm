@@ -1,10 +1,13 @@
-
 class Solver(object):
     """A generic implementation of a solver."""
 
     def __init__(self):
         """ Initialises the solver. """
-        pass
+        self.optimisation_iteration = 0
+        self.search_iteration = 0
+
+    def update_optimisation_iteration(self, m):
+        self.optimisation_iteration += 1
 
     @classmethod
     def default_parameters(cls):

@@ -113,7 +113,7 @@ prob_params.friction = Constant(0.0)
 # Temporal settings
 prob_params.theta = Constant(0.5)
 prob_params.start_time = Constant(0)
-prob_params.finish_time = Constant(500)
+prob_params.finish_time = Constant(25)
 prob_params.dt = Constant(0.5)
 # The initial condition consists of three components: u_x, u_y and eta
 # Note that we do not set all components to zero, as some components of the
@@ -138,14 +138,27 @@ problem = SWProblem(prob_params)
 sol_params = IPCSSWSolver.default_parameters()
 solver = IPCSSWSolver(problem, sol_params)
 
+# We create some files to store the velocity, eddy viscosity and surface
+# elevation, eta, at each timestep, so it can be viewed in ParaView later.
+
+f_u = XDMFFile(mpi_comm_world(), "u.xdmf")
+f_eta = XDMFFile(mpi_comm_world(), "eta.xdmf")
+f_eddy_viscosity = XDMFFile(mpi_comm_world(), "eddy_viscosity.xdmf")
+
 # Now we are ready to solve the problem.
 
 for s in solver.solve():
     print "Computed solution at time %f" % s["time"]
+    f_u.write(s["u"])
+    f_eta.write(s["eta"])
+    f_eddy_viscosity.write(s["eddy_viscosity"])
     plot(s["u"], title="u")
     plot(s["eta"], title="eta")
     plot(s["eddy_viscosity"], title="eddy viscosity")
+
+# (Plots is not shown in docker. View the stored xdmf-files instead.)
 interactive()  # Hold the plot until the user presses q.
+
 
 # The inner part of the loop is executed for each timestep. The variable :attr:`s`
 # is a dictionary and contains information like the current timelevel, the velocity and

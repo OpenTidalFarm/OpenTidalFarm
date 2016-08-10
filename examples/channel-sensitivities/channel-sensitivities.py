@@ -122,6 +122,8 @@ rf = FenicsReducedFunctional(functional, control, solver)
 j = rf.evaluate()
 dj = rf.derivative(project=True)
 plot(dj, interactive=True, title="Sensitivity with respect to friction")
+file = File("FrictionSensitivity.pvd")
+file << dj
 
 # Now compute the sensitivity with respect to depth
 
@@ -131,6 +133,8 @@ j = rf.evaluate()
 dj = rf.derivative(project=True)
 print "j with depth = 50 m: ", j
 plot(dj, interactive=True, title="Sensitivity with respect to depth at 50m")
+file = File("50mDepthSensitivity.pvd")
+file << dj
 
 #
 # .. image:: sens_depth50.png
@@ -144,6 +148,8 @@ j = rf.evaluate()
 dj = rf.derivative(project=True)
 print "j with depth = 10 m: ", j
 plot(dj, interactive=True, title="Sensitivity with respect to depth at 10m")
+file = File("10mDepthSensitivity.pvd")
+file << dj
 
 #
 # .. image:: sens_depth10.png
@@ -157,7 +163,11 @@ rf = FenicsReducedFunctional(functional, control, solver)
 j = rf.evaluate()
 dj = rf.derivative(project=True)
 plot(dj, title="Sensitivity with respect to viscosity")
-interactive()
+file = File("ViscositySensitivity.pvd")
+file << dj
+
+interactive() # (For docker users the plots will not be shown, but they are 
+              #  stored in pvd-files. These files can view with ParaView.)
 
 #
 # .. image:: sens_visc.png
