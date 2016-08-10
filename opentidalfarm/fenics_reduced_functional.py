@@ -1,5 +1,6 @@
-from dolfin import *
-from dolfin_adjoint import *
+from dolfin import Timer, log, parameters, INFO
+from dolfin_adjoint import Functional, ReducedFunctional
+from dolfin_adjoint import compute_gradient, enlisting, adj_reset
 from solvers import Solver
 from functionals import TimeIntegrator, PrototypeFunctional
 
@@ -52,13 +53,13 @@ class FenicsReducedFunctional(ReducedFunctional):
         """ Computes the functional value by running the forward model. """
 
         log(INFO, 'Start evaluation of j')
-        timer = dolfin.Timer("j evaluation")
+        timer = Timer("j evaluation")
 
         farm = self.solver.problem.parameters.tidal_farm
 
         # Configure dolfin-adjoint
         adj_reset()
-        dolfin.parameters["adjoint"]["record_all"] = True
+        parameters["adjoint"]["record_all"] = True
 
         # Solve the shallow water system and integrate the functional of
         # interest.
@@ -109,11 +110,11 @@ class FenicsReducedFunctional(ReducedFunctional):
         controls by solving the adjoint equations. """
 
         log(INFO, 'Start evaluation of dj')
-        timer = dolfin.Timer("dj evaluation")
+        timer = Timer("dj evaluation")
 
         J = self.time_integrator.dolfin_adjoint_functional(self.solver.state)
         dj = compute_gradient(J, self.controls, forget=forget, **kwargs)
-        dolfin.parameters["adjoint"]["stop_annotating"] = False
+        parameters["adjoint"]["stop_annotating"] = False
 
         log(INFO, "Runtime: " + str(timer.stop()) + " s")
 
