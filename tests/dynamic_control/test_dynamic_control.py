@@ -16,9 +16,6 @@ class TestDynamicTurbineControl(object):
         turbine = BumpTurbine(diameter=40., friction=1.0,
                               controls=Controls(dynamic_friction=True))
 
-        # Adjust some global options
-        options["output_turbine_power"] = False
-
         # Set problem parameters
         problem_params.finish_time = problem_params.start_time + \
                                      2 * problem_params.dt

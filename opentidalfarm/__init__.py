@@ -26,7 +26,6 @@ from reduced_functional import *
 from fenics_reduced_functional import *
 from boundary_conditions import *
 from turbine_function import *
-from options import *
 
 from dolfin import *
 from dolfin_adjoint import minimize, maximize, Function, solve, Control, \

@@ -46,8 +46,6 @@ class TestConfigurations(object):
         # setup, so we help a little with some viscosity
         problem_params.viscosity = 40.0
 
-        options["output_turbine_power"] = False
-
         problem_params.tidal_farm = farm
 
         # Create the shallow water problem
@@ -97,8 +95,6 @@ class TestConfigurations(object):
 
         for pos in [(50.0, 50.0), (50.0, 450.0), (450.0, 50.0), (450.0, 450.0)]:
             farm.add_turbine(pos)
-
-        options["output_turbine_power"] = False
 
         problem_params.tidal_farm = farm
 

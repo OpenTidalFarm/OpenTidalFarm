@@ -8,7 +8,6 @@ from dolfin_adjoint import *
 from solvers import Solver
 from functionals import TimeIntegrator, PrototypeFunctional
 from memoize import MemoizeMutable
-from options import options
 from reduced_functional_prototype import ReducedFunctionalPrototype
 
 __all__ = ["ReducedFunctional", "ReducedFunctionalParameters",
@@ -121,7 +120,7 @@ class ReducedFunctional(ReducedFunctionalPrototype):
 
         if (self._solver_params.print_individual_turbine_power
             or ((self.solver.parameters.dump_period > 0)
-            and self._solver_params.output_individual_turbine_power)):
+            and self._solver_params.output_turbine_power)):
             # if this is enabled, we need to instantiate the relevant helper
             # and pass this to the solver
             output_writer = helpers.OutputWriter(self.functional)
@@ -189,13 +188,13 @@ class ReducedFunctional(ReducedFunctionalPrototype):
 
             elif farm.turbine_specification.controls.dynamic_friction:
                 # Compute the derivatives with respect to the turbine friction
-                for djdtf_arr, t in zip(djdtf, 
+                for djdtf_arr, t in zip(djdtf,
                                     farm.turbine_cache["turbine_derivative_friction"]):
                     for tfd in t:
                         farm.update()
                         dj.append(djdtf_arr.vector().inner(tfd.vector()))
 
-            if (farm.turbine_specification.controls.position): 
+            if (farm.turbine_specification.controls.position):
                 if (farm.turbine_specification.controls.dynamic_friction):
                     # Compute the derivatives with respect to the turbine position
                     farm.update()

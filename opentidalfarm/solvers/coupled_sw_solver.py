@@ -391,7 +391,7 @@ class CoupledSWSolver(Solver):
                       farm.friction_function[0], annotate=annotate)
         else:
             tf = farm.friction_function.copy(deepcopy=True,
-                                             name="turbine_friction", annotate=annotate)       
+                                             name="turbine_friction", annotate=annotate)
         # FIXME: FEniCS fails on assembling the below form for u_mid = 0, even
         # though it is differentiable. Even this potential fix does not help:
         #norm_u_mid = conditional(inner(u_mid, u_mid)**0.5 < DOLFIN_EPS, Constant(0),
@@ -496,7 +496,7 @@ class CoupledSWSolver(Solver):
             if farm:
                 if type(farm.friction_function) == list:
                     tf.assign(theta*farm.friction_function[timestep]+(1.\
-                              -float(theta))*farm.friction_function[timestep-1], 
+                              -float(theta))*farm.friction_function[timestep-1],
                               annotate=annotate)
                 else:
                     tf.assign(farm.friction_function)
@@ -557,7 +557,7 @@ class CoupledSWSolver(Solver):
         # If we're outputting the individual turbine power
         if (self.parameters.print_individual_turbine_power
             or ((solver_params.dump_period > 0)
-            and self.parameters.output_individual_turbine_power)):
+            and self.parameters.output_turbine_power)):
             self.parameters.output_writer.individual_turbine_power(self)
 
         log(INFO, "End of time loop.")

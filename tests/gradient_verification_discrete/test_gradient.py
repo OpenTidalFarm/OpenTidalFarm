@@ -16,8 +16,7 @@ def model(controls, problem_params, sin_ic):
                            site_y_end=1000,
                            turbine=turbine)
 
-    options["output_turbine_power"] = False
-    # The turbine position is the control variable
+        # The turbine position is the control variable
     farm.add_turbine((1000,400))
     farm.add_turbine((2000,600))
     problem_params.tidal_farm = farm
