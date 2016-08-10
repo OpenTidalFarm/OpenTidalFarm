@@ -28,8 +28,9 @@ from boundary_conditions import *
 from turbine_function import *
 
 from dolfin import *
+from dolfin import parameters
 from dolfin_adjoint import minimize, maximize, Function, solve, Control, \
-                           Constant, parameters
+                           Constant
 
 parameters["form_compiler"]["representation"] = "uflacs"
 
