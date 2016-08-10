@@ -170,8 +170,8 @@ class MinimumDistanceConstraints(InequalityConstraint):
         * ``jacobian(self, m)``
 
 
-        _dolfin_adjoint.InequalityConstraint:
-            http://dolfin-adjoint.org/documentation/api.html#dolfin_adjoint.InequalityConstraint
+        .. _dolfin_adjoint.InequalityConstraint:
+            http://www.dolfin-adjoint.org/en/latest/documentation/api.html#dolfin_adjoint.InequalityConstraint
 
     """
     def __init__(self, turbine_positions, minimum_distance, controls):
@@ -303,8 +303,8 @@ class MinimumDistanceConstraintsLargeArrays(InequalityConstraint):
         * ``jacobian(self, m)``
 
 
-        _dolfin_adjoint.InequalityConstraint:
-            http://dolfin-adjoint.org/documentation/api.html#dolfin_adjoint.InequalityConstraint
+        .. _dolfin_adjoint.InequalityConstraint:
+            http://www.dolfin-adjoint.org/en/latest/documentation/api.html#dolfin_adjoint.InequalityConstraint
 
     """
     def __init__(self, turbine_positions, minimum_distance, controls):

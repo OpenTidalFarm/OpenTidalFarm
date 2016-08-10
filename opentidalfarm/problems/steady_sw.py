@@ -45,7 +45,8 @@ class SteadySWProblemParameters(FrozenClass):
     Discretization settings:
 
     :ivar finite_element: The finite-element pair to use. Default:
-    :class:`opentidalfarm.finite_elements.p2p1`
+        :class:`opentidalfarm.finite_elements.p2p1`
+
     """
 
     # Domain

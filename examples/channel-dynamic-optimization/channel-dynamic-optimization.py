@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# .. _channel_simulation:
+# .. _channel_dynamic_optimisation:
 #
 # .. py:currentmodule:: opentidalfarm
 #
-# Dynamic optimization of friction coefficient 
-# ============================
+# Dynamic optimization of friction coefficient
+# ============================================
 #
 #
 # Introduction
@@ -172,7 +172,7 @@ f_opt = maximize(rf, bounds=[lb, ub], method="L-BFGS-B", options={'maxiter':
 10, 'ftol':1e-2}, callback=solver.update_optimisation_iteration)
 
 # Reset the scale of the reduced functional, which maximize have changed,
-# before calculating the energy output. 
+# before calculating the energy output.
 
 rf.scale = 1.0
 solver_params.dump_period = -1

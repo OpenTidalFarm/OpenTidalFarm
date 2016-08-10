@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# .. _scenario1:
+# .. _resource_assessment:
 #
 # .. py:currentmodule:: opentidalfarm
 #

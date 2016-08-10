@@ -68,7 +68,7 @@ and is nearly identical to the :ref:`channel_simulation` example:
   prob_params.friction = Constant(0.0025)
   
 The next step is to create the turbine farm. In this case, the
-farm consists of 32 turbines deployed in a staggered grid layout.
+farm consists of 28 turbines deployed in a staggered grid layout.
 
 We start by specifying the turbine type used in the array.
 Here we use BumpTurbine, which represents turbines as
@@ -94,7 +94,7 @@ is defined using the domain and the site dimensions.
   
 We could also add turbines manually via the
 :class:`RectangularFarm.add_turbine`.
-For simplicity, we use a helper functions to deploy 32 turbines in a staggered grid layout.
+For simplicity, we use a helper functions to deploy 28 turbines in a staggered grid layout.
 
 ::
 
@@ -106,6 +106,8 @@ We can plot the friction function produced by this farm with
 ::
 
   plot(farm.friction_function, title="Farm friction")
+  farm_friction = File("FarmFriction.pvd")
+  farm_friction << farm.friction_function
   
 .. image:: farm_friction.png
     :scale: 30

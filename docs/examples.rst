@@ -12,6 +12,7 @@ Examples
    examples/tidal/orkney
    examples/farm-performance/farm-performance
    examples/channel-opt/channel-opt
+   examples/channel-dynamic-opt/channel-dynamic-opt
    examples/channel-sens/channel-sens
    examples/headland-optimization/headland-optimization
    examples/resource-assessment/resource-assessment
