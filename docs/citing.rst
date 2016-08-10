@@ -39,7 +39,9 @@ For work on a continuous representation of tidal turbines that can be used for l
 
 * **SW Funke, SC Kramer, MD Piggott (2015)**.
   *Design optimisation and resource assessment for tidal-stream renewable energy farms using a new continuous turbine approach*,
-  arXiv, arXiv:1507.05795
+  Renewable Energy, 99, pp. 1046-1061.
+  `doi:10.1016/j.renene.2016.07.039
+  <http://dx.doi.org/10.1016/j.renene.2016.07.039>`__.
   [`PDF
   <http://arxiv.org/pdf/1507.05795v1>`__].
 
@@ -47,14 +49,18 @@ For work on array sizing and sensitivity analysis please see:
 
 * **DM Culley, SW Funke, SC Kramer, MD Piggott (2015)**.
   *Tidal stream resource assessment through optimisation of array design with quantification of uncertainty*,
-  accepted to The Proceedings of the 11th European Wave and Tidal Energy Conference, Nantes, 2015.
+  The Proceedings of the 11th European Wave and Tidal Energy Conference, Nantes, 2015
+  [`PDF
+  <http://amcg.ese.ic.ac.uk/~piggt01/publications/culley_ewtec_2015.pdf>`__].
 
 For a general piece on the role OpenTidalFarm might play in the overall tidal turbine array design process see:
 
 * **DM Culley, SW Funke, SC Kramer, MD Piggott (2014)**.
   *A hierarchy of approaches for the optimal design of tidal turbine farms*,
-  submitted. `doi:10.684/m9.figshare.1219375 <http://dx.doi.org/10.6084/m9.figshare.1219375>`__.
-  [`PDF <http://files.figshare.com/1758940/hierarchy_of_modelling_CULLEY.pdf>`__].
+  ICOE 2014 (5th International Conference on Ocean Energy),
+  `doi:10.684/m9.figshare.1219375
+  <http://dx.doi.org/10.6084/m9.figshare.1219375>`__.
+  [`PDF <http://www.icoe2014canada.org/wp-content/uploads/2014/11/CulleyDavid_5-4.pdf>`__].
 
 For work on global optimisation of turbine locations through the use of a hybrid global-local optimisation schemes and wake models pease see:
 
