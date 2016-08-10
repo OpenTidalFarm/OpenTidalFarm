@@ -10,6 +10,5 @@ setup(name='OpenTidalFarm',
                   'opentidalfarm.domains',
                   'opentidalfarm.functionals',
                   'opentidalfarm.farm',
-                  'opentidalfarm.options',
                   'opentidalfarm.turbines']
       )
