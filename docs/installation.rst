@@ -58,7 +58,7 @@ The examples are then stored in the "OpenTidalFarm/examples" directory.
 
 .. _Ubuntu: http://www.ubuntu.com/
 .. _FEniCS: http://fenicsproject.org/download/
-.. _dolfin-adjoint: http://www.dolfin-adjoint.org/download/index.html
+.. _dolfin-adjoint: http://www.dolfin-adjoint.org/en/latest/download/index.html
 .. _Uptide: https://github.com/stephankramer/uptide
 .. _UTM: https://pypi.python.org/pypi/utm
 .. _Download OpenTidalFarm: https://github.com/funsim/OpenTidalFarm/zipball/master
