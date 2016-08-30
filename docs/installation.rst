@@ -10,7 +10,7 @@ Docker images (all platforms and versions)
 
 `Docker <https://www.docker.com>`_ allows us to build and ship
 consistent high-performance OpenTidalFarm installations for almost any
-platform. To get started, follow these 2 steps:
+platform. To get started, follow these steps:
 
 #. Install Docker. Mac and Windows users should install the `Docker
    Toolbox <https://www.docker.com/products/docker-toolbox>`_ (this is
