@@ -20,30 +20,29 @@ platform. To get started, follow these 2 steps:
 
     curl -s https://get.fenicsproject.org | bash
 
-If running on Mac or Windows, make sure you run this and other
-commands inside the Docker Quickstart Terminal.
+   If running on Mac or Windows, make sure you run this and other
+   commands inside the Docker Quickstart Terminal.
 
-Once both Docker and the FEniCS Docker script have been installed, you can
-easily start an OpenTidalFarm session by running the following command::
+#. Start an OpenTidalFarm session by running the following command::
 
     fenicsproject run quay.io/opentidalfarm/virtual
 
-A Jupyter notebook instance with a user defined name (here myproject) can be started with::
+   A Jupyter notebook instance with a user defined name (here myproject) can be started with::
 
     fenicsproject notebook myproject quay.io/opentidalfarm/virtual
     fenicsproject start myproject
 
 
-The FEniCS Docker script can also be used to create persistent sessions::
+   The FEniCS Docker script can also be used to create persistent sessions::
 
     fenicsproject create myproject
     fenicsproject run myproject
 
-To update the container to the newest version, run::
+   To update the container to the newest version, run::
 
     fenicsproject pull quay.io/opentidalfarm/virtual
 
-To see all the options run::
+   To see all the options run::
 
     fenicsproject help
 
