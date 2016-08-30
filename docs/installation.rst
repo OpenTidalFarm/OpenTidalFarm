@@ -1,13 +1,61 @@
 Installation
 ============
 
-It is recommended to use OpenTidalFarm on the `Ubuntu`_ operating system.
-
 Quick install
 -------------
 
-Manual installation (recommended)
-*********************************
+OpenTidalFarm runs on Windows, Mac OSX and Linux.
+
+We recommend to install OpenTidalFarm using Docker:
+
+Docker images (all platforms and versions)
+******************************************
+
+`Docker <https://www.docker.com>`_ allows us to build and ship
+consistent high-performance OpenTidalFarm installations for almost any
+platform. To get started, follow these 2 steps:
+
+#. Install Docker. Mac and Windows users should install the `Docker
+   Toolbox <https://www.docker.com/products/docker-toolbox>`_ (this is
+   a simple one-click install) and Linux users should `follow these
+   instructions <https://docs.docker.com/linux/step_one/>`_.
+#. Install the FEniCS Docker script::
+
+    curl -s https://get.fenicsproject.org | bash
+
+If running on Mac or Windows, make sure you run this and other
+commands inside the Docker Quickstart Terminal.
+
+Once both Docker and the FEniCS Docker script have been installed, you can
+easily start an OpenTidalFarm session by running the following command::
+
+    fenicsproject run quay.io/opentidalfarm/virtual
+
+A Jupyter notebook instance with a user defined name (here myproject) can be started with::
+
+    fenicsproject notebook myproject quay.io/opentidalfarm/virtual
+    fenicsproject start myproject
+
+
+The FEniCS Docker script can also be used to create persistent sessions::
+
+    fenicsproject create myproject
+    fenicsproject run myproject
+
+To update the container to the newest version, run::
+
+    fenicsproject pull quay.io/opentidalfarm/virtual
+
+To see all the options run::
+
+    fenicsproject help
+
+For more details and tips on how to work with FEniCS and Docker, see
+our `FEniCS Docker page
+<http://fenics-containers.readthedocs.org/en/latest/>`_.
+
+Manual installation
+*******************
 
 For the manual installation of OpenTidalFarm you need to have the Ubuntu Linux.
 Then you need to install these OpenTidalFarm dependencies:
