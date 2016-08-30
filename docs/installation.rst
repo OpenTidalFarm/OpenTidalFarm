@@ -1,15 +1,12 @@
 Installation
 ============
 
-Quick install
--------------
-
 OpenTidalFarm runs on Windows, Mac OSX and Linux.
 
 We recommend to install OpenTidalFarm using Docker:
 
 Docker images (all platforms and versions)
-******************************************
+------------------------------------------
 
 `Docker <https://www.docker.com>`_ allows us to build and ship
 consistent high-performance OpenTidalFarm installations for almost any
@@ -55,7 +52,7 @@ our `FEniCS Docker page
 <http://fenics-containers.readthedocs.org/en/latest/>`_.
 
 Manual installation
-*******************
+-------------------
 
 For the manual installation of OpenTidalFarm, we recommend to use Ubuntu Linux.
 First, you need to install these OpenTidalFarm dependencies:
@@ -114,29 +111,8 @@ The examples are then stored in the "OpenTidalFarm/examples" directory.
 .. _SciPy: http://www.scipy.org
 .. _pyyaml: http://pyyaml.org
 
-Automatic installation using hashdist (experimental)
-****************************************************
-
-Following command will install OpenTidalFarm and all its dependencies into a isolated environment on your computer.
-
-.. code-block:: bash
-
-   curl -s https://bitbucket.org/simon_funke/fenics-developer-tools/raw/master/opentidalfarm-install.sh | bash
-
-Select the option "[1] latest stable version of FEniCS" during the installation.
-
-Once finished, you can test the installation with:
-
-.. code-block:: bash
-
-    python -c "import opentidalfarm"
-
-If no errors occur, your installation was succesfull.
-
-If you have any problems with the installation, please use our `Issue tracker`_.
-
 Older versions
-**************
+--------------
 
 Version 1.5
 
