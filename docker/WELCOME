@@ -1,0 +1,7 @@
+# OpenTidalFarm master version
+
+This image provides the most recent stable release of OpenTidalFarm
+(<http://opentidalfarm.readthedocs.io/en/latest/>).
+
+To access the examples, type
+    cd ~/OpenTidalFarm/examples
