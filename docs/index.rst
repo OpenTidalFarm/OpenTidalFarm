@@ -68,6 +68,7 @@ For questions and to report issues use the `GitHub issue tracker
 News
 ----
 
+- 30.08.2016: Easy installation of OpenTidalFarm `via Docker <http://opentidalfarm.readthedocs.io/en/latest/installation.html#docker-images-all-platforms-and-versions>`_.
 - 14.07.2016: OpenTidalFarm 2016.1 released (compatibled with FEniCS 2016.1)
 
   - Continuous farm representation
