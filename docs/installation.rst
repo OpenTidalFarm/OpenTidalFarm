@@ -57,8 +57,8 @@ our `FEniCS Docker page
 Manual installation
 *******************
 
-For the manual installation of OpenTidalFarm you need to have the Ubuntu Linux.
-Then you need to install these OpenTidalFarm dependencies:
+For the manual installation of OpenTidalFarm, we recommend to use Ubuntu Linux.
+First, you need to install these OpenTidalFarm dependencies:
 
 - `FEniCS`_ (Follow the Ubuntu PPA installation)
 - `dolfin-adjoint`_ (Follow the Ubuntu PPA installation)
