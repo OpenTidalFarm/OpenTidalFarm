@@ -68,6 +68,7 @@ For questions and to report issues use the `GitHub issue tracker
 News
 ----
 
+- 27.09.2016: A new paper has been published on `multi-farm optimisation using a continuous turbine approach <http://dx.doi.org/10.1016/j.renene.2016.07.039>`_.
 - 30.08.2016: Easy installation of OpenTidalFarm `via Docker <http://opentidalfarm.readthedocs.io/en/latest/installation.html#docker-images-all-platforms-and-versions>`_.
 - 14.07.2016: OpenTidalFarm 2016.1 released (compatibled with FEniCS 2016.1)
 
