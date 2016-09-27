@@ -10,27 +10,13 @@
     </script>
 
 
-Welcome to OpenTidalFarm
-========================
-
-OpenTidalFarm is an open-source software for simulating and optimising tidal
-turbine farms.
-
-The positioning of the turbines in a tidal farm is a crucial decision.
-Simulations show that the optimal positioning can increase the power generation
-of the farm by up to 50% and can therefore determine the viability of a project.
-However, finding the optimal layout is a difficult process due to the complex
-flow interactions. OpenTidalFarm solves this problem by applying an efficient
-optimisation algorithm onto a accurate flow prediction model.
-
-Following presentation gives a quick introduction to OpenTidalFarm:
-`OpenTidalFarm
-<https://www.slideboom.com/presentations/758051/OpenTidalFarm/>`_
+OpenTidalFarm
+=============
 
 
 .. raw:: html
 
-    <div class="flexslider">
+    <div class="flexslider" style="width: 50%; margin:0 auto;">
       <ul class="slides">
         <li>
           <img src="_static/slider_media/discrete_satellite.png" />
@@ -54,6 +40,20 @@ Following presentation gives a quick introduction to OpenTidalFarm:
         </li>
       </ul>
     </div>
+
+OpenTidalFarm is an open-source software for simulating and optimising tidal turbine farms.
+
+The positioning of the turbines in a tidal farm is a crucial decision.
+Simulations show that the optimal positioning can increase the power generation
+of the farm by up to 50% and can therefore determine the viability of a project.
+However, finding the optimal layout is a difficult process due to the complex
+flow interactions. OpenTidalFarm solves this problem by applying an efficient
+optimisation algorithm onto a accurate flow prediction model.
+
+Following presentation gives a quick introduction to OpenTidalFarm:
+`OpenTidalFarm
+<https://www.slideboom.com/presentations/758051/OpenTidalFarm/>`_
+
 
 How to get started
 ------------------

@@ -3,6 +3,7 @@ OpenTidalFarm Change Log
 dev:
 	- Support for dynamic farm optimisiation
 	- New example for dynamic farm optimisation (by Håkon Taskén)
+	- Support of docker images
 
 2016.1 (14.07.2016):
 	- Continuous farm representation

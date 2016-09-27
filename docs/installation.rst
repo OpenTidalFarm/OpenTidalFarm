@@ -58,21 +58,21 @@ First, you need to install these OpenTidalFarm dependencies:
 
 - `FEniCS`_ (Follow the Ubuntu PPA installation)
 - `dolfin-adjoint`_ (Follow the Ubuntu PPA installation)
-- `SciPy`_
+- `SciPy`_::
 
-   ``pip install --user scipy``
+    pip install --user scipy
 
-- `pyyaml`_
+- `pyyaml`_::
 
-   ``pip install --user pyyaml``
+     pip install --user pyyaml
 
-- `Uptide`_
+- `Uptide`_::
 
-   ``pip install --user git+git://github.com/stephankramer/uptide.git``
+     pip install --user git+git://github.com/stephankramer/uptide.git
 
-- `UTM`_
+- `UTM`_::
 
-   ``pip install --user utm``
+     pip install --user utm
 
 
 Finally, you can install the most recent version of OpenTidalFarm with:
