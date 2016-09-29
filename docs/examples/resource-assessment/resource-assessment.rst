@@ -211,7 +211,7 @@ Finally, we create the reduced functional and start the optimisation.
   f_opt = maximize(rf, bounds=[0, 0.05890486225480861],
                    method="L-BFGS-B", options={'maxiter': 30})
   
-The code for this example can be found in ``examples/tidal-simulation/`` in the
+The code for this example can be found in ``examples/resource-assessment/`` in the
 ``OpenTidalFarm`` source tree, and executed as follows:
 
 .. code-block:: bash
