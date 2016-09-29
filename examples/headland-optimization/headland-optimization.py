@@ -265,3 +265,19 @@ print "Average smeared turbine friction: %e." % (total_friction / site_area)
 print "Average power / total friction: %e." % (avg_power / total_friction)
 print "Friction per discrete turbine: {}".format(model_turbine.friction)
 print "Estimated number of discrete turbines: {}".format(num_turbines)
+
+# How to run the example
+# **********************
+
+# The example code can be found in ``examples/headland-optimization/`` in the
+# ``OpenTidalFarm`` source tree, and executed as follows:
+
+# .. code-block:: bash
+
+#   $ python headland-optimization.py --turbines N [--optimize]
+
+# where `N` is the number of turbines to deploy and --optimize is an optional
+# flag to switch from simulation (default) to optimization.
+
+# The results can be viewed
+# with [Paraview](http://www.paraview.org/).
