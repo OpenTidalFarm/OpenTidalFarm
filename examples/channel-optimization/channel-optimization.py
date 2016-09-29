@@ -163,10 +163,10 @@ f_opt = maximize(rf, bounds=[lb, ub], method="L-BFGS-B",
 
 # .. code-block:: python
 
-# lb, ub = farm.site_boundary_constraints()
-# ieq = farm.minimum_distance_constraints()
-# f_opt = maximize(rf, bounds=[lb, ub], constraints=ieq, method="SLSQP",
-#                  options={'maxiter': 100, 'ftol': 1e-03})
+#    lb, ub = farm.site_boundary_constraints()
+#    ieq = farm.minimum_distance_constraints()
+#    f_opt = maximize(rf, bounds=[lb, ub], constraints=ieq, method="SLSQP",
+#                     options={'maxiter': 100, 'ftol': 1e-03})
 
 
 # How to run the example

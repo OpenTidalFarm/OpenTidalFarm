@@ -110,9 +110,10 @@ This layout will be the starting guess for the optimization.
 
   # Before adding turbines we must specify the type of turbines used in the array.
   # Here we used the default BumpTurbine which defaults to being controlled by
-  # just position. The diameter and friction are set. The minimum distance between
-  # turbines if not specified is set to 1.5*diameter.
-  turbine = BumpTurbine(diameter=20.0, friction=12.0)
+  # just position. The diameter and friction are set and a minimum distance
+  # between each turbine is specified. (if no minimum distance is set,
+  # it defaults to 1.5*diameter).
+  turbine = BumpTurbine(diameter=20.0, friction=12.0, minimum_distance=25.)
   
   # A rectangular farm is defined using the domain and the site dimensions.
   farm = RectangularFarm(domain, site_x_start=160, site_x_end=480,
@@ -162,12 +163,26 @@ As always, we can print all options of the :class:`ReducedFunctional` with:
 Now we can define the constraints for the controls and start the
 optimisation.
 
+If no minimum distance constrained for the turbines is required, we can use
+the L-BFGS-B optimisation method:
+
 ::
 
   lb, ub = farm.site_boundary_constraints()
-  f_opt = maximize(rf, bounds=[lb, ub], method="L-BFGS-B", options={'maxiter':
-  100, 'ftol': 1e-03})
+  f_opt = maximize(rf, bounds=[lb, ub], method="L-BFGS-B",
+                   options={'maxiter': 100, 'ftol': 1e-03})
   
+Otherwise, we need to create the minimum distance constraints and pass them to
+an optimisation method that supports such constraints (here we use SLSQP):
+
+.. code-block:: python
+
+   lb, ub = farm.site_boundary_constraints()
+   ieq = farm.minimum_distance_constraints()
+   f_opt = maximize(rf, bounds=[lb, ub], constraints=ieq, method="SLSQP",
+                    options={'maxiter': 100, 'ftol': 1e-03})
+
+
 How to run the example
 **********************
 
