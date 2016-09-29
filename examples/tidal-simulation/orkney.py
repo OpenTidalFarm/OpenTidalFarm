@@ -44,6 +44,7 @@
 # We begin with importing the OpenTidalFarm module.
 
 from opentidalfarm import *
+set_log_level(ERROR)
 
 # We also need the datetime module for the tidal forcing.
 
@@ -160,21 +161,20 @@ solver = IPCSSWSolver(problem, sol_params)
 
 # Now we are ready to solve and store the results to file.
 
-f_eta = File("results-ipcs/eta.pvd")
-f_u = File("results-ipcs/u.pvd")
-f_eddy = File("results-ipcs/eddy.pvd")
+f_u = XDMFFile("results-ipcs/u.xdmf")
+f_eta = XDMFFile("results-ipcs/eta.xdmf")
+f_eddy = XDMFFile("results-ipcs/eddy-viscosity.xdmf")
 
-timer = Timer('')
 # To save memory, we deactivate the adjoint model with annotate=False.
 # We do not need the adjoint because we will not solve an optimisation problem
 # or compute sensitivities
 for sol in solver.solve(annotate=False):
-    simulation_time = float(sol["time"])
-    log(INFO, "Computed solution at time %f in %f s." % (simulation_time, timer.stop()))
-    f_eta << (sol["eta"], simulation_time)
-    f_u << (sol["u"], simulation_time)
-    f_eddy << (sol["eddy_viscosity"], simulation_time)
-    timer.start()
+    print "Computed solution at time {}.".format(sol["time"])
+
+    # Write velocity and free-surface perturbation to file.
+    f_u.write(sol["u"], sol["time"])
+    f_eta.write(sol["eta"], sol["time"])
+    f_eddy.write(sol["eddy_viscosity"], sol["time"])
 
 # How to run the example
 # **********************
@@ -188,4 +188,4 @@ for sol in solver.solve(annotate=False):
 #
 # where 4 should be replaced by the number of CPU cores available.
 #
-# The results can be visualised with `Paraview <http://www.paraview.org/>`_.
+# The results are stoed in the `results-ipcs` directory and can be visualised with `Paraview <http://www.paraview.org/>`_.

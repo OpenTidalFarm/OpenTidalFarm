@@ -380,7 +380,7 @@ IPCSSWSolverParameters."
             a_p_corr_solver = LUSolver(A_p_corr)
             a_p_corr_solver.parameters["reuse_factorization"] = True
 
-        yield({"time": t,
+        yield({"time": float(t),
                "u": u0,
                "eta": eta0,
                "eddy_viscosity": eddy_viscosity,
@@ -448,7 +448,7 @@ IPCSSWSolverParameters."
             adj_inc_timestep(time=float(t), finished=self._finished(t,
                 finish_time))
 
-            yield({"time": t,
+            yield({"time": float(t),
                    "u": u0,
                    "eta": eta0,
                    "eddy_viscosity": eddy_viscosity,
