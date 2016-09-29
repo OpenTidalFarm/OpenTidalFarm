@@ -101,13 +101,12 @@ For simplicity, we use a helper functions to deploy 28 turbines in a staggered g
   farm.add_staggered_turbine_layout(num_x=8, num_y=4)
   prob_params.tidal_farm = farm
   
-We can plot the friction function produced by this farm with
+We save the friction function produced by this farm to file
+(view the `xdmf` file with [Paraview](http://www.paraview.org/)):
 
 ::
 
-  plot(farm.friction_function, title="Farm friction")
-  farm_friction = File("FarmFriction.pvd")
-  farm_friction << farm.friction_function
+  XDMFFile("farm_friction.xdmf").write(farm.friction_function)
   
 .. image:: farm_friction.png
     :scale: 30

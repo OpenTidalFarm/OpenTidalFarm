@@ -163,8 +163,8 @@ html_theme_path = sphinx_bootstrap_theme.get_html_theme_path()
 # For options, see  https://github.com/ryan-roemer/sphinx-bootstrap-theme
 html_theme_options = {
 'bootswatch_theme': "readable",
-'navbar_pagenav': False,
-#'globaltoc_depth': 3,
+#'navbar_pagenav': True,
+#'globaltoc_depth': -1,
 }
 #html_theme_options['script_files'] = "flexslider/jquery.flexslider-min.js"
 #html_theme_options['css_files'] = "_static/flexslider/flexslider.css"

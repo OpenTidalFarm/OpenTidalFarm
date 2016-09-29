@@ -67,6 +67,7 @@ We begin with importing the OpenTidalFarm module.
 ::
 
   from opentidalfarm import *
+  set_log_level(ERROR)  # Tell solver to only print error messages
   
 Next we get the default parameters of a shallow water problem and configure it
 to our needs.
@@ -83,12 +84,13 @@ First we define the computational domain. For a simple channel, we can use the
   domain = RectangularDomain(x0=0, y0=0, x1=100, y1=50, nx=20, ny=10)
   
 The boundary of the domain is marked with integers in order to specify
-different boundary conditions on different parts of the domain. You can plot
-and inspect the boundary ids with:
+different boundary conditions on different parts of the domain. We create a
+plot of these facets ids to inspect the boundary ids with (open the file `facet_ids.xdmf` in
+[Paraview](http://www.paraview.org/) to view the plot):
 
 ::
 
-  plot(domain.facet_ids)
+  XDMFFile("facet_ids.xdmf").write(domain.facet_ids)
   
 Once the domain is created we attach it to the problem parameters:
 
@@ -160,28 +162,23 @@ parameters, adjust them to our needs and then create the solver object.
   solver = CoupledSWSolver(problem, sol_params)
   
 We create some files to store the velocity, u, and surface elevation, eta, at
-each timestep, so it can be viewed in ParaView later. 
+each timestep, so it can be viewed in ParaView later.
 
 ::
 
-  f_u = XDMFFile(mpi_comm_world(), "u.xdmf")
-  f_eta = XDMFFile(mpi_comm_world(), "eta.xdmf")
+  f_u = XDMFFile("u.xdmf")
+  f_eta = XDMFFile("eta.xdmf")
   
 Now we are ready to solve the problem.
 
 ::
 
   for s in solver.solve():
-      print "Computed solution at time %f" % s["time"]
-      u, eta = s["state"].split()
-      f_u.write(u)
-      f_eta.write(eta)
-      plot(u, title="u at time: {}".format(s["time"]))
-      plot(eta, title="eta at time: {}".format(s["time"]))
+      print "Computed solution at time {}".format(s["time"])
   
-  # (Plots is not shown in docker. View the stored xdmf-files instead.)  
-  interactive()  # Hold the plot until the user presses q. 
-  
+      # Write velocity and free-surface perturbation to file.
+      f_u.write(s["u"], s["time"])
+      f_eta.write(s["eta"], s["time"])
   
 The inner part of the loop is executed for each timestep. The variable :attr:`s`
 is a dictionary and contains information like the current timelevel, the velocity and
@@ -191,8 +188,12 @@ How to run the example
 **********************
 
 The example code can be found in ``examples/channel-simulation/`` in the
-``OpenTidalFarm`` source tree, and executed as follows
+``OpenTidalFarm`` source tree, and executed as follows:
 
 .. code-block:: bash
 
   $ python channel-simulation.py
+
+The results are stored in the files `u.xdmf` and `eta.xdmf`, and can be viewed
+with [Paraview](http://www.paraview.org/).
+

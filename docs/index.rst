@@ -54,6 +54,20 @@ Following presentation gives a quick introduction to OpenTidalFarm:
 `OpenTidalFarm
 <https://www.slideboom.com/presentations/758051/OpenTidalFarm/>`_
 
+Features
+--------
+
+A selection of features are:
+
+- nonlinear shallow water model for flow predictions;
+- predict power production of a farm;
+- compute sensitivities using OpenTidalFarm's adjoint model;
+- optimise turbine position and size, e.g. to maximise the total farm power output;
+- site constraints and minimum distance between turbines;
+- optimisation of hundreds of turbines;
+- parallel support using MPI;
+- checkpoint support to restart optimisation.
+
 
 How to get started
 ------------------
@@ -97,20 +111,6 @@ News
   - Initial release.
   - Support for discrete farm optimisation.
 
-
-Features
---------
-
-A selection of features are:
-
-- nonlinear shallow water model for flow predictions;
-- prediction of power production of a farm;
-- an efficient adjoint model to compute sensitivities;
-- optimise the turbine position and size to maximise the total farm power output;
-- site constraints and minimum distance between turbines;
-- optimisation of hundreds of turbines;
-- parallel support using MPI;
-- checkpoint support to restart optimisation.
 
 Contents
 ========

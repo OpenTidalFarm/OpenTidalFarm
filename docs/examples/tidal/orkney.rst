@@ -46,6 +46,7 @@ We begin with importing the OpenTidalFarm module.
 ::
 
   from opentidalfarm import *
+  set_log_level(ERROR)
   
 We also need the datetime module for the tidal forcing.
 
@@ -185,17 +186,18 @@ Now we are ready to solve and save the results to file.
 
 ::
 
-  f_state = File("results/state.pvd")
+  f_u = XDMFFile("results/u.xdmf")
+  f_eta = XDMFFile("results/eta.xdmf")
   
-  timer = Timer('')
   # To save memory, we deactivate the adjoint model with annotate=False.
   # We do not need the adjoint because we will not solve an optimisation problem
   # or compute sensitivities
-  for sol in solver.solve(annotate=False):
-      simulation_time = float(sol["time"])
-      log(INFO, "Computed solution at time %f in %f s." % (simulation_time, timer.stop()))
-      f_state << (sol["state"], simulation_time)
-      timer.start()
+  for sol in solver.solve(): #annotate=False):
+      print "Computed solution at time {}.".format(sol["time"])
+  
+      # Write velocity and free-surface perturbation to file.
+      f_u.write(sol["u"], sol["time"])
+      f_eta.write(sol["eta"], sol["time"])
   
 How to run the example
 **********************
@@ -209,4 +211,4 @@ The code for this example can be found in ``examples/tidal-simulation/`` in the
 
 where 4 should be replaced by the number of CPU cores available.
 
-The results can be visualised with `Paraview <http://www.paraview.org/>`_.
+The results are stoed in the `results` directory and can be visualised with `Paraview <http://www.paraview.org/>`_.
