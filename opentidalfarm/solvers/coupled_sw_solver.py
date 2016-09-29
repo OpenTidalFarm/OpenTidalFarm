@@ -467,9 +467,9 @@ class CoupledSWSolver(Solver):
                 log(INFO, "Writing state to disk...")
                 writer.write(state)
 
-        result = {"time": t,
-                  "u": u0,
-                  "eta": h0,
+        result = {"time": float(t),
+                  "u": state.split()[0],
+                  "eta": state.split()[1],
                   "tf": tf,
                   "state": state,
                   "is_final": self._finished(t, finish_time)}
@@ -540,9 +540,9 @@ class CoupledSWSolver(Solver):
                 writer.write(state)
 
             # Return the results
-            result = {"time": t,
-                      "u": u0,
-                      "eta": h0,
+            result = {"time": float(t),
+                      "u": state.split()[0],
+                      "eta": state.split()[1],
                       "tf": tf,
                       "state": state,
                       "is_final": self._finished(t, finish_time)}

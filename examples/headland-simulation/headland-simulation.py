@@ -125,6 +125,7 @@ solver = CoupledSWSolver(problem, sol_params)
 
 class VorticitySolver(object):
     def __init__(self, V):
+        self.V = V
         self.u = Function(V)
         Q = V.extract_sub_space([0]).collapse()
 
@@ -137,43 +138,39 @@ class VorticitySolver(object):
         self.vort = Function(Q)
 
     def solve(self, u):
-        self.u.assign(u)
+        self.u.assign(project(u, V))
         L_mat = assemble(self.L)
         solve(self.a_mat, self.vort.vector(), L_mat, annotate=False)
         return self.vort
 
 # We also create some output files to store the results
 
-u_xdmf = XDMFFile(mpi_comm_world(), "outputs/u.xdmf")
-eta_xdmf = XDMFFile(mpi_comm_world(), "outputs/eta.xdmf")
-vort_xdmf = XDMFFile(mpi_comm_world(), "outputs/vorticity.xdmf")
+u_xdmf = XDMFFile("outputs/u.xdmf")
+eta_xdmf = XDMFFile("outputs/eta.xdmf")
+vort_xdmf = XDMFFile("outputs/vorticity.xdmf")
 u_xdmf.parameters["flush_output"] = True
 eta_xdmf.parameters["flush_output"] = True
 vort_xdmf.parameters["flush_output"] = True
 
-# Create the vorticity solver and temporary functions for writing out velocity
-# and surface elevation
+# Extract the velocity function space and initialised the vorticity solver
 
 V = solver.function_space.extract_sub_space([0]).collapse()
-Q = solver.function_space.extract_sub_space([1]).collapse()
 vort_solver = VorticitySolver(V)
-u = Function(V)
-eta = Function(Q)
 
-# Now we cal run the time loop
+# Now we start the time loop
 
 for s in solver.solve(annotate=False):
     print "Computed solution at time %f" % s["time"]
 
     # Write velocity, surface elevation and vorticity to files
-    u.assign(project(s["u"]), V)
-    u_xdmf.write(u, float(s["time"]))
+    u_xdmf.write(s["u"], s["time"])
+    eta_xdmf.write(s["eta"], s["time"])
 
-    eta.assign(project(s["eta"]), Q)
-    eta_xdmf.write(eta, float(s["time"]))
+    vort = vort_solver.solve(s["u"])
+    vort_xdmf.write(vort, s["time"])
 
-    vort = vort_solver.solve(u)
-    vort_xdmf.write(vort, float(s["time"]))
+# The results are stored in the `outputs` directory and can be viewed
+# with [Paraview](http://www.paraview.org/).
 
 # The inner part of the loop is executed for each timestep. The variable :attr:`s`
 # is a dictionary and contains information like the current timelevel, the velocity and

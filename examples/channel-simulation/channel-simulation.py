@@ -148,13 +148,11 @@ f_eta = XDMFFile("eta.xdmf")
 # Now we are ready to solve the problem.
 
 for s in solver.solve():
-    print "Computed solution at time %f" % s["time"]
+    print "Computed solution at time {}".format(s["time"])
 
-    # Split the velocity and pressure into its components and write them to
-    # file.
-    u, eta = s["state"].split()
-    f_u.write(u)
-    f_eta.write(eta)
+    # Write velocity and free-surface perturbation to file.
+    f_u.write(s["u"], s["time"])
+    f_eta.write(s["eta"], s["time"])
 
 # The inner part of the loop is executed for each timestep. The variable :attr:`s`
 # is a dictionary and contains information like the current timelevel, the velocity and
@@ -164,7 +162,7 @@ for s in solver.solve():
 # **********************
 
 # The example code can be found in ``examples/channel-simulation/`` in the
-# ``OpenTidalFarm`` source tree, and executed as follows
+# ``OpenTidalFarm`` source tree, and executed as follows:
 
 # .. code-block:: bash
 
