@@ -18,8 +18,9 @@ It shows how to:
   - add a tidal farm with 32 turbines;
   - define an optimisation objective, here the farm's power production;
   - define an optimisation control, here the turbine positions;
-  - define constraints to the controls, here bounds to restrict the positions
-    of the turbines to the farm bounds;
+  - define constraints to the controls: bounds to restrict the positions
+    of the turbines to the farm bounds and minimum distance constraints
+    between each turbine;
   - run the optimisation and retrieve the optimal turbine positions and farm
     power production.
 
