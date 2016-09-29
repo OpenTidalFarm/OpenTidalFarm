@@ -80,7 +80,7 @@ domain = RectangularDomain(x0=0, y0=0, x1=100, y1=50, nx=20, ny=10)
 # The boundary of the domain is marked with integers in order to specify
 # different boundary conditions on different parts of the domain. We create a
 # plot of these facets ids to inspect the boundary ids with (open the file `facet_ids.xdmf` in
-# [Paraview](http://www.paraview.org/) to view the plot:
+# [Paraview](http://www.paraview.org/) to view the plot):
 
 XDMFFile("facet_ids.xdmf").write(domain.facet_ids)
 
