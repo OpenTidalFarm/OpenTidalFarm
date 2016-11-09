@@ -5,10 +5,10 @@
 #      quay.io/dolfinadjoint/dev-dolfin-adjoint
 #
 # Authors:
-# Alberto Paganini <aldapa@gmail.com>
+# Simon Funke <simon@simula.no>
 
 FROM quay.io/dolfinadjoint/dev-dolfin-adjoint:latest
-MAINTAINER Alberto Paganini <aldapa@gmail.com>
+MAINTAINER Simon Funke <simon@simula.no>
 
 USER root
 RUN pip install pyyaml && \
