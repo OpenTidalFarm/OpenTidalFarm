@@ -92,7 +92,7 @@ farm_domain = FarmDomain()
 domains = MeshFunction("size_t", domain.mesh, domain.mesh.topology().dim())
 domains.set_all(0)
 farm_domain.mark(domains, 1)
-site_dx = Measure("dx")[domains]
+site_dx = Measure("dx")(subdomain_data=domains)
 farm.site_dx = site_dx(1)
 #plot(domains, interactive=True)
 
@@ -109,7 +109,7 @@ H = 40
 bcs = BoundaryConditionSet()
 eta_channel = "amp*sin(omega*t + omega/pow(g*H, 0.5)*x[0])"
 eta_expr = Expression(eta_channel, t=Constant(0), amp=tidal_amplitude,
-                      omega=2*pi/tidal_period, g=9.81, H=H)
+                      omega=2*pi/tidal_period, g=9.81, H=H, degree=3)
 bcs.add_bc("eta", eta_expr, facet_id=1, bctype="strong_dirichlet")
 bcs.add_bc("eta", eta_expr, facet_id=2, bctype="strong_dirichlet")
 
@@ -139,7 +139,7 @@ prob_params.functional_final_time_only = False
 # Note that we do not set all components to zero, as some components of the
 # Jacobian of the quadratic friction term is non-differentiable.
 prob_params.initial_condition = Expression(("1e-7", "0", eta_channel), t=Constant(0),
-              amp=tidal_amplitude, omega=2*pi/tidal_period, g=9.81, H=H)
+              amp=tidal_amplitude, omega=2*pi/tidal_period, g=9.81, H=H, degree=3)
 
 # Here we only set the necessary options. A full option list with its current
 # values can be viewed with:
