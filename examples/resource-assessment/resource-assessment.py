@@ -74,7 +74,7 @@ eta_expr = TidalForcing(grid_file_name='../data/netcdf/gridES2008.nc',
                         utm_zone=utm_zone,
                         utm_band=utm_band,
                         initial_time=datetime.datetime(2001, 9, 18, 10, 40),
-                        constituents=['Q1', 'O1', 'P1', 'K1', 'N2', 'M2', 'S2', 'K2'])
+                        constituents=['Q1', 'O1', 'P1', 'K1', 'N2', 'M2', 'S2', 'K2'], degree=3)
 
 bcs = BoundaryConditionSet()
 bcs.add_bc("eta", eta_expr, facet_id=1)
@@ -91,8 +91,8 @@ prob_params.bcs = bcs
 
 # Next we load the bathymetry from the NetCDF file.
 
-bathy_expr = BathymetryDepthExpression('../data/netcdf/bathymetry.nc',
-        utm_zone=utm_zone, utm_band=utm_band, domain=domain.mesh)
+bathy_expr = BathymetryDepthExpression(filename='../data/netcdf/bathymetry.nc',
+        utm_zone=utm_zone, utm_band=utm_band, domain=domain.mesh, degree=3)
 prob_params.depth = bathy_expr
 
 # The bathymetry can be visualised with
@@ -113,11 +113,11 @@ File("dist.xml") >> dist
 # inside the domain and a nu_outside value near the in/outflow boundary.
 
 class ViscosityExpression(Expression):
-    def __init__(self, dist_function, dist_threshold, nu_inside, nu_boundary):
-        self.dist_function = dist_function
-        self.nu_inside = nu_inside
-        self.nu_boundary = nu_boundary
-        self.dist_threshold = dist_threshold
+    def __init__(self, **kwargs):
+        self.dist_function = kwargs["dist_function"]
+        self.nu_inside = kwargs["nu_inside"]
+        self.nu_boundary = kwargs["nu_boundary"]
+        self.dist_threshold = kwargs["dist_threshold"]
 
     def eval(self, value, x):
         if self.dist_function(x) > self.dist_threshold:
@@ -129,8 +129,8 @@ class ViscosityExpression(Expression):
 # function and attach it as the viscosity value to the shallow water problem.
 
 W = FunctionSpace(domain.mesh, "DG", 0)
-nu = ViscosityExpression(dist, dist_threshold=10000., nu_inside=5000.,
-        nu_boundary=1e4)
+nu = ViscosityExpression(dist_function=dist, dist_threshold=10000., nu_inside=5000.,
+        nu_boundary=1e4, degree=3)
 nu_func = interpolate(nu, W)
 prob_params.viscosity = nu_func
 

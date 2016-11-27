@@ -22,21 +22,28 @@ class TidalForcing(Expression):
     """Create a TidalForcing Expression from OTPSnc NetCDF files, where
        the grid is stored in a separate file (with "lon_z", "lat_z" and "mz"
        fields). The actual data is read from a seperate file with hRe and hIm
-       fields. """
+       fields. 
 
-    def __init__(self, grid_file_name, data_file_name, ranges, utm_zone, utm_band, initial_time, constituents):
-        """ This function initializes a new TidalForcing object.
-            The parameters are:
+       The parameters are:
+
+         grid_file_name
+         data_file_name
+         ranges
+         utm_zone
+         utm_band
+         initial_time
+         constituents
         """
 
+    def __init__(self, **kwargs):
         self.t = 0
-        self.utm_zone = utm_zone
-        self.utm_band = utm_band
+        self.utm_zone = kwargs["utm_zone"]
+        self.utm_band = kwargs["utm_band"]
 
-        tide = uptide.Tides(constituents)
-        tide.set_initial_time(initial_time)
+        tide = uptide.Tides(kwargs["constituents"])
+        tide.set_initial_time(kwargs["initial_time"])
         self.tnci = uptide.tidal_netcdf.OTPSncTidalInterpolator(tide,
-                    grid_file_name, data_file_name, ranges)
+                    kwargs["grid_file_name"], kwargs["data_file_name"], kwargs["ranges"])
 
 
     def eval(self, values, X):
@@ -61,11 +68,20 @@ class TidalForcing(Expression):
 
 class BathymetryDepthExpression(Expression):
     """Create a bathymetry depth Expression from a lat/lon NetCDF file, where
-       the depth values stored as "z" field. """
-    def __init__(self, filename, utm_zone, utm_band, maxval=10, domain=None):
+       the depth values stored as "z" field. 
 
-        self._domain = domain
-        nc = NetCDFFile(filename, 'r')
+       Parameters are:
+        filename
+        utm_zone
+        utm_band
+        maxval. Default value is 10
+        domain. Default value is None
+       
+       """
+    def __init__(self, **kwargs):
+
+        self._domain = kwargs.get("domain", None)
+        nc = NetCDFFile(kwargs["filename"], 'r')
 
         lat = nc.variables['lat']
         lon = nc.variables['lon']
@@ -76,9 +92,9 @@ class BathymetryDepthExpression(Expression):
         if hasattr(lon, 'data'): lon = lon.data
         if hasattr(values, 'data'): values = values.data
 
-        self.utm_zone = utm_zone
-        self.utm_band = utm_band
-        self.maxval = maxval
+        self.utm_zone = kwargs["utm_zone"]
+        self.utm_band = kwargs["utm_band"]
+        self.maxval = kwargs.get("maxval", 10)
         self.interpolator = scipy.interpolate.RectBivariateSpline(lat, lon, values)
 
     def eval(self, values, x):
