@@ -8,6 +8,9 @@ __all__ = ["FenicsReducedFunctional"]
 
 class FenicsReducedFunctional(ReducedFunctional):
     """
+    This class implements a reduced functional that operators on FEniCS Functions
+    instead of numpy.arrays for the controls.
+
     Following parameters are expected:
 
     :ivar functional: a :class:`PrototypeFunctional` class.
@@ -112,10 +115,10 @@ class FenicsReducedFunctional(ReducedFunctional):
         log(INFO, 'Start evaluation of dj')
         timer = Timer("dj evaluation")
 
-        J = self.time_integrator.dolfin_adjoint_functional(self.solver.state)
-        dj = compute_gradient(J, self.controls, forget=forget, **kwargs)
+        self.functional = self.time_integrator.dolfin_adjoint_functional(self.solver.state)
+        dj = compute_gradient(self.functional, self.controls, forget=forget, **kwargs)
         parameters["adjoint"]["stop_annotating"] = False
 
         log(INFO, "Runtime: " + str(timer.stop()) + " s")
 
-        return dj
+        return enlisting.enlist(dj)
