@@ -8,18 +8,18 @@
 # Resource assessment in the Orkney island
 # ========================================
 #
-# Note: This example is unfinished
-#
 # Introduction
 # ************
 #
 # This example demonstrates how OpenTidalFarm can be used for assessing the
 # potential of a site in a realistic domain.
 #
-# We will be simulating the tides in the Pentland Firth, Scotland for 12.5
-# hours, starting at 14:40 am on the 18.9.2001.
+# We will be simulating the tides in the Pentland Firth, Scotland for 6.25
+# hours, starting at 13:55 am on the 18.9.2001. To save computational time,
+# we peform two steady-state solves for each simulation: one solve for times where
+# the velocities reaches their peaks during one tidal cycle.
 #
-# This example uses a "continuous turbine approach", as described in
+# This example uses the "continuous turbine approach", as described in
 #    **Funke SW, Kramer SC, Piggott MD**, *Design optimisation and resource assessment
 #    for tidal-stream renewable energy farms using a new continuous turbine
 #    approach*
@@ -40,6 +40,8 @@
 # We begin with importing the OpenTidalFarm module.
 
 from opentidalfarm import *
+import Optizelle
+from dolfin_adjoint import MinimizationProblem, OptizelleSolver
 
 # We also need the datetime module for the tidal forcing.
 
@@ -54,7 +56,7 @@ utm_band = 'V'
 # Next we create shallow water problem and attach the domain and boundary
 # conditions
 
-prob_params = SWProblem.default_parameters()
+prob_params = MultiSteadySWProblem.default_parameters()
 
 # We load the mesh in UTM coordinates, and boundary ids from file
 
@@ -73,7 +75,7 @@ eta_expr = TidalForcing(grid_file_name='../data/netcdf/gridES2008.nc',
                         ranges=((-4.0,0.0), (58.0,61.0)),
                         utm_zone=utm_zone,
                         utm_band=utm_band,
-                        initial_time=datetime.datetime(2001, 9, 18, 10, 40),
+                        initial_time=datetime.datetime(2001, 9, 18, 13, 55),
                         constituents=['Q1', 'O1', 'P1', 'K1', 'N2', 'M2', 'S2', 'K2'], degree=3)
 
 bcs = BoundaryConditionSet()
@@ -139,21 +141,34 @@ prob_params.viscosity = nu_func
 prob_params.friction = Constant(0.0025)
 # Temporal settings
 prob_params.start_time = Constant(0)
-prob_params.finish_time = Constant(20*60) # 12.5*60*60)
-prob_params.dt = Constant(5*60)
+prob_params.finish_time = Constant(6.25*60*60)
+prob_params.dt = prob_params.finish_time
 # The initial condition consists of three components: u_x, u_y and eta.
 # Note that we set the velocity components to a small positive number, as some
 # components of the Jacobian of the quadratic friction term is
 # non-differentiable.
 prob_params.initial_condition = Constant((DOLFIN_EPS, DOLFIN_EPS, 1))
 
-# We use the continuum turbine parametrisation
+# We use the continuous turbine parametrisation by creating a `SmearedTurbine` object 
+# and pasing this to the `Farm` class. Note that we also specify the function
+# space in which we want to have the continuous turbine farm represented - in this
+# case piecewise constant functions.
+
 turbine = SmearedTurbine()
-farm = Farm(domain, turbine)
+W = FunctionSpace(domain.mesh, "DG", 0)
+farm = Farm(domain, turbine, function_space=W)
 prob_params.tidal_farm = farm
 
+# Next we define, which farms we want to optimize, by restricting the integral 
+# measure to the farm ids. The farm areas and their ids can be inspect with
+# `plot(farm.domain.cell_ids)`
+
+site_dx = Measure("dx")(subdomain_data=domain.cell_ids)
+farm.site_dx = site_dx((1,2,3,4))
+
 # Now we can create the shallow water problem
-problem = SWProblem(prob_params)
+
+problem = MultiSteadySWProblem(prob_params)
 
 # Next we create a shallow water solver. Here we choose to solve the shallow
 # water equations in its fully coupled form:
@@ -161,21 +176,43 @@ problem = SWProblem(prob_params)
 sol_params = CoupledSWSolver.default_parameters()
 solver = CoupledSWSolver(problem, sol_params)
 
-#plot(farm.domain.cell_ids)
-
-
 # Now we can define the functional and control values:
 
 functional = PowerFunctional(problem)
-control = TurbineFarmControl(farm)
+control = Control(farm.friction_function)
+farm_max = 0.05890486225480861
+farm.friction_function.vector()[:] = 1e-8
 
 # Finally, we create the reduced functional and start the optimisation.
 
-rf_params = ReducedFunctionalParameters()
-rf_params.automatic_scaling = False
-rf = ReducedFunctional(functional, control, solver, rf_params)
-f_opt = maximize(rf, bounds=[0, 0.05890486225480861],
-                 method="L-BFGS-B", options={'maxiter': 30})
+rf = FenicsReducedFunctional(functional, control, solver)
+#plot(farm.friction_function, interactive=True)
+rf([farm.friction_function])
+#f_opt = maximize(rf, bounds=[0, farm_max],
+#                 method="L-BFGS-B", options={'maxiter': 30})
+
+set_log_level(ERROR)
+# Alternatively we can use Optizelle as optimization algorithm
+problem = MinimizationProblem(rf, bounds=(0.0, farm_max))
+parameters = {
+             "maximum_iterations": 20,
+             "optizelle_parameters":
+                 {
+                 "msg_level" : 10,
+                 "algorithm_class" : Optizelle.AlgorithmClass.LineSearch,
+                 "H_type" : Optizelle.Operators.BFGS,
+                 "dir" : Optizelle.LineSearchDirection.BFGS,
+                 #"ipm": "PrimalDual", #Optizelle.InteriorPointMethod.PrimalDual,
+                 "eps_grad": 1e-5,
+                 "krylov_iter_max" : 40,
+                 "eps_krylov" : 1e-2
+                 }
+             }
+solver = OptizelleSolver(problem, inner_product="L2", parameters=parameters)
+f_opt = solver.solve()
+
+# Finally we store the optimal turbine friction to file.
+File("optimal_turbine.pvd") << f_opt
 
 # The code for this example can be found in ``examples/resource-assessment/`` in the
 # ``OpenTidalFarm`` source tree, and executed as follows:
