@@ -206,7 +206,7 @@ farm_max = 0.05890486225480861
 set_log_level(ERROR)
 problem = MinimizationProblem(rf, bounds=(0.0, farm_max))
 parameters = {
-             "maximum_iterations": 1,
+             "maximum_iterations": 20,
              "optizelle_parameters":
                  {
                  "msg_level" : 10,
