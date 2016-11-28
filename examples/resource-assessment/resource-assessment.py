@@ -131,7 +131,7 @@ class ViscosityExpression(Expression):
 # function and attach it as the viscosity value to the shallow water problem.
 
 W = FunctionSpace(domain.mesh, "DG", 0)
-nu = ViscosityExpression(dist_function=dist, dist_threshold=10000., nu_inside=5000.,
+nu = ViscosityExpression(dist_function=dist, dist_threshold=10000., nu_inside=10000.,
         nu_boundary=1e4, degree=3)
 nu_func = interpolate(nu, W)
 prob_params.viscosity = nu_func
@@ -163,8 +163,15 @@ prob_params.tidal_farm = farm
 # measure to the farm ids. The farm areas and their ids can be inspect with
 # `plot(farm.domain.cell_ids)`
 
-site_dx = Measure("dx")(subdomain_data=domain.cell_ids)
-farm.site_dx = site_dx((1,2,3,4))
+class Coast(SubDomain):
+    def inside(self, x, on_boundary):
+        return between(bathy_expr(*x), (25, 60)) 
+coast = Coast()
+farm_cf = CellFunction("size_t", domain.mesh)
+farm_cf.set_all(0)
+coast.mark(farm_cf, 1)
+site_dx = Measure("dx")(subdomain_data=farm_cf)
+farm.site_dx = site_dx(1)
 
 # Now we can create the shallow water problem
 
@@ -180,22 +187,26 @@ solver = CoupledSWSolver(problem, sol_params)
 
 functional = PowerFunctional(problem)
 control = Control(farm.friction_function)
-farm_max = 0.05890486225480861
-farm.friction_function.vector()[:] = 1e-8
+
+# For interiour point methods, we need to start at a feasible point.
+# Hence lets set the initial controll value to a small positive number.
+farm.friction_function.vector()[:] = 1e-4
 
 # Finally, we create the reduced functional and start the optimisation.
 
 rf = FenicsReducedFunctional(functional, control, solver)
 #plot(farm.friction_function, interactive=True)
 rf([farm.friction_function])
+farm_max = 0.05890486225480861
+
 #f_opt = maximize(rf, bounds=[0, farm_max],
 #                 method="L-BFGS-B", options={'maxiter': 30})
 
-set_log_level(ERROR)
 # Alternatively we can use Optizelle as optimization algorithm
+set_log_level(ERROR)
 problem = MinimizationProblem(rf, bounds=(0.0, farm_max))
 parameters = {
-             "maximum_iterations": 20,
+             "maximum_iterations": 1,
              "optizelle_parameters":
                  {
                  "msg_level" : 10,
@@ -210,6 +221,13 @@ parameters = {
              }
 solver = OptizelleSolver(problem, inner_product="L2", parameters=parameters)
 f_opt = solver.solve()
+
+# Finally, set the control values outside the potential farm area to zero with a projection for nicer plotting.
+v = TestFunction(W)
+u = TrialFunction(W)
+a = u*v*dx 
+L = f_opt*v*farm.site_dx
+solve(a == L, f_opt)
 
 # Finally we store the optimal turbine friction to file.
 File("optimal_turbine.pvd") << f_opt
