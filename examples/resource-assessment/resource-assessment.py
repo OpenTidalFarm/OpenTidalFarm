@@ -185,42 +185,44 @@ solver = CoupledSWSolver(problem, sol_params)
 
 # Now we can define the functional and control values:
 
-functional = PowerFunctional(problem)
+functional = -PowerFunctional(problem) 
+# Optionally, add a cost term
+# functional +=  alpha*CostFunctional(problem)
+functional *= 1e-9  # Convert functional unit to GW
 control = Control(farm.friction_function)
 
-# For interiour point methods, we need to start at a feasible point.
-# Hence lets set the initial controll value to a small positive number.
-farm.friction_function.vector()[:] = 1e-4
+# Only if using Optizelle: Optizelle is using an interiour point method, 
+# and hence we need to start at a feasible initial control (i.e. one that
+# satisfies the bound constraints.
+#farm.friction_function.vector()[:] = 1e-4
 
 # Finally, we create the reduced functional and start the optimisation.
 
 rf = FenicsReducedFunctional(functional, control, solver)
-#plot(farm.friction_function, interactive=True)
 rf([farm.friction_function])
-farm_max = 0.05890486225480861
+farm_max = 10.0 # The maximum turbine density per area
 
-#f_opt = maximize(rf, bounds=[0, farm_max],
-#                 method="L-BFGS-B", options={'maxiter': 30})
+f_opt = minimize(rf, bounds=[0, farm_max],
+                 method="L-BFGS-B", options={'maxiter': 10})
 
 # Alternatively we can use Optizelle as optimization algorithm
-set_log_level(ERROR)
-problem = MinimizationProblem(rf, bounds=(0.0, farm_max))
-parameters = {
-             "maximum_iterations": 20,
-             "optizelle_parameters":
-                 {
-                 "msg_level" : 10,
-                 "algorithm_class" : Optizelle.AlgorithmClass.LineSearch,
-                 "H_type" : Optizelle.Operators.BFGS,
-                 "dir" : Optizelle.LineSearchDirection.BFGS,
-                 #"ipm": "PrimalDual", #Optizelle.InteriorPointMethod.PrimalDual,
-                 "eps_grad": 1e-5,
-                 "krylov_iter_max" : 40,
-                 "eps_krylov" : 1e-2
-                 }
-             }
-solver = OptizelleSolver(problem, inner_product="L2", parameters=parameters)
-f_opt = solver.solve()
+#set_log_level(ERROR)
+#problem = MinimizationProblem(rf, bounds=(0.0, farm_max))
+#parameters = {
+#             "maximum_iterations": 20,
+#             "optizelle_parameters":
+#                 {
+#                 "msg_level" : 10,
+#                 "algorithm_class" : Optizelle.AlgorithmClass.LineSearch,
+#                 "H_type" : Optizelle.Operators.BFGS,
+#                 "dir" : Optizelle.LineSearchDirection.BFGS,
+#                 #"eps_grad": 1e-5,
+#                 "krylov_iter_max" : 40,
+#                 #"eps_krylov" : 1e-2
+#                 }
+#             }
+#solver = OptizelleSolver(problem, inner_product="L2", parameters=parameters)
+#f_opt = solver.solve()
 
 # Finally, set the control values outside the potential farm area to zero with a projection for nicer plotting.
 v = TestFunction(W)
