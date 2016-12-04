@@ -14,6 +14,10 @@ class RectangularDomain(Domain):
     :type x1: float
     :param y1: The y coordinate of the top-right corner.
     :type y1: float
+    :param nx: The number of elements in the x direction
+    :type ny: int
+    :param ny: The number of elements in the y direction
+    :type ny: int
     """
 
 
