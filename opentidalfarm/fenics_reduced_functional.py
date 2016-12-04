@@ -95,6 +95,7 @@ class FenicsReducedFunctional(ReducedFunctional):
             float: The functional value.
         """
 
+        value = enlisting.enlist(value)
         # Update the control values.
         # Note that we do not update the control values on the tape,
         # because OpenTidalFarm reannotates the tape in each iteration.
