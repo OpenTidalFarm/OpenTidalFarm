@@ -69,7 +69,6 @@ class ScaledFunctional(PrototypeFunctional):
 
     def Jt(self, state, tf):
         '''Returns the form which computes the combined functional.'''
-        from IPython import embed; embed()
         scaled_functional = self.scaling_factor * self.functional.Jt(state, tf)
         return scaled_functional
 
