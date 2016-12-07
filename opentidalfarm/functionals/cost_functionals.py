@@ -4,8 +4,7 @@
 #       cost of an array.
 #"""
 
-from dolfin import dot, Constant, dx, assemble, conditional
-from ..helpers import smooth_uflmin
+from dolfin import assemble 
 from prototype_functional import PrototypeFunctional
 
 

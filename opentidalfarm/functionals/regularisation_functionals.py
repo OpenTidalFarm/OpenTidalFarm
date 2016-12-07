@@ -1,11 +1,10 @@
 #"""
-#.. module:: Cost Functionals
+#.. module:: Regularisation Functionals
 #   :synopsis: This module contains the functional classes which compute the
 #       cost of an array.
 #"""
 
 from dolfin import assemble, inner, grad
-from ..helpers import smooth_uflmin
 from prototype_functional import PrototypeFunctional
 
 
@@ -34,6 +33,7 @@ class H01Regularisation(PrototypeFunctional):
         :type turbine_field: dolfin.Function
 
         """
+        # Note, this will not work properly for DG elements (need to add dS measures)
         return inner(grad(turbine_field), grad(turbine_field))*self.farm.site_dx
 
     def Jt_individual(self, state, i):
