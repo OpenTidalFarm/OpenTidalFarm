@@ -8,3 +8,4 @@ from power_functionals import PowerFunctional
 from cost_functionals import CostFunctional
 from prototype_functional import PrototypeFunctional
 from time_integrator import TimeIntegrator
+from h01_regularisation import H01Regularisation
