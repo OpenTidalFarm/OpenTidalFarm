@@ -34,7 +34,8 @@ class H01Regularisation(PrototypeFunctional):
 
         """
         # Note, this will not work properly for DG elements (need to add dS measures)
-        return inner(grad(turbine_field), grad(turbine_field))*self.farm.site_dx
+        mesh = turbine_field.function_space().mesh()
+        return inner(grad(turbine_field), grad(turbine_field))*self.farm.site_dx(domain=mesh)
 
     def Jt_individual(self, state, i):
         """ Computes the cost of the i'th turbine.
