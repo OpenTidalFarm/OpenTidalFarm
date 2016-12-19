@@ -19,24 +19,28 @@ OpenTidalFarm
     <div class="flexslider" style="width: 50%; margin:0 auto;">
       <ul class="slides">
         <li>
+          <img src="_static/slider_media/smooth_turbine.png" />
+          <p class="flex-caption">Multi-farm tidal optimisation</p>
+        </li>
+        <li>
+          <img src="_static/slider_media/pentland_optimal.png" />
+          <p class="flex-caption">Resource identifiation</p>
+        </li>
+        <li>
+          <img src="_static/slider_media/discrete_turbine133_iter_plot.png" />
+          <p class="flex-caption">Turbine location optimisation</p>
+        </li>
+        <li>
           <img src="_static/slider_media/discrete_satellite.png" />
-          <p class="flex-caption">OpenTidalFarm applied to the Pentland Firth</p>
+          <p class="flex-caption">Optimal turbine location in the Pentland Firth</p>
         </li>
         <li>
           <img src="_static/slider_media/discrete_streamlines.png" />
           <p class="flex-caption">256 optimised tidal turbine locations with streamlines</p>
         </li>
         <li>
-          <img src="_static/slider_media/discrete_turbine133_iter_plot.png" />
-          <p class="flex-caption">Zoom in to optimised turbine locations</p>
-        </li>
-        <li>
-          <img src="_static/slider_media/smooth_turbine.png" />
-          <p class="flex-caption">Multi-farm tidal optimisation</p>
-        </li>
-        <li>
           <img src="_static/slider_media/otf_graphic.png" />
-          <p class="flex-caption">The dynamical core of OpenTidalFarm. It implements a shallow water solver, an adjoint solver, and an optimisation loop.</p>
+          <p class="flex-caption">The dynamical core of OpenTidalFarm consists of a shallow water solver, an adjoint solver, and an optimisation loop.</p>
         </li>
       </ul>
     </div>
