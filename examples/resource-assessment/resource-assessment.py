@@ -12,7 +12,8 @@
 # ************
 #
 # This example demonstrates how OpenTidalFarm can be used for assessing the
-# potential of a site in a realistic domain.
+# potential for tidal farms in a realistic domain. In particular, the task here
+# is to identify the best locations to deploy tidal farms.
 #
 # We will be simulating the tides in the Pentland Firth, Scotland for 6.25
 # hours, starting at 13:55 am on the 18.9.2001. To save computational time,
@@ -40,8 +41,8 @@
 # We begin with importing the OpenTidalFarm module.
 
 from opentidalfarm import *
-import Optizelle
-from dolfin_adjoint import MinimizationProblem, OptizelleSolver
+from dolfin_adjoint import MinimizationProblem, TAOSolver, BaseRieszMap
+from model_turbine import ModelTurbine
 
 # We also need the datetime module for the tidal forcing.
 
@@ -96,6 +97,7 @@ prob_params.bcs = bcs
 bathy_expr = BathymetryDepthExpression(filename='../data/netcdf/bathymetry.nc',
         utm_zone=utm_zone, utm_band=utm_band, domain=domain.mesh, degree=3)
 prob_params.depth = bathy_expr
+#plot(prob_params.depth, mesh=domain.mesh, interactive=True)
 
 # The bathymetry can be visualised with
 
@@ -155,7 +157,7 @@ prob_params.initial_condition = Constant((DOLFIN_EPS, DOLFIN_EPS, 1))
 # case piecewise constant functions.
 
 turbine = SmearedTurbine()
-W = FunctionSpace(domain.mesh, "DG", 0)
+W = FunctionSpace(domain.mesh, "CG", 1)
 farm = Farm(domain, turbine, function_space=W)
 prob_params.tidal_farm = farm
 
@@ -188,13 +190,13 @@ solver = CoupledSWSolver(problem, sol_params)
 functional = -PowerFunctional(problem) 
 # Optionally, add a cost term
 # functional +=  alpha*CostFunctional(problem)
+functional +=  1e4*H01Regularisation(problem)
 functional *= 1e-9  # Convert functional unit to GW
 control = Control(farm.friction_function)
 
 # Only if using Optizelle: Optizelle is using an interiour point method, 
 # and hence we need to start at a feasible initial control (i.e. one that
 # satisfies the bound constraints.
-#farm.friction_function.vector()[:] = 1e-4
 
 # Finally, we create the reduced functional and start the optimisation.
 
@@ -202,34 +204,35 @@ rf = FenicsReducedFunctional(functional, control, solver)
 rf([farm.friction_function])
 farm_max = 10.0 # The maximum turbine density per area
 
-f_opt = minimize(rf, bounds=[0, farm_max],
-                 method="L-BFGS-B", options={'maxiter': 10})
+# For the optimization, we use the more advanced TAO solver here,
+# with a customized inner product to get better efficiency for non-uniform meshes.
+model_turbine = ModelTurbine()
+opt_problem = MinimizationProblem(rf, bounds=(0.0, farm_max))
 
-# Alternatively we can use Optizelle as optimization algorithm
-#set_log_level(ERROR)
-#problem = MinimizationProblem(rf, bounds=(0.0, farm_max))
-#parameters = {
-#             "maximum_iterations": 20,
-#             "optizelle_parameters":
-#                 {
-#                 "msg_level" : 10,
-#                 "algorithm_class" : Optizelle.AlgorithmClass.LineSearch,
-#                 "H_type" : Optizelle.Operators.BFGS,
-#                 "dir" : Optizelle.LineSearchDirection.BFGS,
-#                 #"eps_grad": 1e-5,
-#                 "krylov_iter_max" : 40,
-#                 #"eps_krylov" : 1e-2
-#                 }
-#             }
-#solver = OptizelleSolver(problem, inner_product="L2", parameters=parameters)
-#f_opt = solver.solve()
+parameters = { "monitor": None,
+               "type": "blmvm",
+               "max_it": 50,
+               "subset_type": "matrixfree",
+               "fatol": 0.0,
+               "frtol": 1e-0,
+               "gatol": 0.0,
+               "grtol": 0.0,
+             }
 
-# Finally, set the control values outside the potential farm area to zero with a projection for nicer plotting.
-v = TestFunction(W)
-u = TrialFunction(W)
-a = u*v*dx 
-L = f_opt*v*farm.site_dx
-solve(a == L, f_opt)
+# Define custom Riesz map
+class L2Farm(BaseRieszMap):
+    def assemble(self):
+        u = TrialFunction(self.V)
+        v = TestFunction(self.V)
+
+        A = inner(u, v)*farm.site_dx
+        a = assemble(A, keep_diagonal=True)
+        a.ident_zeros()
+        return a
+
+# Remove the riesz_map to switch from L2Farm norm to l2 norm    
+opt_solver = TAOSolver(opt_problem, parameters, riesz_map=L2Farm(W))
+f_opt = opt_solver.solve()
 
 # Finally we store the optimal turbine friction to file.
 File("optimal_turbine.pvd") << f_opt
