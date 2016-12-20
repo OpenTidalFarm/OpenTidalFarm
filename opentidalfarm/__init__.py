@@ -4,7 +4,7 @@ The OpenTidalFarm project
 
 """
 
-__version__ = '1.0'
+__version__ = '2016.2'
 __author__  = 'Simon Funke'
 __credits__ = ['Simon Funke']
 __license__ = 'GPL-3'

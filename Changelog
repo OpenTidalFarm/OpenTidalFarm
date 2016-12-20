@@ -1,8 +1,11 @@
 OpenTidalFarm Change Log
 
 dev:
+
+2016.2 (20.12.2016):
 	- Support for dynamic farm optimisiation
 	- New example for dynamic farm optimisation (by Håkon Taskén)
+	- New example for resource assessment
 	- Support of docker images
 
 2016.1 (14.07.2016):
