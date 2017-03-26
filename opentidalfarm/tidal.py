@@ -78,7 +78,7 @@ class BathymetryDepthExpression(Expression):
         domain. Default value is None
        
        """
-    def __init__(self, **kwargs):
+    def __init__(self, *args, **kwargs):
 
         self._domain = kwargs.get("domain", None)
         nc = NetCDFFile(kwargs["filename"], 'r')
