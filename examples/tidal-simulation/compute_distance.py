@@ -1,4 +1,5 @@
 from dolfin import *
+from dolfin_adjoint.utils import homogenize
 from opentidalfarm import FileDomain
 import ufl.algorithms
 
@@ -34,15 +35,15 @@ for i, eps in enumerate(epss):
   if eps != epss[-1]: # we're not at the last eps
     # first-order continuation algorithm
     G = e(derivative(F, u, du) + derivative(F, eps, dr)) # tangent linearisation
-    solve(G == 0, du, homogenize(bcs))
-    deps = epss[i+1].vector()[0] - epss[i].vector()[0] # delta_epsilon
+    solve(G == 0, du, [homogenize(bc) for bc in bcs])
+    deps = epss[i+1].vector()[0][0] - epss[i].vector()[0][0] # delta_epsilon
 
     #To do first-order continuation:
     #u.assign(1.0*u + deps*u) # update our guess of u for the next solve
     #continue
 
     H =  e(derivative(G, u, ddu) + derivative(G, eps, dr)) # tangent quadraticisation
-    solve(H == 0, ddu, homogenize(bcs))
+    solve(H == 0, ddu, [homogenize(bc) for bc in bcs])
 
     # To do second-order continuation:
     u.assign(1.0*u + deps*du + 0.5*deps*deps*ddu)

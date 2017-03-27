@@ -36,7 +36,7 @@ for i, eps in enumerate(epss):
     # first-order continuation algorithm
     G = e(derivative(F, u, du) + derivative(F, eps, dr)) # tangent linearisation
     solve(G == 0, du, [homogenize(bc) for bc in bcs])
-    deps = float(epss[i+1].vector()[0] - epss[i].vector()[0]) # delta_epsilon
+    deps = epss[i+1].vector()[0][0] - epss[i].vector()[0][0] # delta_epsilon
 
     #To do first-order continuation:
     #u.assign(1.0*u + deps*u) # update our guess of u for the next solve
