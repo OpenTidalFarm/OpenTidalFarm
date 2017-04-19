@@ -19,5 +19,6 @@ RUN git clone https://github.com/OpenTidalFarm/OpenTidalFarm.git
 
 USER fenics
 COPY WELCOME $FENICS_HOME/WELCOME
+RUN echo "export PYTHONPATH=~/OpenTidalFarm/:\$PYTHONPATH" > ~/.bashrc
 
 USER root
