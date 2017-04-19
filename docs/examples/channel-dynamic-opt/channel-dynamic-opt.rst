@@ -73,7 +73,7 @@ automatically be updated to the current timelevel during the solve.
 ::
 
   bcs = BoundaryConditionSet()
-  u_expr = Expression(("3*sin(pi*t/600.)*x[1]*(320-x[1])*2/(160.*160.)", "0"), t=Constant(0))
+  u_expr = Expression(("3*sin(pi*t/600.)*x[1]*(320-x[1])*2/(160.*160.)", "0"), t=Constant(0), degree=3)
   bcs.add_bc("u", u_expr, facet_id=1)
   bcs.add_bc("eta", Constant(0), facet_id=2)
   

@@ -138,7 +138,7 @@ use a different reduced functional; the :class:`FenicsReducedFunctional`
 
   rf = FenicsReducedFunctional(functional, control, solver)
   j = rf.evaluate()
-  dj = rf.derivative(project=True)
+  dj = rf.derivative(project=True)[0]
   plot(dj, interactive=True, title="Sensitivity with respect to friction")
   file = File("FrictionSensitivity.pvd")
   file << dj
@@ -150,7 +150,7 @@ Now compute the sensitivity with respect to depth
   control = Control(prob_params.depth)
   rf = FenicsReducedFunctional(functional, control, solver)
   j = rf.evaluate()
-  dj = rf.derivative(project=True)
+  dj = rf.derivative(project=True)[0]
   print "j with depth = 50 m: ", j
   plot(dj, interactive=True, title="Sensitivity with respect to depth at 50m")
   file = File("50mDepthSensitivity.pvd")
@@ -167,7 +167,7 @@ Let's reduce the depth and reevaluate derivative
 
   prob_params.depth.assign(Constant(10))
   j = rf.evaluate()
-  dj = rf.derivative(project=True)
+  dj = rf.derivative(project=True)[0]
   print "j with depth = 10 m: ", j
   plot(dj, interactive=True, title="Sensitivity with respect to depth at 10m")
   file = File("10mDepthSensitivity.pvd")
@@ -185,7 +185,7 @@ Finally let's compute the sensitivity with respect to viscosity
   control = Control(prob_params.viscosity)
   rf = FenicsReducedFunctional(functional, control, solver)
   j = rf.evaluate()
-  dj = rf.derivative(project=True)
+  dj = rf.derivative(project=True)[0]
   plot(dj, title="Sensitivity with respect to viscosity")
   file = File("ViscositySensitivity.pvd")
   file << dj

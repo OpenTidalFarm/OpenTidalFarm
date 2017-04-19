@@ -235,11 +235,14 @@ class L2Farm(BaseRieszMap):
         return a
 
 # Remove the riesz_map to switch from L2Farm norm to l2 norm    
-opt_solver = TAOSolver(opt_problem, parameters, riesz_map=L2Farm(W))
-f_opt = opt_solver.solve()
+try:
+    opt_solver = TAOSolver(opt_problem, parameters, riesz_map=L2Farm(W))
+    f_opt = opt_solver.solve()
+except:
+# In case error occurs (typically because of an outdated PETSc or missing petsc4py), we fall back to scipy's L-BFGS-B method
+    f_opt = minimize(rf, bounds=(0.0, farm_max))
 
-#
-# After 23 iterations, the optimisation terminates. We store the optimal turbine friction to file.
+# After 23 iterations (with the TAO solver), the optimisation terminates. We store the optimal turbine friction to file.
 
 File("optimal_turbine.pvd") << f_opt
 

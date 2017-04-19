@@ -169,7 +169,7 @@ measure to the farm ids. The farm areas and their ids can be inspect with
 
   class Coast(SubDomain):
       def inside(self, x, on_boundary):
-          return between(bathy_expr(*x), (25, 60))
+          return between(bathy_expr(*x), (25, 60)) 
   coast = Coast()
   farm_cf = CellFunction("size_t", domain.mesh)
   farm_cf.set_all(0)
@@ -207,14 +207,14 @@ Now we can define the functional and control values:
 
 ::
 
-  functional = -PowerFunctional(problem)
+  functional = -PowerFunctional(problem) 
   # Optionally, add a cost term
   # functional +=  alpha*CostFunctional(problem)
   functional +=  1e4*H01Regularisation(problem)
   functional *= 1e-9  # Convert functional unit to GW
   control = Control(farm.friction_function)
   
-Only if using Optizelle: Optizelle is using an interiour point method,
+Only if using Optizelle: Optizelle is using an interiour point method, 
 and hence we need to start at a feasible initial control (i.e. one that
 satisfies the bound constraints.
 
@@ -223,7 +223,7 @@ We create the reduced functional...
 ::
 
   rf = FenicsReducedFunctional(functional, control, solver)
-
+  
 and run the simulation once with zero turbine friction to compute the base velocity:
 
 ::
@@ -248,7 +248,7 @@ and of the west-east tidal flow:
   # with a customized inner product to get better efficiency for non-uniform meshes.
   farm_max = 10.0 # The maximum turbine density per area
   opt_problem = MinimizationProblem(rf, bounds=(0.0, farm_max))
-
+  
   parameters = { "monitor": None,
                  "type": "blmvm",
                  "max_it": 50,
@@ -264,18 +264,21 @@ and of the west-east tidal flow:
       def assemble(self):
           u = TrialFunction(self.V)
           v = TestFunction(self.V)
-
+  
           A = inner(u, v)*farm.site_dx
           a = assemble(A, keep_diagonal=True)
           a.ident_zeros()
           return a
-
-  # Remove the riesz_map to switch from L2Farm norm to l2 norm
-  opt_solver = TAOSolver(opt_problem, parameters, riesz_map=L2Farm(W))
-  f_opt = opt_solver.solve()
-
-
-After 23 iterations, the optimisation terminates. We store the optimal turbine friction to file.
+  
+  # Remove the riesz_map to switch from L2Farm norm to l2 norm    
+  try:
+      opt_solver = TAOSolver(opt_problem, parameters, riesz_map=L2Farm(W))
+      f_opt = opt_solver.solve()
+  except:
+  # In case error occurs (typically because of an outdated PETSc or missing petsc4py), we fall back to scipy's L-BFGS-B method
+      f_opt = minimize(rf, bounds=(0.0, farm_max))
+  
+After 23 iterations (with the TAO solver), the optimisation terminates. We store the optimal turbine friction to file.
 
 ::
 
