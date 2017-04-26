@@ -116,6 +116,8 @@ class FenicsReducedFunctional(ReducedFunctional):
         log(INFO, 'Start evaluation of dj')
         timer = Timer("dj evaluation")
 
+        if not hasattr(self, "time_integrator"):
+            self.evaluate()
         self.functional = self.time_integrator.dolfin_adjoint_functional(self.solver.state)
         dj = compute_gradient(self.functional, self.controls, forget=forget, **kwargs)
         parameters["adjoint"]["stop_annotating"] = False
