@@ -152,7 +152,7 @@ print rf_params
 # Now we can define the constraints for the controls and start the
 # optimisation.
 
-# If no minimum distance constrained for the turbines is required, we can use
+# Since we enforce no minimum distance constrained for the turbines, we can use
 # the L-BFGS-B optimisation method:
 
 lb, ub = farm.site_boundary_constraints()
