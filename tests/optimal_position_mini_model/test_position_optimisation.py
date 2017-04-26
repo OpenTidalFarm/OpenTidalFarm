@@ -57,9 +57,10 @@ class TestPositionOptimisation(object):
         problem_params.finite_element = finite_elements.p1dgp2
         problem_params.domain = domain
         problem_params.initial_condition = BumpInitialCondition(0, 0, 3000, 1000)
+        problem_params.depth = 1000. # needs to be larger than diameter
 
         # Create a turbine
-        turbine = BumpTurbine(diameter=800., friction=12.0,
+        turbine = BumpTurbine(diameter=800., thrust_coefficient=0.8,
                               controls=Controls(position=True))
 
         # Create turbine farm

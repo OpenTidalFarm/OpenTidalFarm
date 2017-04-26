@@ -25,7 +25,7 @@ class TestFrictionOptimisation(object):
       problem_params.functional_final_time_only = True
 
       # Create the turbine specification
-      turbine = BumpTurbine(diameter=1e10, friction=12.0,
+      turbine = BumpTurbine(diameter=1e10, thrust_coefficient=0.8,
                             controls=Controls(friction=True))
 
       # Create turbine farm
@@ -36,6 +36,7 @@ class TestFrictionOptimisation(object):
           12.0*numpy.random.rand(len(farm._parameters["position"])))
 
       problem_params.tidal_farm = farm
+      problem_params.depth = 2e10 # needs to be bigger than depth
 
       k = pi/3000.
       problem_params.initial_condition = sin_ic(2.0, k, 50., 0.0, degree=2)
@@ -69,4 +70,4 @@ class TestFrictionOptimisation(object):
         bounds = [0, 100]
         maximize(rf, bounds=bounds, method="SLSQP", scale=1e-3)
 
-        assert abs(farm._parameters["friction"][0] - 0.5) < 10**-4
+        assert abs(farm._parameters["friction"][0] - 0.5) < 1e-4

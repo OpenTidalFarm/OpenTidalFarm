@@ -13,7 +13,7 @@ class TestDynamicTurbineControl(object):
         domain = FileDomain(meshfile)
 
         # Create a turbine
-        turbine = BumpTurbine(diameter=40., friction=1.0,
+        turbine = BumpTurbine(diameter=40., thrust_coefficient=0.8,
                               controls=Controls(dynamic_friction=True))
 
         # Set problem parameters

@@ -10,7 +10,7 @@ from dolfin import log, INFO, ERROR
 
 class TestTurbineDerivatives(object):
     def default_farm(self, domain):
-        turbine = BumpTurbine(diameter=300., friction=12.0,
+        turbine = BumpTurbine(diameter=300., thrust_coefficient=0.8,
                               controls=Controls(position=True, friction=True))
 
         # Create turbine farm

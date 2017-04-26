@@ -4,7 +4,7 @@
 #       power extracted by an array.
 #"""
 
-from dolfin import dot, Constant, dx, assemble, conditional
+from dolfin import dot, Constant, dx, assemble, conditional, sqrt, pi
 from ..helpers import smooth_uflmin
 from prototype_functional import PrototypeFunctional
 
@@ -39,6 +39,7 @@ class PowerFunctional(PrototypeFunctional):
 
         self.farm = problem.parameters.tidal_farm
         self.rho = problem.parameters.rho
+        self.depth = problem.parameters.depth
         self.farm.update()
 
         self._cut_in_speed = cut_in_speed
@@ -66,7 +67,17 @@ class PowerFunctional(PrototypeFunctional):
         :type turbine_field: dolfin.Function
 
         """
-        return self.rho * turbine_field * self._speed_squared(state) ** 1.5
+        if self.farm.turbine_specification.smeared:
+            return self.rho * turbine_field * self._speed_squared(state) ** 1.5
+        else:
+            # eqn (C.2) from [1]
+            # [1] S.C. Kramer, M.D. Piggott http://doi.org/10.1016/j.renene.2016.02.022
+            # where turbine_field = C_t A_t / (2*Integral(bump))
+            C_t = self.farm.turbine_specification.thrust_coefficient
+            # ratio = A_t/\hat{A_t} = pi (D/2)^2 / D*H = pi * D / (4 * H)
+            area_ratio = pi * self.farm.turbine_specification.diameter / (4*self.depth)
+            return self.rho * turbine_field * 4 * (1+sqrt(1-C_t))/(1+sqrt(1-area_ratio*C_t))**3 * self._speed_squared(state) ** 1.5
+            
 
     def Jt_individual(self, state, i):
         """ Computes the power output of the i'th turbine.

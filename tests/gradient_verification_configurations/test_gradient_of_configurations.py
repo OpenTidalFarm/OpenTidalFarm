@@ -28,7 +28,7 @@ class TestConfigurations(object):
         problem_params.bcs = bcs
 
         # Create a farm and deploy some turbines
-        turbine = BumpTurbine(diameter=20., friction=1.0)
+        turbine = BumpTurbine(diameter=20., thrust_coefficient=0.8)
 
         farm = RectangularFarm(domain,
                                site_x_start=site_x_start,
@@ -82,7 +82,7 @@ class TestConfigurations(object):
         border_y = basin_y/10
 
         # Create a farm and deploy some turbines
-        turbine = BumpTurbine(diameter=20., friction=0.2,
+        turbine = BumpTurbine(diameter=20., thrust_coefficient=0.2,
                               controls=Controls(position=True, friction=True))
 
         # Create a farm and deploy some turbines

@@ -8,7 +8,7 @@ import math
 class TestMinimalDistanceConstraint(object):
 
     def get_farm(self):
-        turbine = BumpTurbine(diameter=10.0, friction=1.0)
+        turbine = BumpTurbine(diameter=10.0, thrust_coefficient=0.8)
         domain = RectangularDomain(0, 0, 3000, 1000, 20, 3)
         farm = Farm(domain, turbine)
         farm.add_turbine((1500, 500))

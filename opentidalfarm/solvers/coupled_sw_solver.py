@@ -403,12 +403,16 @@ class CoupledSWSolver(Solver):
 
             u_mag = dot(u_mid, u_mid)**0.5
 
-            if not farm.turbine_specification.thrust:
-                R_mid += tf/H*u_mag*inner(u_mid, v)*farm.site_dx
+            if farm.turbine_specification.smeared:
+                correction = 1
             else:
-                C_t = farm.turbine_specification.compute_C_t(u_mag)
-                R_mid += (tf * farm.turbine_specification.turbine_parametrisation_constant * \
-                          C_t / H) * u_mag * inner(u_mid, v) * farm.site_dx
+                # correction from eqn (15) in [1]
+                # [1] S.C. Kramer, M.D. Piggott http://doi.org/10.1016/j.renene.2016.02.022
+                # ratio = A_t/\hat{A_t} = pi (D/2)^2 / D*H = pi * D / (4 * H)
+                # note that here we always use linear depth to avoid adding unnec. non-linearities
+                area_ratio = pi * farm.turbine_specification.diameter / (4*depth)
+                correction = 4/(1+sqrt(1-area_ratio*farm.turbine_specification.thrust_coefficient))**2
+            R_mid += correction*tf/H*u_mag*inner(u_mid, v)*farm.site_dx
 
         # Advection term
         if include_advection:

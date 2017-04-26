@@ -1,10 +1,15 @@
 import dolfin
 
 class BaseTurbine(object):
+    # The integral of the unit bump function computed with Wolfram Alpha:
+    # "integrate e^(-1/(1-x**2)-1/(1-y**2)+2) dx dy,
+    #  x=-0.999..0.999, y=-0.999..0.999"
+    # http://www.wolframalpha.com/input/?i=integrate+e%5E%28-1%2F%281-x**2%29-1%2F%281-y**2%29%2B2%29+dx+dy%2C+x%3D-0.999..0.999%2C+y%3D-0.999..0.999
+    _unit_bump_int = 1.45661
+
     """A base turbine class from which others are derived."""
     def __init__(self, friction=None, diameter=None, minimum_distance=None,
-                 controls=None, bump=False, smeared=False, thrust=False,
-                 implicit_thrust=False):
+            controls=None, bump=False, smeared=False):
         # Possible turbine parameters.
         self._diameter = diameter
         self._minimum_distance = minimum_distance
@@ -14,14 +19,6 @@ class BaseTurbine(object):
         # Possible parameterisations.
         self._bump = bump
         self._smeared = smeared
-        self._thrust = thrust
-        self._implicit_thrust = implicit_thrust
-
-        # The integral of the unit bump function computed with Wolfram Alpha:
-        # "integrate e^(-1/(1-x**2)-1/(1-y**2)+2) dx dy,
-        #  x=-0.999..0.999, y=-0.999..0.999"
-        # http://www.wolframalpha.com/input/?i=integrate+e%5E%28-1%2F%281-x**2%29-1%2F%281-y**2%29%2B2%29+dx+dy%2C+x%3D-0.999..0.999%2C+y%3D-0.999..0.999
-        self._unit_bump_int = 1.45661
 
 
     @property
@@ -72,7 +69,7 @@ class BaseTurbine(object):
         :returns: The integral of the turbine bump function.
         :rtype: float
         """
-        return self._unit_bump_int*self._diameter/4.
+        return self._unit_bump_int*self._diameter**2/4.
 
 
     def _set_controls(self, controls):
@@ -94,11 +91,3 @@ class BaseTurbine(object):
     @property
     def smeared(self):
         return self._smeared
-
-    @property
-    def thrust(self):
-        return self._thrust
-
-    @property
-    def implicit_thrust(self):
-        return self._implicit_thrust

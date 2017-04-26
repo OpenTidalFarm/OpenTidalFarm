@@ -11,6 +11,7 @@ class DummyProblemParameters(FrozenClass):
     domain = None
     dt = None
     rho = 1000.
+    depth = 50.
 
     # Finite element settings
     finite_element = staticmethod(finite_elements.p2p1)

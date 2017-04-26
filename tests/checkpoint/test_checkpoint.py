@@ -35,6 +35,7 @@ class TestCheckpoint(object):
                                  # so we set it here to 1.0
         problem_params.functional_final_time_only = True
         problem_params.tidal_farm = farm
+        problem_params.depth = 10000 # needs to be bigger than diameter
 
         # Create the problem.
         problem = DummyProblem(problem_params)

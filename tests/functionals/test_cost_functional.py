@@ -11,7 +11,7 @@ class TestCostFunctionals(object):
         prob_params.domain = domain
 
         # Add a farm
-        turbine = BumpTurbine(diameter=20.0, friction=12.0)
+        turbine = BumpTurbine(diameter=20.0, thrust_coefficient=0.8)
         farm = RectangularFarm(domain, site_x_start=80, site_x_end=240,
                                        site_y_start=40, site_y_end=120, turbine=turbine)
         farm.add_regular_turbine_layout(num_x=num_turb_x, num_y=num_turb_y)
@@ -35,5 +35,5 @@ class TestCostFunctionals(object):
         cost = assemble(functional.Jt(state, farm.friction_function))
 
         # Cost should be the equivalent to the integral of a single turbine
-        assert abs(cost - n_x*n_y*farm.turbine_specification.integral*20*12) < 1
+        assert abs(cost - n_x*n_y*0.8*pi*100./2.) < 1
 
