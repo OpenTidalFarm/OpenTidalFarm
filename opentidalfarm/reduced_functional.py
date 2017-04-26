@@ -135,6 +135,7 @@ class ReducedFunctional(ReducedFunctionalPrototype):
 
     def _compute_gradient(self, m, forget=True):
         """ Compute the functional gradient for the turbine positions/frictions array """
+
         farm = self.solver.problem.parameters.tidal_farm
 
         # If any of the parameters changed, the forward model needs to be re-run
@@ -222,6 +223,7 @@ class ReducedFunctional(ReducedFunctionalPrototype):
 
     def _compute_functional(self, m, annotate=True):
         """ Compute the functional of interest for the turbine positions/frictions array """
+
         self.last_m = m
         self._update_turbine_farm(m)
         farm = self.solver.problem.parameters.tidal_farm
@@ -266,6 +268,7 @@ class ReducedFunctional(ReducedFunctionalPrototype):
             numpy.savetxt(j_file, [j])
             j_file.close()
 
+        self.solver.search_iteration += 1
         return j
 
 
@@ -353,22 +356,22 @@ class ReducedFunctional(ReducedFunctionalPrototype):
                 # Computing dj will set the automatic scaling factor.
                 log(INFO, ("Computing derivative to determine the automatic "
                            "scaling factor"))
-                self._dj(m, forget=False, new_search_iteration=False)
+                self._dj(m, forget=False, new_optimisation_iteration=False)
             return j*self.scale*self._automatic_scaling_factor
         else:
             return j*self.scale
 
-    def _dj(self, m, forget, new_search_iteration=True):
+    def _dj(self, m, forget, new_optimisation_iteration=True):
         """ This memoised function returns the gradient of the functional for the parameter choice m. """
         log(INFO, 'Start evaluation of dj')
         timer = dolfin.Timer("dj evaluation")
         dj = self._compute_gradient_mem(m, forget)
 
         # We assume that the gradient is computed at and only at the beginning
-        # of each new search iteration. Hence, this is the right moment
-        # to store the turbine friction field and to increment the search
+        # of each new optimisation iteration. Hence, this is the right moment
+        # to store the turbine friction field and to increment the optimisation
         # iteration counter.
-        if new_search_iteration:
+        if new_optimisation_iteration:
             farm = self.solver.problem.parameters.tidal_farm
 
             if (self.solver.parameters.dump_period > 0 and
@@ -391,7 +394,8 @@ class ReducedFunctional(ReducedFunctionalPrototype):
                     if farm.turbine_specification.smeared:
                         log(INFO, "Total amount of friction: %f" %
                             assemble(farm.turbine_cache["turbine_field"]*dx))
-            self.solver.search_iteration += 1
+            self.solver.optimisation_iteration += 1
+            self.solver.search_iteration = 0
 
         if self.parameters.save_checkpoints:
             self._save_checkpoint()
