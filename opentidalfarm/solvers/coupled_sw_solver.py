@@ -1,5 +1,4 @@
 import os.path
-from os import mkdir
 
 from dolfin import *
 from dolfin_adjoint import *
@@ -208,12 +207,13 @@ class CoupledSWSolver(Solver):
 
     def get_optimisation_and_search_directory(self):
         dir = os.path.join(self.parameters.output_dir,
-              "iter_{}".format(self.optimisation_iteration))
-        if not os.path.exists(dir):
-            mkdir(dir)
-        dir = os.path.join(dir, "search_{}".format(self.search_iteration))
-        if not os.path.exists(dir):
-            mkdir(dir)
+                           "iter_{}".format(self.optimisation_iteration),
+                           "search_{}".format(self.search_iteration))
+        try: 
+            os.makedirs(dir)
+        except OSError:
+            pass # directory already exists
+
         return dir
 
     # For dynamic friction the problem parameters need to use the same
