@@ -19,12 +19,11 @@ class TestTurbineCorrection(object):
         meshfile = os.path.join(path, "mesh_coarse.xml")
         domain = FileDomain(meshfile)
 
-        C_t = 0.6
-        turbine = ThrustTurbine(diameter=20.,
-                c_t_design=C_t,
-                cut_in_speed=1.,
-                cut_out_speed=5.0,
-                water_depth=prob_params.depth)
+        C_t = 0.6 # thrust coefficient
+        D = 20 # turbine diameter
+        u_in = 3.0 # free stream speed
+        turbine = BumpTurbine(diameter=D,
+                thrust_coefficient=C_t)
 
         # Boundary conditions
         site_x_start = 160.
@@ -42,10 +41,10 @@ class TestTurbineCorrection(object):
         prob_params.tidal_farm = farm
 
         prob_params.domain = domain
-        prob_params.initial_condition = Constant((3, 0, 0))
+        prob_params.initial_condition = Constant((u_in, 0, 0))
 
         bcs = BoundaryConditionSet()
-        bcs.add_bc("u", Constant((3.0, 0.0)), facet_id=1, bctype="strong_dirichlet")
+        bcs.add_bc("u", Constant((u_in, 0.0)), facet_id=1, bctype="strong_dirichlet")
         bcs.add_bc("eta", Constant(0.0), facet_id=2, bctype="weak_dirichlet")
         bcs.add_bc("u", facet_id=3, bctype="free_slip")
         prob_params.bcs = bcs
@@ -72,10 +71,21 @@ class TestTurbineCorrection(object):
 
         tf = s['tf']
         u = s['u']
-        scaling = farm.turbine_specification.turbine_parametrisation_constant
-        F_applied = assemble(tf*scaling*C_t*dot(u,u)*dx)
-        F_desired = 0.5*0.6*pi*100.*9
+        F_vec = farm.force(u, depth=prob_params.depth)
+        F_applied = assemble(sqrt(dot(F_vec, F_vec))*farm.site_dx)
+        # this computes the desired force based on the upwind speed: F=0.5*C_t*A_t*u**2
+        F_desired = 0.5 * C_t * pi*(D/2)**2 * u_in**2
         print "F_applied, F_desired: ", F_applied, F_desired
         err = abs((F_applied-F_desired)/F_desired)
         print "rel. error = ", err
         assert(err < 0.5/100.)
+
+        u_mag = sqrt(dot(u, u))
+        P_computed = assemble(farm.power_integral(u_mag, depth=prob_params.depth))
+        C_P = C_t * (1+sqrt(1-C_t))/2.0
+        P_desired = 0.5 * C_P * pi*(D/2)**2 * u_in**3
+        print "P_computed, P_desired: ", P_computed, P_desired
+        err = abs((P_computed-P_desired)/P_desired)
+        print "rel. error = ", err
+        assert(err < 0.5/100.)
+

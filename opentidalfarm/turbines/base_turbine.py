@@ -1,24 +1,17 @@
 import dolfin
 
 class BaseTurbine(object):
-    # The integral of the unit bump function computed with Wolfram Alpha:
-    # "integrate e^(-1/(1-x**2)-1/(1-y**2)+2) dx dy,
-    #  x=-0.999..0.999, y=-0.999..0.999"
-    # http://www.wolframalpha.com/input/?i=integrate+e%5E%28-1%2F%281-x**2%29-1%2F%281-y**2%29%2B2%29+dx+dy%2C+x%3D-0.999..0.999%2C+y%3D-0.999..0.999
-    _unit_bump_int = 1.45661
-
     """A base turbine class from which others are derived."""
     def __init__(self, friction=None, diameter=None, minimum_distance=None,
-            controls=None, bump=False, smeared=False):
+            controls=None, smeared=False):
         # Possible turbine parameters.
         self._diameter = diameter
         self._minimum_distance = minimum_distance
         self._friction = friction
         self._controls = controls
 
-        # Possible parameterisations.
-        self._bump = bump
-        self._smeared = smeared
+        # TODO: remove this hideous thing
+        self.smeared = smeared
 
 
     @property
@@ -63,15 +56,6 @@ class BaseTurbine(object):
         return self._minimum_distance
 
 
-    @property
-    def integral(self):
-        """The integral of the turbine bump function.
-        :returns: The integral of the turbine bump function.
-        :rtype: float
-        """
-        return self._unit_bump_int*self._diameter**2/4.
-
-
     def _set_controls(self, controls):
         self._controls = controls
 
@@ -83,11 +67,23 @@ class BaseTurbine(object):
 
     controls = property(_get_controls, _set_controls, "The turbine controls.")
 
+    def force(self, u, tf=None, **kwargs):
+        """Return the thrust force exerted by the turbines for given velocity or speed u
 
-    @property
-    def bump(self):
-        return self._bump
+        Keyword arguments:
+        tf -- turbine friction function representing one or more turbine. This can also be the integral
+              of one or more turbine friction functions, to compute the total force."""
+        if tf is None:
+            raise TypeError("Turbine friction tf needs to be supplied to compute force")
+        return tf * dolfin.sqrt(dolfin.dot(u, u)) * u
 
-    @property
-    def smeared(self):
-        return self._smeared
+
+    def power(self, u, tf=None, **kwargs):
+        """Return the amount of power produced by the turbines for given speed u
+
+        Keyword arguments:
+        tf -- turbine friction function representing one or more turbine. This can also be the integral
+              of one or more turbine friction functions, to compute the total power."""
+        if tf is None:
+            raise TypeError("Turbine friction tf needs to be supplied to compute force")
+        return tf * u**3

@@ -19,7 +19,6 @@ class TestTurbines(object):
         assert not turbine.controls.dynamic_friction
 
         # Test parameterisation
-        assert turbine.bump
         assert not turbine.smeared
 
 
@@ -38,5 +37,4 @@ class TestTurbines(object):
         assert not turbine.controls.dynamic_friction
 
         # Test parameterisation
-        assert not turbine.bump
         assert turbine.smeared

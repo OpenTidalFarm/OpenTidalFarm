@@ -382,6 +382,7 @@ class CoupledSWSolver(Solver):
 
         # Bottom friction
         friction = problem_params.friction
+        # Farm friction
         if not farm:
             tf = Constant(0)
         elif type(farm.friction_function) == list:
@@ -401,18 +402,7 @@ class CoupledSWSolver(Solver):
 
         if farm:
 
-            u_mag = dot(u_mid, u_mid)**0.5
-
-            if farm.turbine_specification.smeared:
-                correction = 1
-            else:
-                # correction from eqn (15) in [1]
-                # [1] S.C. Kramer, M.D. Piggott http://doi.org/10.1016/j.renene.2016.02.022
-                # ratio = A_t/\hat{A_t} = pi (D/2)^2 / D*H = pi * D / (4 * H)
-                # note that here we always use linear depth to avoid adding unnec. non-linearities
-                area_ratio = pi * farm.turbine_specification.diameter / (4*depth)
-                correction = 4/(1+sqrt(1-area_ratio*farm.turbine_specification.thrust_coefficient))**2
-            R_mid += correction*tf/H*u_mag*inner(u_mid, v)*farm.site_dx
+            R_mid += inner(farm.force(u_mid, tf=tf, depth=depth), v)/H *farm.site_dx
 
         # Advection term
         if include_advection:

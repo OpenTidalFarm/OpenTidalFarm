@@ -8,3 +8,4 @@ class SmearedTurbine(BaseTurbine):
         super(SmearedTurbine, self).__init__(friction=friction,
                                              controls=Controls(friction=True),
                                              smeared=True)
+        self.smeared = True
