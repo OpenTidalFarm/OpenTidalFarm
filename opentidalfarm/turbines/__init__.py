@@ -26,7 +26,7 @@ Controls
     """
 
 from .controls import Controls
-from .bump_turbine import BumpTurbine
+from .bump_turbine import BumpTurbine, standard_thrust_curve
 from .smeared_turbine import SmearedTurbine
 
-__all__ = ["BumpTurbine", "SmearedTurbine", "Controls"]
+__all__ = ["BumpTurbine", "SmearedTurbine", "Controls", "standard_thrust_curve"]

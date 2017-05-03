@@ -52,7 +52,8 @@ class TestMultiSteadyState(object):
         problem_params.bcs = bcs
 
         # Create a turbine specification.
-        turbine = BumpTurbine(diameter=20., thrust_coefficient=0.8)
+        turbine = BumpTurbine(diameter=20., thrust_coefficient=0.8,
+                              depth=problem_params.depth)
 
         # Create the farm.
         site_x = 320.

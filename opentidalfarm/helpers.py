@@ -3,6 +3,7 @@ import yaml
 import os.path
 import dolfin
 import numpy
+import itertools
 from dolfin import *
 from dolfin_adjoint import *
 
@@ -294,3 +295,30 @@ class OutputWriter(object):
                  "y=%.3f, is %.2f kW with a friction of %.2f." % (i,
                  turbine_info['location'][0], turbine_info['location'][1],
                  turbine_info['power']*0.001, turbine_info['friction']))
+
+
+# recipe from https://docs.python.org/library/itertools.html:
+def pairwise(iterable):
+    "s -> (s0,s1), (s1,s2), (s2, s3), ..."
+    a, b = itertools.tee(iterable)
+    next(b, None)
+    return zip(a, b)
+
+def tabulated_expression(x, table):
+    """Return expression that linearly interpolates from table of (x,y) pairs.
+    
+    For a table of x, y pairs ((x0, y0), (x1, y1), ..., (xn, yn)) where
+    x0<x1<...<xn, return the ufl expression that when evaluated, linearly
+    interpolates between y_i and y_{i+1} where x_i<x<x_{i+1}. When x<x0 or
+    x>xn, the expression evaluates to 0."""
+    expr = 0
+
+    for (x1, y1), (x2, y2) in pairwise(table):
+        val = ((x - x1)/(x2-x1)*y2
+           +  (x - x2)/(x1-x2)*y1)
+
+        part = conditional(le(x1, x), conditional(lt(x, x2), val, 0), 0)
+        expr += part
+
+    expr += conditional(le(x2, x), y2, 0)
+    return expr

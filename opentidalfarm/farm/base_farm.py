@@ -391,38 +391,29 @@ class BaseFarm(object):
             return MinimumDistanceConstraints(positions, minimum_distance, controls)
 
 
-    def force(self, u, tf=None, **kwargs):
+    def force(self, u, tf=None):
         """Return the thrust force exerted by the farm for given velocity or speed u
 
         Keyword arguments:
-        tf -- turbine friction function to be used instead of the farm's friction_function (default)
-        depth -- if provided, u is assumed to be the depth-averaged speed and a correction is made (only for discrete turbines)
-                 to estimate the free stream and turbine speeds in the power computation. If not provided
-                 it is assumed that depth-averaged, free stream and turbine speeds are roughly the same."""
+        tf -- turbine friction function to be used instead of the farm's friction_function (default)"""
         if tf is None:
             tf = self.friction_function
-        return self.turbine_specification.force(u, tf=tf, **kwargs)
+        return self.turbine_specification.force(u, tf=tf)
 
 
-    def power(self, u, tf=None, **kwargs):
+    def power(self, u, tf=None):
         """Return the amount of power produced by the farm for given speed u
 
         Keyword arguments:
-        tf -- turbine friction function to be used instead of the farm's friction_function (default)
-        depth -- if provided, u is assumed to be the depth-averaged speed and a correction is made (only for discrete turbines)
-                 to estimate the free stream and turbine speeds in the power computation. If not provided
-                 it is assumed that depth-averaged, free stream and turbine speeds are roughly the same."""
+        tf -- turbine friction function to be used instead of the farm's friction_function (default)"""
         if tf is None:
             tf = self.friction_function
-        return self.turbine_specification.power(u, tf=tf, **kwargs)
+        return self.turbine_specification.power(u, tf=tf)
 
 
-    def power_integral(self, u, **kwargs):
+    def power_integral(self, u, tf=None):
         """Return the UFL expression for the total amount of power produced by the farm for given speed u
 
         Keyword arguments:
-        tf -- turbine friction function to be used instead of the farm's friction_function (default)
-        depth -- if provided, u is assumed to be the depth-averaged speed and a correction is made (only for discrete turbines)
-                 to estimate the free stream and turbine speeds in the power computation. If not provided
-                 it is assumed that depth-averaged, free stream and turbine speeds are roughly the same."""
-        return self.power(u, **kwargs) * self.site_dx
+        tf -- turbine friction function to be used instead of the farm's friction_function (default)"""
+        return self.power(u, tf=tf) * self.site_dx

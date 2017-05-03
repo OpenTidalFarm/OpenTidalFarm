@@ -23,7 +23,7 @@ class TestTurbineCorrection(object):
         D = 20 # turbine diameter
         u_in = 3.0 # free stream speed
         turbine = BumpTurbine(diameter=D,
-                thrust_coefficient=C_t)
+                thrust_coefficient=C_t, depth=prob_params.depth)
 
         # Boundary conditions
         site_x_start = 160.
@@ -71,7 +71,7 @@ class TestTurbineCorrection(object):
 
         tf = s['tf']
         u = s['u']
-        F_vec = farm.force(u, depth=prob_params.depth)
+        F_vec = farm.force(u)
         F_applied = assemble(sqrt(dot(F_vec, F_vec))*farm.site_dx)
         # this computes the desired force based on the upwind speed: F=0.5*C_t*A_t*u**2
         F_desired = 0.5 * C_t * pi*(D/2)**2 * u_in**2
@@ -81,7 +81,7 @@ class TestTurbineCorrection(object):
         assert(err < 0.5/100.)
 
         u_mag = sqrt(dot(u, u))
-        P_computed = assemble(farm.power_integral(u_mag, depth=prob_params.depth))
+        P_computed = assemble(farm.power_integral(u_mag))
         C_P = C_t * (1+sqrt(1-C_t))/2.0
         P_desired = 0.5 * C_P * pi*(D/2)**2 * u_in**3
         print "P_computed, P_desired: ", P_computed, P_desired

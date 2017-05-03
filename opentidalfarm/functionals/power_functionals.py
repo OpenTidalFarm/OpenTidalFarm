@@ -12,10 +12,10 @@ from prototype_functional import PrototypeFunctional
 class PowerFunctional(PrototypeFunctional):
     r""" Implements a power functional of the form:
 
-    .. math:: J(u, m) = \int \rho  c_t ||sq(u)||^{1.5}~ dx,
+    .. math:: J(u, m) = \int \rho  c_t ||u||^3~ dx,
 
     where :math:`c_t` is the friction due to the turbines, and
-    :math:`sq(u)` is the squared velocity.
+    :math:`u` is the velocity.
 
     :param problem: The problem for which the functional is being computed.
     :type problem: Instance of the problem class.
@@ -38,7 +38,7 @@ class PowerFunctional(PrototypeFunctional):
 
         """
         u = sqrt(dot(state[0], state[0]) + dot(state[1], state[1]))
-        return self.rho * self.farm.power_integral(u, tf=turbine_field, depth=self.depth)
+        return self.rho * self.farm.power_integral(u, tf=turbine_field)
             
 
     def Jt_individual(self, state, i):
@@ -53,4 +53,4 @@ class PowerFunctional(PrototypeFunctional):
         turbine_field_individual = \
                 self.farm.turbine_cache['turbine_field_individual'][i]
         u = sqrt(dot(state[0], state[0]) + dot(state[1], state[1]))
-        return self.rho * self.farm.power_integral(u, tf=turbine_field_individual, depth=self.depth)
+        return self.rho * self.farm.power_integral(u, tf=turbine_field_individual)

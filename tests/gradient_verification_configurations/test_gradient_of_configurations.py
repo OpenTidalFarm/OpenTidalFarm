@@ -28,7 +28,7 @@ class TestConfigurations(object):
         problem_params.bcs = bcs
 
         # Create a farm and deploy some turbines
-        turbine = BumpTurbine(diameter=20., thrust_coefficient=0.8)
+        turbine = BumpTurbine(diameter=20., thrust_coefficient=0.8, depth=problem_params.depth)
 
         farm = RectangularFarm(domain,
                                site_x_start=site_x_start,

@@ -402,7 +402,7 @@ class CoupledSWSolver(Solver):
 
         if farm:
 
-            R_mid += inner(farm.force(u_mid, tf=tf, depth=depth), v)/H *farm.site_dx
+            R_mid += inner(farm.force(u_mid, tf=tf), v)/H *farm.site_dx
 
         # Advection term
         if include_advection:
@@ -471,7 +471,8 @@ class CoupledSWSolver(Solver):
         yield(result)
 
         log(INFO, "Start of time loop")
-        adjointer.time.start(t)
+        if annotate:
+            adjointer.time.start(t)
         timestep = 0
         while not self._finished(t, finish_time):
             # Update timestep
@@ -544,8 +545,9 @@ class CoupledSWSolver(Solver):
             yield(result)
 
             # Increase the adjoint timestep
-            adj_inc_timestep(time=float(t), finished=self._finished(t,
-                finish_time))
+            if annotate:
+                adj_inc_timestep(time=float(t), finished=self._finished(t,
+                    finish_time))
 
 
         # If we're outputting the individual turbine power

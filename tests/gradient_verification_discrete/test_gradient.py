@@ -6,7 +6,10 @@ def model(controls, problem_params, sin_ic):
 
     # Choosing a friction coefficient of > 0.02 ensures that
     # overlapping turbines lead to less power output.
-    turbine = BumpTurbine(diameter=400., thrust_coefficient=0.2, controls=controls)
+    # depth needs to be bigger than diameter
+    depth = 1000.
+    turbine = BumpTurbine(diameter=400., thrust_coefficient=0.2, 
+                          controls=controls, depth=depth)
 
     # Create tidal farm
     farm = RectangularFarm(domain,
@@ -35,7 +38,7 @@ def model(controls, problem_params, sin_ic):
     problem_params.include_viscosity = True
     problem_params.viscosity = 20.0
     # depth needs to be bigger than diameter
-    problem_params.depth = 1000.
+    problem_params.depth = depth
 
     # Boundary condition settings
     k = Constant(2*pi/(period*sqrt(problem_params.g*problem_params.depth)))

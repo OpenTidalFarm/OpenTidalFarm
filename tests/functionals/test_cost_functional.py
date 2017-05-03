@@ -11,7 +11,8 @@ class TestCostFunctionals(object):
         prob_params.domain = domain
 
         # Add a farm
-        turbine = BumpTurbine(diameter=20.0, thrust_coefficient=0.8)
+        turbine = BumpTurbine(diameter=20.0, thrust_coefficient=0.8,
+                              depth=prob_params.depth)
         farm = RectangularFarm(domain, site_x_start=80, site_x_end=240,
                                        site_y_start=40, site_y_end=120, turbine=turbine)
         farm.add_regular_turbine_layout(num_x=num_turb_x, num_y=num_turb_y)

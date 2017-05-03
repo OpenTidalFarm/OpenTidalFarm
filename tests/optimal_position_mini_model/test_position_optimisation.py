@@ -61,7 +61,7 @@ class TestPositionOptimisation(object):
 
         # Create a turbine
         turbine = BumpTurbine(diameter=800., thrust_coefficient=0.8,
-                              controls=Controls(position=True))
+                              controls=Controls(position=True), depth=problem_params.depth)
 
         # Create turbine farm
         farm = Farm(domain, turbine)

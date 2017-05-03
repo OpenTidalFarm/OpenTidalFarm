@@ -67,23 +67,27 @@ class BaseTurbine(object):
 
     controls = property(_get_controls, _set_controls, "The turbine controls.")
 
-    def force(self, u, tf=None, **kwargs):
+    def force(self, u, tf=None):
         """Return the thrust force exerted by the turbines for given velocity or speed u
-
-        Keyword arguments:
-        tf -- turbine friction function representing one or more turbine. This can also be the integral
-              of one or more turbine friction functions, to compute the total force."""
+        
+        :param u: velocity vector or speed
+        :type u: dolfin.Function or float
+        :param tf: turbine friction function representing one or more turbine. This can also be the integral
+              of one or more turbine friction functions, to compute the total force.
+        :type tf: dolfin.Function"""
         if tf is None:
             raise TypeError("Turbine friction tf needs to be supplied to compute force")
-        return tf * dolfin.sqrt(dolfin.dot(u, u)) * u
+        return tf * dolfin.dot(u, u)**0.5 * u
 
 
-    def power(self, u, tf=None, **kwargs):
+    def power(self, u, tf=None):
         """Return the amount of power produced by the turbines for given speed u
 
-        Keyword arguments:
-        tf -- turbine friction function representing one or more turbine. This can also be the integral
-              of one or more turbine friction functions, to compute the total power."""
+        :param u: speed (scalar)
+        :type u: dolfin.Function or float
+        :param tf: turbine friction function representing one or more turbine. This can also be the integral
+              of one or more turbine friction functions, to compute the total power.
+        :type tf: dolfin.Function"""
         if tf is None:
             raise TypeError("Turbine friction tf needs to be supplied to compute force")
         return tf * u**3

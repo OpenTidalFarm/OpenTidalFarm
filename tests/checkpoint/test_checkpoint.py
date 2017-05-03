@@ -18,15 +18,9 @@ class TestCheckpoint(object):
     def default_problem(self, ic):
         domain = RectangularDomain(0, 0, 3000, 1000, 20, 10)
 
-        # Create a turbine specification where friction is the only control.
-        turbine = BumpTurbine(diameter=8000, controls=Controls(friction=True))
-
-        # Create the farm and add a turbine.
-        farm = Farm(domain, turbine=turbine)
-        farm.add_turbine([500.,500.])
-
         # Set the problem parameters.
         problem_params = DummyProblem.default_parameters()
+        problem_params.depth = 10000 # needs to be bigger than diameter
         problem_params.domain = domain
         problem_params.finite_element = finite_elements.p1dgp2
         problem_params.initial_condition = ic(2.0, pi/3000., 50, start_time=0.0,
@@ -34,8 +28,15 @@ class TestCheckpoint(object):
         problem_params.dt = 1.0  # dt is used in the functional only,
                                  # so we set it here to 1.0
         problem_params.functional_final_time_only = True
+
+
+        # Create a turbine specification where friction is the only control.
+        turbine = BumpTurbine(diameter=8000, controls=Controls(friction=True), depth=problem_params.depth)
+
+        # Create the farm and add a turbine.
+        farm = Farm(domain, turbine=turbine)
+        farm.add_turbine([500.,500.])
         problem_params.tidal_farm = farm
-        problem_params.depth = 10000 # needs to be bigger than diameter
 
         # Create the problem.
         problem = DummyProblem(problem_params)

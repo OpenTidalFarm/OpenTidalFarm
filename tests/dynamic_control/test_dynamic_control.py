@@ -14,7 +14,7 @@ class TestDynamicTurbineControl(object):
 
         # Create a turbine
         turbine = BumpTurbine(diameter=40., thrust_coefficient=0.8,
-                              controls=Controls(dynamic_friction=True))
+                              controls=Controls(dynamic_friction=True), depth=problem_params.depth)
 
         # Set problem parameters
         problem_params.finish_time = problem_params.start_time + \
