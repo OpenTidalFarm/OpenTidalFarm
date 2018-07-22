@@ -57,7 +57,7 @@ For the manual installation of OpenTidalFarm, we recommend to use Ubuntu Linux.
 First, you need to install these OpenTidalFarm dependencies:
 
 - `FEniCS`_ (Follow the Ubuntu PPA installation)
-- `dolfin-adjoint`_ (Follow the Ubuntu PPA installation)
+- `dolfin-adjoint/libadjoint`_ (Follow the Ubuntu PPA installation)
 - `SciPy`_::
 
     pip install --user scipy
@@ -102,7 +102,7 @@ The examples are then stored in the "OpenTidalFarm/examples" directory.
 
 .. _Ubuntu: http://www.ubuntu.com/
 .. _FEniCS: http://fenicsproject.org/download/
-.. _dolfin-adjoint: http://www.dolfin-adjoint.org/en/latest/download/index.html
+.. _dolfin-adjoint: http://dolfin-adjoint-doc.readthedocs.io/en/latest/download/index.html
 .. _Uptide: https://github.com/stephankramer/uptide
 .. _UTM: https://pypi.python.org/pypi/utm
 .. _Download OpenTidalFarm: https://github.com/funsim/OpenTidalFarm/zipball/master
