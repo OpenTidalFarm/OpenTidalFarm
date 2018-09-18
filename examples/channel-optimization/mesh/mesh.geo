@@ -2,8 +2,8 @@ basin_x = 640;
 basin_y = 320;
 site_x = 320;
 site_y = 160;
-element_size = 10;
-element_size_coarse = 40;
+element_size = 2.5;
+element_size_coarse = 10;
 
 Point(1) = {0, 0, 0, element_size_coarse};
 Point(2) = {basin_x, 0, 0, element_size_coarse};
