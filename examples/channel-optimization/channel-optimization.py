@@ -152,12 +152,12 @@ print rf_params
 # Now we can define the constraints for the controls and start the
 # optimisation.
 
-# Since we enforce no minimum distance constrained for the turbines, we can use
+# If no minimum distance constrained for the turbines is required, we can use
 # the L-BFGS-B optimisation method:
 
 lb, ub = farm.site_boundary_constraints()
 f_opt = maximize(rf, bounds=[lb, ub], method="L-BFGS-B",
-                 options={'maxiter': 100, 'ftol': 1e-04})
+                 options={'maxiter': 100, 'ftol': 1e-06})
 
 # Otherwise, we need to create the minimum distance constraints and pass them to
 # an optimisation method that supports such constraints (here we use SLSQP):
@@ -167,7 +167,7 @@ f_opt = maximize(rf, bounds=[lb, ub], method="L-BFGS-B",
 #    lb, ub = farm.site_boundary_constraints()
 #    ieq = farm.minimum_distance_constraints()
 #    f_opt = maximize(rf, bounds=[lb, ub], constraints=ieq, method="SLSQP",
-#                     options={'maxiter': 100, 'ftol': 1e-04})
+#                     options={'maxiter': 100, 'ftol': 1e-06})
 
 
 # How to run the example
