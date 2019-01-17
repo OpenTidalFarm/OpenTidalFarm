@@ -1,14 +1,14 @@
 import sys
 import os.path
 import numpy
-import helpers
+from . import helpers
 import dolfin_adjoint
 from dolfin import *
 from dolfin_adjoint import *
-from solvers import Solver
-from functionals import TimeIntegrator, PrototypeFunctional
-from memoize import MemoizeMutable
-from reduced_functional_prototype import ReducedFunctionalPrototype
+from .solvers import Solver
+from .functionals import TimeIntegrator, PrototypeFunctional
+from .memoize import MemoizeMutable
+from .reduced_functional_prototype import ReducedFunctionalPrototype
 
 __all__ = ["ReducedFunctional", "ReducedFunctionalParameters",
            "TurbineFarmControl"]
@@ -56,11 +56,11 @@ class ReducedFunctional(ReducedFunctionalPrototype):
         self.rf = self
         self.solver = solver
         if not isinstance(solver, Solver):
-            raise ValueError, "solver argument of wrong type."
+            raise ValueError("solver argument of wrong type.")
 
         self.functional = functional
         if not isinstance(functional, PrototypeFunctional):
-            raise ValueError, "invalid functional argument."
+            raise ValueError("invalid functional argument.")
 
         # Create the default parameters
         self.parameters = parameters
@@ -156,7 +156,7 @@ class ReducedFunctional(ReducedFunctionalPrototype):
 
         if farm.turbine_specification.controls.dynamic_friction:
             parameters = []
-            for i in xrange(len(farm._parameters["friction"])):
+            for i in range(len(farm._parameters["friction"])):
                 parameters.append(
                     FunctionControl("turbine_friction_cache_t_%i" % i))
 
@@ -201,10 +201,10 @@ class ReducedFunctional(ReducedFunctionalPrototype):
                     farm.update()
                     turb_deriv_pos = farm.turbine_cache["turbine_derivative_pos"]
                     n_time_steps =len(turb_deriv_pos)
-                    for n in xrange(farm.number_of_turbines):
+                    for n in range(farm.number_of_turbines):
                         for var in ('turbine_pos_x', 'turbine_pos_y'):
                             dj_t = 0
-                            for t in xrange(n_time_steps):
+                            for t in range(n_time_steps):
                                 tfd_t = turb_deriv_pos[t][n][var]
                                 dj_t += djdtf_arr.vector().inner(tfd_t.vector())
                             dj.append(dj_t)

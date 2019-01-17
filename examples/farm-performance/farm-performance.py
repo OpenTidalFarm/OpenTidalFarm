@@ -129,7 +129,7 @@ rf = ReducedFunctional(functional, control, solver, rf_params)
 # Now we can evaluate the power production of the farm.
 
 power = rf(farm.control_array)
-print "Extracted power by farm is {} MW.".format(power/1e6)
+print("Extracted power by farm is {} MW.".format(power/1e6))
 
 # How to run the example
 # **********************

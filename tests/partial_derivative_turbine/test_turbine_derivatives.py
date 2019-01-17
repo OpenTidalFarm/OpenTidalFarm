@@ -47,13 +47,13 @@ class TestTurbineDerivatives(object):
         if not forward_only:
             dj = []
             # Compute the derivatives with respect to the turbine friction
-            for n in xrange(len(farm._parameters["friction"])):
+            for n in range(len(farm._parameters["friction"])):
                 tfd = turbines(derivative_index=n,
                                derivative_var="turbine_friction")
                 dj.append(2 * v.inner(tfd.vector()))
 
             # Compute the derivatives with respect to the turbine position
-            for n in xrange(len(farm._parameters["position"])):
+            for n in range(len(farm._parameters["position"])):
                 for var in ("turbine_pos_x", "turbine_pos_y"):
                     tfd = turbines(derivative_index=n,
                                    derivative_var=var)
@@ -73,7 +73,7 @@ class TestTurbineDerivatives(object):
         farm = self.default_farm(domain)
 
 
-        print farm._parameters
+        print(farm._parameters)
 
         eta0 = 2.0
         k = pi/3000.

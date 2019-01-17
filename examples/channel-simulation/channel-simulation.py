@@ -125,7 +125,7 @@ prob_params.initial_condition = Constant((DOLFIN_EPS, 0, 0))
 # Here we only set the necessary options. A full option list with its current
 # values can be viewed with:
 
-print prob_params
+print(prob_params)
 
 # Once the parameter have been set, we create the shallow water problem:
 
@@ -148,7 +148,7 @@ f_eta = XDMFFile("eta.xdmf")
 # Now we are ready to solve the problem.
 
 for s in solver.solve():
-    print "Computed solution at time {}".format(s["time"])
+    print("Computed solution at time {}".format(s["time"]))
 
     # Write velocity and free-surface perturbation to file.
     f_u.write(s["u"], s["time"])

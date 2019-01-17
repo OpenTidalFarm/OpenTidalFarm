@@ -37,14 +37,14 @@ for line in f:
 	finished = True
     elif "The automatic scaling factor was set to" in line:
 	m = re.match(r".*to ([0-9|\-]+\.[0-9|e|E|-]+)", line) 
-	print "Found rescaling factor: %s"% m.group(1)
+	print("Found rescaling factor: %s"% m.group(1))
 	rescale /= float(m.group(1))
     if finished:
 	if "Current function value" in line:
 	    f_opt = float(re.match(r".*: ([0-9|\-]+\.[0-9]+)", line).group(1))
-	    print "Current function value: %f" % (f_opt*rescale)
+	    print("Current function value: %f" % (f_opt*rescale))
 	else:
-	    print line,
+	    print(line, end=' ')
     # The sqp iterations output are characteristic as they consists of four numers and do not have any commas in the output
     elif "," not in line:
 	m = re.match(r".* ([0-9]+) \s+ ([0-9]+) \s+ ([0-9|\.|E\+\-]+) \s+ ([0-9|\.|E\+\-]+)", line) # Find the SLSQP lines, mainly by counting the the spaces between the numbers
@@ -56,22 +56,22 @@ for line in f:
 		last_it += 1
 		func.append(float(m.group(3))*rescale)
 		if last_it != it[-1]:
-		    raise ValueError, "The iteration counter is out of sync??!"
+		    raise ValueError("The iteration counter is out of sync??!")
         except Exception as e:
 	    pass
 f.close()
 
 if not found_slsqp:
-    print "No SLSQP output found. Please supply the stdout record of an OpenTidalFarm simulation which used the SLSQP optimisation algorithm."
+    print("No SLSQP output found. Please supply the stdout record of an OpenTidalFarm simulation which used the SLSQP optimisation algorithm.")
     sys.exit(1)
 
-print "Power output of initial layout: ", func[0]
-print "Power output of final layout: ", func[-1]
+print("Power output of initial layout: ", func[0])
+print("Power output of final layout: ", func[-1])
 try:
-    print "Relative power increase: ", func[-1]/func[0]
+    print("Relative power increase: ", func[-1]/func[0])
 except ZeroDivisionError:
-    print "Relative power increase: oo"
-print "Number of iterations: ", len(func)
+    print("Relative power increase: oo")
+print("Number of iterations: ", len(func))
 
 # Produce plot
 scaling = 0.7

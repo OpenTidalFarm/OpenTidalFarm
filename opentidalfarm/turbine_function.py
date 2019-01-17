@@ -14,8 +14,8 @@ class TurbineFunction(object):
         self._cache = cache
 
         # Precompute some turbine parameters for efficiency.
-        self.x = interpolate(Expression("x[0]", degree=1), V).vector().array()
-        self.y = interpolate(Expression("x[1]", degree=1), V).vector().array()
+        self.x = interpolate(Expression("x[0]", degree=1), V).vector().get_local()
+        self.y = interpolate(Expression("x[1]", degree=1), V).vector().get_local()
         self.V = V
 
 

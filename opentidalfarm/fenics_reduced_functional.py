@@ -1,8 +1,8 @@
 from dolfin import Timer, log, parameters, INFO
 from dolfin_adjoint import Functional, ReducedFunctional
 from dolfin_adjoint import compute_gradient, enlisting, adj_reset
-from solvers import Solver
-from functionals import TimeIntegrator, PrototypeFunctional
+from .solvers import Solver
+from .functionals import TimeIntegrator, PrototypeFunctional
 
 __all__ = ["FenicsReducedFunctional"]
 
@@ -24,11 +24,11 @@ class FenicsReducedFunctional(ReducedFunctional):
 
         self.solver = solver
         if not isinstance(solver, Solver):
-            raise ValueError, "solver argument of wrong type."
+            raise ValueError("solver argument of wrong type.")
 
         self._functional = functional
         if not isinstance(functional, PrototypeFunctional):
-            raise ValueError, "invalid functional argument."
+            raise ValueError("invalid functional argument.")
 
         # Hidden attributes
         self._solver_params = solver.parameters
@@ -99,7 +99,7 @@ class FenicsReducedFunctional(ReducedFunctional):
         # Update the control values.
         # Note that we do not update the control values on the tape,
         # because OpenTidalFarm reannotates the tape in each iteration.
-	for c, v in zip(self.controls, value):
+        for c, v in zip(self.controls, value):
             vec = c.coeff.vector()
             if vec.id() == v.vector().id():
                 continue

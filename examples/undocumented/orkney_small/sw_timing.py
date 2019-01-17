@@ -11,7 +11,7 @@ inflow_x = 8400.
 inflow_y = -1390.
 inflow_norm = (inflow_x**2 + inflow_y**2)**0.5
 inflow_direction = [inflow_x/inflow_norm, inflow_y/inflow_norm]
-print "inflow_direction: ", inflow_direction
+print("inflow_direction: ", inflow_direction)
 
 config = SteadyConfiguration("mesh/earth_orkney_converted.xml", inflow_direction = inflow_direction) 
 config.set_site_dimensions(site_x_start, site_x_start + site_x, site_y_start, site_y_start + site_y)
@@ -33,23 +33,23 @@ config.turbine_cache.update(config)
 time_forward = []
 time_adjoint = []
 for i in range(5):
-	print "Running forward model round ", i
+	print("Running forward model round ", i)
 	t1 = Timer("Forward model")
 	model.run_forward_model_mem.fn(m0) 
 	time_forward.append(t1.stop())
-	print "Forward model runtime: ", time_forward[-1]
+	print("Forward model runtime: ", time_forward[-1])
 
 	from dolfin_adjoint import replay_dolfin
-	print "Replaying model round ", i
+	print("Replaying model round ", i)
 	t11 = Timer("Replay forward model")
 	replay_dolfin()
-	print "Replay model runtime: ", t11.stop() 
+	print("Replay model runtime: ", t11.stop()) 
 
 	t2 = Timer("Adjoint model")
 	model.run_adjoint_model_mem.fn(m0) 
 	time_adjoint.append(t2.stop())
-	print "Adjoint model runtime: ", time_adjoint[-1]
+	print("Adjoint model runtime: ", time_adjoint[-1])
 
-print "Smallest runtime for forward model: ", min(time_forward)
-print "Smallest runtime for forward + adjoint model: ", min(time_forward) + min(time_adjoint)
-print "Ratio: ", 1.0 + min(time_adjoint) / min(time_forward)
+print("Smallest runtime for forward model: ", min(time_forward))
+print("Smallest runtime for forward + adjoint model: ", min(time_forward) + min(time_adjoint))
+print("Ratio: ", 1.0 + min(time_adjoint) / min(time_forward))

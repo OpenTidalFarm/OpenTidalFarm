@@ -147,7 +147,7 @@ rf = ReducedFunctional(functional, control, solver, rf_params)
 
 # As always, we can print all options of the :class:`ReducedFunctional` with:
 
-print rf_params
+print(rf_params)
 
 # Now we can define the constraints for the controls and start the
 # optimisation.

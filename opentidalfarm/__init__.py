@@ -11,21 +11,21 @@ __license__ = 'GPL-3'
 __maintainer__ = 'Simon Funke'
 __email__ = 'simon.funke@gmail.com'
 
-import finite_elements
-import helpers
+from . import finite_elements
+from . import helpers
 
-from farm import *
-from turbines import *
-from solvers import *
-from problems import *
-from domains import *
-from functionals import *
-from tidal import *
-from optimisation_helpers import *
-from reduced_functional import *
-from fenics_reduced_functional import *
-from boundary_conditions import *
-from turbine_function import *
+from .farm import *
+from .turbines import *
+from .solvers import *
+from .problems import *
+from .domains import *
+from .functionals import *
+from .tidal import *
+from .optimisation_helpers import *
+from .reduced_functional import *
+from .fenics_reduced_functional import *
+from .boundary_conditions import *
+from .turbine_function import *
 
 from dolfin import *
 from dolfin import parameters

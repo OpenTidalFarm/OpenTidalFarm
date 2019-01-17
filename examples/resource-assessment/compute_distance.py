@@ -26,9 +26,9 @@ solve(F == 0, u, bcs)
 du = Function(V)
 ddu = Function(V)
 
-epss = map(lambda x: interpolate(x, R), [Constant(1000), Constant(500)])
+epss = [interpolate(x, R) for x in [Constant(1000), Constant(500)]]
 for i, eps in enumerate(epss):
-  print "Solving Eikonal with eps == ", eps.vector()[0]
+  print("Solving Eikonal with eps == ", eps.vector()[0])
   F = inner(sqrt(inner(grad(u), grad(u))), v)*dx - v*dx + eps*inner(grad(u), grad(v))*dx
   solve(F == 0, u, bcs)
 

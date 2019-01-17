@@ -5,7 +5,7 @@
 #"""
 
 from dolfin import assemble 
-from prototype_functional import PrototypeFunctional
+from .prototype_functional import PrototypeFunctional
 
 
 class CostFunctional(PrototypeFunctional):

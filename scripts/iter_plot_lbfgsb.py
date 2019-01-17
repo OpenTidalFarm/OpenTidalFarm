@@ -35,7 +35,7 @@ for line in f:
         finished = True
     elif "The automatic scaling factor was set to" in line:
         m = re.match(r".*to ([0-9|\-]+\.[0-9|e|E|-]+)", line) 
-        print "Found rescaling factor: %s"% m.group(1)
+        print("Found rescaling factor: %s"% m.group(1))
         rescale /= float(m.group(1))
 
     elif "At iterate" in line:
@@ -45,16 +45,16 @@ for line in f:
 f.close()
 
 if not found_lbfgsb:
-    print "No L-BFGS-B output found. Please supply the stdout record of an OpenTidalFarm simulation which used the L-BFGS-B optimisation algorithm."
+    print("No L-BFGS-B output found. Please supply the stdout record of an OpenTidalFarm simulation which used the L-BFGS-B optimisation algorithm.")
     sys.exit(1)
 
-print "Power output of initial layout: ", func[0]
-print "Power output of final layout: ", func[-1]
+print("Power output of initial layout: ", func[0])
+print("Power output of final layout: ", func[-1])
 try:
-    print "Relative power increase: ", func[-1]/func[0]
+    print("Relative power increase: ", func[-1]/func[0])
 except ZeroDivisionError:
-    print "Relative power increase: oo"
-print "Number of iterations: ", len(func)
+    print("Relative power increase: oo")
+print("Number of iterations: ", len(func))
 
 # Produce plot
 scaling = 0.5

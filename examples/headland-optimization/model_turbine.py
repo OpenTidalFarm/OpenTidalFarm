@@ -126,4 +126,4 @@ class ModelTurbine(object):
 
 if __name__ == "__main__":
     model = ModelTurbine()
-    print model
+    print(model)

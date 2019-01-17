@@ -14,7 +14,7 @@ def state_writer(state, u_p1, p_p1, it, optit):
         it: the timestep
         optit: the optimisation iteration
     '''
-    print "Saving velocity/pressure solution as xyz data..."
+    print("Saving velocity/pressure solution as xyz data...")
     File("xyz_data/p_opiter_%i_timstep_%i_.xyz" % (optit, it)) << p_p1
     # Split u into the x and y component since xyz can only store scalar fields
     ux, uy = u_p1.split(deepcopy=True)

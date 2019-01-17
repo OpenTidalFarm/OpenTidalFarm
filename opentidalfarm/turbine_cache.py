@@ -2,12 +2,12 @@ import copy
 import numpy
 from dolfin import *
 from dolfin_adjoint import *
-from turbine_function import TurbineFunction
+from .turbine_function import TurbineFunction
 
 class TurbineCache(dict):
     def __init__(self, *args, **kw):
         super(TurbineCache, self).__init__(*args, **kw)
-        self.itemlist = super(TurbineCache, self).keys()
+        self.itemlist = list(super(TurbineCache, self).keys())
         self._function_space = None
         self._specification = None
         self._controlled_by = None
@@ -90,7 +90,7 @@ class TurbineCache(dict):
         if self._controlled_by.dynamic_friction:
             self["turbine_field"] = [
                 turbines(name="turbine_friction_cache_t_"+str(t),
-                timestep=t) for t in xrange(len(self._parameters["friction"]))
+                timestep=t) for t in range(len(self._parameters["friction"]))
                 ]
         else:
             self["turbine_field"] = turbines(name="turbine_friction_cache")
@@ -102,7 +102,7 @@ class TurbineCache(dict):
             self["turbine_field_individual"] = [
                     TurbineFunction(self, self._function_space,
                         self._specification)(timestep=i)
-                    for i in xrange(len(self._parameters["friction"]))]
+                    for i in range(len(self._parameters["friction"]))]
         else:
             self["turbine_field_individual"] = [
                     TurbineFunction(self, self._function_space,
@@ -112,7 +112,7 @@ class TurbineCache(dict):
         # of each turbine.
         if self._controlled_by.friction:
             self["turbine_derivative_friction"] = []
-            for n in xrange(len(self._parameters["friction"])):
+            for n in range(len(self._parameters["friction"])):
                 tfd = turbines(derivative_index=n,
                                derivative_var="turbine_friction",
                                name=("turbine_friction_derivative_with_"
@@ -122,10 +122,10 @@ class TurbineCache(dict):
 
         elif self._controlled_by.dynamic_friction:
             self["turbine_derivative_friction"] = []
-            for t in xrange(len(self._parameters["friction"])):
+            for t in range(len(self._parameters["friction"])):
                 self["turbine_derivative_friction"].append([])
 
-                for n in xrange(len(self._parameters["friction"][t])):
+                for n in range(len(self._parameters["friction"][t])):
                     tfd = turbines(derivative_index=n,
                                    derivative_var="turbine_friction",
                                    name=("turbine_friction_derivative_with_"
@@ -139,7 +139,7 @@ class TurbineCache(dict):
         if self._controlled_by.position:
             if not self._controlled_by.dynamic_friction:
                 self["turbine_derivative_pos"] = []
-                for n in xrange(len(self._parameters["position"])):
+                for n in range(len(self._parameters["position"])):
                     self["turbine_derivative_pos"].append({})
                     for var in ("turbine_pos_x", "turbine_pos_y"):
                         tfd = turbines(derivative_index=n, derivative_var=var,
@@ -149,10 +149,10 @@ class TurbineCache(dict):
                         self["turbine_derivative_pos"][-1][var] = tfd
             else:
                 self["turbine_derivative_pos"] = []
-                for t in xrange(len(self._parameters["friction"])):
+                for t in range(len(self._parameters["friction"])):
                     self["turbine_derivative_pos"].append([])
 
-                    for n in xrange(len(self._parameters["position"])):
+                    for n in range(len(self._parameters["position"])):
                         self["turbine_derivative_pos"][t].append({})
                         for var in ("turbine_pos_x", "turbine_pos_y"):
                             tfd = turbines(derivative_index=n,

@@ -19,4 +19,4 @@ config.params['controls'] = ['turbine_friction']
 rf = ReducedFunctional(config)
 maximize(rf)
 
-print "The optimal turbine friction is ", config.params["turbine_friction"][0]
+print("The optimal turbine friction is ", config.params["turbine_friction"][0])

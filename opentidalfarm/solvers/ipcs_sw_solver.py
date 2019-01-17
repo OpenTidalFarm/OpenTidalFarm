@@ -7,8 +7,8 @@ from .. import finite_elements
 from ..problems import SWProblem
 from ..problems import SteadySWProblem
 from ..helpers import FrozenClass
-from solver import Solver
-from les import LES
+from .solver import Solver
+from .les import LES
 
 
 class IPCSSWSolverParameters(FrozenClass):
@@ -51,7 +51,7 @@ class IPCSSWSolverParameters(FrozenClass):
 
     def __init__(self):
 
-        linear_solver = 'mumps' if ('mumps' in map(lambda x: x[0], linear_solver_methods())) else 'default'
+        linear_solver = 'mumps' if ('mumps' in [x[0] for x in linear_solver_methods()]) else 'default'
         preconditioner = 'default'
 
         self.dolfin_solver["newton_solver"]["linear_solver"] = linear_solver
@@ -160,11 +160,11 @@ class IPCSSWSolver(Solver):
     def __init__(self, problem, parameters):
 
         if not isinstance(problem, (SWProblem, SteadySWProblem)):
-            raise TypeError, "problem must be of type Problem"
+            raise TypeError("problem must be of type Problem")
 
         if not isinstance(parameters, IPCSSWSolverParameters):
-            raise TypeError, "parameters must be of type \
-IPCSSWSolverParameters."
+            raise TypeError("parameters must be of type \
+IPCSSWSolverParameters.")
 
         super(IPCSSWSolver, self).__init__()
 

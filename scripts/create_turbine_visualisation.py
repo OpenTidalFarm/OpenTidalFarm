@@ -81,7 +81,7 @@ files = os.listdir('.')
 pvtus = [pvtu for pvtu in files if re.match("turbines_t=.*\.p?vtu", pvtu)]
 sort_nicely(pvtus)
 pvtus = [pvtus[0], pvtus[-1]]
-print pvtus
+print(pvtus)
 
 turbines_t_ = XMLPartitionedUnstructuredGridReader( guiName="turbines_t=.*", PointArrayStatus=['u'], CellArrayStatus=['connectivity', 'offsets', 'types'], FileName=pvtus)
 
@@ -198,11 +198,11 @@ DataRepresentation1.SelectionCellLabelBold = 0
 DataRepresentation1.Orient = 0
 
 RenderView1.ViewTime = turbines_t_.TimestepValues[0]
-print "Setting timelevel to " + str(turbines_t_.TimestepValues[0])
+print("Setting timelevel to " + str(turbines_t_.TimestepValues[0]))
 Render()
 WriteImage("turbine_visualisation_initial.jpg")
 
 RenderView1.ViewTime = turbines_t_.TimestepValues[-1]
-print "Setting timelevel to " + str(turbines_t_.TimestepValues[-1])
+print("Setting timelevel to " + str(turbines_t_.TimestepValues[-1]))
 Render()
 WriteImage("turbine_visualisation_final.jpg")

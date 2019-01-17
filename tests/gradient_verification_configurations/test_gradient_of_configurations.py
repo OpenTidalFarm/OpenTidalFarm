@@ -135,5 +135,5 @@ class TestConfigurations(object):
                                               m0, seed=seed,
                                               perturbation_direction=p)
 
-        print minconv
+        print(minconv)
         assert minconv > 1.85

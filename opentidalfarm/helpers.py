@@ -129,7 +129,7 @@ class StateWriter:
         self.timestep = 0
         self.solver = solver
         self.u_out, self.p_out = self.output_files(
-            solver.problem.parameters.finite_element.func_name)
+            solver.problem.parameters.finite_element.__name__)
         self.M_u_out, self.v_out, self.u_out_state = self.u_output_projector(
             solver.function_space.mesh())
         self.M_p_out, self.q_out, self.p_out_state = self.p_output_projector(

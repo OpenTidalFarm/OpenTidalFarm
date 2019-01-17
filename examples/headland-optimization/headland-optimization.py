@@ -54,7 +54,7 @@ from vorticity_solver import VorticitySolver
 import time
 
 model_turbine = ModelTurbine()
-print model_turbine
+print(model_turbine)
 
 # Read the command line arguments
 parser = argparse.ArgumentParser()
@@ -144,7 +144,7 @@ prob_params.initial_condition = Expression(("1e-7", "0", eta_channel), t=Constan
 # Here we only set the necessary options. A full option list with its current
 # values can be viewed with:
 
-print prob_params
+print(prob_params)
 
 # Once the parameter have been set, we create the shallow water problem:
 
@@ -189,7 +189,7 @@ rf = ReducedFunctional(functional, control, solver, rf_params)
 
 # As always, we can print all options of the :class:`ReducedFunctional` with:
 
-print rf_params
+print(rf_params)
 
 # Now we can define the constraints for the controls and start the
 # optimisation.
@@ -208,7 +208,7 @@ sol_h5 = HDF5File(mpi_comm_world(), "{}/solution.h5".format(sol_params.output_di
 vort_solver = VorticitySolver(V)
 
 def callback(s):
-    print "*** Storing timestep to solution.h5 ***"
+    print("*** Storing timestep to solution.h5 ***")
     u = project(s["u"], V)
     eta = project(s["eta"], Q)
     vort = vort_solver.solve(u)
@@ -221,7 +221,7 @@ def callback(s):
 
     total_friction = assemble(farm.friction_function*farm.site_dx(1))
     num_turbines = total_friction/model_turbine.friction
-    print "Estimated number of turbines: ", float(num_turbines)
+    print("Estimated number of turbines: ", float(num_turbines))
 
 # Recompute the cost, but this time with the power functional only
 j = rf(farm.control_array)
@@ -253,18 +253,18 @@ site_area = assemble(Constant(1)*farm.site_dx(1, domain=domain.mesh))
 avg_power = energy/1e6/float(prob_params.finish_time-prob_params.start_time)
 num_turbines = total_friction/model_turbine.friction
 
-print "="*40
-print "Site area (m^2): ", site_area
-print "Cost coefficient: {}".format(args.cost)
-print "Total energy (MWh): %e." % (energy/1e6/60/60)
-print "Average power (MW): %e." % avg_power
-print "Total cost: %e." % cost
-print "Maximum smeared turbine friction: %e." % model_turbine.maximum_smeared_friction
-print "Total turbine friction: %e." % total_friction
-print "Average smeared turbine friction: %e." % (total_friction / site_area)
-print "Average power / total friction: %e." % (avg_power / total_friction)
-print "Friction per discrete turbine: {}".format(model_turbine.friction)
-print "Estimated number of discrete turbines: {}".format(num_turbines)
+print("="*40)
+print("Site area (m^2): ", site_area)
+print("Cost coefficient: {}".format(args.cost))
+print("Total energy (MWh): %e." % (energy/1e6/60/60))
+print("Average power (MW): %e." % avg_power)
+print("Total cost: %e." % cost)
+print("Maximum smeared turbine friction: %e." % model_turbine.maximum_smeared_friction)
+print("Total turbine friction: %e." % total_friction)
+print("Average smeared turbine friction: %e." % (total_friction / site_area))
+print("Average power / total friction: %e." % (avg_power / total_friction))
+print("Friction per discrete turbine: {}".format(model_turbine.friction))
+print("Estimated number of discrete turbines: {}".format(num_turbines))
 
 # How to run the example
 # **********************

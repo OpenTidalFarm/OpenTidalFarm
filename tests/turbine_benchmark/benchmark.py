@@ -57,7 +57,7 @@ turbines = Turbines(config.turbine_function_space, config.params)
 # Benchmark the generation of the turbine function
 cProfile.run("tf = turbines()")
 
-print "norm(tf) = ", norm(tf)
+print("norm(tf) = ", norm(tf))
 correct_norm = 634.425772066
 if abs(norm(tf) - correct_norm) > 0.000000001:
     log(ERROR, "Warning: Wrong norm. Should be %e" % correct_norm)

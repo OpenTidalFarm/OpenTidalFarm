@@ -105,8 +105,8 @@ m0 = rf.solver.problem.parameters.tidal_farm.control_array
 j = rf.evaluate(m0)
 turbine_location_sensitivity = rf.derivative(m0)
 
-print "j for turbine positions: ", j
-print "dj w.r.t. turbine positions: ", turbine_location_sensitivity
+print("j for turbine positions: ", j)
+print("dj w.r.t. turbine positions: ", turbine_location_sensitivity)
 
 # Next we compute the sensitivity of the power with respect to bottom friction.
 # We redefine the control variable using the class :class:`Control` into which
@@ -131,7 +131,7 @@ control = Control(prob_params.depth)
 rf = FenicsReducedFunctional(functional, control, solver)
 j = rf.evaluate()
 dj = rf.derivative(project=True)[0]
-print "j with depth = 50 m: ", j
+print("j with depth = 50 m: ", j)
 plot(dj, interactive=True, title="Sensitivity with respect to depth at 50m")
 file = File("50mDepthSensitivity.pvd")
 file << dj
@@ -146,7 +146,7 @@ file << dj
 prob_params.depth.assign(Constant(10))
 j = rf.evaluate()
 dj = rf.derivative(project=True)[0]
-print "j with depth = 10 m: ", j
+print("j with depth = 10 m: ", j)
 plot(dj, interactive=True, title="Sensitivity with respect to depth at 10m")
 file = File("10mDepthSensitivity.pvd")
 file << dj

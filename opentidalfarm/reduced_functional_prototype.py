@@ -150,15 +150,15 @@ if __name__ == '__main__':
             self.controls = []
 
         def evaluate(self, m):
-            print 'Running reduced_functional method'
+            print('Running reduced_functional method')
             return sum(m)
 
         def derivative(self, m):
-            print 'Running derivative method'
+            print('Running derivative method')
             return m
 
     TestA = Test()
     TestB = Test()
     objective = (2 * TestA) + TestB
-    print objective(np.array([1,2,3]))
-    print objective.derivative(np.array([1,2,3]))
+    print(objective(np.array([1,2,3])))
+    print(objective.derivative(np.array([1,2,3])))

@@ -1,8 +1,8 @@
 import os
 import signal
-import cPickle
+import pickle
 from dolfin import log, INFO, WARNING
-from helpers import cpu0only
+from .helpers import cpu0only
 
 def to_tuple(obj):
     if hasattr(obj, '__iter__'):
@@ -16,7 +16,7 @@ class MemoizeMutable:
 
     def get_key(self, args, kwds):
         h1 = to_tuple(args)
-        h2 = to_tuple(kwds.items())
+        h2 = to_tuple(list(kwds.items()))
         h = tuple([h1, h2])
         # Often useful to have a explicit
         # turbine parameter -> functional value mapping,
@@ -52,20 +52,20 @@ class MemoizeMutable:
     @cpu0only
     def save_checkpoint(self, filename):
         def sig_save(sig, stack):
-            print "Received signal %i. Writing final checkpoint to disk before exiting..." % sig
-            cPickle.dump(self.memo, open(filename, "wb"))
-            print "Checkpoint writing finished. Bye."
+            print("Received signal %i. Writing final checkpoint to disk before exiting..." % sig)
+            pickle.dump(self.memo, open(filename, "wb"))
+            print("Checkpoint writing finished. Bye.")
             os._exit(sig)
 
         # Make sure we save successfully, even if the user sends a signal
-        print "Save checkpoint."
+        print("Save checkpoint.")
         old_handler = signal.signal(signal.SIGINT, sig_save)
-        cPickle.dump(self.memo, open(filename, "wb"))
+        pickle.dump(self.memo, open(filename, "wb"))
         signal.signal(signal.SIGINT, old_handler)
 
     def load_checkpoint(self, filename):
         try:
-            self.memo = cPickle.load(open(filename, "rb"))
+            self.memo = pickle.load(open(filename, "rb"))
         except IOError:
             log(WARNING, "Warning: Checkpoint file '%s' not found." % filename)
         except ValueError:

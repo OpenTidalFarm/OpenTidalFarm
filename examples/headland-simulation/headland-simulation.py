@@ -106,7 +106,7 @@ prob_params.initial_condition = Expression(("DOLFIN_EPS", "0", eta_channel), t=C
 # Here we only set the necessary options. A full option list with its current
 # values can be viewed with:
 
-print prob_params
+print(prob_params)
 
 # Once the parameter have been set, we create the shallow water problem:
 
@@ -160,7 +160,7 @@ vort_solver = VorticitySolver(V)
 # Now we start the time loop
 
 for s in solver.solve(annotate=False):
-    print "Computed solution at time %f" % s["time"]
+    print("Computed solution at time %f" % s["time"])
 
     # Write velocity, surface elevation and vorticity to files
     u_xdmf.write(s["u"], s["time"])

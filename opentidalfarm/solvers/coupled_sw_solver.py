@@ -3,7 +3,7 @@ import os.path
 from dolfin import *
 from dolfin_adjoint import *
 
-from solver import Solver
+from .solver import Solver
 from ..problems import SWProblem
 from ..problems import SteadySWProblem
 from ..problems import MultiSteadySWProblem
@@ -157,11 +157,11 @@ class CoupledSWSolver(Solver):
 
         if not isinstance(problem, (SWProblem,
             SteadySWProblem)):
-            raise TypeError, "problem must be of type Problem"
+            raise TypeError("problem must be of type Problem")
 
         if not isinstance(solver_params, CoupledSWSolverParameters):
-            raise TypeError, "solver_params must be of type \
-            CoupledSWSolverParameters."
+            raise TypeError("solver_params must be of type \
+            CoupledSWSolverParameters.")
 
         super(CoupledSWSolver, self).__init__()
 
@@ -502,7 +502,7 @@ class CoupledSWSolver(Solver):
                     tf.assign(farm.friction_function)
 
             # Set the initial guess for the solve
-            if cache_forward_state and self.state_cache.has_key(float(t)):
+            if cache_forward_state and float(t) in self.state_cache:
                 log(INFO, "Read initial guess from cache for t=%f." % t)
                 # Load initial guess for solver from cache
                 state_new.assign(self.state_cache[float(t)], annotate=False)
@@ -530,7 +530,7 @@ class CoupledSWSolver(Solver):
             if cache_forward_state:
                 # Save state for initial guess cache
                 log(INFO, "Cache solution t=%f as next initial guess." % t)
-                if not self.state_cache.has_key(float(t)):
+                if float(t) not in self.state_cache:
                     self.state_cache[float(t)] = Function(self.function_space)
                 self.state_cache[float(t)].assign(state_new, annotate=False)
 

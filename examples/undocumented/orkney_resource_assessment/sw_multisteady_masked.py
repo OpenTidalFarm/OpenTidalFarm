@@ -80,10 +80,10 @@ rf = ReducedFunctional(config, scale=-1e-6)
 #rf.load_checkpoint()
 
 if forward_only or test_gradient:
-    print "Running forward model"
+    print("Running forward model")
     m0 = rf.initial_control()
     j = rf.j(m0, annotate=test_gradient)
-    print "Power: ", j
+    print("Power: ", j)
     if test_gradient:
         dj = rf.dj_with_check(m0, forget=False, seed=0.01)
 
@@ -91,5 +91,5 @@ else:
   # The maximum friction is given by:
   # c_B = c_T*A_Cross / (2*A) = 0.6*pi*D**2/(2*9D**2) 
   max_ct = 0.6*pi/2/9
-  print "Maximum turbine friction: %f." % max_ct
+  print("Maximum turbine friction: %f." % max_ct)
   m_opt = maximize(rf, bounds = [0, max_ct], options = {"maxiter": 300})

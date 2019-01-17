@@ -5,7 +5,7 @@
 #"""
 
 from dolfin import assemble, inner, grad
-from prototype_functional import PrototypeFunctional
+from .prototype_functional import PrototypeFunctional
 
 
 class H01Regularisation(PrototypeFunctional):

@@ -75,7 +75,7 @@ class TestTurbineCorrection(object):
         scaling = farm.turbine_specification.turbine_parametrisation_constant
         F_applied = assemble(tf*scaling*C_t*dot(u,u)*dx)
         F_desired = 0.5*0.6*pi*100.*9
-        print "F_applied, F_desired: ", F_applied, F_desired
+        print("F_applied, F_desired: ", F_applied, F_desired)
         err = abs((F_applied-F_desired)/F_desired)
-        print "rel. error = ", err
+        print("rel. error = ", err)
         assert(err < 0.5/100.)

@@ -6,7 +6,7 @@
 
 from dolfin import dot, Constant, dx, assemble, conditional
 from ..helpers import smooth_uflmin
-from prototype_functional import PrototypeFunctional
+from .prototype_functional import PrototypeFunctional
 
 
 class PowerFunctional(PrototypeFunctional):

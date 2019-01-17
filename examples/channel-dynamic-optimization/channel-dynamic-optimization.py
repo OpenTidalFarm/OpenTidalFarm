@@ -180,9 +180,9 @@ energy = rf(f_opt)
 
 # Finally we print out the result.
 
-print "The opimized friction coefficient for each timestep is: "
-print f_opt
-print "This gives a energy output of {}.".format(energy)
+print("The opimized friction coefficient for each timestep is: ")
+print(f_opt)
+print("This gives a energy output of {}.".format(energy))
 
 # How to run the example
 # **********************

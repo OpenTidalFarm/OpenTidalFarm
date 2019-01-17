@@ -1,6 +1,6 @@
 import os.path
 import dolfin
-from domain import Domain
+from .domain import Domain
 
 
 class RectangularDomain(Domain):
@@ -45,8 +45,8 @@ class RectangularDomain(Domain):
         sides = Sides()
 
         # Create facet markers
-        #: A :class:`dolfin.FacetFunction` containing the surface markers.
-        self.facet_ids = dolfin.FacetFunction('size_t', self.mesh)
+        #: A :class:`dolfin.MeshFunction` containing the surface markers.
+        self.facet_ids = dolfin.MeshFunction("size_t", self.mesh, self.mesh.topology().dim() - 1)
         self.facet_ids.set_all(0)
         left.mark(self.facet_ids, 1)
         right.mark(self.facet_ids, 2)
@@ -55,7 +55,7 @@ class RectangularDomain(Domain):
         self._ds = dolfin.Measure('ds')(subdomain_data=self.facet_ids)
 
         #: A :class:`dolfin.CellFunction` containing the area markers.
-        self.cell_ids = dolfin.CellFunction("size_t", self.mesh)
+        self.cell_ids = dolfin.MeshFunction("size_t", self.mesh, self.mesh.topology().dim())
         self.cell_ids.set_all(0)
         #: A :class:`dolfin.Measure` for the cell cell_ids.
         self._dx = dolfin.Measure("dx")(subdomain_data=self.cell_ids)

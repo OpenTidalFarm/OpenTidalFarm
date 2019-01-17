@@ -2,7 +2,7 @@ import os.path
 import numpy
 import dolfin
 from dolfin import Constant, log, INFO
-from helpers import function_eval
+from .helpers import function_eval
 from dolfin_adjoint import InequalityConstraint, EqualityConstraint
 
 __all__ = ["MinimumDistanceConstraints", "MinimumDistanceConstraintsLargeArrays",
@@ -92,7 +92,7 @@ class DomainRestrictionConstraints(InequalityConstraint):
             try:
                 ieqcons.append(function_eval(self.feasible_area, (x, y)))
             except RuntimeError:
-                print "Warning: a turbine is outside the domain"
+                print("Warning: a turbine is outside the domain")
                 ieqcons.append((x - self.attraction_center[0]) ** 2 + (y - self.attraction_center[1]) ** 2)  # Point is outside domain
 
         arr = -numpy.array(ieqcons)

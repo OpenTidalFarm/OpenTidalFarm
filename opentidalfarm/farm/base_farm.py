@@ -319,7 +319,7 @@ class BaseFarm(object):
             # make the random pairings
             points = numpy.zeros_like(random_points)
             for j in [0,1]:
-                order = numpy.random.permutation(range(number_turbines))
+                order = numpy.random.permutation(list(range(number_turbines)))
                 points[:, j] = random_points[order, j]
             return points
 

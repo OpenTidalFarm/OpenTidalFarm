@@ -16,5 +16,5 @@ The mesh, and subdomain and surface makers can be visualised with
     interactive()
 
 """
-from file_domain import FileDomain
-from rectangle_domain import RectangularDomain
+from .file_domain import FileDomain
+from .rectangle_domain import RectangularDomain

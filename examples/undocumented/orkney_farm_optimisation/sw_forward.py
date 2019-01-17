@@ -13,10 +13,10 @@ else:
     farm_selector = None
 
 if farm_selector is None:
-    print "Optimising all farms."
+    print("Optimising all farms.")
     mesh_basefile = "mesh/coast_idBoundary_utm_no_islands"
 else:
-    print "Optimising farm %i only." % farm_selector
+    print("Optimising farm %i only." % farm_selector)
     mesh_basefile = "mesh/coast_idBoundary_utm_no_islands_individual_farm_ids"
 
 config = UnsteadyConfiguration(mesh_basefile + ".xml", [1, 1]) 
@@ -76,7 +76,7 @@ config.info()
 
 rf = ReducedFunctional(config, scale=-1e-6)
 
-print "Running forward model"
+print("Running forward model")
 m0 = rf.initial_control()
 rf.j(m0, annotate=False)
-print "Finished"
+print("Finished")

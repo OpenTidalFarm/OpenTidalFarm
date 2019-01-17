@@ -15,7 +15,7 @@ class FVCOMReader(object):
 
     @property
     def nodes(self):
-        return zip(self.nc["x"], self.nc["y"])
+        return list(zip(self.nc["x"], self.nc["y"]))
 
     @property
     def velocity_x(self):
@@ -30,7 +30,7 @@ class FVCOMReader(object):
     @property
     def velocity(self):
         for timelevel in range(len(self.nc["ua"])):
-            yield zip(self.nc["ua"][timelevel], self.nc["va"][timelevel])
+            yield list(zip(self.nc["ua"][timelevel], self.nc["va"][timelevel]))
 
     @property
     def julianTime(self):
@@ -147,16 +147,16 @@ if __name__ == "__main__":
 
     fenics_writer = FEniCSWriter()
     fenics_writer.write_mesh(fvcom_reader.nodes, fvcom_reader.triangles, args.xml)
-    print "Wrote {}".format(args.xml)
+    print("Wrote {}".format(args.xml))
 
     # Write velocity fields
     if args.velocity is not None:
         base_file = args.velocity[:-4] + "_{}.xml"
         for i, u in enumerate(fvcom_reader.velocity):
             fenics_writer.write_dg0_function(u, base_file.format(i))
-            print "Wrote {}".format(base_file.format(i))
+            print("Wrote {}".format(base_file.format(i)))
 
-    print "Conversion finished."
+    print("Conversion finished.")
 
     if args.plot:
         plot(args)

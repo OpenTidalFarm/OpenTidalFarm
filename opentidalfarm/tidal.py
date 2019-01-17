@@ -98,6 +98,6 @@ class BathymetryDepthExpression(Expression):
         self.interpolator = scipy.interpolate.RectBivariateSpline(lat, lon, values)
 
     def eval(self, values, x):
-	" Evaluates the bathymetry at a point. """
+        """ Evaluates the bathymetry at a point. """
         lat, lon = utm.to_latlon(x[0], x[1], self.utm_zone, self.utm_band)
         values[0] = max(self.maxval, -self.interpolator(lat, lon))

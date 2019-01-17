@@ -15,4 +15,4 @@ try:
 	file = File(meshfile[:-4] + '_physical_region.xml')
 	file << mesh_function
 except IOError:
-	print "Could not find a physical region file. Skipping."
+	print("Could not find a physical region file. Skipping.")

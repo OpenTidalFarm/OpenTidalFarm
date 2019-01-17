@@ -165,7 +165,7 @@ f_eta = XDMFFile("results/eta.xdmf")
 # We do not need the adjoint because we will not solve an optimisation problem
 # or compute sensitivities
 for sol in solver.solve(): #annotate=False):
-    print "Computed solution at time {}.".format(sol["time"])
+    print("Computed solution at time {}.".format(sol["time"]))
 
     # Write velocity and free-surface perturbation to file.
     f_u.write(sol["u"], sol["time"])

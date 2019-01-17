@@ -1,6 +1,6 @@
 import os.path
 import dolfin
-from domain import Domain
+from .domain import Domain
 
 
 class FileDomain(Domain):

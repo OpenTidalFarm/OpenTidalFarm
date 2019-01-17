@@ -46,8 +46,8 @@ def Stereographic2Flat(x, y):
 
 def main():
     if len(sys.argv) != 2:
-        print "Converts the points in a .geo file from stereographic coordinates a flat coordaintes system."
-        print "Usage: convert.py file.geo"
+        print("Converts the points in a .geo file from stereographic coordinates a flat coordaintes system.")
+        print("Usage: convert.py file.geo")
         sys.exit(1)
 
     infile = sys.argv[1]
@@ -64,7 +64,7 @@ def main():
                 assert(float(m.group(3)) == 0)
                 x, y = (float(m.group(1)), float(m.group(2)))
             except:
-                print "Error while parsing line: ", line
+                print("Error while parsing line: ", line)
                 sys.exit(1)
             x, y = Stereographic2Flat(x, y)
             line = line.replace(m.group(1), str(x))
@@ -74,8 +74,8 @@ def main():
             minx = min(minx, x)
             miny = min(miny, y)
         fout.write(line)
-    print "New data range: [%f, %f] - [%f, %f]." % (minx, maxx, miny, maxy)
-    print "Finished."
+    print("New data range: [%f, %f] - [%f, %f]." % (minx, maxx, miny, maxy))
+    print("Finished.")
 
 if __name__ == "__main__":
     main()

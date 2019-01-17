@@ -1,6 +1,6 @@
 from dolfin import *
 from dolfin_adjoint import *
-from solver import Solver
+from .solver import Solver
 from ..problems import DummyProblem
 from ..helpers import FrozenClass
 
@@ -13,7 +13,7 @@ class DummySolver(Solver):
     def __init__(self, problem):
 
         if not isinstance(problem, DummyProblem):
-            raise TypeError, "problem must be of type DummyProblem"
+            raise TypeError("problem must be of type DummyProblem")
 
         super(DummySolver, self).__init__()
 
