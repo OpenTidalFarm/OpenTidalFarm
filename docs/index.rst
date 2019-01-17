@@ -86,6 +86,10 @@ For questions and to report issues use the `GitHub issue tracker
 News
 ----
 
+- 17.01.2018: OpenTidalFarm 2017.2 released (compatibled with FEniCS 2017.2)
+
+  - Support for Python 2 and 3.
+
 - 20.12.2016: OpenTidalFarm 2016.2 released (compatibled with FEniCS 2016.2)
 
   - Support for dynamic farm optimisiation
