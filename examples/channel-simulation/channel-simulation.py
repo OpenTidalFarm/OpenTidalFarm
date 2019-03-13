@@ -93,7 +93,7 @@ prob_params.domain = domain
 # updated to the current timelevel during the solve.
 
 bcs = BoundaryConditionSet()
-u_expr = Expression(("sin(pi*t/5)*x[1]*(50-x[1])/625", "0"), t=Constant(0))
+u_expr = Expression(("sin(pi*t/5)*x[1]*(50-x[1])/625", "0"), t=Constant(0), degree=4)
 bcs.add_bc("u", u_expr, facet_id=1)
 bcs.add_bc("eta", Constant(0), facet_id=2)
 
