@@ -158,8 +158,8 @@ solver = CoupledSWSolver(problem, sol_params)
 
 # Now we are ready to solve and save the results to file.
 
-f_u = XDMFFile("results/u.xdmf")
-f_eta = XDMFFile("results/eta.xdmf")
+f_u = File("results/u.pvd")
+f_eta = File("results/eta.pvd")
 
 # To save memory, we deactivate the adjoint model with annotate=False.
 # We do not need the adjoint because we will not solve an optimisation problem
@@ -168,8 +168,8 @@ for sol in solver.solve(): #annotate=False):
     print("Computed solution at time {}.".format(sol["time"]))
 
     # Write velocity and free-surface perturbation to file.
-    f_u.write(sol["u"], sol["time"])
-    f_eta.write(sol["eta"], sol["time"])
+    f_u << sol["u"], sol["time"]
+    f_eta << sol["eta"], sol["time"]
 
 # How to run the example
 # **********************
