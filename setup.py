@@ -11,4 +11,6 @@ setup(name='OpenTidalFarm',
                   'opentidalfarm.functionals',
                   'opentidalfarm.farm',
                   'opentidalfarm.turbines']
+      scripts=['scripts/convert_to_new_xml.py']
       )
+
