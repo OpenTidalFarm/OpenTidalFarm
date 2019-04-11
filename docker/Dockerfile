@@ -18,6 +18,9 @@ RUN pip install pyyaml && \
 RUN git clone https://github.com/OpenTidalFarm/OpenTidalFarm.git
 RUN cd OpenTidalFarm; git submodule init; git submodule update
 
+RUN apt-get -qq update && \
+    apt-get -y install gmsh
+
 USER fenics
 COPY WELCOME $FENICS_HOME/WELCOME
 
