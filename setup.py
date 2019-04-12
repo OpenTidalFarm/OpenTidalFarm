@@ -10,7 +10,7 @@ setup(name='OpenTidalFarm',
                   'opentidalfarm.domains',
                   'opentidalfarm.functionals',
                   'opentidalfarm.farm',
-                  'opentidalfarm.turbines']
+                  'opentidalfarm.turbines'],
       scripts=['scripts/convert_to_new_xml.py']
       )
 
