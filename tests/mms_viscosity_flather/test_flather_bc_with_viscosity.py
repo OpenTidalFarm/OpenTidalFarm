@@ -1,7 +1,8 @@
 import math
 from opentidalfarm import *
-from dolfin_adjoint import adj_reset
-from dolfin import log, INFO, ERROR
+# from dolfin_adjoint import adj_reset
+# from dolfin import log, INFO, ERROR
+from dolfin.cpp.log import log
 
 
 class TestFlatherBoundaryConditionsWithViscosity(object):
@@ -26,7 +27,8 @@ class TestFlatherBoundaryConditionsWithViscosity(object):
         problem_params.f_u = source
         problem = SWProblem(problem_params)
 
-        adj_reset()
+        # adj_reset()
+        set_working_tape(Tape())
         parameters = CoupledSWSolver.default_parameters()
         parameters.dump_period = -1
         solver = CoupledSWSolver(problem, parameters)
@@ -92,6 +94,6 @@ class TestFlatherBoundaryConditionsWithViscosity(object):
         for i in range(len(errors)-1):
             conv.append(-math.log(errors[i+1]/errors[i], 2))
 
-        log(INFO, "Errors: %s" % errors)
-        log(INFO, "Spatial order of convergence (expecting 2.0): %s" % conv)
+        log(LogLevel.INFO, "Errors: %s" % errors)
+        log(LogLevel.INFO, "Spatial order of convergence (expecting 2.0): %s" % conv)
         assert min(conv) > 1.8

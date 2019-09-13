@@ -4,6 +4,7 @@ import pytest
 import dolfin
 import dolfin_adjoint
 import opentidalfarm
+from pyadjoint.tape import Tape, set_working_tape
 from fixtures import sw_linear_problem_parameters
 from fixtures import sw_nonlinear_problem_parameters
 from fixtures import steady_sw_problem_parameters
@@ -18,4 +19,5 @@ def pytest_runtest_setup(item):
     dolfin.parameters.update(default_params)
 
     # Reset adjoint state
-    dolfin_adjoint.adj_reset()
+#     dolfin_adjoint.adj_reset()
+    set_working_tape(Tape())

@@ -4,6 +4,7 @@ a discrete function space, because turbine's eval function is called very
 often.  This test was used to optimise the eval implementation. On 4 Intel(R)
 Xeon(R) CPU  E5506  @ 2.13GHz the benchmark time should be around 11s. '''
 
+from dolfin.cpp.log import log
 from opentidalfarm import *
 import numpy
 import cProfile
@@ -60,5 +61,5 @@ cProfile.run("tf = turbines()")
 print("norm(tf) = ", norm(tf))
 correct_norm = 634.425772066
 if abs(norm(tf) - correct_norm) > 0.000000001:
-    log(ERROR, "Warning: Wrong norm. Should be %e" % correct_norm)
-log(INFO, "This test should take round 1 min.")
+    log(LogLevel.ERROR, "Warning: Wrong norm. Should be %e" % correct_norm)
+log(LogLevel.INFO, "This test should take round 1 min.")

@@ -4,9 +4,10 @@
     positions and the friction magnitude.
 '''
 
-from dolfin_adjoint import adj_reset
+# from dolfin_adjoint import adj_reset
 from opentidalfarm import *
-from dolfin import log, INFO, ERROR
+# from dolfin import log, INFO, ERROR
+from dolfin.cpp.log import log
 
 class TestTurbineDerivatives(object):
     def default_farm(self, domain):
@@ -25,7 +26,8 @@ class TestTurbineDerivatives(object):
 
 
     def j_and_dj(self, problem, farm, m, forward_only=None):
-        adj_reset()
+        # adj_reset()
+        set_working_tape(Tape())
 
         # Update the farm parameters.
         # Change the control variables to the farm parameters

@@ -1,7 +1,7 @@
 import os
 import pytest
 from opentidalfarm import *
-set_log_level(INFO)
+set_log_level(LogLevel.INFO)
 
 
 class TestConfigurations(object):

@@ -1,6 +1,7 @@
 import os
 import pytest
 from opentidalfarm import *
+from dolfin.cpp.log import log
 
 class TestMultiSteadyState(object):
 
@@ -33,12 +34,12 @@ class TestMultiSteadyState(object):
         # Compute the expected eta jump for a free-stream of 2.5 m/s (without
         # turbines) by assuming balance between the pressure and friction terms
         u_free_stream = 2.5
-        log(INFO, "Target free-stream velocity (without turbines): %s" % u_free_stream)
+        log(LogLevel.INFO, "Target free-stream velocity (without turbines): %s" % u_free_stream)
         delta_eta = problem_params.friction/problem_params.depth/problem_params.g
         delta_eta *= u_free_stream**2
         delta_eta *= basin_x
         delta_eta = float(delta_eta)
-        log(INFO, "Derived head-loss difference to achieve target free-stream: %s" % delta_eta)
+        log(LogLevel.INFO, "Derived head-loss difference to achieve target free-stream: %s" % delta_eta)
 
         # Set Boundary conditions
         bcs = BoundaryConditionSet()

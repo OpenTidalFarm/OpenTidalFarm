@@ -55,7 +55,8 @@ class TestSmearedTurbine(object):
                         between(x[1], (site_y_start, site_y_start+site_y)))
 
         site = Site()
-        d = CellFunction("size_t", farm.domain.mesh)
+        # d = CellFunction("size_t", farm.domain.mesh)
+        d = MeshFunction("size_t", farm.domain.mesh, farm.domain.mesh.geometric_dimension())
         d.set_all(0)
         site.mark(d, 1)
         farm.site_dx = Measure("dx")[d]

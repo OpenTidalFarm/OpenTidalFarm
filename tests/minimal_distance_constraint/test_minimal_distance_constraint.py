@@ -1,7 +1,8 @@
 #!/usr/bin/python
 ''' This test checks the derivatives of the inequality contraints for the minimal turbine distance constraint. '''
 from opentidalfarm import *
-from dolfin import log, INFO
+# from dolfin import log, INFO
+from dolfin.cpp.log import log
 import numpy
 import math
 
@@ -47,5 +48,5 @@ class TestMinimalDistanceConstraint(object):
 
         # These constraints are linear so we expect no convergence at all.
         # Let's check that the tolerance is not above a threshold
-        log(INFO, "Expecting a Nan convergence order")
+        log(LogLevel.INFO, "Expecting a Nan convergence order")
         assert math.isnan(minconv)

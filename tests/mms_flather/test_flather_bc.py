@@ -1,5 +1,6 @@
 from opentidalfarm import *
-from dolfin import log, INFO
+# from dolfin import log, INFO
+from dolfin.cpp.log import log
 from mms import compute_error, setup_model
 import math
 
@@ -31,7 +32,7 @@ class TestFlatherBoundaryConditions(object):
             conv.append(convergence_order)
 
         # Check the minimum convergence order and exit
-        log(INFO, "Spatial order of convergence (expecting 2.0): %s." % conv)
+        log(LogLevel.INFO, "Spatial order of convergence (expecting 2.0): %s." % conv)
 
         assert min(conv) > 1.9
 
@@ -60,6 +61,6 @@ class TestFlatherBoundaryConditions(object):
             conv.append(convergence_order)
 
         # Check the minimum convergence order and exit
-        log(INFO, "Temporal order of convergence (expecting 2.0): %s." % conv)
+        log(LogLevel.INFO, "Temporal order of convergence (expecting 2.0): %s." % conv)
 
         assert min(conv) > 1.9

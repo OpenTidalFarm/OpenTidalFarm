@@ -4,15 +4,18 @@
 import sys
 import math
 from opentidalfarm import *
-from dolfin_adjoint import adj_reset
-from dolfin import log, INFO, ERROR
+# from dolfin_adjoint import adj_reset
+# from dolfin import log, INFO, ERROR
+from dolfin.cpp.log import log
+from pyadjoint.tape import set_working_tape, Tape
 
 
 class TestWeakDirichletBoundaryConditions(object):
 
     def error(self, problem, solution):
 
-        adj_reset()
+        # adj_reset()
+        set_working_tape(Tape())
         parameters = CoupledSWSolver.default_parameters()
         parameters.dump_period = -1
         solver = CoupledSWSolver(problem, parameters)
@@ -150,8 +153,8 @@ class TestWeakDirichletBoundaryConditions(object):
         for i in range(len(errors)-1):
             conv.append(-math.log(errors[i+1] / errors[i], 2))
 
-        log(INFO, "Spatial Taylor remainders are : %s" % str(errors))
-        log(INFO, "Spatial order of convergence (expecting 1.0): %s" % str(conv))
+        log(LogLevel.INFO, "Spatial Taylor remainders are : %s" % str(errors))
+        log(LogLevel.INFO, "Spatial order of convergence (expecting 1.0): %s" % str(conv))
         assert min(conv) > 0.99
 
     def test_temporal_convergence_is_two(self, sw_linear_problem_parameters):
@@ -166,6 +169,6 @@ class TestWeakDirichletBoundaryConditions(object):
         for i in range(len(errors)-1):
             conv.append(-math.log(errors[i+1] / errors[i], 2))
 
-        log(INFO, "Temporal Taylor remainders are : %s" % str(errors))
-        log(INFO, "Temporal order of convergence (expecting 2.0): %s" % str(conv))
+        log(LogLevel.INFO, "Temporal Taylor remainders are : %s" % str(errors))
+        log(LogLevel.INFO, "Temporal order of convergence (expecting 2.0): %s" % str(conv))
         assert min(conv) > 1.9

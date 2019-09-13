@@ -8,7 +8,8 @@
 
 from opentidalfarm import *
 from opentidalfarm import helpers
-from dolfin import log, INFO
+# from dolfin import log, INFO
+from dolfin.cpp.log import log
 
 
 def BumpInitialCondition(x0, y0, x1, y1):
@@ -94,7 +95,7 @@ class TestPositionOptimisation(object):
         maximize(rf, bounds=bounds, method="SLSQP")
 
         m = farm._parameters["position"][0]
-        log(INFO, "Solution of the primal variables: m=" + repr(m) + "\n")
+        log(LogLevel.INFO, "Solution of the primal variables: m=" + repr(m) + "\n")
 
         assert abs(m[0]-1500) < 40
         assert abs(m[1]-500) < 0.4

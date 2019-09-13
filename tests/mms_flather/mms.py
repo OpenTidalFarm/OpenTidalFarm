@@ -1,5 +1,6 @@
 from opentidalfarm import *
-from dolfin_adjoint import adj_reset
+# from dolfin_adjoint import adj_reset
+from pyadjoint import set_working_tape, Tape
 
 
 def compute_error(problem_params, eta0, k):
@@ -50,7 +51,8 @@ def setup_model(parameters, sin_ic, time_step, finish_time, mesh_x, mesh_y=2):
     # y-direction, hence a coarse y-resolution is sufficient.
 
     # Reset the adjoint tape to keep dolfin-adjoint happy
-    adj_reset()
+    # adj_reset()
+    set_working_tape(Tape())
 
     eta0 = 2.0
     k = pi/3000.
