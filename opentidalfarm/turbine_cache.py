@@ -2,6 +2,7 @@ import copy
 import numpy
 from dolfin import *
 from dolfin_adjoint import *
+from dolfin.cpp.log import log
 from .turbine_function import TurbineFunction
 
 class TurbineCache(dict):
@@ -62,7 +63,7 @@ class TurbineCache(dict):
             self._parameters = {"friction": [], "position": []}
 
         # Update the cache.
-        log(INFO, "Updating the turbine cache")
+        log(LogLevel.INFO, "Updating the turbine cache")
 
         # Update the positions and frictions.
         self._parameters["friction"] = numpy.copy(friction)
@@ -96,7 +97,7 @@ class TurbineCache(dict):
             self["turbine_field"] = turbines(name="turbine_friction_cache")
 
         # Precompute the interpolation of the friction function for each turbine.
-        log(INFO, "Building individual turbine power friction functions "
+        log(LogLevel.INFO, "Building individual turbine power friction functions "
                   "for caching purposes...")
         if self._controlled_by.dynamic_friction:
             self["turbine_field_individual"] = [

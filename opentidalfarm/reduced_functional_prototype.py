@@ -1,4 +1,4 @@
-from dolfin_adjoint import ReducedFunctionalNumPy
+from pyadjoint.reduced_functional_numpy import ReducedFunctionalNumPy
 
 
 class ReducedFunctionalPrototype(ReducedFunctionalNumPy):

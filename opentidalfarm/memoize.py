@@ -1,7 +1,8 @@
 import os
 import signal
 import pickle
-from dolfin import log, INFO, WARNING
+# from dolfin import log, INFO, WARNING
+from dolfin.cpp.log import log
 from .helpers import cpu0only
 
 def to_tuple(obj):
@@ -16,7 +17,8 @@ class MemoizeMutable:
 
     def get_key(self, args, kwds):
         h1 = to_tuple(args)
-        h2 = to_tuple(list(kwds.items()))
+        # h2 = to_tuple(list(kwds.items()))
+        h2 = tuple([o for o in list(kwds.items())])
         h = tuple([h1, h2])
         # Often useful to have a explicit
         # turbine parameter -> functional value mapping,
@@ -37,7 +39,7 @@ class MemoizeMutable:
         if h not in self.memo:
             self.memo[h] = self.fn(*args, **kwds)
         else:
-            log(INFO, "Use checkpoint value.")
+            log(LogLevel.INFO, "Use checkpoint value.")
         return self.memo[h]
 
     def has_cache(self, *args, **kwds):
@@ -67,6 +69,6 @@ class MemoizeMutable:
         try:
             self.memo = pickle.load(open(filename, "rb"))
         except IOError:
-            log(WARNING, "Warning: Checkpoint file '%s' not found." % filename)
+            log(LogLevel.WARNING, "Warning: Checkpoint file '%s' not found." % filename)
         except ValueError:
-            log(WARNING, "Error: Checkpoint file '%s' is invalid." % filename)
+            log(LogLevel.WARNING, "Error: Checkpoint file '%s' is invalid." % filename)

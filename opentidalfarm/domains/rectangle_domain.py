@@ -1,5 +1,7 @@
 import os.path
 import dolfin
+from dolfin import *
+from dolfin_adjoint import *
 from .domain import Domain
 
 
@@ -23,7 +25,7 @@ class RectangularDomain(Domain):
 
     def __init__(self, x0, y0, x1, y1, nx, ny):
         #: A :class:`dolfin.Mesh` containing the mesh.
-        mpi_comm = dolfin.mpi_comm_world()
+        mpi_comm = MPI.comm_world
         self.mesh = dolfin.RectangleMesh(mpi_comm, dolfin.Point(x0, y0),
                 dolfin.Point(x1, y1), nx, ny)
 

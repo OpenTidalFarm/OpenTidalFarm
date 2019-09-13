@@ -1,6 +1,7 @@
 import os.path
 
 from dolfin import *
+from dolfin.cpp.log import log
 from dolfin_adjoint import *
 
 from .solver import Solver
@@ -247,7 +248,7 @@ class CoupledSWSolver(Solver):
 
         # Initialise solver settings
         if type(self.problem) == SWProblem:
-            log(INFO, "Solve a transient shallow water problem")
+            log(LogLevel.INFO, "Solve a transient shallow water problem")
 
             theta = Constant(problem_params.theta)
             dt = Constant(problem_params.dt)
@@ -258,7 +259,7 @@ class CoupledSWSolver(Solver):
             include_time_term = True
 
         elif type(self.problem) == MultiSteadySWProblem:
-            log(INFO, "Solve a multi steady-state shallow water problem")
+            log(LogLevel.INFO, "Solve a multi steady-state shallow water problem")
 
             theta = Constant(1)
             dt = Constant(problem_params.dt)
@@ -271,7 +272,7 @@ class CoupledSWSolver(Solver):
             include_time_term = False
 
         elif type(self.problem) == SteadySWProblem:
-            log(INFO, "Solve a steady-state shallow water problem")
+            log(LogLevel.INFO, "Solve a steady-state shallow water problem")
 
             theta = Constant(1.)
             dt = Constant(1.)
@@ -385,13 +386,13 @@ class CoupledSWSolver(Solver):
         if not farm:
             tf = Constant(0)
         elif type(farm.friction_function) == list:
-            tf = farm.friction_function[0].copy(deepcopy=True,
-                    name="turbine_friction", annotate=annotate)
+            tf = farm.friction_function[0].copy(deepcopy=True)#,
+                    #name="turbine_friction", annotate=annotate)
             tf.assign(theta*farm.friction_function[1]+(1.-float(theta))*\
                       farm.friction_function[0], annotate=annotate)
         else:
-            tf = farm.friction_function.copy(deepcopy=True,
-                                             name="turbine_friction", annotate=annotate)
+            tf = farm.friction_function.copy(deepcopy=True)#,
+                                             #name="turbine_friction", annotate=annotate)
         # FIXME: FEniCS fails on assembling the below form for u_mid = 0, even
         # though it is differentiable. Even this potential fix does not help:
         #norm_u_mid = conditional(inner(u_mid, u_mid)**0.5 < DOLFIN_EPS, Constant(0),
@@ -464,7 +465,7 @@ class CoupledSWSolver(Solver):
         if solver_params.dump_period > 0:
             writer = StateWriter(solver=self)
             if type(self.problem) == SWProblem:
-                log(INFO, "Writing state to disk...")
+                log(LogLevel.INFO, "Writing state to disk...")
                 writer.write(state)
 
         result = {"time": float(t),
@@ -476,8 +477,8 @@ class CoupledSWSolver(Solver):
         solver_params.callback(result)
         yield(result)
 
-        log(INFO, "Start of time loop")
-        adjointer.time.start(t)
+        log(LogLevel.INFO, "Start of time loop")
+        # adjointer.time.start(t)
         timestep = 0
         while not self._finished(t, finish_time):
             # Update timestep
@@ -503,21 +504,21 @@ class CoupledSWSolver(Solver):
 
             # Set the initial guess for the solve
             if cache_forward_state and float(t) in self.state_cache:
-                log(INFO, "Read initial guess from cache for t=%f." % t)
+                log(LogLevel.INFO, "Read initial guess from cache for t=%f." % t)
                 # Load initial guess for solver from cache
                 state_new.assign(self.state_cache[float(t)], annotate=False)
 
             elif not include_time_term:
-                log(INFO, "Set the initial guess for the nonlinear solver to the initial condition.")
+                log(LogLevel.INFO, "Set the initial guess for the nonlinear solver to the initial condition.")
                 # Reset the initial guess after each timestep
                 ic = problem_params.initial_condition
                 state_new.assign(ic, annotate=False)
 
             # Solve non-linear system with a Newton solver
             if self.problem._is_transient:
-                log(INFO, "Solve shallow water equations at time %s" % float(t))
+                log(LogLevel.INFO, "Solve shallow water equations at time %s" % float(t))
             else:
-                log(INFO, "Solve shallow water equations.")
+                log(LogLevel.INFO, "Solve shallow water equations.")
 
             solve(F == 0, state_new, bcs=strong_bcs,
                   solver_parameters=solver_params.dolfin_solver,
@@ -529,14 +530,14 @@ class CoupledSWSolver(Solver):
 
             if cache_forward_state:
                 # Save state for initial guess cache
-                log(INFO, "Cache solution t=%f as next initial guess." % t)
+                log(LogLevel.INFO, "Cache solution t=%f as next initial guess." % t)
                 if float(t) not in self.state_cache:
                     self.state_cache[float(t)] = Function(self.function_space)
                 self.state_cache[float(t)].assign(state_new, annotate=False)
 
             if (solver_params.dump_period > 0 and
                 timestep % solver_params.dump_period == 0):
-                log(INFO, "Write state to disk...")
+                log(LogLevel.INFO, "Write state to disk...")
                 writer.write(state)
 
             # Return the results
@@ -550,8 +551,8 @@ class CoupledSWSolver(Solver):
             yield(result)
 
             # Increase the adjoint timestep
-            adj_inc_timestep(time=float(t), finished=self._finished(t,
-                finish_time))
+            # adj_inc_timestep(time=float(t), finished=self._finished(t,
+            #     finish_time))
 
 
         # If we're outputting the individual turbine power
@@ -560,4 +561,4 @@ class CoupledSWSolver(Solver):
             and self.parameters.output_turbine_power)):
             self.parameters.output_writer.individual_turbine_power(self)
 
-        log(INFO, "End of time loop.")
+        log(LogLevel.INFO, "End of time loop.")

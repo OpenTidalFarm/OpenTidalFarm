@@ -1,6 +1,11 @@
-from dolfin import Timer, log, parameters, INFO
-from dolfin_adjoint import Functional, ReducedFunctional
-from dolfin_adjoint import compute_gradient, enlisting, adj_reset
+# from dolfin import Timer, log, parameters, INFO
+from dolfin import Timer, parameters
+from dolfin.cpp.log import log
+# from dolfin_adjoint import Functional, ReducedFunctional
+from dolfin_adjoint import ReducedFunctional
+# from dolfin_adjoint import compute_gradient, enlisting, adj_reset
+from dolfin_adjoint import compute_gradient
+from pyadjoint.enlisting import Enlist as enlisting
 from .solvers import Solver
 from .functionals import TimeIntegrator, PrototypeFunctional
 
@@ -55,13 +60,14 @@ class FenicsReducedFunctional(ReducedFunctional):
     def evaluate(self, annotate=True):
         """ Computes the functional value by running the forward model. """
 
-        log(INFO, 'Start evaluation of j')
+        log(LogLevel.INFO, 'Start evaluation of j')
         timer = Timer("j evaluation")
 
         farm = self.solver.problem.parameters.tidal_farm
 
         # Configure dolfin-adjoint
-        adj_reset()
+        #  adj_reset()
+        set_working_tape(Tape())
         parameters["adjoint"]["record_all"] = True
 
         # Solve the shallow water system and integrate the functional of
@@ -79,8 +85,8 @@ class FenicsReducedFunctional(ReducedFunctional):
 
         timer.stop()
 
-        log(INFO, 'Runtime: %f s.' % timer.elapsed()[0])
-        log(INFO, 'j = %e.' % float(j))
+        log(LogLevel.INFO, 'Runtime: %f s.' % timer.elapsed()[0])
+        log(LogLevel.INFO, 'j = %e.' % float(j))
 
         return j
 
@@ -113,7 +119,7 @@ class FenicsReducedFunctional(ReducedFunctional):
         """ Computes the first derivative of the functional with respect to its
         controls by solving the adjoint equations. """
 
-        log(INFO, 'Start evaluation of dj')
+        log(LogLevel.INFO, 'Start evaluation of dj')
         timer = Timer("dj evaluation")
 
         if not hasattr(self, "time_integrator"):
@@ -122,6 +128,6 @@ class FenicsReducedFunctional(ReducedFunctional):
         dj = compute_gradient(self.functional, self.controls, forget=forget, **kwargs)
         parameters["adjoint"]["stop_annotating"] = False
 
-        log(INFO, "Runtime: " + str(timer.stop()) + " s")
+        log(LogLevel.INFO, "Runtime: " + str(timer.stop()) + " s")
 
         return enlisting.enlist(dj)

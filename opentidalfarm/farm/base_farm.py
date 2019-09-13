@@ -89,7 +89,7 @@ class BaseFarm(object):
         """
 
         if self._turbine_specification.smeared:
-            return self.friction_function.vector().array()
+            return self.friction_function.vector()
 
         else:
             m = []

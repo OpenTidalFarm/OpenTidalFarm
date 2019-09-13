@@ -1,6 +1,7 @@
+from dolfin import *
+from dolfin.cpp.log import log
 from .base_turbine import BaseTurbine
 from .controls import Controls
-from dolfin import *
 
 class ThrustTurbine(BaseTurbine):
     """ Create a turbine that is modelled as a bump of bottom friction.
@@ -43,9 +44,9 @@ class ThrustTurbine(BaseTurbine):
         # the simulation but may give unexpected results if the choice isn't
         # understood.
         if self.swept_diameter != self.diameter:
-            log(INFO, 'Warning - swept_diameter and plan_diameter are not equal')
+            log(LogLevel.INFO, 'Warning - swept_diameter and plan_diameter are not equal')
         if self.friction != 1.0:
-            log(INFO, 'Warning - for accurate parametrisation friction should \
+            log(LogLevel.INFO, 'Warning - for accurate parametrisation friction should \
                        be set to 1')
 
         swept_area = pi * (swept_diameter/2)**2

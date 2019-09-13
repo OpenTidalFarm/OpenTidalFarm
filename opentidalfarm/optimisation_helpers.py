@@ -1,7 +1,9 @@
 import os.path
 import numpy
 import dolfin
-from dolfin import Constant, log, INFO
+# from dolfin import Constant, log, INFO
+from dolfin import *
+from dolfin.cpp.log import log
 from .helpers import function_eval
 from dolfin_adjoint import InequalityConstraint, EqualityConstraint
 
@@ -62,7 +64,7 @@ class DomainRestrictionConstraints(InequalityConstraint):
         feasible_area_grad = (dolfin.Function(fs),
                               dolfin.Function(fs))
         t = dolfin.TestFunction(fs)
-        log(INFO, "Solving for gradient of feasible area")
+        log(LogLevel.INFO, "Solving for gradient of feasible area")
         for i in range(2):
             form = dolfin.inner(feasible_area_grad[i], t) * dolfin.dx - dolfin.inner(feasible_area.dx(i), t) * dolfin.dx
             if dolfin.NonlinearVariationalSolver.default_parameters().has_parameter("linear_solver"):
@@ -86,7 +88,7 @@ class DomainRestrictionConstraints(InequalityConstraint):
         else:
             m_pos = m
 
-        for i in range(len(m_pos) / 2):
+        for i in range(int(len(m_pos) / 2)):
             x = m_pos[2 * i]
             y = m_pos[2 * i + 1]
             try:
@@ -97,7 +99,7 @@ class DomainRestrictionConstraints(InequalityConstraint):
 
         arr = -numpy.array(ieqcons)
         if any(arr <= 0):
-          log(INFO, "Domain restriction inequality constraints (should be >= 0): %s" % arr)
+          log(LogLevel.INFO, "Domain restriction inequality constraints (should be >= 0): %s" % arr)
         return arr
 
     def jacobian(self, m):
@@ -109,7 +111,7 @@ class DomainRestrictionConstraints(InequalityConstraint):
         else:
             m_pos = m
 
-        for i in range(len(m_pos) / 2):
+        for i in range(int(len(m_pos) / 2)):
             x = m_pos[2 * i]
             y = m_pos[2 * i + 1]
             primes = numpy.zeros(len(m))
@@ -152,7 +154,7 @@ def get_distance_function(config, domains):
     bc = dolfin.DirichletBC(V, 0.0, boundary)
 
     # Solve the diffusion problem with a constant source term
-    log(INFO, "Solving diffusion problem to identify feasible area ...")
+    log(LogLevel.INFO, "Solving diffusion problem to identify feasible area ...")
     a = dolfin.inner(dolfin.grad(d), dolfin.grad(v)) * dolfin.dx
     L = dolfin.inner(s, v) * dolfin.dx
     dolfin.solve(a == L, sol, bc)
@@ -220,10 +222,10 @@ class MinimumDistanceConstraints(InequalityConstraint):
             feasible.
 
         """
-        dolfin.log(dolfin.PROGRESS, "Calculating minimum distance constraints.")
+        log(LogLevel.PROGRESS, "Calculating minimum distance constraints.")
         inequality_constraints = []
-        for i in range(len(m)/2):
-            for j in range(len(m)/2):
+        for i in range(int(len(m)/2)):
+            for j in range(int(len(m)/2)):
                 if i <= j:
                     continue
                 inequality_constraints.append(self._sl2norm([m[2*i]-m[2*j],
@@ -232,7 +234,7 @@ class MinimumDistanceConstraints(InequalityConstraint):
 
         inequality_constraints = numpy.array(inequality_constraints)
         if any(inequality_constraints <= 0):
-            dolfin.log(dolfin.WARNING,
+            log(LogLevel.WARNING,
                        "Minimum distance inequality constraints (should all "
                        "be > 0): %s" % inequality_constraints)
         return inequality_constraints
@@ -250,12 +252,12 @@ class MinimumDistanceConstraints(InequalityConstraint):
             respect to each input parameter m.
 
         """
-        dolfin.log(dolfin.PROGRESS, "Calculating the jacobian of minimum "
+        log(LogLevel.PROGRESS, "Calculating the jacobian of minimum "
                    "distance constraints function.")
         inequality_constraints = []
 
-        for i in range(len(m)/2):
-            for j in range(len(m)/2):
+        for i in range(int(len(m)/2)):
+            for j in range(int(len(m)/2)):
                 if i <= j:
                     continue
 
@@ -359,15 +361,15 @@ class MinimumDistanceConstraintsLargeArrays(InequalityConstraint):
             feasible.
 
         """
-        dolfin.log(dolfin.PROGRESS, "Calculating minimum distance constraints.")
+        log(LogLevel.PROGRESS, "Calculating minimum distance constraints.")
 
         if self._controls.position and self._controls.friction:
             friction_length = len(m)/3
             m = m[friction_length:]
 
         value = 0
-        for i in range(len(m)/2):
-            for j in range(len(m)/2):
+        for i in range(int(len(m)/2)):
+            for j in range(int(len(m)/2)):
                 if i <= j:
                     continue
                 dist_sq = self._sl2norm([m[2*i]-m[2*j],
@@ -375,7 +377,7 @@ class MinimumDistanceConstraintsLargeArrays(InequalityConstraint):
                 value += self._penalty(dist_sq)
 
         if value <= 0:
-            dolfin.log(dolfin.WARNING,
+            log(LogLevel.WARNING,
                        "Minimum distance inequality constraints (should all "
                        "be => 0): %s" % value)
         return numpy.array([value])
@@ -393,7 +395,7 @@ class MinimumDistanceConstraintsLargeArrays(InequalityConstraint):
             respect to each input parameter m.
 
         """
-        dolfin.log(dolfin.PROGRESS, "Calculating the jacobian of minimum "
+        log(LogLevel.PROGRESS, "Calculating the jacobian of minimum "
                    "distance constraints function.")
         inequality_constraints = []
 
@@ -405,8 +407,8 @@ class MinimumDistanceConstraintsLargeArrays(InequalityConstraint):
 
         p_ineq_c = numpy.zeros(friction_length + len(m))
 
-        for i in range(len(m)/2):
-            for j in range(len(m)/2):
+        for i in range(int(len(m)/2)):
+            for j in range(int(len(m)/2)):
                 if i <= j:
                     continue
 
@@ -474,14 +476,14 @@ class ConvexPolygonSiteConstraint(InequalityConstraint):
         else:
             m_pos = m
 
-        for i in range(len(m_pos) / 2):
+        for i in range(int(len(m_pos) / 2)):
             pos = numpy.array([m_pos[2 * i], m_pos[2 * i + 1]])
             c = self.b - numpy.dot(self.A, pos)
             ieqcons = ieqcons + list(c)
 
         arr = numpy.array(ieqcons)
         if any(arr < 0):
-          log(INFO, "Convex site position constraints (should be >= 0): %s" % arr)
+          log(LogLevel.INFO, "Convex site position constraints (should be >= 0): %s" % arr)
         return arr
 
     def jacobian(self, m):
@@ -497,7 +499,7 @@ class ConvexPolygonSiteConstraint(InequalityConstraint):
             m_pos = m
             mf_len = 0
 
-        for i in range(len(m_pos) / 2):
+        for i in range(int(len(m_pos) / 2)):
             pos = numpy.array([m_pos[2 * i], m_pos[2 * i + 1]])
             for constraint in range(self.nvertices):
                 d = -self.A[constraint, :]

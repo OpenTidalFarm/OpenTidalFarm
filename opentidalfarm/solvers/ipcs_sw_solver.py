@@ -1,6 +1,7 @@
 import os.path
 
 from dolfin import *
+from dolfin.cpp.log import log
 from dolfin_adjoint import *
 
 from .. import finite_elements
@@ -386,7 +387,7 @@ IPCSSWSolverParameters.")
                "eddy_viscosity": eddy_viscosity,
                "is_final": self._finished(t, finish_time)})
 
-        log(INFO, "Start of time loop")
+        log(LogLevel.INFO, "Start of time loop")
         adjointer.time.start(t)
         timestep = 0
 
@@ -409,11 +410,11 @@ IPCSSWSolverParameters.")
                 f_u.t = Constant(t_theta)
 
             if include_les:
-                log(PROGRESS, "Compute eddy viscosity.")
+                log(LogLevel.PROGRESS, "Compute eddy viscosity.")
                 les.solve()
 
             # Compute tentative velocity step
-            log(PROGRESS, "Solve for tentative velocity.")
+            log(LogLevel.PROGRESS, "Solve for tentative velocity.")
             A_u_tent = assemble(a_u_tent)
             b = assemble(L_u_tent)
             for bc in bcu: bc.apply(A_u_tent, b)
@@ -421,7 +422,7 @@ IPCSSWSolverParameters.")
             solve(A_u_tent, ut.vector(), b)
 
             # Pressure correction
-            log(PROGRESS, "Solve for pressure correction.")
+            log(LogLevel.PROGRESS, "Solve for pressure correction.")
             b = assemble(L_p_corr)
             for bc in bceta: bc.apply(b)
 
@@ -433,7 +434,7 @@ IPCSSWSolverParameters.")
                 solve(A_p_corr, eta1.vector(), b)
 
             # Velocity correction
-            log(PROGRESS, "Solve for velocity update.")
+            log(LogLevel.PROGRESS, "Solve for velocity update.")
             b = assemble(L_u_corr)
             for bc in bcu: bc.apply(b)
 
@@ -457,4 +458,4 @@ IPCSSWSolverParameters.")
         # Reset annotation flag
         parameters["adjoint"]["stop_annotating"] = annotate_orig
 
-        log(INFO, "End of time loop.")
+        log(LogLevel.INFO, "End of time loop.")

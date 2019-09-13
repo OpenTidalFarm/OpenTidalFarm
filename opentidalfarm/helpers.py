@@ -1,9 +1,11 @@
 import random
 import yaml
 import os.path
+import math
 import dolfin
 import numpy
 from dolfin import *
+from dolfin.cpp.log import log
 from dolfin_adjoint import *
 
 
@@ -38,10 +40,20 @@ def get_rank():
 
     :returns: int -- The processor number.
     """
-    rank = MPI.rank(mpi_comm_world())
+    rank = MPI.rank(MPI.comm_world)
 
     return rank
+    
+def convergence_order(errors, base = 2):
 
+    orders = [0.0] * (len(errors)-1)
+    for i in range(len(errors)-1):
+        try:
+            orders[i] = math.log(errors[i]/errors[i+1], base)
+        except ZeroDivisionError:
+            orders[i] = numpy.nan
+
+    return orders
 
 def test_gradient_array(J, dJ, x, seed=0.01, perturbation_direction=None,
                         number_of_tests=5, plot_file=None):
@@ -56,7 +68,7 @@ def test_gradient_array(J, dJ, x, seed=0.01, perturbation_direction=None,
     # We will compute the gradient of the functional with respect to the
     # initial condition, and check its correctness with the Taylor remainder
     # convergence test.
-    log(INFO, "Running Taylor remainder convergence analysis to check the "
+    log(LogLevel.INFO, "Running Taylor remainder convergence analysis to check the "
               "gradient... ")
 
     # First run the problem unperturbed
@@ -86,8 +98,8 @@ def test_gradient_array(J, dJ, x, seed=0.01, perturbation_direction=None,
                    functional_values]
 
     dj = dJ(x, forget=True)
-    log(INFO, "Absolute functional evaluation differences: %s" % no_gradient)
-    log(INFO, "Convergence orders for Taylor remainder without adjoint \
+    log(LogLevel.INFO, "Absolute functional evaluation differences: %s" % no_gradient)
+    log(LogLevel.INFO, "Convergence orders for Taylor remainder without adjoint \
                information (should all be 1): %s" %
                convergence_order(no_gradient))
 
@@ -97,9 +109,9 @@ def test_gradient_array(J, dJ, x, seed=0.01, perturbation_direction=None,
                                                               dj))
         with_gradient.append(remainder)
 
-    log(INFO, "Absolute functional evaluation differences with adjoint: %s" %
+    log(LogLevel.INFO, "Absolute functional evaluation differences with adjoint: %s" %
                with_gradient)
-    log(INFO, "Convergence orders for Taylor remainder with adjoint \
+    log(LogLevel.INFO, "Convergence orders for Taylor remainder with adjoint \
                information (should all be 2): %s" %
                convergence_order(with_gradient))
 
@@ -137,7 +149,7 @@ class StateWriter:
         self.callback = callback
 
     def write(self, state):
-        log(PROGRESS, "Projecting velocity and pressure to CG1 for visualisation")
+        log(LogLevel.PROGRESS, "Projecting velocity and pressure to CG1 for visualisation")
         rhs = assemble(inner(self.v_out, state.split()[0]) * dx)
         solve(self.M_u_out, self.u_out_state.vector(), rhs, "cg", "sor",
               annotate=False)
@@ -216,7 +228,7 @@ def function_eval(func, point):
         val = -numpy.inf
 
     if dolfin.__version__ >= '1.3.0+':
-        maxval = MPI.max(mpi_comm_world(), val)
+        maxval = MPI.max(MPI.comm_world, val)
     else:
         maxval = MPI.max(val)
 
@@ -279,7 +291,7 @@ class OutputWriter(object):
     def individual_turbine_power(self, solver):
         """ Print out the individual turbine's power or save it to file.
         """
-        log(INFO, "Computing individual turbine power extraction contribution.")
+        log(LogLevel.INFO, "Computing individual turbine power extraction contribution.")
         farm = solver.problem.parameters.tidal_farm
         turbine_positions = farm.turbine_positions
         individual_turbine_data = []
