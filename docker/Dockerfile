@@ -7,14 +7,14 @@
 # Authors:
 # Simon Funke <simon@simula.no>
 
-FROM quay.io/dolfinadjoint/dolfin-adjoint:dolfin-adjoint-2017.2.0
+FROM quay.io/dolfinadjoint/pyadjoint:2019.1.0
 MAINTAINER Simon Funke <simon@simula.no>
 
 USER root
 RUN pip install pyyaml && \
     pip install uptide==0.3 && \
     pip install utm && \
-    pip install https://github.com/OpenTidalFarm/OpenTidalFarm/archive/master.zip
+    pip install https://github.com/OpenTidalFarm/OpenTidalFarm/archive/pyadjoint.zip
 RUN git clone https://github.com/OpenTidalFarm/OpenTidalFarm.git
 RUN cd OpenTidalFarm; git submodule init; git submodule update
 
