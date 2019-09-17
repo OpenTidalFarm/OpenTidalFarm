@@ -135,7 +135,7 @@ class ReducedFunctional(ReducedFunctionalPrototype):
         return ReducedFunctionalParameters()
 
 
-    def _compute_gradient(self, m, forget=True):
+    def _compute_gradient(self, m):
         """ Compute the functional gradient for the turbine positions/frictions array """
 
         farm = self.solver.problem.parameters.tidal_farm
@@ -144,7 +144,7 @@ class ReducedFunctional(ReducedFunctionalPrototype):
         if self.last_m is None or numpy.any(m != self.last_m):
             self._compute_functional(m, annotate=True)
 
-        J = self.time_integrator.dolfin_adjoint_functional(self.solver.state)
+        J = self.time_integrator.integrate()
 
         # Output power
         if self.solver.parameters.dump_period > 0:
@@ -159,19 +159,19 @@ class ReducedFunctional(ReducedFunctionalPrototype):
         if farm.turbine_specification.controls.dynamic_friction:
             parameters = []
             for i in range(len(farm._parameters["friction"])):
-                parameters.append(
-                    FunctionControl("turbine_friction_cache_t_%i" % i))
-
+                parameters.append(Control(farm.turbine_cache["turbine_field"]))
         else:
-            parameters = FunctionControl("turbine_friction_cache")
+            parameters = Control(farm.turbine_cache["turbine_field"])
 
-        djdtf = dolfin_adjoint.compute_gradient(J, parameters, forget=forget)
+        rfn = ReducedFunctionalNumpy(J, parameters)
+        djdtf = rfn.derivative() #dolfin_adjoint.compute_gradient(J, parameters)
         # dolfin.parameters["adjoint"]["stop_annotating"] = False
 
         # Decide if we need to apply the chain rule to get the gradient of
         # interest.
         if farm.turbine_specification.smeared:
             # We are looking for the gradient with respect to the friction
+
             dj = dolfin_adjoint.optimization.get_global(djdtf)
 
         else:
@@ -364,11 +364,11 @@ class ReducedFunctional(ReducedFunctionalPrototype):
         else:
             return j*self.scale
 
-    def _dj(self, m, forget, new_optimisation_iteration=True):
+    def _dj(self, m, new_optimisation_iteration=True):
         """ This memoised function returns the gradient of the functional for the parameter choice m. """
         log(LogLevel.INFO, 'Start evaluation of dj')
         timer = Timer("dj evaluation")
-        dj = self._compute_gradient_mem(m, forget)
+        dj = self._compute_gradient_mem(m)
 
         # We assume that the gradient is computed at and only at the beginning
         # of each new optimisation iteration. Hence, this is the right moment
@@ -443,13 +443,13 @@ class ReducedFunctional(ReducedFunctionalPrototype):
                 log(LogLevel.INFO, "Set automatic scaling factor to %e." %
                     self._automatic_scaling_factor)
 
-    def derivative(self, m_array, forget=True, **kwargs):
+    def derivative(self, m_array, **kwargs):
         """ Computes the first derivative of the functional with respect to its
         parameters by solving the adjoint equations. """
 
-        return self._dj(m_array, forget)
+        return self._dj(m_array)
 
-    def derivative_with_check(self, m, seed=0.1, tol=1.8, forget=True):
+    def derivative_with_check(self, m, seed=0.1, tol=1.8):
         ''' This function checks the correctness and returns the gradient of
         the functional for the parameter choice m. '''
 
@@ -466,7 +466,7 @@ class ReducedFunctional(ReducedFunctionalPrototype):
         else:
             log(LogLevel.INFO, "The gradient taylor remainder test passed.")
 
-        return self._dj(m, forget)
+        return self._dj(m)
 
     def mpi_comm(self):
         return MPI.comm_world

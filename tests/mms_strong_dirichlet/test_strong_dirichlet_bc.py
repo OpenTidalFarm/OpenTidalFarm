@@ -4,8 +4,7 @@
 import sys
 import math
 from opentidalfarm import *
-# from dolfin_adjoint import adj_reset
-# from dolfin import log, INFO, ERROR
+from pyadjoint import set_working_tape, Tape
 from dolfin.cpp.log import log
 
 class TestStringDirichletBoundaryConditions(object):

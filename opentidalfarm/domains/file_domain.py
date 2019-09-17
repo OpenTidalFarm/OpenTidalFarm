@@ -1,6 +1,7 @@
 import os.path
-import dolfin
 from .domain import Domain
+from dolfin import *
+from dolfin_adjoint import *
 
 
 class FileDomain(Domain):
@@ -18,8 +19,8 @@ class FileDomain(Domain):
 
     def __init__(self, mesh_file, facet_ids_file=None, cell_ids_file=None):
 
-        #: A :class:`dolfin.Mesh` containing the mesh.
-        self.mesh = dolfin.Mesh(mesh_file)
+        #: A :class:`Mesh` containing the mesh.
+        self.mesh = Mesh(mesh_file)
 
         # Read facet markers
         if facet_ids_file is None:
@@ -31,12 +32,12 @@ class FileDomain(Domain):
             cell_ids_file = (os.path.splitext(mesh_file)[0] +
                             "_physical_region.xml")
 
-        #: A :class:`dolfin.FacetFunction` containing the surface markers.
-        self.facet_ids = dolfin.MeshFunction("size_t", self.mesh, facet_ids_file)
-        #: A :class:`dolfin.Measure` for the facet parts.
-        self._ds = dolfin.Measure('ds')(subdomain_data=self.facet_ids)
+        #: A :class:`FacetFunction` containing the surface markers.
+        self.facet_ids = MeshFunction("size_t", self.mesh, facet_ids_file)
+        #: A :class:`Measure` for the facet parts.
+        self._ds = Measure('ds')(subdomain_data=self.facet_ids)
 
-        #: A :class:`dolfin.CellFunction` containing the area markers.
-        self.cell_ids = dolfin.MeshFunction("size_t", self.mesh, cell_ids_file)
-        #: A :class:`dolfin.Measure` for the cell subdomains.
-        self._dx = dolfin.Measure("dx")(subdomain_data=self.cell_ids)
+        #: A :class:`CellFunction` containing the area markers.
+        self.cell_ids = MeshFunction("size_t", self.mesh, cell_ids_file)
+        #: A :class:`Measure` for the cell subdomains.
+        self._dx = Measure("dx")(subdomain_data=self.cell_ids)

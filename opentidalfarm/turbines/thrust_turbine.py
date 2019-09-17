@@ -1,5 +1,6 @@
 from dolfin import *
 from dolfin.cpp.log import log
+from ufl import tanh
 from .base_turbine import BaseTurbine
 from .controls import Controls
 

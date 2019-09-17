@@ -26,20 +26,20 @@ class RectangularDomain(Domain):
     def __init__(self, x0, y0, x1, y1, nx, ny):
         #: A :class:`dolfin.Mesh` containing the mesh.
         mpi_comm = MPI.comm_world
-        self.mesh = dolfin.RectangleMesh(mpi_comm, dolfin.Point(x0, y0),
-                dolfin.Point(x1, y1), nx, ny)
+        self.mesh = RectangleMesh(mpi_comm, Point(x0, y0),
+                Point(x1, y1), nx, ny)
 
-        class Left(dolfin.SubDomain):
+        class Left(SubDomain):
             def inside(self, x, on_boundary):
-                return on_boundary and dolfin.near(x[0], x0)
+                return on_boundary and near(x[0], x0)
 
-        class Right(dolfin.SubDomain):
+        class Right(SubDomain):
             def inside(self, x, on_boundary):
-                return on_boundary and dolfin.near(x[0], x1)
+                return on_boundary and near(x[0], x1)
 
-        class Sides(dolfin.SubDomain):
+        class Sides(SubDomain):
             def inside(self, x, on_boundary):
-                return on_boundary and (dolfin.near(x[1], y0) or dolfin.near(x[1], y1))
+                return on_boundary and (near(x[1], y0) or near(x[1], y1))
 
         # Initialize sub-domain instances
         left = Left()
@@ -47,17 +47,17 @@ class RectangularDomain(Domain):
         sides = Sides()
 
         # Create facet markers
-        #: A :class:`dolfin.MeshFunction` containing the surface markers.
-        self.facet_ids = dolfin.MeshFunction("size_t", self.mesh, self.mesh.topology().dim() - 1)
+        #: A :class:`MeshFunction` containing the surface markers.
+        self.facet_ids = MeshFunction("size_t", self.mesh, self.mesh.topology().dim() - 1)
         self.facet_ids.set_all(0)
         left.mark(self.facet_ids, 1)
         right.mark(self.facet_ids, 2)
         sides.mark(self.facet_ids, 3)
-        #: A :class:`dolfin.Measure` for the facet parts.
-        self._ds = dolfin.Measure('ds')(subdomain_data=self.facet_ids)
+        #: A :class:`Measure` for the facet parts.
+        self._ds = Measure('ds')(subdomain_data=self.facet_ids)
 
-        #: A :class:`dolfin.CellFunction` containing the area markers.
-        self.cell_ids = dolfin.MeshFunction("size_t", self.mesh, self.mesh.topology().dim())
+        #: A :class:`CellFunction` containing the area markers.
+        self.cell_ids = MeshFunction("size_t", self.mesh, self.mesh.topology().dim())
         self.cell_ids.set_all(0)
-        #: A :class:`dolfin.Measure` for the cell cell_ids.
-        self._dx = dolfin.Measure("dx")(subdomain_data=self.cell_ids)
+        #: A :class:`Measure` for the cell cell_ids.
+        self._dx = Measure("dx")(subdomain_data=self.cell_ids)
