@@ -80,8 +80,15 @@ def setup_model(parameters, sin_ic, time_step, finish_time, mesh_x, mesh_y=2):
                                                   mesh_y)
 
     # Initial condition
-    ic_expr = sin_ic(eta0=eta0, k=k, depth=parameters.depth,
-            start_time=parameters.start_time, degree=2)
+    # ic_expr = sin_ic(eta0=eta0, k=k, depth=parameters.depth,
+    #         start_time=parameters.start_time, degree=2)
+    ic_expr = Expression(("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0",
+                            "eta0*cos(k*x[0]-sqrt(g*depth)*k*t)"),
+                            eta0=eta0,
+                            g=parameters.g,
+                            depth=parameters.depth,
+                            t=parameters.start_time,
+                            k=k, degree=2)
     parameters.initial_condition = ic_expr
 
     # Set the analytical boundary conditions

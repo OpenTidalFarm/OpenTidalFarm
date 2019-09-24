@@ -1,4 +1,4 @@
-from dolfin_adjoint import Constant
+from dolfin_adjoint import Constant, Expression
 from .problem import Problem
 from ..helpers import FrozenClass
 from .. import finite_elements
@@ -17,6 +17,7 @@ class DummyProblemParameters(FrozenClass):
 
     # Initial condition
     initial_condition = Constant((1e-16, 0, 0))
+    # initial_condition = Expression(("1e-16", "0", "0"), degree=2)
 
     # Tidal farm
     tidal_farm = None

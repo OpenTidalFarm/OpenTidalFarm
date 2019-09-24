@@ -7,6 +7,7 @@ from opentidalfarm import *
 # from dolfin_adjoint import adj_reset
 # from dolfin import log, INFO, ERROR
 from dolfin.cpp.log import log
+from pyadjoint import set_working_tape, Tape
 
 class TestStringDirichletBoundaryConditions(object):
 
@@ -58,9 +59,16 @@ class TestStringDirichletBoundaryConditions(object):
         problem_params.bcs = bcs
 
         # Initial condition
-        ic_expr = sin_ic(eta0, k,
-                         problem_params.depth,
-                         problem_params.start_time, degree=2)
+        # ic_expr = sin_ic(eta0, k,
+        #                  problem_params.depth,
+        #                  problem_params.start_time, degree=2)
+        ic_expr = Expression(("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0",
+                                "eta0*cos(k*x[0]-sqrt(g*depth)*k*t)"),
+                                eta0=eta0,
+                                g=problem_params.g,
+                                depth=problem_params.depth,
+                                t=problem_params.start_time,
+                                k=k, degree=2)
         problem_params.initial_condition = ic_expr
 
         problem = SWProblem(problem_params)
@@ -98,10 +106,18 @@ class TestStringDirichletBoundaryConditions(object):
         problem_params.bcs = bcs
 
         # Initial condition
-        ic_expr = sin_ic(eta0, k,
-                         problem_params.depth,
-                         problem_params.start_time, degree=2)
+        # ic_expr = sin_ic(eta0, k,
+        #                  problem_params.depth,
+        #                  problem_params.start_time, degree=2)
+        ic_expr = Expression(("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0",
+                                "eta0*cos(k*x[0]-sqrt(g*depth)*k*t)"),
+                                eta0=eta0,
+                                g=problem_params.g,
+                                depth=problem_params.depth,
+                                t=problem_params.start_time,
+                                k=k, degree=2)
         problem_params.initial_condition = ic_expr
+        
 
         problem = SWProblem(problem_params)
 

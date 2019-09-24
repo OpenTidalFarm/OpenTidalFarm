@@ -16,33 +16,41 @@ from opentidalfarm import *
 class TestFrictionOptimisation(object):
 
     def default_problem(self, sin_ic):
-      domain = RectangularDomain(0, 0, 3000, 1000, 20, 10)
+        domain = RectangularDomain(0, 0, 3000, 1000, 20, 10)
 
-      problem_params = DummyProblem.default_parameters()
+        problem_params = DummyProblem.default_parameters()
 
-      # dt is used in the functional only, so we set it here to 1.0
-      problem_params.dt = 1.0
-      problem_params.functional_final_time_only = True
+        # dt is used in the functional only, so we set it here to 1.0
+        problem_params.dt = 1.0
+        problem_params.functional_final_time_only = True
 
-      # Create the turbine specification
-      turbine = BumpTurbine(diameter=1e10, friction=12.0,
+        # Create the turbine specification
+        turbine = BumpTurbine(diameter=1e10, friction=12.0,
                             controls=Controls(friction=True))
 
-      # Create turbine farm
-      farm = Farm(domain, turbine)
-      farm.add_turbine((500.,500.))
-      # The turbine friction is the control variable
-      farm._parameters["friction"] = (
-          12.0*numpy.random.rand(len(farm._parameters["position"])))
+        # Create turbine farm
+        farm = Farm(domain, turbine)
+        farm.add_turbine((500.,500.))
+        # The turbine friction is the control variable
+        farm._parameters["friction"] = (
+            12.0*numpy.random.rand(len(farm._parameters["position"])))
 
-      problem_params.tidal_farm = farm
+        problem_params.tidal_farm = farm
 
-      k = pi/3000.
-      problem_params.initial_condition = sin_ic(2.0, k, 50., 0.0, degree=2)
-      problem_params.domain = domain
-      problem_params.finite_element = finite_elements.p1dgp2
-      problem = DummyProblem(problem_params)
-      return problem
+        k = pi/3000.
+        #problem_params.initial_condition = sin_ic(2.0, k, 50., 0.0, degree=2)
+        ic_expr = Expression(("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0",
+                                "eta0*cos(k*x[0]-sqrt(g*depth)*k*t)"),
+                                eta0=2.0,
+                                g=9.81,
+                                depth=50.,
+                                t=0.0,
+                                k=k, degree=2)
+        problem_params.initial_condition = ic_expr
+        problem_params.domain = domain
+        problem_params.finite_element = finite_elements.p1dgp2
+        problem = DummyProblem(problem_params)
+        return problem
 
     def test_optimisation_recovers_optimal_friction(self, sin_ic):
 

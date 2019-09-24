@@ -14,7 +14,7 @@ from dolfin.cpp.log import log
 
 def BumpInitialCondition(x0, y0, x1, y1):
 
-    class BumpExpr(Expression):
+    class BumpExpr(UserExpression):
         '''This class implements a initial condition with a bump velocity profile.
            With that we know that the optimal turbine location must be in the center of the domain. '''
 

@@ -3,6 +3,7 @@ from opentidalfarm import *
 # from dolfin_adjoint import adj_reset
 # from dolfin import log, INFO, ERROR
 from dolfin.cpp.log import log
+from pyadjoint import set_working_tape, Tape
 
 
 class TestFlatherBoundaryConditionsWithViscosity(object):
@@ -75,9 +76,17 @@ class TestFlatherBoundaryConditionsWithViscosity(object):
         bcs.add_bc("u", facet_id=3, bctype="free_slip")
 
         # Initial condition
-        ic_expr = sin_ic(eta0, k,
-                         linear_problem_params.depth,
-                         linear_problem_params.start_time, degree=2)
+        # ic_expr = sin_ic(eta0, k,
+        #                  linear_problem_params.depth,
+        #                  linear_problem_params.start_time, degree=2)
+        # linear_problem_params.initial_condition = ic_expr
+        ic_expr = Expression(("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0",
+                                "eta0*cos(k*x[0]-sqrt(g*depth)*k*t)"),
+                                eta0=eta0,
+                                g=linear_problem_params.g,
+                                depth=linear_problem_params.depth,
+                                t=linear_problem_params.start_time,
+                                k=k, degree=2)
         linear_problem_params.initial_condition = ic_expr
 
         return self.error(linear_problem_params, eta0, k)

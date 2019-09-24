@@ -33,7 +33,7 @@ class DummySolver(Solver):
         self.A = (1.0 + turbine_field) * inner(v, u) * dx
         self.A += inner(q, h) * dx
 
-        self.tf = turbine_field.copy(deepcopy=True, name="turbine_friction", annotate=annotate)
+        self.tf = turbine_field.copy(deepcopy=True)#, name="turbine_friction", annotate=annotate)
 
         self.annotate = annotate
 
@@ -53,7 +53,9 @@ class DummySolver(Solver):
 
         # Load initial condition
         # Projection is necessary to obtain 2nd order convergence
-        ic = project(problem_params.initial_condition, W)
+        problem_params.initial_condition = Expression(("1e-16", "0", "0"), degree=2)
+        # ic = project(problem_params.initial_condition, W)
+        ic = interpolate(problem_params.initial_condition, W)
 
         # Define functions
         state = Function(W, name="Current_state")  # solution of the next timestep
@@ -69,7 +71,7 @@ class DummySolver(Solver):
                "state": state,
                "is_final": False})
 
-        adjointer.time.start(0.0)
+        # adjointer.time.start(0.0)
         tmpstate = Function(state.function_space(), name="tmp_state")
         rhs = action(self.M, state)
         # Solve the mini model
@@ -79,7 +81,7 @@ class DummySolver(Solver):
         state.assign(tmpstate, annotate=self.annotate)
 
         # Bump timestep to shut up libadjoint.
-        adj_inc_timestep(time=float(self.problem.parameters.dt), finished=True)
+        # adj_inc_timestep(time=float(self.problem.parameters.dt), finished=True)
 
         yield({"time": self.problem.parameters.dt,
                "u": state[0],

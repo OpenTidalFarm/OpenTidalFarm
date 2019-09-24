@@ -1,11 +1,13 @@
 import pytest
+from dolfin_adjoint import UserExpression
 from opentidalfarm import *
 
 @pytest.fixture
 def sin_ic():
-    class SinusoidalExpr(Expression):
+    class SinusoidalExpr(UserExpression):
         '''An Expression class for a sinusoidal initial condition.'''
-        def __init__(self, eta0, k, depth, start_time, degree):
+        def __init__(self, eta0, k, depth, start_time, **kwargs):
+            UserExpression.__init__(self, kwargs)
             self.eta0 = eta0
             self.k = k
             self.depth = depth

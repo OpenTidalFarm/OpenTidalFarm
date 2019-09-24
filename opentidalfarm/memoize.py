@@ -2,6 +2,7 @@ import os
 import signal
 import pickle
 # from dolfin import log, INFO, WARNING
+from dolfin import *
 from dolfin.cpp.log import log
 from .helpers import cpu0only
 

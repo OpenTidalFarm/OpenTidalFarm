@@ -8,6 +8,7 @@
 from opentidalfarm import *
 # from dolfin import log, INFO, ERROR
 from dolfin.cpp.log import log
+from pyadjoint import set_working_tape, Tape
 
 class TestTurbineDerivatives(object):
     def default_farm(self, domain):
@@ -85,6 +86,14 @@ class TestTurbineDerivatives(object):
         problem_params.initial_condition = sin_ic(eta0, k,
                                              problem_params.depth,
                                              problem_params.start_time, degree=2)
+        # ic_expr = Expression(("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0",
+        #                         "eta0*cos(k*x[0]-sqrt(g*depth)*k*t)"),
+        #                         eta0=eta0,
+        #                         g=problem_params.g,
+        #                         depth=problem_params.depth,
+        #                         t=problem_params.start_time,
+        #                         k=k, degree=2)
+        # problem_params.initial_condition = ic_expr
         problem_params.tidal_farm = farm
         problem = SWProblem(problem_params)
 
