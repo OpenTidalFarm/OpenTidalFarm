@@ -164,6 +164,9 @@ class ReducedFunctional(ReducedFunctionalPrototype):
 
         else:
             parameters = Control(farm.turbine_cache["turbine_field"])
+        
+        print(parameters, type(parameters))
+        print(J, type(J))
 
         rfn = ReducedFunctionalNumPy(J, parameters)
         djdtf = rfn.derivative()
@@ -173,7 +176,41 @@ class ReducedFunctional(ReducedFunctionalPrototype):
         if farm.turbine_specification.smeared:
             # We are looking for the gradient with respect to the friction
             
-            dj = dolfin_adjoint.optimization.get_global(djdtf)
+            # dj = dolfin_adjoint.optimization.get_global(djdtf)
+            if not isinstance(djdtf, (list, tuple)):
+                djdtf = [djdtf]
+
+            m_global = []
+            for m in djdtf:
+
+                # Parameters of type float
+                if m is None or type(m) == float:
+                    m_global.append(m)
+
+                elif hasattr(m, "tolist"):
+                    m_global += m.tolist()
+
+                # Control of type Function
+                elif hasattr(m, "vector") or hasattr(m, "gather"):
+                    if not hasattr(m, "gather"):
+                        m_v = m.vector()
+                    else:
+                        m_v = m
+                    m_a = gather(m_v)
+
+                    m_global += m_a.tolist()
+
+                # Parameters of type Constant
+                elif hasattr(m, "value_size"):
+                    a = numpy.zeros(m.value_size())
+                    p = numpy.zeros(m.value_size())
+                    m.eval(a, p)
+                    m_global += a.tolist()
+
+                else:
+                    raise TypeError('Unknown control type %s.' % str(type(m)))
+
+            dj = numpy.array(m_global, dtype='d')
 
         else:
             # Let J be the functional, m the parameter and u the solution of the
@@ -188,7 +225,8 @@ class ReducedFunctional(ReducedFunctionalPrototype):
                 # Compute the derivatives with respect to the turbine friction
                 for tfd in farm.turbine_cache["turbine_derivative_friction"]:
                     farm.update()
-                    dj.append(djdtf.vector().inner(tfd.vector()))
+                    # dj.append(djdtf.vector().inner(tfd.vector()))
+                    dj.append(numpy.inner(djdtf, tfd.vector()))
 
             elif farm.turbine_specification.controls.dynamic_friction:
                 # Compute the derivatives with respect to the turbine friction
@@ -196,7 +234,8 @@ class ReducedFunctional(ReducedFunctionalPrototype):
                                     farm.turbine_cache["turbine_derivative_friction"]):
                     for tfd in t:
                         farm.update()
-                        dj.append(djdtf_arr.vector().inner(tfd.vector()))
+                        # dj.append(djdtf_arr.vector().inner(tfd.vector()))
+                        dj.append(numpy.inner(djdtf_arr, tfd.vector()))
 
             if (farm.turbine_specification.controls.position):
                 if (farm.turbine_specification.controls.dynamic_friction):
@@ -209,7 +248,7 @@ class ReducedFunctional(ReducedFunctionalPrototype):
                             dj_t = 0
                             for t in range(n_time_steps):
                                 tfd_t = turb_deriv_pos[t][n][var]
-                                dj_t += djdtf_arr.vector().inner(tfd_t.vector())
+                                dj_t += numpy.inner(djdtf_arr, tfd_t.vector())
                             dj.append(dj_t)
 
                 else:
