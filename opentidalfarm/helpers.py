@@ -97,7 +97,7 @@ def test_gradient_array(J, dJ, x, seed=0.01, perturbation_direction=None,
     no_gradient = [abs(perturbed_j - j_direct) for perturbed_j in
                    functional_values]
 
-    dj = dJ(x)
+    dj = dJ(x, forget=True)
     log(LogLevel.INFO, "Absolute functional evaluation differences: %s" % no_gradient)
     log(LogLevel.INFO, "Convergence orders for Taylor remainder without adjoint \
                information (should all be 1): %s" %
