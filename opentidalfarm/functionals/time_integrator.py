@@ -30,7 +30,7 @@ class TimeIntegrator(object):
             return self.vals[-1]
 
         # FIXME: Don't assume constant timesteps
-        dt = self.times[1]-self.times[0]
+        dt = self.times[1]-float(self.times[0])
 
         # Compute quadrature weights
         w = [1]*len(self.times)
