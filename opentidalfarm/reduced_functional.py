@@ -160,7 +160,7 @@ class ReducedFunctional(ReducedFunctionalPrototype):
         if farm.turbine_specification.controls.dynamic_friction:
             parameters = []
             for i in range(len(farm._parameters["friction"])):
-                parameters.append(Control(farm.turbine_cache["turbine_field"]))
+                parameters.append(Control(farm.turbine_cache["turbine_field"][i]))
 
         else:
             parameters = Control(farm.turbine_cache["turbine_field"])

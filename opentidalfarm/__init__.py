@@ -30,7 +30,7 @@ from .turbine_function import *
 from dolfin import *
 from dolfin import parameters
 from dolfin_adjoint import minimize, maximize, Function, solve, Control, \
-                           Constant
+                           Constant, Expression, UserExpression
 
 parameters["form_compiler"]["representation"] = "uflacs"
 
