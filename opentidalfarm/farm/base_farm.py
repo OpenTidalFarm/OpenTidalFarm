@@ -127,7 +127,7 @@ class BaseFarm(object):
     def _ad_to_list(m):
         m_v = []
         m_v += numpy.reshape(m, -1).tolist()
-        return numpy.asarray(m_v)
+        return list(numpy.asarray(m_v))
 
     def add_turbine(self, coordinates):
         """Add a turbine to the farm at the given coordinates.
