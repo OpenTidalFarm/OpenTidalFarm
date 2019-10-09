@@ -308,8 +308,7 @@ class CoupledSWSolver(Solver):
 
         # Load initial condition (or initial guess for stady problems)
         # Projection is necessary to obtain 2nd order convergence
-        # ic = project(problem_params.initial_condition, self.function_space)
-        ic = interpolate(problem_params.initial_condition, self.function_space)
+        ic = project(problem_params.initial_condition, self.function_space)
         state.assign(ic, annotate=False)
 
         # Split mixed functions
