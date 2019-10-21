@@ -52,10 +52,7 @@ class DummySolver(Solver):
         W = FunctionSpace(mesh, MixedElement(element))
 
         # Load initial condition
-        # Projection is necessary to obtain 2nd order convergence
-        problem_params.initial_condition = Expression(("1e-16", "0", "0"), degree=2)
-        # ic = project(problem_params.initial_condition, W)
-        ic = interpolate(problem_params.initial_condition, W)
+        ic = project(problem_params.initial_condition, W)
 
         # Define functions
         state = Function(W, name="Current_state")  # solution of the next timestep

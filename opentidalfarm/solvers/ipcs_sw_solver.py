@@ -172,11 +172,6 @@ IPCSSWSolverParameters.")
         self.problem = problem
         self.parameters = parameters
 
-        # If cache_for_nonlinear_initial_guess is true, then we store all
-        # intermediate state variables in this dictionary to be used for the
-        # next solve
-        self.state_cache = {}
-
         self.mesh = problem.parameters.domain.mesh
         ele_u, ele_eta = self.problem.parameters.finite_element()
         self.V = FunctionSpace(self.mesh, ele_u)

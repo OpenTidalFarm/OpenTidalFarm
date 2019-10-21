@@ -169,11 +169,6 @@ class CoupledSWSolver(Solver):
         self.problem = problem
         self.parameters = solver_params
 
-        # If cache_for_nonlinear_initial_guess is true, then we store all
-        # intermediate state variables in this dictionary to be used for the
-        # next solve
-        self.state_cache = {}
-
         self.state = None
 
         self.mesh = problem.parameters.domain.mesh
@@ -502,18 +497,6 @@ class CoupledSWSolver(Solver):
                 else:
                     tf.assign(farm.friction_function)
 
-            # Set the initial guess for the solve
-            if cache_forward_state and float(t) in self.state_cache:
-                log(LogLevel.INFO, "Read initial guess from cache for t=%f." % t)
-                # Load initial guess for solver from cache
-                state_new.assign(self.state_cache[float(t)], annotate=False)
-
-            elif not include_time_term:
-                log(LogLevel.INFO, "Set the initial guess for the nonlinear solver to the initial condition.")
-                # Reset the initial guess after each timestep
-                ic = problem_params.initial_condition
-                state_new.assign(ic, annotate=False)
-
             # Solve non-linear system with a Newton solver
             if self.problem._is_transient:
                 log(LogLevel.INFO, "Solve shallow water equations at time %s" % float(t))
@@ -527,13 +510,6 @@ class CoupledSWSolver(Solver):
 
             # After the timestep solve, update state
             state.assign(state_new)
-
-            if cache_forward_state:
-                # Save state for initial guess cache
-                log(LogLevel.INFO, "Cache solution t=%f as next initial guess." % t)
-                if float(t) not in self.state_cache:
-                    self.state_cache[float(t)] = Function(self.function_space)
-                self.state_cache[float(t)].assign(state_new, annotate=False)
 
             if (solver_params.dump_period > 0 and
                 timestep % solver_params.dump_period == 0):
