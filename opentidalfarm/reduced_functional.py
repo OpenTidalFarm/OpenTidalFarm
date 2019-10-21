@@ -145,7 +145,18 @@ class ReducedFunctional(ReducedFunctionalPrototype):
         if self.last_m is None or numpy.any(m != self.last_m):
             self._compute_functional(m, annotate=True)
 
+        # Force annotation to be enabled.
+        from pyadjoint.tape import _stop_annotating
+        prev_sa = _stop_annotating
+        while _stop_annotating > 0:
+            from pyadjoint.tape import _stop_annotating
+            continue_annotation()
         J = self.time_integrator.integrate()
+
+        # Reset back to (potentially) disabled annotation
+        while _stop_annotating < prev_sa:
+            pause_annotation()
+            from pyadjoint.tape import _stop_annotating
 
         # Output power
         if self.solver.parameters.dump_period > 0:
@@ -170,6 +181,11 @@ class ReducedFunctional(ReducedFunctionalPrototype):
 
         rfn = ReducedFunctionalNumPy(J, parameters)
         djdtf = rfn.derivative()
+
+        # For list of controls the RFNumPy flattens the array.
+        # OpenTidalFarm does not expect such a flat array, so we reshape.
+        if isinstance(parameters, list):
+            djdtf = djdtf.reshape(len(parameters), -1)
 
         # Decide if we need to apply the chain rule to get the gradient of
         # interest.
@@ -272,7 +288,13 @@ class ReducedFunctional(ReducedFunctionalPrototype):
         farm = self.solver.problem.parameters.tidal_farm
 
         # Configure dolfin-adjoint
-        # adj_reset()
+        # Force annotation to be enabled.
+        from pyadjoint.tape import _stop_annotating
+        prev_sa = _stop_annotating
+        while _stop_annotating > 0:
+            from pyadjoint.tape import _stop_annotating
+            continue_annotation()
+
         set_working_tape(Tape())
         # dolfin.parameters["adjoint"]["record_all"] = True
         self._set_revolve_parameters()
@@ -313,6 +335,10 @@ class ReducedFunctional(ReducedFunctionalPrototype):
             j_file.close()
 
         self.solver.search_iteration += 1
+        # Reset back to (potentially) disabled annotation
+        while _stop_annotating < prev_sa:
+            pause_annotation()
+            from pyadjoint.tape import _stop_annotating
         return j
 
 
@@ -522,3 +548,7 @@ class TurbineFarmControl(object):
 
     def data(self):
         return self.farm.control_array_global
+
+    def assign_numpy(self, dst, src, offset):
+        dst[:] = src[offset:len(self.farm.control_array_global)]
+        return dst, offset + len(self.farm.control_array_global)
