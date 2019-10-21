@@ -21,7 +21,7 @@ class TimeIntegrator(object):
             self.times.append(time)
 
     def integrate(self):
-        """ Integrats the functional with a second order scheme. """
+        """ Integrates the functional with a second order scheme. """
 
         if len(self.vals) == 0:
             raise ValueError("Cannot integrate empty set.")
