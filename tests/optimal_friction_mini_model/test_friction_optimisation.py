@@ -38,15 +38,7 @@ class TestFrictionOptimisation(object):
         problem_params.tidal_farm = farm
 
         k = pi/3000.
-        #problem_params.initial_condition = sin_ic(2.0, k, 50., 0.0, degree=2)
-        ic_expr = Expression(("eta0*sqrt(g/depth)*cos(k*x[0]-sqrt(g*depth)*k*t)", "0",
-                                "eta0*cos(k*x[0]-sqrt(g*depth)*k*t)"),
-                                eta0=2.0,
-                                g=9.81,
-                                depth=50.,
-                                t=0.0,
-                                k=k, degree=2)
-        problem_params.initial_condition = ic_expr
+        problem_params.initial_condition = sin_ic(2.0, k, 50., 0.0, degree=2)
         problem_params.domain = domain
         problem_params.finite_element = finite_elements.p1dgp2
         problem = DummyProblem(problem_params)
@@ -74,7 +66,7 @@ class TestFrictionOptimisation(object):
                                               perturbation_direction=p)
         assert minconv > 1.96
 
-        bounds = [0, 100]
-        maximize(rf, bounds=bounds, method="SLSQP", scale=1e-3)
+        bounds = [Constant(0), Constant(100)]
+        maximize(rf, bounds=bounds, method="SLSQP", scale=1e-3, options = {"disp": True})
 
         assert abs(farm._parameters["friction"][0] - 0.5) < 10**-4

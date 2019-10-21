@@ -57,6 +57,7 @@ class TestDynamicTurbineControl(object):
         problem_params.bcs = bcs
         problem_params.domain = domain
         problem_params.tidal_farm = farm
+        problem_params.theta = 0.5
 
         # Create problem
         problem = SWProblem(problem_params)
