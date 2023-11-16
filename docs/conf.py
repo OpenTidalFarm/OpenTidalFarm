@@ -57,7 +57,7 @@ for mod_name in MOCK_MODULES:
     try:
         importlib.import_module(mod_name)
     except:
-            print "Generating mock module %s." % mod_name
+            print("Generating mock module %s." % mod_name)
             sys.modules[mod_name] = Mock()
 import dolfin
 dolfin.parameters = {}
