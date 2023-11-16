@@ -1,5 +1,5 @@
 sphinx_bootstrap_theme
 scipy
 pyyaml
-git+git://github.com/stephankramer/uptide.git
+git+https://github.com/stephankramer/uptide.git
 utm
